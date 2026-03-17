@@ -50,21 +50,13 @@
             background: var(--accent-color);
             color: white;
         }
-        .demo-controls button.active {
-            background: var(--accent-color);
-            color: white;
-        }
-        .demo-controls button:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
         .demo-info {
             margin-top: 1rem;
             padding: 0.8rem 1rem;
             background: var(--highlight-color);
             border-radius: 6px;
             font-size: 0.92rem;
-            line-height: 1.6;
+            line-height: 1.7;
             min-height: 2.5rem;
         }
         .concept-card {
@@ -78,11 +70,6 @@
             font-weight: 700;
             color: var(--accent-color);
             font-size: 1.05rem;
-            margin-bottom: 0.3rem;
-        }
-        .concept-card .concept-eng {
-            font-size: 0.85rem;
-            color: #a0aec0;
             margin-bottom: 0.5rem;
         }
         .mapping-table {
@@ -104,17 +91,20 @@
         .mapping-table tr:nth-child(even) {
             background: var(--sidebar-bg);
         }
-        .stochastic-example {
+        .stochastic-compare {
             display: flex;
             gap: 2rem;
             align-items: flex-start;
             margin: 1.5rem 0;
             flex-wrap: wrap;
         }
-        .stochastic-example > div {
+        .stochastic-compare > div {
             flex: 1;
-            min-width: 280px;
+            min-width: 260px;
         }
+        #sp-graph { cursor: pointer; display: block; margin: 0 auto; max-width: 100%; }
+        .path-log { font-size: 0.88rem; color: #4a5568; margin-top: 0.5rem; }
+        .path-log span { font-weight: 600; color: var(--accent-color); }
     </style>
 </head>
 <body>
@@ -167,100 +157,117 @@
         <main class="main-content">
             <h1>1.3 马尔可夫决策过程</h1>
 
-            <p>马尔可夫决策过程（Markov Decision Process, MDP）是强化学习的数学基础。但在直接给出它的数学定义之前，让我们先从一个直观的问题出发——一个你在运筹学课上可能见过的经典最短路问题。通过这个例子，我们将自然地引出MDP中的每一个核心概念。</p>
+            <p>马尔可夫决策过程（Markov Decision Process, MDP）是强化学习的数学基础。在直接给出数学定义之前，让我们先从一个直观的问题出发，通过它来逐一建立MDP中的每一个核心概念。</p>
 
-            <!-- ==================== 最短路问题 ==================== -->
-            <h2>从一个最短路问题出发</h2>
+            <!-- ==================== 问题引入 ==================== -->
+            <h2>一个旅行者的路线规划问题</h2>
 
-            <p>假设一位旅行者要从城市 A 出发，最终到达城市 G。途中必须依次经过若干中间城市，每一步只能前进到下一层的城市，不能后退。城市之间的道路长度各不相同，旅行者的目标是找到一条<strong>总路程最短</strong>的路线。</p>
+            <p>一位旅行者要从城市 A 出发，最终到达城市 G。途中必须依次经过若干中间城市，每一步只能前进到下一层的城市，不能后退或跳跃。城市之间的道路距离各不相同，旅行者的目标是找到一条<strong>总路程最短</strong>的路线。</p>
 
-            <p>我们将所有城市按照地理位置分成若干层，旅行者在每一层都需要选择下一步去往哪个城市。这就构成了一个<strong>多阶段决策问题</strong>：每一层是一个决策阶段，每个城市是一种状态，选择下一个城市就是做出一个决策。</p>
+            <p>下面的交互图展示了这个问题的完整网络。<strong>请点击节点来体验决策过程</strong>——你将扮演旅行者，从 A 出发，逐步选择下一个城市，最终到达 G。每次点击一个可到达的城市，就相当于做了一个"动作"。</p>
 
-            <p>下面的交互图展示了这个问题的完整网络结构。你可以点击"逐步求解"按钮，观察动态规划如何从终点向起点逐步计算每个城市的最短剩余路程。</p>
-
-            <!-- 交互式最短路演示 -->
+            <!-- 交互式探索演示 -->
             <div class="demo-container">
-                <div class="demo-title">交互演示：最短路问题的逐步求解</div>
-                <div class="demo-desc">点击"下一步"观察逆向归纳法如何从终点G开始，逐阶段计算每个城市到终点的最短距离。</div>
-                <svg id="sp-graph" width="820" height="420" viewBox="0 0 820 420" style="display:block; margin:0 auto; max-width:100%;"></svg>
+                <div class="demo-title">交互演示：扮演旅行者，从 A 走到 G</div>
+                <div class="demo-desc">点击蓝色高亮的节点选择你的下一步。观察你的路径和累计路程如何变化。</div>
+                <svg id="sp-graph" width="820" height="420" viewBox="0 0 820 420"></svg>
+                <div class="demo-info" id="sp-info">你当前在城市 <strong>A</strong>。点击一个蓝色高亮的节点，选择你要前往的下一个城市。</div>
+                <div class="path-log" id="sp-path">已走路径：<span>A</span> &nbsp;|&nbsp; 累计路程：<span>0</span></div>
                 <div class="demo-controls">
-                    <button id="sp-next" onclick="spNext()">下一步</button>
-                    <button id="sp-reset" onclick="spReset()">重置</button>
-                    <button id="sp-auto" onclick="spAuto()">自动播放</button>
+                    <button onclick="spReset()">重新开始</button>
                 </div>
-                <div class="demo-info" id="sp-info">点击"下一步"开始逆向归纳求解。我们将从终点 G 开始，逐步向起点 A 回溯。</div>
             </div>
 
-            <!-- ==================== 核心概念 ==================== -->
-            <h2>多阶段决策过程的核心概念</h2>
+            <p>通过刚才的体验，你已经直觉地做了一系列事情：观察自己在哪（<strong>状态</strong>），看有哪些城市可以去（<strong>动作</strong>），选择一个城市后移动过去（<strong>状态转移</strong>），并为此付出了一段路程（<strong>奖励/代价</strong>）。这些恰好构成了MDP的核心要素。</p>
 
-            <p>通过上面的最短路问题，我们已经直观地感受了"分阶段做决策"的过程。现在，让我们用这个例子来正式定义多阶段决策过程中的每一个核心概念。这些概念将直接对应到马尔可夫决策过程的数学框架中。</p>
+            <!-- ==================== MDP核心要素 ==================== -->
+            <h2>MDP的核心要素</h2>
 
-            <div class="concept-card">
-                <div class="concept-name">阶段（Stage）</div>
-                <div class="concept-eng">对应MDP中的时间步 Time Step</div>
-                <p>将问题的过程分解为若干个相互联系的<strong>阶段</strong>，以便按一定的次序去求解。在最短路问题中，旅行者从 A 到 G 需要经过6个阶段，用变量 $k = 1, 2, \ldots, 6$ 来标记。</p>
-                <p>在管理科学问题中，阶段通常对应时间的推进：每个月的库存决策、每分钟的调度决策、每个路口的行驶决策等。</p>
-            </div>
+            <p>让我们用这个旅行者问题，逐一定义MDP中的每一个概念。</p>
 
             <div class="concept-card">
-                <div class="concept-name">状态（State）</div>
-                <div class="concept-eng">State, $s_k$</div>
-                <p>状态描述了每个阶段开始时，系统所处的客观条件。在最短路问题中，状态就是旅行者当前所在的城市。例如，第3阶段的状态集合为 $S_3 = \{C_1, C_2, C_3, C_4\}$。</p>
-                <p>状态必须具备一个关键性质——<strong>无后效性</strong>：当前状态一旦确定，未来的演变就不再受更早历史的影响。在最短路中，旅行者到达 $C_2$ 后，从 $C_2$ 到 G 的最短路程只取决于"当前在 $C_2$"，与旅行者是经由 $B_1$ 还是 $B_2$ 到达 $C_2$ 的无关。</p>
+                <div class="concept-name">状态（State）—— 智能体在哪？</div>
+                <p><strong>状态</strong>描述了系统在某个时刻所处的客观情况，它包含了做决策所需的全部信息。在旅行者问题中，状态就是当前所在的城市。</p>
+                <p>所有可能状态的集合称为<strong>状态空间</strong> $\mathcal{S}$。本例中 $\mathcal{S} = \{A, B_1, B_2, C_1, C_2, C_3, C_4, D_1, D_2, D_3, E_1, E_2, E_3, F_1, F_2, G\}$。</p>
+                <p>我们用 $s_t$ 表示在时间步 $t$ 时的状态。旅行者出发时 $s_0 = A$；如果第一步走到了 $B_1$，则 $s_1 = B_1$。</p>
             </div>
 
             <div class="concept-card">
-                <div class="concept-name">决策 / 动作（Action）</div>
-                <div class="concept-eng">Action, $u_k(s_k)$ 或 $a$</div>
-                <p>在某个阶段处于某个状态时，决策者可以做出不同的选择，从而影响下一阶段的状态。在最短路中，决策就是"选择下一个城市"。例如，在第2阶段处于状态 $B_1$ 时，允许的决策集合为 $U_2(B_1) = \{C_1, C_2, C_3\}$。</p>
-                <p>注意：<strong>可选的决策通常依赖于当前状态</strong>。从 $B_1$ 可以到 $C_1, C_2, C_3$，但从 $B_2$ 只能到 $C_2, C_3, C_4$。这在管理科学问题中非常普遍——可用的资源、当前的约束条件都会限制你能做的选择。</p>
+                <div class="concept-name">动作（Action）—— 智能体能做什么？</div>
+                <p><strong>动作</strong>是智能体在某个状态下可以做出的选择。在旅行者问题中，动作就是"选择前往哪个城市"。</p>
+                <p>在状态 $s$ 下可选动作的集合记为 $\mathcal{A}(s)$。注意，<strong>可选动作取决于当前状态</strong>。例如：</p>
+                <ul style="margin: 0.5rem 0 0 1.5rem;">
+                    <li>在 $B_1$：$\mathcal{A}(B_1) = \{C_1, C_2, C_3\}$，有3个选择</li>
+                    <li>在 $B_2$：$\mathcal{A}(B_2) = \{C_2, C_3, C_4\}$，也有3个选择，但候选城市不同</li>
+                    <li>在 $F_1$：$\mathcal{A}(F_1) = \{G\}$，只有1个选择</li>
+                </ul>
+                <p style="margin-top:0.5rem;">这在管理科学中非常普遍：可用的资源、当前的约束都会限制你能做的选择。仓库空间已满时就无法进货，车辆已被派出时就无法再分配。</p>
             </div>
 
             <div class="concept-card">
-                <div class="concept-name">状态转移（State Transition）</div>
-                <div class="concept-eng">Transition, $s_{k+1} = T_k(s_k, u_k)$</div>
-                <p>状态转移描述了"在当前状态 $s_k$ 下做出决策 $u_k$ 后，系统转移到下一个状态 $s_{k+1}$"的过程。在最短路中，状态转移是确定性的：从 $B_1$ 选择去 $C_2$，就一定到达 $C_2$，即 $s_3 = T_2(B_1, C_2) = C_2$。</p>
-                <p>但在很多现实问题中，状态转移是<strong>随机的</strong>——我们稍后会讨论这一点，这正是MDP区别于确定性动态规划的关键所在。</p>
+                <div class="concept-name">状态转移（Transition）—— 做了动作之后会怎样？</div>
+                <p><strong>状态转移</strong>描述了"在状态 $s$ 下执行动作 $a$ 后，系统进入下一个状态 $s'$"的过程。</p>
+                <p>在旅行者问题中，转移是<strong>确定性</strong>的：从 $B_1$ 选择去 $C_2$，就一定到达 $C_2$。但在很多现实问题中，转移是<strong>随机</strong>的——我们稍后会详细讨论这一点。</p>
+                <p>我们用<strong>转移概率</strong>来统一描述这两种情形：$P(s' \mid s, a)$ 表示在状态 $s$ 执行动作 $a$ 后，到达状态 $s'$ 的概率。确定性情形只是随机情形的特例——概率为1。</p>
             </div>
 
             <div class="concept-card">
-                <div class="concept-name">阶段收益 / 即时奖励（Immediate Reward）</div>
-                <div class="concept-eng">Reward, $r_k(s_k, u_k)$</div>
-                <p>每做一次决策，都会产生一个即时的效果。在最短路中，这个效果就是两个城市之间的路程（代价）。例如从 $A$ 到 $B_1$ 的代价为 $r_1(A, B_1) = 5$。</p>
-                <p>整个过程的总效果就是各阶段收益之和：$V = \sum_{k=1}^{n} r_k(s_k, u_k)$。在最短路中我们要最小化总路程，在其他问题中可能要最大化总利润。</p>
+                <div class="concept-name">奖励（Reward）—— 这个动作好不好？</div>
+                <p><strong>奖励</strong> $R(s, a)$ 是智能体在状态 $s$ 执行动作 $a$ 后获得的即时反馈，用于衡量这一步决策的好坏。</p>
+                <p>在旅行者问题中，因为我们要<strong>最小化</strong>总路程，所以可以把路程取负作为奖励。例如 $A \to B_1$ 的路程为5，则奖励为 $R(A, B_1) = -5$。路程越短，奖励越大（负得越少）。</p>
+                <p>更一般地，在不同的管理问题中：奖励可以是利润（最大化）、成本（最小化，取负）、服务质量评分、客户等待时间等。奖励函数的设计是将管理问题转化为MDP的关键一步。</p>
             </div>
 
             <div class="concept-card">
-                <div class="concept-name">策略（Policy）</div>
-                <div class="concept-eng">Policy, $\pi$</div>
-                <p>策略是一套完整的决策方案：它规定了在每个阶段、每个可能的状态下应该做什么决策。在最短路中，一个策略就是一个完整的路线规划，例如 $\{A \to B_1, B_1 \to C_2, C_2 \to D_1, D_1 \to E_2, E_2 \to F_2, F_2 \to G\}$。</p>
-                <p>我们的目标是从所有可能的策略中，找到使总效果最优的那个——<strong>最优策略</strong>。</p>
+                <div class="concept-name">折扣因子（Discount Factor）—— 未来的奖励值多少？</div>
+                <p><strong>折扣因子</strong> $\gamma \in [0, 1]$ 衡量未来奖励相对于当前奖励的重要程度。智能体的目标是最大化<strong>累计折扣奖励</strong>：</p>
+                <div class="formula-block">
+                    $$G_t = R_{t} + \gamma R_{t+1} + \gamma^2 R_{t+2} + \cdots = \sum_{k=0}^{\infty} \gamma^k R_{t+k}$$
+                </div>
+                <p>当 $\gamma = 1$ 时，未来奖励与当前一样重要——旅行者问题就是这种情形，每段路程同等重要。当 $\gamma < 1$ 时，越远的未来越不重要。</p>
+                <p>这在管理学中有天然的类比：一元钱今天的价值高于一年后的一元钱，这就是金融中的"时间价值"。$\gamma = 0.99$ 意味着一年后的一元钱今天只值0.99元。</p>
+            </div>
+
+            <!-- ==================== 策略与值函数 ==================== -->
+            <h2>策略与值函数</h2>
+
+            <p>有了状态、动作、转移和奖励，我们还需要两个概念来描述"如何决策"以及"决策的好坏"。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">策略（Policy）—— 在每种情况下怎么做？</div>
+                <p><strong>策略</strong> $\pi$ 是一套完整的行为规则：它规定了在每个状态下应该选择什么动作。</p>
+                <p>策略可以是<strong>确定性</strong>的：$\pi(s) = a$，在状态 $s$ 下一定选择动作 $a$。例如一个旅行者的策略可以是：</p>
+                <p style="text-align:center; color:var(--accent-color); font-weight:600;">$\pi(A) = B_1, \; \pi(B_1) = C_2, \; \pi(C_2) = D_1, \; \pi(D_1) = E_2, \; \pi(E_2) = F_2, \; \pi(F_2) = G$</p>
+                <p>策略也可以是<strong>随机性</strong>的：$\pi(a \mid s)$ 表示在状态 $s$ 下选择动作 $a$ 的概率。例如在 $B_1$ 时，以60%概率去 $C_2$、以40%概率去 $C_1$。</p>
+                <p>我们的目标是找到<strong>最优策略</strong> $\pi^*$——使累计折扣奖励期望最大化的策略。</p>
             </div>
 
             <div class="concept-card">
-                <div class="concept-name">值函数（Value Function）</div>
-                <div class="concept-eng">Value Function, $f_k(s_k)$</div>
-                <p>值函数 $f_k(s_k)$ 表示从第 $k$ 阶段的状态 $s_k$ 出发，采用最优策略所能获得的最优总效果。在最短路中，$f_k(s_k)$ 就是"从城市 $s_k$ 到终点 G 的最短距离"。</p>
-                <p>在上面的交互演示中，你已经看到了值函数是如何通过逆向归纳逐步计算出来的。这正是动态规划的核心思想，也是后续所有强化学习算法的出发点。</p>
+                <div class="concept-name">值函数（Value Function）—— 一个状态有多好？</div>
+                <p><strong>状态值函数</strong> $V^\pi(s)$ 表示从状态 $s$ 出发，遵循策略 $\pi$ 所能获得的累计折扣奖励的期望：</p>
+                <div class="formula-block">
+                    $$V^\pi(s) = \mathbb{E}_\pi \left[ \sum_{k=0}^{\infty} \gamma^k R_{t+k} \;\middle|\; s_t = s \right]$$
+                </div>
+                <p>在旅行者问题中（$\gamma=1$，取路程为负奖励），$V^\pi(s)$ 就是"从城市 $s$ 出发，按策略 $\pi$ 走到终点的总路程的负值"。值越大（负得越少），说明从这个城市出发的路程越短、这个位置越"好"。</p>
+                <p><strong>最优值函数</strong> $V^*(s) = \max_\pi V^\pi(s)$ 则是所有策略中最好的。找到了 $V^*$，也就找到了最优策略。具体如何求解，我们将在下一节（1.4）中介绍。</p>
             </div>
 
             <!-- ==================== 引入随机性 ==================== -->
-            <h2>当道路变得不确定：从确定性到随机性</h2>
+            <h2>当转移变得不确定</h2>
 
-            <p>在上面的最短路问题中，旅行者选择从 $B_1$ 去 $C_2$，就一定能到达 $C_2$——状态转移是完全确定的。但在现实的管理科学问题中，决策的结果往往带有不确定性：</p>
+            <p>在旅行者问题中，选择从 $B_1$ 去 $C_2$，就一定到达 $C_2$。但现实的管理决策往往没有这么确定：</p>
 
             <ul style="margin: 1rem 0 1rem 2rem;">
-                <li><strong>物流配送</strong>：安排卡车走某条路线，但可能因交通拥堵而延误，实际到达时间是随机的。</li>
-                <li><strong>库存管理</strong>：决定补货1000件，但下个月的需求是随机的，可能卖出800件也可能卖出1200件。</li>
-                <li><strong>网约车调度</strong>：派车去某个区域接单，但乘客是否会取消、途中是否有新订单，都是不确定的。</li>
+                <li><strong>物流配送</strong>：安排卡车走某条路线，可能因拥堵而延误，实际到达时间是随机的</li>
+                <li><strong>库存管理</strong>：决定补货1000件，但下月需求可能是800件也可能是1200件</li>
+                <li><strong>网约车调度</strong>：派车去某区域，但乘客是否取消、途中是否有新订单都不确定</li>
             </ul>
 
-            <p>让我们修改最短路的例子来体现这种随机性。假设由于天气和路况的影响，旅行者选择前往某个城市时，有一定概率会被"分流"到相邻的城市：</p>
+            <p>让我们修改旅行者问题来体现这种随机性：由于天气和路况影响，选择前往某个城市时，有一定概率被"分流"到相邻城市。</p>
 
             <div class="demo-container">
                 <div class="demo-title">对比：确定性转移 vs. 随机性转移</div>
-                <div class="stochastic-example">
+                <div class="stochastic-compare">
                     <div>
                         <h3 style="margin-top:0">确定性转移</h3>
                         <p>从 $B_1$ 选择去 $C_2$：</p>
@@ -273,7 +280,7 @@
                             <circle cx="195" cy="60" r="22" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
                             <text x="195" y="65" text-anchor="middle" font-size="14" font-weight="700" fill="#1a365d">C₂</text>
                         </svg>
-                        <p style="font-size:0.9rem; color:#718096;">选择去 $C_2$，就一定到达 $C_2$。</p>
+                        <p style="font-size:0.9rem; color:#718096;">选择去 $C_2$，就一定到达 $C_2$。<br>$P(C_2 \mid B_1, C_2) = 1$</p>
                     </div>
                     <div>
                         <h3 style="margin-top:0">随机性转移</h3>
@@ -283,9 +290,9 @@
                             <marker id="ah3" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#d69e2e"/></marker></defs>
                             <circle cx="50" cy="80" r="22" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
                             <text x="50" y="85" text-anchor="middle" font-size="14" font-weight="700" fill="#1a365d">B₁</text>
-                            <line x1="72" y1="72" x2="178" y2="45" stroke="#2b6cb0" stroke-width="2" marker-end="url(#ah2)"/>
-                            <text x="115" y="45" text-anchor="middle" font-size="12" fill="#2b6cb0" font-weight="600">20%</text>
-                            <circle cx="205" cy="40" r="22" fill="#ebf4ff" stroke="#d69e2e" stroke-width="2" stroke-dasharray="4,3"/>
+                            <line x1="72" y1="72" x2="178" y2="45" stroke="#d69e2e" stroke-width="1.5" marker-end="url(#ah3)" stroke-dasharray="4,3"/>
+                            <text x="115" y="45" text-anchor="middle" font-size="12" fill="#d69e2e" font-weight="600">20%</text>
+                            <circle cx="205" cy="40" r="22" fill="#fffbeb" stroke="#d69e2e" stroke-width="2" stroke-dasharray="4,3"/>
                             <text x="205" y="45" text-anchor="middle" font-size="14" font-weight="700" fill="#1a365d">C₁</text>
                             <line x1="72" y1="80" x2="178" y2="80" stroke="#2b6cb0" stroke-width="2.5" marker-end="url(#ah2)"/>
                             <text x="125" y="100" text-anchor="middle" font-size="12" fill="#2b6cb0" font-weight="600">70%</text>
@@ -293,35 +300,27 @@
                             <text x="205" y="85" text-anchor="middle" font-size="14" font-weight="700" fill="#1a365d">C₂</text>
                             <line x1="72" y1="88" x2="178" y2="115" stroke="#d69e2e" stroke-width="1.5" marker-end="url(#ah3)" stroke-dasharray="4,3"/>
                             <text x="115" y="118" text-anchor="middle" font-size="12" fill="#d69e2e" font-weight="600">10%</text>
-                            <circle cx="205" cy="120" r="22" fill="#ebf4ff" stroke="#d69e2e" stroke-width="2" stroke-dasharray="4,3"/>
+                            <circle cx="205" cy="120" r="22" fill="#fffbeb" stroke="#d69e2e" stroke-width="2" stroke-dasharray="4,3"/>
                             <text x="205" y="125" text-anchor="middle" font-size="14" font-weight="700" fill="#1a365d">C₃</text>
                         </svg>
-                        <p style="font-size:0.9rem; color:#718096;">选择去 $C_2$，70%概率到达 $C_2$，20%概率被分流到 $C_1$，10%概率被分流到 $C_3$。</p>
+                        <p style="font-size:0.9rem; color:#718096;">选择去 $C_2$，70%到 $C_2$，20%分流到 $C_1$，10%分流到 $C_3$。<br>$P(C_2 \mid B_1, C_2) = 0.7$</p>
                     </div>
                 </div>
-                <p style="font-size:0.92rem;">一旦状态转移带有随机性，我们就不能简单地计算"走这条路的距离是多少"，而是需要考虑<strong>期望代价</strong>——在所有可能的随机结果上取平均。这就是从确定性动态规划走向<strong>马尔可夫决策过程</strong>的关键一步。</p>
+                <p style="font-size:0.92rem;">一旦转移带有随机性，每个动作的结果就不再确定。我们不能精确计算"走这条路的总距离"，而只能计算<strong>期望代价</strong>——在所有可能结果上取平均。这正是MDP区别于确定性优化问题的本质。</p>
             </div>
 
-            <p>这个"随机性"的引入带来了一个根本性的变化：状态转移不再是一个确定的函数 $s_{k+1} = T_k(s_k, u_k)$，而是由一个<strong>概率分布</strong>描述：</p>
+            <!-- ==================== 正式定义 ==================== -->
+            <h2>MDP的正式定义</h2>
 
-            <div class="formula-block">
-                $$P(s_{k+1} \mid s_k, u_k) = \text{在状态 } s_k \text{ 下采取决策 } u_k \text{ 后，转移到状态 } s_{k+1} \text{ 的概率}$$
-            </div>
-
-            <p>当我们把确定性的状态转移替换为概率性的状态转移，同时保留"无后效性"（即马尔可夫性质），我们就得到了<strong>马尔可夫决策过程</strong>。</p>
-
-            <!-- ==================== MDP正式定义 ==================== -->
-            <h2>马尔可夫决策过程的正式定义</h2>
-
-            <p>一个马尔可夫决策过程由以下五个要素构成，通常记为 $\langle \mathcal{S}, \mathcal{A}, P, R, \gamma \rangle$：</p>
+            <p>综合上面的讨论，一个马尔可夫决策过程由以下五元组定义：$\langle \mathcal{S}, \mathcal{A}, P, R, \gamma \rangle$。</p>
 
             <table class="mapping-table">
                 <thead>
                     <tr>
-                        <th style="width:15%">符号</th>
-                        <th style="width:20%">名称</th>
+                        <th style="width:12%">符号</th>
+                        <th style="width:18%">名称</th>
                         <th>含义</th>
-                        <th style="width:25%">最短路中的对应</th>
+                        <th style="width:25%">旅行者问题中的对应</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -329,124 +328,64 @@
                         <td>$\mathcal{S}$</td>
                         <td>状态空间</td>
                         <td>所有可能状态的集合</td>
-                        <td>所有城市 $\{A, B_1, B_2, \ldots, G\}$</td>
+                        <td>所有城市 $\{A, B_1, \ldots, G\}$</td>
                     </tr>
                     <tr>
                         <td>$\mathcal{A}$</td>
                         <td>动作空间</td>
-                        <td>所有可能动作的集合；$\mathcal{A}(s)$ 为状态 $s$ 下可选的动作</td>
+                        <td>所有可能动作的集合；$\mathcal{A}(s)$ 为状态 $s$ 下的可选动作</td>
                         <td>可前往的下一层城市</td>
                     </tr>
                     <tr>
                         <td>$P$</td>
-                        <td>状态转移概率</td>
-                        <td>$P(s' \mid s, a)$：在状态 $s$ 执行动作 $a$ 后转移到 $s'$ 的概率</td>
-                        <td>确定性情形下概率为1；随机情形下为各种可能的概率分布</td>
+                        <td>转移概率</td>
+                        <td>$P(s' \mid s, a)$：在状态 $s$ 执行动作 $a$ 后到达 $s'$ 的概率</td>
+                        <td>确定性：概率为1；随机性：各种可能结果的概率分布</td>
                     </tr>
                     <tr>
                         <td>$R$</td>
                         <td>奖励函数</td>
-                        <td>$R(s, a)$ 或 $R(s, a, s')$：执行动作获得的即时奖励</td>
-                        <td>两城市间的路程（取负即为奖励）</td>
+                        <td>$R(s, a)$：在状态 $s$ 执行动作 $a$ 获得的即时奖励</td>
+                        <td>路程取负（路越短，奖励越大）</td>
                     </tr>
                     <tr>
                         <td>$\gamma$</td>
                         <td>折扣因子</td>
-                        <td>$\gamma \in [0, 1]$，衡量未来奖励相对于当前奖励的重要程度</td>
-                        <td>最短路中 $\gamma = 1$（每段路程同等重要）</td>
+                        <td>$\gamma \in [0,1]$，未来奖励的衰减率</td>
+                        <td>$\gamma = 1$（每段路程同等重要）</td>
                     </tr>
                 </tbody>
             </table>
 
-            <p>在引入折扣因子后，智能体的目标是找到一个策略 $\pi$，使得<strong>累计折扣奖励的期望</strong>最大化：</p>
+            <p>智能体的目标是找到一个策略 $\pi^*$，使得从任意状态出发的累计折扣奖励期望最大化：</p>
 
             <div class="formula-block">
-                $$\max_\pi \; \mathbb{E}_\pi \left[ \sum_{t=0}^{\infty} \gamma^t \, R(s_t, a_t) \right]$$
-            </div>
-
-            <p>其中 $\gamma$ 的作用是让智能体更重视近期的奖励。当 $\gamma = 1$ 时，未来的奖励与当前一样重要，这就退化为我们最短路中的情形。当 $\gamma < 1$ 时，越远的未来越不重要——这在很多管理决策中是合理的，因为未来的收益存在不确定性和时间价值。</p>
-
-            <div class="note">
-                <strong>折扣因子的管理学直觉：</strong>一元钱在今天的价值高于一年后的一元钱，这就是金融中的"时间价值"。折扣因子 $\gamma$ 扮演的正是类似角色：$\gamma = 0.99$ 意味着一年后的一元钱在今天只值0.99元。在无限时间步的问题中，$\gamma < 1$ 还保证了累计奖励的有界性。
+                $$\pi^* = \arg\max_\pi \; \mathbb{E}_\pi \left[ \sum_{t=0}^{\infty} \gamma^t \, R(s_t, a_t) \right]$$
             </div>
 
             <!-- ==================== 马尔可夫性质 ==================== -->
             <h2>马尔可夫性质：未来只取决于现在</h2>
 
-            <p>马尔可夫决策过程之所以叫"马尔可夫"，是因为它要求状态转移满足<strong>马尔可夫性质</strong>（Markov Property），也就是动态规划中所说的"无后效性"：</p>
+            <p>MDP之所以叫"马尔可夫"，是因为它要求转移概率满足<strong>马尔可夫性质</strong>：</p>
 
             <div class="formula-block">
                 $$P(s_{t+1} \mid s_t, a_t, s_{t-1}, a_{t-1}, \ldots, s_0, a_0) = P(s_{t+1} \mid s_t, a_t)$$
             </div>
 
-            <p>用通俗的话说：<strong>给定当前状态和动作，未来的状态只与"现在"有关，与"过去"无关。</strong></p>
+            <p>一句话：<strong>给定当前状态和动作，下一个状态的概率与历史无关。</strong></p>
 
-            <p>回到最短路问题，如果旅行者当前在城市 $D_2$，那么从 $D_2$ 到 $G$ 的最短路程只取决于"当前在 $D_2$"这个事实，而不取决于旅行者是从 $C_1 \to D_2$、$C_2 \to D_2$、$C_3 \to D_2$ 还是 $C_4 \to D_2$ 到达这里的。这正是我们能够使用动态规划的前提条件。</p>
+            <p>回到旅行者问题：如果旅行者当前在城市 $D_2$，那么从 $D_2$ 出发能到达哪些城市、各条路有多长——这些信息只取决于"现在在 $D_2$"，与旅行者是经由 $C_1$、$C_2$、$C_3$ 还是 $C_4$ 到达 $D_2$ 的无关。过去的路径不影响未来的选择和转移，这就是马尔可夫性质。</p>
 
             <div class="note">
-                <strong>实践提示：</strong>在将管理科学问题建模为MDP时，检验马尔可夫性质是否成立非常重要。如果当前状态无法完整描述未来的演变（例如，决策还取决于过去三天的需求历史），那么需要将这些历史信息也纳入状态定义中，以满足马尔可夫性质。我们将在第四章"管理科学问题的建模范式"中详细讨论这一点。
+                <strong>实践提示：</strong>在将管理科学问题建模为MDP时，必须检验马尔可夫性质是否成立。如果当前状态无法完整描述未来的演变——例如调度决策取决于过去三天的需求趋势——那么需要把这些历史信息也纳入状态定义中。我们将在第四章详细讨论如何设计状态空间。
             </div>
 
-            <!-- ==================== 概念对照 ==================== -->
-            <h2>从动态规划到MDP：概念对照</h2>
+            <!-- ==================== 小结 ==================== -->
+            <h2>小结</h2>
 
-            <p>如果你已经学过运筹学中的动态规划，下面这张对照表可以帮助你快速建立两套术语之间的映射：</p>
+            <p>本节通过一个最短路问题，建立了MDP的完整概念体系。我们目前只是定义了问题，还没有讨论如何<strong>求解</strong>它——即如何找到最优策略 $\pi^*$ 和最优值函数 $V^*$。</p>
 
-            <table class="mapping-table">
-                <thead>
-                    <tr>
-                        <th>动态规划术语</th>
-                        <th>MDP / 强化学习术语</th>
-                        <th>核心区别</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>阶段 $k$</td>
-                        <td>时间步 $t$</td>
-                        <td>仅符号不同</td>
-                    </tr>
-                    <tr>
-                        <td>状态变量 $s_k$</td>
-                        <td>状态 $s_t$</td>
-                        <td>含义一致</td>
-                    </tr>
-                    <tr>
-                        <td>决策变量 $u_k$</td>
-                        <td>动作 $a_t$</td>
-                        <td>含义一致</td>
-                    </tr>
-                    <tr>
-                        <td>状态转移方程 $T_k(s_k, u_k)$</td>
-                        <td>转移概率 $P(s' \mid s, a)$</td>
-                        <td>DP通常确定性；MDP允许随机</td>
-                    </tr>
-                    <tr>
-                        <td>阶段收益 $r_k(s_k, u_k)$</td>
-                        <td>即时奖励 $R(s, a)$</td>
-                        <td>含义一致，MDP中常加折扣</td>
-                    </tr>
-                    <tr>
-                        <td>策略 $p_{1,n}$</td>
-                        <td>策略 $\pi$</td>
-                        <td>DP的策略是序列；RL的策略是映射 $s \to a$</td>
-                    </tr>
-                    <tr>
-                        <td>最优值函数 $f_k(s_k)$</td>
-                        <td>最优值函数 $V^*(s)$</td>
-                        <td>含义一致</td>
-                    </tr>
-                    <tr>
-                        <td>最优性原理</td>
-                        <td>贝尔曼最优方程</td>
-                        <td>本质相同，MDP版本包含期望</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <p>可以看到，MDP本质上就是一个<strong>带随机性的多阶段决策过程</strong>。如果你把转移概率退化为确定性（概率为1），把折扣因子设为1，MDP就变成了运筹学中经典的动态规划问题。</p>
-
-            <p>在下一节中，我们将介绍如何<strong>求解</strong>MDP——当我们完全知道转移概率和奖励函数时，可以使用值迭代和策略迭代这两种经典的动态规划算法来找到最优策略。</p>
+            <p>在下一节中，我们将介绍两种经典的求解方法：<strong>值迭代</strong>（Value Iteration）和<strong>策略迭代</strong>（Policy Iteration）。它们的前提是我们完全知道MDP的转移概率 $P$ 和奖励函数 $R$——也就是所谓的"依赖模型"的方法。</p>
 
             <div class="chapter-nav">
                 <a href="../ch01/1.2.html">&larr; 1.2 管理科学中的典型序贯决策场景</a>
@@ -455,10 +394,9 @@
         </main>
     </div>
 
-    <!-- ==================== 最短路交互演示 JS ==================== -->
+    <!-- ==================== 交互探索演示 JS ==================== -->
     <script>
     (function() {
-        // 节点定义：id, 名称, x, y, 阶段
         const nodes = [
             {id:'A',  label:'A',  x:45,  y:200, stage:1},
             {id:'B1', label:'B₁', x:160, y:115, stage:2},
@@ -478,7 +416,6 @@
             {id:'G',  label:'G',  x:775, y:200, stage:7},
         ];
 
-        // 边定义：from, to, weight
         const edges = [
             {from:'A', to:'B1', w:5}, {from:'A', to:'B2', w:3},
             {from:'B1',to:'C1', w:1}, {from:'B1',to:'C2', w:3}, {from:'B1',to:'C3', w:6},
@@ -499,227 +436,160 @@
         const nodeMap = {};
         nodes.forEach(n => nodeMap[n.id] = n);
 
-        // 逆向归纳的求解步骤
-        // 每一步：计算哪些节点的值函数，以及解释文字
-        const solveSteps = [
-            {
-                compute: [{id:'G', f:0, via:null}],
-                text: '终点 G 的值函数为 0（已经到达目的地，无需再走）。'
-            },
-            {
-                compute: [
-                    {id:'F1', f:4, via:'G'},
-                    {id:'F2', f:3, via:'G'},
-                ],
-                text: '第6阶段：F₁ 只能去 G，距离4，故 f(F₁)=4。F₂ 只能去 G，距离3，故 f(F₂)=3。'
-            },
-            {
-                compute: [
-                    {id:'E1', f:7, via:'F1'},
-                    {id:'E2', f:5, via:'F2'},
-                    {id:'E3', f:9, via:'F1'},
-                ],
-                text: '第5阶段：f(E₁) = min(3+4, 5+3) = min(7, 8) = 7，走 F₁。f(E₂) = min(5+4, 2+3) = min(9, 5) = 5，走 F₂。f(E₃) = min(5+4, 6+3) = 9。'
-            },
-            {
-                compute: [
-                    {id:'D1', f:7, via:'E2'},
-                    {id:'D2', f:7, via:'E2'},
-                    {id:'D3', f:8, via:'E2'},
-                ],
-                text: '第4阶段：f(D₁) = min(2+7, 2+5) = 7，走 E₂。f(D₂) = min(1+7, 2+5) = 7，走 E₂。f(D₃) = min(3+5, 3+9) = 8，走 E₂。'
-            },
-            {
-                compute: [
-                    {id:'C1', f:13, via:'D1'},
-                    {id:'C2', f:10, via:'D1'},
-                    {id:'C3', f:10, via:'D2'},
-                    {id:'C4', f:12, via:'D3'},
-                ],
-                text: '第3阶段：f(C₁)=min(6+7, 8+7)=13。f(C₂)=min(3+7, 5+7)=10。f(C₃)=min(3+7, 3+8)=10。f(C₄)=min(8+7, 4+8)=12。'
-            },
-            {
-                compute: [
-                    {id:'B1', f:13, via:'C2'},
-                    {id:'B2', f:17, via:'C3'},
-                ],
-                text: '第2阶段：f(B₁) = min(1+13, 3+10, 6+10) = min(14, 13, 16) = 13，走 C₂。f(B₂) = min(8+10, 7+10, 6+12) = min(18, 17, 18) = 17，走 C₃。'
-            },
-            {
-                compute: [
-                    {id:'A', f:18, via:'B1'},
-                ],
-                text: '第1阶段：f(A) = min(5+13, 3+17) = min(18, 20) = 18，走 B₁。最短路径为 A → B₁ → C₂ → D₁ → E₂ → F₂ → G，总距离 = 18。'
-            }
-        ];
+        // 邻接表
+        const adj = {};
+        edges.forEach(e => {
+            if (!adj[e.from]) adj[e.from] = [];
+            adj[e.from].push({to: e.to, w: e.w});
+        });
 
-        // 最优路径
-        const optPath = ['A','B1','C2','D1','E2','F2','G'];
-
-        let currentStep = -1;
-        let computed = {}; // id -> {f, via}
-        let autoTimer = null;
+        let currentNode = 'A';
+        let pathNodes = ['A'];
+        let totalCost = 0;
+        let finished = false;
 
         const svg = document.getElementById('sp-graph');
         const ns = 'http://www.w3.org/2000/svg';
 
-        function createSVGElement(tag, attrs) {
-            const el = document.createElementNS(ns, tag);
-            for (const [k, v] of Object.entries(attrs)) {
-                el.setAttribute(k, v);
-            }
-            return el;
+        function el(tag, attrs) {
+            const e = document.createElementNS(ns, tag);
+            for (const [k,v] of Object.entries(attrs)) e.setAttribute(k,v);
+            return e;
         }
 
-        function drawGraph() {
+        function getReachable() {
+            return (adj[currentNode] || []).map(e => e.to);
+        }
+
+        function getEdgeWeight(from, to) {
+            const e = edges.find(e => e.from === from && e.to === to);
+            return e ? e.w : 0;
+        }
+
+        function draw() {
             svg.innerHTML = '';
 
-            // 阶段标签背景
+            // 阶段标签
             const stageLabels = ['阶段1','阶段2','阶段3','阶段4','阶段5','阶段6','终点'];
             const stageX = [45, 160, 280, 410, 530, 650, 775];
             stageLabels.forEach((label, i) => {
-                const t = createSVGElement('text', {
-                    x: stageX[i], y: 410, 'text-anchor':'middle',
-                    'font-size':'11', fill:'#a0aec0', 'font-family':'inherit'
-                });
+                const t = el('text', {x:stageX[i], y:410, 'text-anchor':'middle', 'font-size':'11', fill:'#a0aec0', 'font-family':'inherit'});
                 t.textContent = label;
                 svg.appendChild(t);
             });
 
-            // 画边
-            const defs = createSVGElement('defs', {});
-            const marker = createSVGElement('marker', {
-                id:'arrowhead', markerWidth:'8', markerHeight:'6',
-                refX:'7', refY:'3', orient:'auto'
+            // 箭头marker
+            const defs = el('defs', {});
+            ['#cbd5e0','#2b6cb0','#48bb78'].forEach((color, i) => {
+                const m = el('marker', {id:'ah'+i, markerWidth:'8', markerHeight:'6', refX:'7', refY:'3', orient:'auto'});
+                m.appendChild(el('polygon', {points:'0 0, 8 3, 0 6', fill:color}));
+                defs.appendChild(m);
             });
-            marker.appendChild(createSVGElement('polygon', {
-                points:'0 0, 8 3, 0 6', fill:'#cbd5e0'
-            }));
-            defs.appendChild(marker);
-
-            const markerOpt = createSVGElement('marker', {
-                id:'arrowhead-opt', markerWidth:'8', markerHeight:'6',
-                refX:'7', refY:'3', orient:'auto'
-            });
-            markerOpt.appendChild(createSVGElement('polygon', {
-                points:'0 0, 8 3, 0 6', fill:'#e53e3e'
-            }));
-            defs.appendChild(markerOpt);
             svg.appendChild(defs);
 
+            const reachable = getReachable();
+
+            // 画边
             edges.forEach(e => {
                 const n1 = nodeMap[e.from], n2 = nodeMap[e.to];
                 const dx = n2.x - n1.x, dy = n2.y - n1.y;
                 const dist = Math.sqrt(dx*dx + dy*dy);
                 const r = 20;
-                const x1 = n1.x + dx/dist * r, y1 = n1.y + dy/dist * r;
-                const x2 = n2.x - dx/dist * (r+4), y2 = n2.y - dy/dist * (r+4);
+                const x1 = n1.x + dx/dist*r, y1 = n1.y + dy/dist*r;
+                const x2 = n2.x - dx/dist*(r+4), y2 = n2.y - dy/dist*(r+4);
 
-                const isOpt = currentStep >= solveSteps.length - 1 &&
-                    optPath.includes(e.from) && optPath.includes(e.to) &&
-                    optPath.indexOf(e.to) === optPath.indexOf(e.from) + 1;
+                // 判断边是否在已走路径上
+                const pathIdx = pathNodes.indexOf(e.from);
+                const isWalked = pathIdx >= 0 && pathIdx < pathNodes.length - 1 && pathNodes[pathIdx+1] === e.to;
+                // 判断边是否是当前可选
+                const isReachable = e.from === currentNode && reachable.includes(e.to);
 
-                const line = createSVGElement('line', {
-                    x1, y1, x2, y2,
-                    stroke: isOpt ? '#e53e3e' : '#cbd5e0',
-                    'stroke-width': isOpt ? '3' : '1.5',
-                    'marker-end': isOpt ? 'url(#arrowhead-opt)' : 'url(#arrowhead)',
-                    'data-from': e.from, 'data-to': e.to
-                });
+                let stroke = '#e2e8f0', sw = '1.2', marker = 'url(#ah0)';
+                if (isWalked) { stroke = '#48bb78'; sw = '3'; marker = 'url(#ah2)'; }
+                else if (isReachable) { stroke = '#2b6cb0'; sw = '2'; marker = 'url(#ah1)'; }
+
+                const line = el('line', {x1,y1,x2,y2, stroke, 'stroke-width':sw, 'marker-end':marker});
                 svg.appendChild(line);
 
-                // 边权重标签
-                const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
-                const offset = (dy > 30) ? -6 : (dy < -30) ? 6 : -8;
-                const wt = createSVGElement('text', {
-                    x: mx + (dy > 0 ? -10 : 5), y: my + offset,
-                    'text-anchor':'middle', 'font-size':'11',
-                    fill: isOpt ? '#e53e3e' : '#e53e3e',
-                    'font-weight': '600', 'font-family':'inherit'
-                });
+                // 边权重
+                const mx = (x1+x2)/2, my = (y1+y2)/2;
+                const wt = el('text', {x: mx + (dy>0?-10:5), y: my + (dy>30?-6:dy<-30?6:-8), 'text-anchor':'middle', 'font-size':'11', fill: isWalked?'#276749':isReachable?'#e53e3e':'#e53e3e', 'font-weight':'600', 'font-family':'inherit'});
                 wt.textContent = e.w;
                 svg.appendChild(wt);
             });
 
             // 画节点
             nodes.forEach(n => {
-                const isComputed = computed[n.id] !== undefined;
-                const isOnPath = currentStep >= solveSteps.length - 1 && optPath.includes(n.id);
+                const isCurrent = n.id === currentNode;
+                const isWalked = pathNodes.includes(n.id);
+                const isTarget = reachable.includes(n.id);
 
-                const circle = createSVGElement('circle', {
-                    cx: n.x, cy: n.y, r: 20,
-                    fill: isOnPath ? '#fed7d7' : isComputed ? '#ebf4ff' : 'white',
-                    stroke: isOnPath ? '#e53e3e' : isComputed ? '#2b6cb0' : '#a0aec0',
-                    'stroke-width': isOnPath ? '3' : '2'
-                });
-                svg.appendChild(circle);
+                let fill = 'white', stroke = '#cbd5e0', sw = '1.5';
+                if (isCurrent) { fill = '#ebf4ff'; stroke = '#2b6cb0'; sw = '3'; }
+                else if (isWalked) { fill = '#f0fff4'; stroke = '#48bb78'; sw = '2.5'; }
+                else if (isTarget) { fill = '#ebf4ff'; stroke = '#2b6cb0'; sw = '2.5'; }
 
-                const label = createSVGElement('text', {
-                    x: n.x, y: n.y + (isComputed ? -2 : 5),
-                    'text-anchor':'middle', 'font-size': '14',
-                    'font-weight':'700', fill:'#1a365d', 'font-family':'inherit'
-                });
+                const g = el('g', {style: isTarget && !finished ? 'cursor:pointer' : 'cursor:default'});
+
+                const circle = el('circle', {cx:n.x, cy:n.y, r:20, fill, stroke, 'stroke-width':sw});
+                g.appendChild(circle);
+
+                // 可选节点加脉冲动画
+                if (isTarget && !finished) {
+                    const pulse = el('circle', {cx:n.x, cy:n.y, r:20, fill:'none', stroke:'#2b6cb0', 'stroke-width':'2', opacity:'0.6'});
+                    const anim = el('animate', {attributeName:'r', from:'20', to:'30', dur:'1.2s', repeatCount:'indefinite'});
+                    const animOp = el('animate', {attributeName:'opacity', from:'0.6', to:'0', dur:'1.2s', repeatCount:'indefinite'});
+                    pulse.appendChild(anim);
+                    pulse.appendChild(animOp);
+                    g.appendChild(pulse);
+                }
+
+                const label = el('text', {x:n.x, y:n.y+5, 'text-anchor':'middle', 'font-size':'14', 'font-weight':'700', fill:'#1a365d', 'font-family':'inherit', 'pointer-events':'none'});
                 label.textContent = n.label;
-                svg.appendChild(label);
+                g.appendChild(label);
 
-                // 显示值函数
-                if (isComputed) {
-                    const vt = createSVGElement('text', {
-                        x: n.x, y: n.y + 12,
-                        'text-anchor':'middle', 'font-size':'11',
-                        fill: '#2b6cb0', 'font-weight':'600', 'font-family':'inherit'
-                    });
-                    vt.textContent = 'f=' + computed[n.id].f;
-                    svg.appendChild(vt);
+                if (isTarget && !finished) {
+                    g.addEventListener('click', () => moveTo(n.id));
                 }
+
+                svg.appendChild(g);
             });
         }
 
-        function spNext() {
-            if (currentStep >= solveSteps.length - 1) return;
-            currentStep++;
-            const step = solveSteps[currentStep];
-            step.compute.forEach(c => {
-                computed[c.id] = {f: c.f, via: c.via};
-            });
-            document.getElementById('sp-info').innerHTML = `<strong>第${currentStep + 1}步：</strong>${step.text}`;
-            drawGraph();
-            if (currentStep >= solveSteps.length - 1) {
-                document.getElementById('sp-next').disabled = true;
-                document.getElementById('sp-info').innerHTML += '<br><strong style="color:#e53e3e;">红色路径即为最优路径。</strong>';
-                if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+        function moveTo(nodeId) {
+            if (finished) return;
+            const w = getEdgeWeight(currentNode, nodeId);
+            totalCost += w;
+            currentNode = nodeId;
+            pathNodes.push(nodeId);
+
+            if (nodeId === 'G') {
+                finished = true;
+                document.getElementById('sp-info').innerHTML = '你到达了终点 <strong>G</strong>！总路程为 <strong>' + totalCost + '</strong>。最短路程为 <strong>18</strong>（路线 A→B₁→C₂→D₁→E₂→F₂→G）。' + (totalCost === 18 ? ' 恭喜你找到了最优路径！' : ' 试试能否找到更短的路线？点击"重新开始"再试一次。');
+            } else {
+                const reachable = getReachable();
+                const names = reachable.map(id => nodeMap[id].label).join('、');
+                document.getElementById('sp-info').innerHTML = '你到达了 <strong>' + nodeMap[nodeId].label + '</strong>（路程 +' + w + '）。现在可以前往：' + names + '。点击蓝色节点选择下一步。';
             }
+
+            // 更新路径显示
+            const pathStr = pathNodes.map(id => nodeMap[id].label).join(' → ');
+            document.getElementById('sp-path').innerHTML = '已走路径：<span>' + pathStr + '</span> &nbsp;|&nbsp; 累计路程：<span>' + totalCost + '</span>';
+
+            draw();
         }
 
-        function spReset() {
-            currentStep = -1;
-            computed = {};
-            if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
-            document.getElementById('sp-next').disabled = false;
-            document.getElementById('sp-info').textContent = '点击"下一步"开始逆向归纳求解。我们将从终点 G 开始，逐步向起点 A 回溯。';
-            drawGraph();
-        }
+        window.spReset = function() {
+            currentNode = 'A';
+            pathNodes = ['A'];
+            totalCost = 0;
+            finished = false;
+            document.getElementById('sp-info').innerHTML = '你当前在城市 <strong>A</strong>。点击一个蓝色高亮的节点，选择你要前往的下一个城市。';
+            document.getElementById('sp-path').innerHTML = '已走路径：<span>A</span> &nbsp;|&nbsp; 累计路程：<span>0</span>';
+            draw();
+        };
 
-        function spAuto() {
-            if (autoTimer) { clearInterval(autoTimer); autoTimer = null; return; }
-            if (currentStep >= solveSteps.length - 1) spReset();
-            autoTimer = setInterval(() => {
-                if (currentStep >= solveSteps.length - 1) {
-                    clearInterval(autoTimer);
-                    autoTimer = null;
-                    return;
-                }
-                spNext();
-            }, 2000);
-        }
-
-        // 暴露到全局
-        window.spNext = spNext;
-        window.spReset = spReset;
-        window.spAuto = spAuto;
-
-        // 初始绘制
-        drawGraph();
+        draw();
     })();
     </script>
 </body>
