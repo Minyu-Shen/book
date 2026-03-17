@@ -3,12 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>4.3 决策时机与决策频率的建模 - 运筹智能</title>
+    <title>1.3 马尔可夫决策过程 - 运筹智能</title>
     <link rel="stylesheet" href="../../css/style.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
-        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <style>
+        .section-list {
+            list-style: none;
+            padding: 0;
+            margin: 2rem 0;
+        }
+        .section-list li {
+            margin-bottom: 1rem;
+        }
+        .section-list a {
+            display: block;
+            padding: 1.2rem 1.5rem;
+            background: var(--sidebar-bg);
+            border-left: 4px solid var(--accent-color);
+            border-radius: 0 8px 8px 0;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all 0.2s;
+        }
+        .section-list a:hover {
+            background: var(--highlight-color);
+            border-left-color: var(--primary-color);
+        }
+        .section-list .sec-title {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--primary-color);
+        }
+        .section-list .sec-desc {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-top: 0.3rem;
+        }
+    </style>
 </head>
 <body>
     <div class="page-wrapper">
@@ -19,7 +49,7 @@
                 <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
                 <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
                 <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
-                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
+                <li><a href="../ch01/1.3.html" class="active">1.3 马尔可夫决策过程</a></li>
                 <li><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
                 <li><a href="../ch01/1.3.2.html">1.3.2 值函数与贝尔曼方程</a></li>
                 <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
@@ -40,7 +70,7 @@
                 <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
                 <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
                 <li><a href="../ch04/4.2.html">4.2 状态空间、动作空间与奖励函数的设计</a></li>
-                <li><a href="../ch04/4.3.html" class="active">4.3 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch04/4.3.html">4.3 决策时机与决策频率的建模</a></li>
                 <li><a href="../ch04/4.4.html">4.4 从问题特征到网络架构的选择</a></li>
                 <li class="sidebar-chapter">第五章 仿真器搭建</li>
                 <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
@@ -60,13 +90,28 @@
         </aside>
 
         <main class="main-content">
-            <h1>4.3 决策时机与决策频率的建模</h1>
+            <h1>1.3 马尔可夫决策过程</h1>
 
-            <p>（内容待补充）</p>
+            <p>马尔可夫决策过程（Markov Decision Process, MDP）是强化学习的数学基础。它为"在不确定环境中做序贯决策"提供了一套完整的建模框架。本节分为两个部分：</p>
+
+            <ul class="section-list">
+                <li>
+                    <a href="1.3.1.html">
+                        <div class="sec-title">1.3.1 基本概念与定义</div>
+                        <div class="sec-desc">通过最短路问题引入MDP的核心要素：状态、动作、转移、奖励、折扣因子、策略与值函数。从确定性问题过渡到随机性问题，给出MDP的正式定义与马尔可夫性质。</div>
+                    </a>
+                </li>
+                <li>
+                    <a href="1.3.2.html">
+                        <div class="sec-title">1.3.2 值函数与贝尔曼方程</div>
+                        <div class="sec-desc">通过设备维护问题，严格定义状态值函数 V 和动作值函数 Q，推导贝尔曼期望方程，并用数值示例评估不同策略的优劣。</div>
+                    </a>
+                </li>
+            </ul>
 
             <div class="chapter-nav">
-                <a href="../ch04/4.2.html">&larr; 4.2 状态空间、动作空间与奖励函数的设计</a>
-                <a href="../ch04/4.4.html">4.4 从问题特征到网络架构的选择 &rarr;</a>
+                <a href="../ch01/1.2.html">&larr; 1.2 管理科学中的典型序贯决策场景</a>
+                <a href="../ch01/1.3.1.html">1.3.1 基本概念与定义 &rarr;</a>
             </div>
         </main>
     </div>
