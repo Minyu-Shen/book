@@ -26,7 +26,7 @@
         .trans-table {
             width: auto;
             border-collapse: collapse;
-            margin: 1rem 0;
+            margin: 1rem auto;
             font-size: 0.95rem;
         }
         .trans-table th, .trans-table td {
@@ -47,7 +47,7 @@
         }
         .policy-compare > div {
             flex: 1;
-            min-width: 280px;
+            min-width: 260px;
             background: var(--sidebar-bg);
             padding: 1.2rem;
             border-radius: 8px;
@@ -61,17 +61,23 @@
             margin: 1.5rem 0;
             text-align: center;
         }
-        .derivation {
-            background: var(--sidebar-bg);
-            padding: 1.2rem 1.5rem;
-            border-radius: 6px;
-            margin: 1.5rem 0;
+        .demo-container {
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            background: #fafafa;
+            text-align: center;
         }
-        .derivation .step-label {
-            font-weight: 600;
+        .demo-container .demo-title {
+            font-weight: 700;
             color: var(--accent-color);
-            margin-bottom: 0.3rem;
+            margin-bottom: 0.5rem;
+            font-size: 1.05rem;
+            text-align: left;
         }
+        .legend { font-size: 0.85rem; color: #718096; margin-top: 0.8rem; text-align: left; }
+        .legend span { font-weight: 600; }
     </style>
 </head>
 <body>
@@ -126,211 +132,249 @@
         <main class="main-content">
             <h1>1.3.2 值函数与贝尔曼方程</h1>
 
-            <p>在上一小节中，我们建立了MDP五元组 $\langle \mathcal{S}, \mathcal{A}, P, R, \gamma \rangle$ 的概念体系，并初步认识了值函数。本节我们将通过一个完整的随机MDP例子，严格定义值函数，并推导出<strong>贝尔曼期望方程</strong>（Bellman Expectation Equation）——它是评估一个给定策略好坏的核心工具。</p>
+            <p>在1.3.1中，我们初步认识了值函数——它衡量"一个状态有多好"。但那里的定义还停留在直觉层面。本节我们将严格定义状态值函数 $V^\pi$ 和动作值函数 $Q^\pi$，推导出贝尔曼期望方程，然后通过一个网约车司机的例子来验证这些概念。</p>
 
-            <!-- ==================== 设备维护例子 ==================== -->
-            <h2>例子：设备维护决策</h2>
-
-            <p>一家工厂有一台关键设备，设备有三种状态：<strong>良好</strong>（$g$）、<strong>磨损</strong>（$w$）和<strong>故障</strong>（$b$）。工厂管理者每天需要决定对设备采取什么操作。这是一个典型的管理决策问题，我们用MDP来建模。</p>
-
-            <h3>状态空间与动作空间</h3>
-
-            <p>状态空间：$\mathcal{S} = \{g, w, b\}$</p>
-
-            <p>动作空间取决于当前状态：</p>
-            <ul style="margin: 0.5rem 0 1rem 2rem;">
-                <li>设备良好时：$\mathcal{A}(g) = \{\text{运行}, \text{保养}\}$</li>
-                <li>设备磨损时：$\mathcal{A}(w) = \{\text{运行}, \text{保养}\}$</li>
-                <li>设备故障时：$\mathcal{A}(b) = \{\text{维修}\}$（只能维修）</li>
-            </ul>
-
-            <h3>转移概率</h3>
-
-            <p>这里是MDP与确定性问题的关键区别：设备状态的变化是<strong>随机的</strong>。良好的设备运行一天后，有可能保持良好，也有可能变为磨损。完整的转移概率如下：</p>
-
-            <table class="trans-table">
-                <thead>
-                    <tr><th>当前状态</th><th>动作</th><th>$P(\,g\, |\, s, a)$</th><th>$P(\,w\, |\, s, a)$</th><th>$P(\,b\, |\, s, a)$</th></tr>
-                </thead>
-                <tbody>
-                    <tr><td>$g$</td><td>运行</td><td>0.7</td><td>0.3</td><td>0</td></tr>
-                    <tr><td>$g$</td><td>保养</td><td>1.0</td><td>0</td><td>0</td></tr>
-                    <tr><td>$w$</td><td>运行</td><td>0</td><td>0.5</td><td>0.5</td></tr>
-                    <tr><td>$w$</td><td>保养</td><td>1.0</td><td>0</td><td>0</td></tr>
-                    <tr><td>$b$</td><td>维修</td><td>1.0</td><td>0</td><td>0</td></tr>
-                </tbody>
-            </table>
-
-            <p>解读几行关键的转移概率：</p>
-            <ul style="margin: 0.5rem 0 1rem 2rem;">
-                <li>良好设备运行后，70%概率保持良好，30%概率变为磨损</li>
-                <li>磨损设备继续运行，50%概率保持磨损，50%概率发生故障</li>
-                <li>无论何种状态，保养/维修后设备都恢复为良好</li>
-            </ul>
-
-            <h3>奖励函数</h3>
-
-            <table class="trans-table">
-                <thead>
-                    <tr><th>状态</th><th>动作</th><th>奖励 $R(s, a)$</th><th>含义</th></tr>
-                </thead>
-                <tbody>
-                    <tr><td>$g$</td><td>运行</td><td>$+10$</td><td>正常生产收益</td></tr>
-                    <tr><td>$g$</td><td>保养</td><td>$-2$</td><td>停产做保养，付出成本</td></tr>
-                    <tr><td>$w$</td><td>运行</td><td>$+6$</td><td>带病运行，产能下降</td></tr>
-                    <tr><td>$w$</td><td>保养</td><td>$-4$</td><td>磨损状态保养更贵</td></tr>
-                    <tr><td>$b$</td><td>维修</td><td>$-8$</td><td>故障维修代价很高</td></tr>
-                </tbody>
-            </table>
-
-            <p>折扣因子取 $\gamma = 0.9$。现在，这个MDP的所有要素都已完整定义。下面我们用它来严格理解值函数。</p>
-
-            <!-- ==================== 状态值函数 ==================== -->
+            <!-- ==================== 值函数定义 ==================== -->
             <h2>状态值函数 $V^\pi(s)$</h2>
 
             <div class="concept-card">
                 <div class="concept-name">定义：状态值函数</div>
-                <p>给定策略 $\pi$，<strong>状态值函数</strong> $V^\pi(s)$ 定义为从状态 $s$ 出发、遵循策略 $\pi$ 行动所获得的累计折扣奖励的期望：</p>
+                <p>给定策略 $\pi$，<strong>状态值函数</strong> $V^\pi(s)$ 定义为：从状态 $s$ 出发，遵循策略 $\pi$ 行动，所获得的<strong>累计折扣奖励的期望</strong>：</p>
                 <div class="formula-block">
                     $$V^\pi(s) \;=\; \mathbb{E}_\pi\!\left[\, \sum_{k=0}^{\infty} \gamma^k R_{t+k} \;\middle|\; S_t = s \,\right]$$
                 </div>
+                <p>其中 $S_t$ 是时间步 $t$ 的状态随机变量，$R_{t+k}$ 是第 $t+k$ 步获得的即时奖励，$\gamma$ 是折扣因子。期望 $\mathbb{E}_\pi$ 是在策略 $\pi$ 下对所有未来动作和状态转移取的。</p>
             </div>
 
-            <p>让我们把这个期望展开。在时间步 $t$，智能体处于状态 $S_t = s$，按照策略 $\pi$ 选择动作 $A_t \sim \pi(\cdot \mid s)$，获得即时奖励 $R(s, A_t)$，然后转移到下一个状态 $S_{t+1} \sim P(\cdot \mid s, A_t)$。因此：</p>
+            <p>直觉上，$V^\pi(s)$ 回答的是这样一个问题：<strong>如果我现在处于状态 $s$，并且一直按照策略 $\pi$ 行动，长期来看我总共能获得多少回报？</strong></p>
 
-            <div class="formula-block">
-                $$V^\pi(s) = \sum_{a \in \mathcal{A}(s)} \pi(a \mid s) \left[\, R(s, a) \;+\; \gamma \sum_{s' \in \mathcal{S}} P(s' \mid s, a) \; V^\pi(s') \,\right]$$
-            </div>
-
-            <p>这就是<strong>贝尔曼期望方程</strong>（Bellman Expectation Equation）。它的含义非常直观：</p>
-
-            <div class="note">
-                <strong>贝尔曼期望方程的直觉：</strong>一个状态的价值 = 按策略选择各个动作的概率加权下，每个动作带来的【即时奖励 + 折扣后的下一状态的价值】。
-            </div>
-
-            <p>对于<strong>确定性策略</strong> $\pi(s) = a$（在每个状态只选一个动作），方程简化为：</p>
-
-            <div class="formula-block">
-                $$V^\pi(s) = R\big(s, \pi(s)\big) + \gamma \sum_{s' \in \mathcal{S}} P\big(s' \mid s, \pi(s)\big) \; V^\pi(s')$$
-            </div>
-
-            <!-- ==================== 动作值函数 ==================== -->
             <h2>动作值函数 $Q^\pi(s, a)$</h2>
 
             <div class="concept-card">
                 <div class="concept-name">定义：动作值函数</div>
-                <p><strong>动作值函数</strong> $Q^\pi(s, a)$ 衡量的是：在状态 $s$ 下执行动作 $a$，之后再遵循策略 $\pi$ 行动，所获得的累计折扣奖励的期望：</p>
+                <p><strong>动作值函数</strong> $Q^\pi(s, a)$ 衡量的是：在状态 $s$ 下执行<strong>特定动作 $a$</strong>，之后再遵循策略 $\pi$ 行动，所获得的累计折扣奖励的期望：</p>
                 <div class="formula-block">
-                    $$Q^\pi(s, a) \;=\; R(s, a) \;+\; \gamma \sum_{s' \in \mathcal{S}} P(s' \mid s, a) \; V^\pi(s')$$
+                    $$Q^\pi(s, a) \;=\; \mathbb{E}_\pi\!\left[\, \sum_{k=0}^{\infty} \gamma^k R_{t+k} \;\middle|\; S_t = s,\, A_t = a \,\right]$$
                 </div>
             </div>
 
-            <p>$V^\pi$ 和 $Q^\pi$ 之间有一个简洁的关系——$V^\pi$ 是 $Q^\pi$ 在策略 $\pi$ 下的加权平均：</p>
+            <p>$V^\pi$ 和 $Q^\pi$ 的区别在于：$V^\pi(s)$ 按照策略 $\pi$ 选择动作后再评估，而 $Q^\pi(s, a)$ 允许第一步指定动作 $a$（可以不是 $\pi$ 推荐的），之后再按 $\pi$ 行动。两者的关系是：</p>
 
             <div class="formula-block">
                 $$V^\pi(s) = \sum_{a \in \mathcal{A}(s)} \pi(a \mid s) \; Q^\pi(s, a)$$
             </div>
 
-            <p>$Q^\pi(s, a)$ 的意义在于：它可以告诉我们，在状态 $s$ 下，某个动作 $a$ 到底好不好——即使这个动作不是策略 $\pi$ 推荐的。这为后续改进策略提供了关键信息。</p>
+            <p>即 $V^\pi$ 是 $Q^\pi$ 在策略 $\pi$ 下的加权平均。$Q^\pi(s, a)$ 的威力在于：它能告诉我们某个动作是否比策略 $\pi$ 当前推荐的更好——这正是后续改进策略的关键信息。</p>
 
-            <!-- ==================== 数值计算 ==================== -->
-            <h2>数值示例：评估两个不同的策略</h2>
+            <!-- ==================== 贝尔曼方程 ==================== -->
+            <h2>贝尔曼期望方程</h2>
 
-            <p>贝尔曼期望方程不只是一个理论公式——它给出了一组<strong>线性方程</strong>，可以直接求解 $V^\pi$。让我们用设备维护问题来验证。</p>
+            <p>值函数的定义涉及无穷求和，看似难以计算。但通过一步展开，我们可以得到一个优雅的递推关系。</p>
+
+            <p>在时间步 $t$，智能体处于状态 $s$，按策略 $\pi$ 选择动作 $A_t \sim \pi(\cdot \mid s)$，获得即时奖励 $R(s, A_t)$，然后转移到 $S_{t+1} \sim P(\cdot \mid s, A_t)$。将累计奖励拆成"当前一步 + 未来所有步"：</p>
+
+            <div class="formula-block">
+                $$V^\pi(s) = \sum_{a \in \mathcal{A}(s)} \pi(a \mid s) \left[\, R(s, a) \;+\; \gamma \sum_{s' \in \mathcal{S}} P(s' \mid s, a) \; V^\pi(s') \,\right]$$
+            </div>
+
+            <p>这就是<strong>贝尔曼期望方程</strong>（Bellman Expectation Equation）。</p>
+
+            <div class="note">
+                <strong>直觉：</strong>一个状态的长期价值 = 按策略选择每个动作的概率，加权求和【这一步的即时奖励 + 折扣后下一个状态的长期价值】。
+            </div>
+
+            <p>对于<strong>确定性策略</strong> $a = \pi(s)$，求和退化为单项：</p>
+
+            <div class="formula-block">
+                $$V^\pi(s) = R\big(s, \pi(s)\big) + \gamma \sum_{s' \in \mathcal{S}} P\big(s' \mid s, \pi(s)\big) \; V^\pi(s')$$
+            </div>
+
+            <p>类似地，$Q^\pi$ 的贝尔曼方程为：</p>
+
+            <div class="formula-block">
+                $$Q^\pi(s, a) = R(s, a) + \gamma \sum_{s' \in \mathcal{S}} P(s' \mid s, a) \sum_{a' \in \mathcal{A}(s')} \pi(a' \mid s') \; Q^\pi(s', a')$$
+            </div>
+
+            <p>贝尔曼方程的重要性在于：对于有限状态的MDP，它给出了一组<strong>线性方程</strong>——$|\mathcal{S}|$ 个未知数、$|\mathcal{S}|$ 个方程——可以直接求解。下面我们通过一个例子来验证。</p>
+
+            <!-- ==================== 例子 ==================== -->
+            <h2>例子：网约车司机的接单决策</h2>
+
+            <p>一位网约车司机在一座城市中运营。城市分为两个区域：<strong>市中心</strong>（$c$）和<strong>郊区</strong>（$s$）。司机每完成一单或到达一个新区域后，需要决定下一步的行动。这是一个天然的MDP问题。</p>
+
+            <h3>MDP建模</h3>
+
+            <p><strong>状态空间</strong>：$\mathcal{S} = \{c, s\}$，即司机当前所在区域。</p>
+
+            <p><strong>动作空间</strong>：在每个区域，司机可以选择两种策略——</p>
+            <ul style="margin: 0.3rem 0 1rem 2rem;">
+                <li><strong>接单</strong>：接受下一个乘客订单，乘客的目的地是随机的</li>
+                <li><strong>空驶</strong>：不接单，自行驾驶到另一个区域等待更好的订单</li>
+            </ul>
+
+            <p><strong>转移概率与奖励</strong>如下图所示。蓝色弧线表示"接单"动作（转移是随机的，取决于乘客目的地），橙色弧线表示"空驶"动作（转移是确定的）。</p>
+
+            <!-- 状态转移图 -->
+            <div class="demo-container">
+                <div class="demo-title">状态转移图</div>
+                <svg width="680" height="340" viewBox="0 0 680 340" style="max-width:100%;">
+                    <defs>
+                        <marker id="ab" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2b6cb0"/></marker>
+                        <marker id="ao" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#dd6b20"/></marker>
+                    </defs>
+
+                    <!-- 状态圆 -->
+                    <circle cx="180" cy="170" r="60" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="3"/>
+                    <text x="180" y="160" text-anchor="middle" font-size="16" font-weight="700" fill="#1a365d" font-family="inherit">市中心</text>
+                    <text x="180" y="185" text-anchor="middle" font-size="22" font-weight="700" fill="#2b6cb0" font-style="italic">c</text>
+
+                    <circle cx="500" cy="170" r="60" fill="#fefcbf" stroke="#d69e2e" stroke-width="3"/>
+                    <text x="500" y="160" text-anchor="middle" font-size="16" font-weight="700" fill="#1a365d" font-family="inherit">郊区</text>
+                    <text x="500" y="185" text-anchor="middle" font-size="22" font-weight="700" fill="#d69e2e" font-style="italic">s</text>
+
+                    <!-- 接单：c自环 (80%) -->
+                    <path d="M 155 115 C 100 40, 260 40, 205 115" fill="none" stroke="#2b6cb0" stroke-width="2" marker-end="url(#ab)"/>
+                    <text x="180" y="55" text-anchor="middle" font-size="12" fill="#2b6cb0" font-weight="600">接单: 80%</text>
+                    <text x="180" y="72" text-anchor="middle" font-size="11" fill="#2b6cb0">R=+10</text>
+
+                    <!-- 接单：c→s (20%) -->
+                    <path d="M 238 155 C 300 120, 380 120, 442 155" fill="none" stroke="#2b6cb0" stroke-width="2" marker-end="url(#ab)"/>
+                    <text x="340" y="115" text-anchor="middle" font-size="12" fill="#2b6cb0" font-weight="600">接单: 20%</text>
+                    <text x="340" y="132" text-anchor="middle" font-size="11" fill="#2b6cb0">R=+10</text>
+
+                    <!-- 接单：s自环 (70%) -->
+                    <path d="M 475 115 C 420 40, 580 40, 525 115" fill="none" stroke="#2b6cb0" stroke-width="2" marker-end="url(#ab)"/>
+                    <text x="500" y="55" text-anchor="middle" font-size="12" fill="#2b6cb0" font-weight="600">接单: 70%</text>
+                    <text x="500" y="72" text-anchor="middle" font-size="11" fill="#2b6cb0">R=+2</text>
+
+                    <!-- 接单：s→c (30%) -->
+                    <path d="M 442 185 C 380 220, 300 220, 238 185" fill="none" stroke="#2b6cb0" stroke-width="2" marker-end="url(#ab)"/>
+                    <text x="340" y="240" text-anchor="middle" font-size="12" fill="#2b6cb0" font-weight="600">接单: 30%</text>
+                    <text x="340" y="257" text-anchor="middle" font-size="11" fill="#2b6cb0">R=+2</text>
+
+                    <!-- 空驶：c→s -->
+                    <path d="M 235 200 C 300 270, 380 270, 445 200" fill="none" stroke="#dd6b20" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#ao)"/>
+                    <text x="340" y="290" text-anchor="middle" font-size="12" fill="#dd6b20" font-weight="600">空驶: 100%</text>
+                    <text x="340" y="307" text-anchor="middle" font-size="11" fill="#dd6b20">R=-2</text>
+
+                    <!-- 空驶：s→c -->
+                    <path d="M 445 142 C 380 85, 300 85, 235 142" fill="none" stroke="#dd6b20" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#ao)"/>
+                    <text x="340" y="78" text-anchor="middle" font-size="12" fill="#dd6b20" font-weight="600">空驶: 100%</text>
+                    <text x="340" y="95" text-anchor="middle" font-size="11" fill="#dd6b20">R=-3</text>
+                </svg>
+                <div class="legend">
+                    <span style="color:#2b6cb0;">蓝色实线</span> = 接单（乘客目的地随机）&nbsp;&nbsp;&nbsp;
+                    <span style="color:#dd6b20;">橙色虚线</span> = 空驶（确定性转移）&nbsp;&nbsp;&nbsp;
+                    折扣因子 $\gamma = 0.9$
+                </div>
+            </div>
+
+            <p>解读这张图：</p>
+            <ul style="margin: 0.5rem 0 1rem 2rem;">
+                <li>在市中心接单，收入较高（$R=+10$），且80%的乘客目的地仍在市中心，只有20%去郊区</li>
+                <li>在郊区接单，收入较低（$R=+2$），且70%的乘客在郊区内短途出行，只有30%去市中心</li>
+                <li>司机可以选择空驶（不接单，自己开到另一个区域），但要付出燃油成本</li>
+            </ul>
+
+            <p>核心决策困境：<strong>在郊区时，是接一单赚2元，还是花3元油钱空驶去市中心争取10元的大单？</strong></p>
+
+            <!-- ==================== 策略评估 ==================== -->
+            <h2>策略评估：贝尔曼方程的数值验证</h2>
+
+            <p>我们用贝尔曼期望方程来评估两个不同的策略。</p>
 
             <div class="policy-compare">
                 <div>
-                    <h3>策略 $\pi_1$：一直运行</h3>
-                    <p>$\pi_1(g) = \text{运行}$<br>$\pi_1(w) = \text{运行}$<br>$\pi_1(b) = \text{维修}$</p>
-                    <p style="font-size:0.88rem; color:#718096;">激进策略：能开就开，坏了再修。</p>
+                    <h3>策略 $\pi_1$：哪都接单</h3>
+                    <p>$\pi_1(c) = \text{接单}$<br>$\pi_1(s) = \text{接单}$</p>
+                    <p style="font-size:0.88rem; color:#718096;">有单就接，不挑区域。</p>
                 </div>
                 <div>
-                    <h3>策略 $\pi_2$：磨损时保养</h3>
-                    <p>$\pi_2(g) = \text{运行}$<br>$\pi_2(w) = \text{保养}$<br>$\pi_2(b) = \text{维修}$</p>
-                    <p style="font-size:0.88rem; color:#718096;">稳健策略：磨损就保养，避免故障。</p>
+                    <h3>策略 $\pi_2$：郊区不接，空驶进城</h3>
+                    <p>$\pi_2(c) = \text{接单}$<br>$\pi_2(s) = \text{空驶}$</p>
+                    <p style="font-size:0.88rem; color:#718096;">郊区单子太差，宁可花油钱去市中心。</p>
                 </div>
             </div>
 
             <h3>求解 $V^{\pi_1}$</h3>
 
-            <p>对策略 $\pi_1$，代入贝尔曼期望方程，得到三个方程：</p>
+            <p>策略 $\pi_1$ 在两个状态都选择接单，代入贝尔曼期望方程：</p>
 
             <div class="formula-block">
                 $$\begin{cases}
-                V^{\pi_1}(g) = 10 + 0.9\big[0.7 \cdot V^{\pi_1}(g) + 0.3 \cdot V^{\pi_1}(w)\big] \\[6pt]
-                V^{\pi_1}(w) = 6 + 0.9\big[0.5 \cdot V^{\pi_1}(w) + 0.5 \cdot V^{\pi_1}(b)\big] \\[6pt]
-                V^{\pi_1}(b) = -8 + 0.9 \cdot V^{\pi_1}(g)
+                V^{\pi_1}(c) = 10 + 0.9\big[0.8 \cdot V^{\pi_1}(c) + 0.2 \cdot V^{\pi_1}(s)\big] \\[6pt]
+                V^{\pi_1}(s) = 2 + 0.9\big[0.3 \cdot V^{\pi_1}(c) + 0.7 \cdot V^{\pi_1}(s)\big]
                 \end{cases}$$
             </div>
 
-            <p>这是一个三元一次方程组。由第三个方程代入第二个，再代入第一个，解得：</p>
+            <p>整理为线性方程组并求解：</p>
 
             <div class="result-box">
-                $$V^{\pi_1}(g) \approx 65.3, \quad V^{\pi_1}(w) \approx 52.4, \quad V^{\pi_1}(b) \approx 50.8$$
+                $$V^{\pi_1}(c) \approx 73.8, \quad V^{\pi_1}(s) \approx 59.3$$
             </div>
 
             <h3>求解 $V^{\pi_2}$</h3>
 
-            <p>对策略 $\pi_2$（磨损时选择保养，恢复为良好）：</p>
+            <p>策略 $\pi_2$ 在郊区选择空驶（确定性转移到市中心，奖励-3）：</p>
 
             <div class="formula-block">
                 $$\begin{cases}
-                V^{\pi_2}(g) = 10 + 0.9\big[0.7 \cdot V^{\pi_2}(g) + 0.3 \cdot V^{\pi_2}(w)\big] \\[6pt]
-                V^{\pi_2}(w) = -4 + 0.9 \cdot V^{\pi_2}(g) \\[6pt]
-                V^{\pi_2}(b) = -8 + 0.9 \cdot V^{\pi_2}(g)
+                V^{\pi_2}(c) = 10 + 0.9\big[0.8 \cdot V^{\pi_2}(c) + 0.2 \cdot V^{\pi_2}(s)\big] \\[6pt]
+                V^{\pi_2}(s) = -3 + 0.9 \cdot V^{\pi_2}(c)
                 \end{cases}$$
             </div>
 
-            <p>注意第二个方程变简单了：保养后一定恢复为良好，所以 $V^{\pi_2}(w)$ 直接依赖于 $V^{\pi_2}(g)$。解得：</p>
+            <p>第二个方程变得非常简单——空驶是确定性的，下一步一定到市中心。求解：</p>
 
             <div class="result-box">
-                $$V^{\pi_2}(g) \approx 70.2, \quad V^{\pi_2}(w) \approx 59.2, \quad V^{\pi_2}(b) \approx 55.2$$
+                $$V^{\pi_2}(c) \approx 80.2, \quad V^{\pi_2}(s) \approx 69.2$$
             </div>
 
             <h3>对比与讨论</h3>
 
             <table class="trans-table">
                 <thead>
-                    <tr><th>状态</th><th>$V^{\pi_1}$（一直运行）</th><th>$V^{\pi_2}$（磨损保养）</th><th>差异</th></tr>
+                    <tr><th>状态</th><th>$V^{\pi_1}$（哪都接）</th><th>$V^{\pi_2}$（郊区空驶）</th><th>差异</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td>$g$（良好）</td><td>65.3</td><td><strong>70.2</strong></td><td>+4.9</td></tr>
-                    <tr><td>$w$（磨损）</td><td>52.4</td><td><strong>59.2</strong></td><td>+6.8</td></tr>
-                    <tr><td>$b$（故障）</td><td>50.8</td><td><strong>55.2</strong></td><td>+4.4</td></tr>
+                    <tr><td>$c$（市中心）</td><td>73.8</td><td><strong>80.2</strong></td><td>+6.4</td></tr>
+                    <tr><td>$s$（郊区）</td><td>59.3</td><td><strong>69.2</strong></td><td>+9.9</td></tr>
                 </tbody>
             </table>
 
-            <p>策略 $\pi_2$ 在<strong>所有状态</strong>上都优于 $\pi_1$。虽然 $\pi_1$ 在磨损时继续运行能多赚6元（相比保养的-4元），但50%的故障风险导致的-8元维修代价，从长远看拖累了整体收益。$\pi_2$ 通过及时保养避免了故障，获得了更高的长期回报。</p>
+            <p>策略 $\pi_2$ 在两个状态上都显著优于 $\pi_1$。虽然空驶要花3元油钱，看起来亏了，但从长远看，回到市中心后能持续获得高收入（$R=+10$），且80%概率留在市中心——这个长期收益远超空驶的短期成本。</p>
 
-            <p>这正是值函数的威力：它不只看眼前一步的奖励，而是把<strong>未来所有时间步的累计回报</strong>都考虑在内。</p>
+            <p>这正是值函数的意义：<strong>它不只看眼前一单的收入，而是把未来所有时间步的累计回报都考虑在内。</strong></p>
 
-            <h3>用 $Q^\pi$ 理解策略的改进空间</h3>
+            <!-- ==================== Q值分析 ==================== -->
+            <h2>用 $Q^\pi$ 发现策略的改进方向</h2>
 
-            <p>我们还可以计算 $\pi_1$ 下的动作值函数，来发现哪里有改进空间：</p>
+            <p>我们可以在策略 $\pi_1$ 下计算动作值函数，来揭示哪里有改进空间：</p>
 
             <div class="formula-block">
-                $$Q^{\pi_1}(w, \text{运行}) = 6 + 0.9(0.5 \times 52.4 + 0.5 \times 50.8) = 52.4$$
-                $$Q^{\pi_1}(w, \text{保养}) = -4 + 0.9 \times 65.3 = 54.8$$
+                $$Q^{\pi_1}(s, \text{接单}) = 2 + 0.9(0.3 \times 73.8 + 0.7 \times 59.3) = 59.3$$
+            </div>
+            <div class="formula-block">
+                $$Q^{\pi_1}(s, \text{空驶}) = -3 + 0.9 \times 73.8 = 63.4$$
             </div>
 
-            <p>在磨损状态下，$Q^{\pi_1}(w, \text{保养}) = 54.8 > Q^{\pi_1}(w, \text{运行}) = 52.4$。这告诉我们：即使在"一直运行"的策略下评估，保养动作也比继续运行更好。这就是策略 $\pi_2$ 优于 $\pi_1$ 的数学原因。</p>
+            <p>在郊区状态下，$Q^{\pi_1}(s, \text{空驶}) = 63.4 > Q^{\pi_1}(s, \text{接单}) = 59.3$。也就是说，<strong>即使我们一直按"哪都接单"的策略来评估，空驶这个动作的长期回报也比接单更高。</strong>这直接告诉我们：策略 $\pi_1$ 在郊区的决策不是最优的，应该改为空驶——这正是策略 $\pi_2$ 所做的。</p>
 
             <div class="note">
-                <strong>关键认识：</strong>贝尔曼期望方程是用来<strong>评估</strong>一个给定策略 $\pi$ 的工具——它告诉我们"如果一直按 $\pi$ 行动，每个状态值多少"。但它本身不直接告诉我们最优策略是什么。如何<strong>找到</strong>最优策略，是下一节（1.4 依赖模型的动态规划算法）的主题。
+                <strong>关键认识：</strong>贝尔曼期望方程是<strong>评估</strong>一个给定策略的工具——它回答"按这个策略走，每个状态值多少"。而 $Q^\pi$ 进一步告诉我们"哪些动作比当前策略更好"。但如何<strong>系统地找到最优策略</strong>，是下一节（1.4）的主题。
             </div>
 
             <!-- ==================== 小结 ==================== -->
             <h2>小结</h2>
 
-            <p>本节通过设备维护问题，我们完成了三件事：</p>
-
+            <p>本节完成了三件事：</p>
             <ol style="margin: 0.5rem 0 1rem 2rem;">
-                <li><strong>严格定义</strong>了状态值函数 $V^\pi(s)$ 和动作值函数 $Q^\pi(s, a)$，并明确了它们的关系</li>
-                <li><strong>推导</strong>了贝尔曼期望方程，它将值函数表示为一个可求解的线性方程组</li>
-                <li><strong>验证</strong>了不同策略的值函数差异，展示了 $Q^\pi$ 如何揭示策略的改进方向</li>
+                <li><strong>严格定义</strong>了 $V^\pi(s)$ 和 $Q^\pi(s, a)$，明确了两者的关系</li>
+                <li><strong>推导</strong>了贝尔曼期望方程，将值函数转化为可求解的线性方程组</li>
+                <li>通过网约车司机的例子，<strong>验证</strong>了不同策略的值函数差异，并展示了 $Q^\pi$ 如何揭示改进方向</li>
             </ol>
 
-            <p>下一步的自然问题是：既然我们能评估任何策略，能否系统地找到<strong>最优策略</strong>？答案是肯定的。在1.4节中，我们将介绍值迭代和策略迭代两种经典算法。</p>
+            <p>接下来的自然问题是：既然 $Q^\pi$ 能告诉我们当前策略哪里可以改进，能否系统地利用这一信息来<strong>找到最优策略</strong>？答案是肯定的。在1.4节中，我们将介绍值迭代和策略迭代两种经典算法。</p>
 
             <div class="chapter-nav">
                 <a href="../ch01/1.3.1.html">&larr; 1.3.1 基本概念与定义</a>
