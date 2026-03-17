@@ -159,20 +159,26 @@
 
             <p>马尔可夫决策过程（Markov Decision Process, MDP）是强化学习的数学基础。在直接给出数学定义之前，让我们先从一个直观的问题出发，通过它来逐一建立MDP中的每一个核心概念。</p>
 
+            <h2>什么是智能体</h2>
+
+            <p>在正式开始之前，需要先解释一个贯穿全书的术语：<strong>智能体</strong>（Agent）。在强化学习中，智能体就是那个需要做决策的主体——它观察环境的状态，选择动作，并根据反馈不断改善自己的决策。之所以叫"智能体"而不是"决策者"，是因为我们最终希望用算法来自动化这个决策过程，让程序"智能地"学会做出好的决策。</p>
+
+            <p>在管理科学的语境下，智能体可以是一个调度系统、一套库存管理策略、或者一个车辆派单算法。它不一定是一个"人"，而是一个能够感知当前状况并据此做出决策的实体。</p>
+
             <!-- ==================== 问题引入 ==================== -->
             <h2>一个旅行者的路线规划问题</h2>
 
-            <p>一位旅行者要从城市 A 出发，最终到达城市 G。途中必须依次经过若干中间城市，每一步只能前进到下一层的城市，不能后退或跳跃。城市之间的道路距离各不相同，旅行者的目标是找到一条<strong>总路程最短</strong>的路线。</p>
+            <p>一位旅行者要从城市 $a$ 出发，最终到达城市 $g$。途中必须依次经过若干中间城市，每一步只能前进到下一层的城市，不能后退或跳跃。城市之间的道路距离各不相同，旅行者的目标是找到一条<strong>总路程最短</strong>的路线。</p>
 
-            <p>下面的交互图展示了这个问题的完整网络。<strong>请点击节点来体验决策过程</strong>——你将扮演旅行者，从 A 出发，逐步选择下一个城市，最终到达 G。每次点击一个可到达的城市，就相当于做了一个"动作"。</p>
+            <p>下面的交互图展示了这个问题的完整网络。<strong>请点击节点来体验决策过程</strong>——你将扮演旅行者（智能体），从 $a$ 出发，逐步选择下一个城市，最终到达 $g$。每次点击一个可到达的城市，就相当于做了一个"动作"。</p>
 
             <!-- 交互式探索演示 -->
             <div class="demo-container">
                 <div class="demo-title">交互演示：扮演旅行者，从 A 走到 G</div>
                 <div class="demo-desc">点击蓝色高亮的节点选择你的下一步。观察你的路径和累计路程如何变化。</div>
                 <svg id="sp-graph" width="820" height="420" viewBox="0 0 820 420"></svg>
-                <div class="demo-info" id="sp-info">你当前在城市 <strong>A</strong>。点击一个蓝色高亮的节点，选择你要前往的下一个城市。</div>
-                <div class="path-log" id="sp-path">已走路径：<span>A</span> &nbsp;|&nbsp; 累计路程：<span>0</span></div>
+                <div class="demo-info" id="sp-info">你当前在城市 <strong>a</strong>。点击一个蓝色高亮的节点，选择你要前往的下一个城市。</div>
+                <div class="path-log" id="sp-path">已走路径：<span>a</span> &nbsp;|&nbsp; 累计路程：<span>0</span></div>
                 <div class="demo-controls">
                     <button onclick="spReset()">重新开始</button>
                 </div>
@@ -188,8 +194,8 @@
             <div class="concept-card">
                 <div class="concept-name">状态（State）—— 智能体在哪？</div>
                 <p><strong>状态</strong>描述了系统在某个时刻所处的客观情况，它包含了做决策所需的全部信息。在旅行者问题中，状态就是当前所在的城市。</p>
-                <p>所有可能状态的集合称为<strong>状态空间</strong> $\mathcal{S}$。本例中 $\mathcal{S} = \{A, B_1, B_2, C_1, C_2, C_3, C_4, D_1, D_2, D_3, E_1, E_2, E_3, F_1, F_2, G\}$。</p>
-                <p>我们用 $s_t$ 表示在时间步 $t$ 时的状态。旅行者出发时 $s_0 = A$；如果第一步走到了 $B_1$，则 $s_1 = B_1$。</p>
+                <p>所有可能状态的集合称为<strong>状态空间</strong> $\mathcal{S}$。本例中 $\mathcal{S} = \{a, b_1, b_2, c_1, c_2, c_3, c_4, d_1, d_2, d_3, e_1, e_2, e_3, f_1, f_2, g\}$。</p>
+                <p>我们用大写 $S_t$ 表示时间步 $t$ 时状态这个<strong>随机变量</strong>，用小写 $s_t$ 表示它的具体取值。旅行者出发时 $s_0 = a$；如果第一步走到了 $b_1$，则 $s_1 = b_1$。</p>
             </div>
 
             <div class="concept-card">
@@ -197,9 +203,9 @@
                 <p><strong>动作</strong>是智能体在某个状态下可以做出的选择。在旅行者问题中，动作就是"选择前往哪个城市"。</p>
                 <p>在状态 $s$ 下可选动作的集合记为 $\mathcal{A}(s)$。注意，<strong>可选动作取决于当前状态</strong>。例如：</p>
                 <ul style="margin: 0.5rem 0 0 1.5rem;">
-                    <li>在 $B_1$：$\mathcal{A}(B_1) = \{C_1, C_2, C_3\}$，有3个选择</li>
-                    <li>在 $B_2$：$\mathcal{A}(B_2) = \{C_2, C_3, C_4\}$，也有3个选择，但候选城市不同</li>
-                    <li>在 $F_1$：$\mathcal{A}(F_1) = \{G\}$，只有1个选择</li>
+                    <li>在 $b_1$：$\mathcal{A}(b_1) = \{c_1, c_2, c_3\}$，有3个选择</li>
+                    <li>在 $b_2$：$\mathcal{A}(b_2) = \{c_2, c_3, c_4\}$，也有3个选择，但候选城市不同</li>
+                    <li>在 $f_1$：$\mathcal{A}(f_1) = \{g\}$，只有1个选择</li>
                 </ul>
                 <p style="margin-top:0.5rem;">这在管理科学中非常普遍：可用的资源、当前的约束都会限制你能做的选择。仓库空间已满时就无法进货，车辆已被派出时就无法再分配。</p>
             </div>
@@ -207,14 +213,14 @@
             <div class="concept-card">
                 <div class="concept-name">状态转移（Transition）—— 做了动作之后会怎样？</div>
                 <p><strong>状态转移</strong>描述了"在状态 $s$ 下执行动作 $a$ 后，系统进入下一个状态 $s'$"的过程。</p>
-                <p>在旅行者问题中，转移是<strong>确定性</strong>的：从 $B_1$ 选择去 $C_2$，就一定到达 $C_2$。但在很多现实问题中，转移是<strong>随机</strong>的——我们稍后会详细讨论这一点。</p>
+                <p>在旅行者问题中，转移是<strong>确定性</strong>的：从 $b_1$ 选择去 $c_2$，就一定到达 $c_2$。但在很多现实问题中，转移是<strong>随机</strong>的——我们稍后会详细讨论这一点。</p>
                 <p>我们用<strong>转移概率</strong>来统一描述这两种情形：$P(s' \mid s, a)$ 表示在状态 $s$ 执行动作 $a$ 后，到达状态 $s'$ 的概率。确定性情形只是随机情形的特例——概率为1。</p>
             </div>
 
             <div class="concept-card">
                 <div class="concept-name">奖励（Reward）—— 这个动作好不好？</div>
                 <p><strong>奖励</strong> $R(s, a)$ 是智能体在状态 $s$ 执行动作 $a$ 后获得的即时反馈，用于衡量这一步决策的好坏。</p>
-                <p>在旅行者问题中，因为我们要<strong>最小化</strong>总路程，所以可以把路程取负作为奖励。例如 $A \to B_1$ 的路程为5，则奖励为 $R(A, B_1) = -5$。路程越短，奖励越大（负得越少）。</p>
+                <p>在旅行者问题中，因为我们要<strong>最小化</strong>总路程，所以可以把路程取负作为奖励。例如 $a \to b_1$ 的路程为5，则奖励为 $R(a, b_1) = -5$。路程越短，奖励越大（负得越少）。</p>
                 <p>更一般地，在不同的管理问题中：奖励可以是利润（最大化）、成本（最小化，取负）、服务质量评分、客户等待时间等。奖励函数的设计是将管理问题转化为MDP的关键一步。</p>
             </div>
 
@@ -225,7 +231,7 @@
                     $$G_t = R_{t} + \gamma R_{t+1} + \gamma^2 R_{t+2} + \cdots = \sum_{k=0}^{\infty} \gamma^k R_{t+k}$$
                 </div>
                 <p>当 $\gamma = 1$ 时，未来奖励与当前一样重要——旅行者问题就是这种情形，每段路程同等重要。当 $\gamma < 1$ 时，越远的未来越不重要。</p>
-                <p>这在管理学中有天然的类比：一元钱今天的价值高于一年后的一元钱，这就是金融中的"时间价值"。$\gamma = 0.99$ 意味着一年后的一元钱今天只值0.99元。</p>
+                <p>这在管理学中有天然的类比：金融中的<strong>贴现</strong>（Discounting）。一元钱今天的价值高于一年后的一元钱，因此未来的现金流需要按贴现率折算为现值。折扣因子 $\gamma$ 扮演的正是贴现因子的角色：$\gamma = 0.99$ 意味着下一期的一元奖励，折算到当前只值0.99元。在无限时间步的问题中，$\gamma < 1$ 还保证了累计奖励的有界性。</p>
             </div>
 
             <!-- ==================== 策略与值函数 ==================== -->
@@ -235,10 +241,10 @@
 
             <div class="concept-card">
                 <div class="concept-name">策略（Policy）—— 在每种情况下怎么做？</div>
-                <p><strong>策略</strong> $\pi$ 是一套完整的行为规则：它规定了在每个状态下应该选择什么动作。</p>
-                <p>策略可以是<strong>确定性</strong>的：$\pi(s) = a$，在状态 $s$ 下一定选择动作 $a$。例如一个旅行者的策略可以是：</p>
-                <p style="text-align:center; color:var(--accent-color); font-weight:600;">$\pi(A) = B_1, \; \pi(B_1) = C_2, \; \pi(C_2) = D_1, \; \pi(D_1) = E_2, \; \pi(E_2) = F_2, \; \pi(F_2) = G$</p>
-                <p>策略也可以是<strong>随机性</strong>的：$\pi(a \mid s)$ 表示在状态 $s$ 下选择动作 $a$ 的概率。例如在 $B_1$ 时，以60%概率去 $C_2$、以40%概率去 $C_1$。</p>
+                <p><strong>策略</strong> $\pi$ 是一个从状态到动作的映射，它规定了在每个状态下应该选择什么动作。</p>
+                <p>策略可以是<strong>确定性</strong>的，即一个函数 $\pi: \mathcal{S} \to \mathcal{A}$，对每个状态 $s$ 指定唯一的动作 $a = \pi(s)$。例如一个旅行者的策略可以是：</p>
+                <p style="text-align:center; color:var(--accent-color); font-weight:600;">$\pi(a) = b_1, \; \pi(b_1) = c_2, \; \pi(c_2) = d_1, \; \pi(d_1) = e_2, \; \pi(e_2) = f_2, \; \pi(f_2) = g$</p>
+                <p>策略也可以是<strong>随机性</strong>的，此时 $\pi(a \mid s)$ 表示在状态 $s$ 下选择动作 $a$ 的概率，满足 $\sum_{a \in \mathcal{A}(s)} \pi(a \mid s) = 1$。例如在 $b_1$ 时，以60%概率去 $c_2$、以40%概率去 $c_1$。</p>
                 <p>我们的目标是找到<strong>最优策略</strong> $\pi^*$——使累计折扣奖励期望最大化的策略。</p>
             </div>
 
@@ -246,7 +252,7 @@
                 <div class="concept-name">值函数（Value Function）—— 一个状态有多好？</div>
                 <p><strong>状态值函数</strong> $V^\pi(s)$ 表示从状态 $s$ 出发，遵循策略 $\pi$ 所能获得的累计折扣奖励的期望：</p>
                 <div class="formula-block">
-                    $$V^\pi(s) = \mathbb{E}_\pi \left[ \sum_{k=0}^{\infty} \gamma^k R_{t+k} \;\middle|\; s_t = s \right]$$
+                    $$V^\pi(s) = \mathbb{E}_\pi \left[ \sum_{k=0}^{\infty} \gamma^k R_{t+k} \;\middle|\; S_t = s \right]$$
                 </div>
                 <p>在旅行者问题中（$\gamma=1$，取路程为负奖励），$V^\pi(s)$ 就是"从城市 $s$ 出发，按策略 $\pi$ 走到终点的总路程的负值"。值越大（负得越少），说明从这个城市出发的路程越短、这个位置越"好"。</p>
                 <p><strong>最优值函数</strong> $V^*(s) = \max_\pi V^\pi(s)$ 则是所有策略中最好的。找到了 $V^*$，也就找到了最优策略。具体如何求解，我们将在下一节（1.4）中介绍。</p>
@@ -255,59 +261,55 @@
             <!-- ==================== 引入随机性 ==================== -->
             <h2>当转移变得不确定</h2>
 
-            <p>在旅行者问题中，选择从 $B_1$ 去 $C_2$，就一定到达 $C_2$。但现实的管理决策往往没有这么确定：</p>
+            <p>在旅行者问题中，选择从 $b_1$ 去 $c_2$，就一定到达 $c_2$——状态转移是确定性的。但在现实的管理决策中，<strong>动作的结果往往带有不确定性</strong>，这种不确定性体现在状态转移上。</p>
 
-            <ul style="margin: 1rem 0 1rem 2rem;">
-                <li><strong>物流配送</strong>：安排卡车走某条路线，可能因拥堵而延误，实际到达时间是随机的</li>
-                <li><strong>库存管理</strong>：决定补货1000件，但下月需求可能是800件也可能是1200件</li>
-                <li><strong>网约车调度</strong>：派车去某区域，但乘客是否取消、途中是否有新订单都不确定</li>
-            </ul>
-
-            <p>让我们修改旅行者问题来体现这种随机性：由于天气和路况影响，选择前往某个城市时，有一定概率被"分流"到相邻城市。</p>
+            <p>考虑一个库存管理问题：一家商店每月初决定补货量（动作），但当月的顾客需求是随机的。假设当前库存为200件，你决定补货300件，库存变为500件。然而，当月需求可能是400件、500件或600件，分别以不同的概率发生。因此，月末的库存水平（下一个状态）就是随机的：</p>
 
             <div class="demo-container">
-                <div class="demo-title">对比：确定性转移 vs. 随机性转移</div>
+                <div class="demo-title">库存管理中的随机转移</div>
                 <div class="stochastic-compare">
                     <div>
-                        <h3 style="margin-top:0">确定性转移</h3>
-                        <p>从 $B_1$ 选择去 $C_2$：</p>
+                        <h3 style="margin-top:0">确定性转移（旅行者问题）</h3>
+                        <p>选择动作后，下一个状态是确定的：</p>
                         <svg width="260" height="120" viewBox="0 0 260 120">
                             <defs><marker id="ah1" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2b6cb0"/></marker></defs>
                             <circle cx="50" cy="60" r="22" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
-                            <text x="50" y="65" text-anchor="middle" font-size="14" font-weight="700" fill="#1a365d">B₁</text>
+                            <text x="50" y="65" text-anchor="middle" font-size="14" font-weight="700" fill="#1a365d">b₁</text>
                             <line x1="72" y1="60" x2="168" y2="60" stroke="#2b6cb0" stroke-width="2" marker-end="url(#ah1)"/>
                             <text x="120" y="50" text-anchor="middle" font-size="13" fill="#2b6cb0" font-weight="600">100%</text>
                             <circle cx="195" cy="60" r="22" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
-                            <text x="195" y="65" text-anchor="middle" font-size="14" font-weight="700" fill="#1a365d">C₂</text>
+                            <text x="195" y="65" text-anchor="middle" font-size="14" font-weight="700" fill="#1a365d">c₂</text>
                         </svg>
-                        <p style="font-size:0.9rem; color:#718096;">选择去 $C_2$，就一定到达 $C_2$。<br>$P(C_2 \mid B_1, C_2) = 1$</p>
                     </div>
                     <div>
-                        <h3 style="margin-top:0">随机性转移</h3>
-                        <p>从 $B_1$ 选择去 $C_2$：</p>
+                        <h3 style="margin-top:0">随机转移（库存管理）</h3>
+                        <p>补货300件后，需求随机，月末库存不确定：</p>
                         <svg width="280" height="160" viewBox="0 0 280 160">
                             <defs><marker id="ah2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2b6cb0"/></marker>
                             <marker id="ah3" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#d69e2e"/></marker></defs>
-                            <circle cx="50" cy="80" r="22" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
-                            <text x="50" y="85" text-anchor="middle" font-size="14" font-weight="700" fill="#1a365d">B₁</text>
-                            <line x1="72" y1="72" x2="178" y2="45" stroke="#d69e2e" stroke-width="1.5" marker-end="url(#ah3)" stroke-dasharray="4,3"/>
-                            <text x="115" y="45" text-anchor="middle" font-size="12" fill="#d69e2e" font-weight="600">20%</text>
-                            <circle cx="205" cy="40" r="22" fill="#fffbeb" stroke="#d69e2e" stroke-width="2" stroke-dasharray="4,3"/>
-                            <text x="205" y="45" text-anchor="middle" font-size="14" font-weight="700" fill="#1a365d">C₁</text>
-                            <line x1="72" y1="80" x2="178" y2="80" stroke="#2b6cb0" stroke-width="2.5" marker-end="url(#ah2)"/>
-                            <text x="125" y="100" text-anchor="middle" font-size="12" fill="#2b6cb0" font-weight="600">70%</text>
-                            <circle cx="205" cy="80" r="22" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
-                            <text x="205" y="85" text-anchor="middle" font-size="14" font-weight="700" fill="#1a365d">C₂</text>
-                            <line x1="72" y1="88" x2="178" y2="115" stroke="#d69e2e" stroke-width="1.5" marker-end="url(#ah3)" stroke-dasharray="4,3"/>
-                            <text x="115" y="118" text-anchor="middle" font-size="12" fill="#d69e2e" font-weight="600">10%</text>
-                            <circle cx="205" cy="120" r="22" fill="#fffbeb" stroke="#d69e2e" stroke-width="2" stroke-dasharray="4,3"/>
-                            <text x="205" y="125" text-anchor="middle" font-size="14" font-weight="700" fill="#1a365d">C₃</text>
+                            <circle cx="45" cy="80" r="22" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                            <text x="45" y="76" text-anchor="middle" font-size="11" font-weight="700" fill="#1a365d">库存</text>
+                            <text x="45" y="91" text-anchor="middle" font-size="11" font-weight="700" fill="#1a365d">200</text>
+                            <line x1="67" y1="72" x2="178" y2="40" stroke="#2b6cb0" stroke-width="1.5" marker-end="url(#ah2)"/>
+                            <text x="110" y="42" text-anchor="middle" font-size="11" fill="#2b6cb0" font-weight="600">30%</text>
+                            <circle cx="210" cy="35" r="24" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                            <text x="210" y="39" text-anchor="middle" font-size="11" font-weight="700" fill="#1a365d">100件</text>
+                            <line x1="67" y1="80" x2="178" y2="80" stroke="#2b6cb0" stroke-width="2.5" marker-end="url(#ah2)"/>
+                            <text x="122" y="97" text-anchor="middle" font-size="11" fill="#2b6cb0" font-weight="600">50%</text>
+                            <circle cx="210" cy="80" r="24" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                            <text x="210" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#1a365d">0件</text>
+                            <line x1="67" y1="88" x2="178" y2="120" stroke="#d69e2e" stroke-width="1.5" marker-end="url(#ah3)" stroke-dasharray="4,3"/>
+                            <text x="110" y="120" text-anchor="middle" font-size="11" fill="#d69e2e" font-weight="600">20%</text>
+                            <circle cx="210" cy="125" r="24" fill="#fffbeb" stroke="#d69e2e" stroke-width="2" stroke-dasharray="4,3"/>
+                            <text x="210" y="121" text-anchor="middle" font-size="11" font-weight="700" fill="#1a365d">缺货</text>
+                            <text x="210" y="134" text-anchor="middle" font-size="10" fill="#d69e2e">-100件</text>
                         </svg>
-                        <p style="font-size:0.9rem; color:#718096;">选择去 $C_2$，70%到 $C_2$，20%分流到 $C_1$，10%分流到 $C_3$。<br>$P(C_2 \mid B_1, C_2) = 0.7$</p>
                     </div>
                 </div>
-                <p style="font-size:0.92rem;">一旦转移带有随机性，每个动作的结果就不再确定。我们不能精确计算"走这条路的总距离"，而只能计算<strong>期望代价</strong>——在所有可能结果上取平均。这正是MDP区别于确定性优化问题的本质。</p>
+                <p style="font-size:0.92rem;">在库存问题中，智能体（商店管理者）控制的是补货量（动作），但需求是外部随机因素。同样的补货决策，可能导致不同的月末库存状态。这就是<strong>状态转移的随机性</strong>——它不是智能体的选择造成的，而是环境的不确定性导致的。</p>
             </div>
+
+            <p>类似的随机转移在管理科学中比比皆是：网约车派单后乘客可能取消（到达状态随机）、生产排程后设备可能故障（产能状态随机）、公交发车后路况可能拥堵（到站时间状态随机）。</p>
 
             <!-- ==================== 正式定义 ==================== -->
             <h2>MDP的正式定义</h2>
@@ -328,7 +330,7 @@
                         <td>$\mathcal{S}$</td>
                         <td>状态空间</td>
                         <td>所有可能状态的集合</td>
-                        <td>所有城市 $\{A, B_1, \ldots, G\}$</td>
+                        <td>所有城市 $\{a, b_1, \ldots, g\}$</td>
                     </tr>
                     <tr>
                         <td>$\mathcal{A}$</td>
@@ -369,12 +371,12 @@
             <p>MDP之所以叫"马尔可夫"，是因为它要求转移概率满足<strong>马尔可夫性质</strong>：</p>
 
             <div class="formula-block">
-                $$P(s_{t+1} \mid s_t, a_t, s_{t-1}, a_{t-1}, \ldots, s_0, a_0) = P(s_{t+1} \mid s_t, a_t)$$
+                $$P(S_{t+1} = s' \mid S_t = s, A_t = a, S_{t-1}, A_{t-1}, \ldots) = P(S_{t+1} = s' \mid S_t = s, A_t = a)$$
             </div>
 
             <p>一句话：<strong>给定当前状态和动作，下一个状态的概率与历史无关。</strong></p>
 
-            <p>回到旅行者问题：如果旅行者当前在城市 $D_2$，那么从 $D_2$ 出发能到达哪些城市、各条路有多长——这些信息只取决于"现在在 $D_2$"，与旅行者是经由 $C_1$、$C_2$、$C_3$ 还是 $C_4$ 到达 $D_2$ 的无关。过去的路径不影响未来的选择和转移，这就是马尔可夫性质。</p>
+            <p>回到旅行者问题：如果旅行者当前在城市 $d_2$，那么从 $d_2$ 出发能到达哪些城市、各条路有多长——这些信息只取决于"现在在 $d_2$"，与旅行者是经由 $c_1$、$c_2$、$c_3$ 还是 $c_4$ 到达 $d_2$ 的无关。过去的路径不影响未来的选择和转移，这就是马尔可夫性质。</p>
 
             <div class="note">
                 <strong>实践提示：</strong>在将管理科学问题建模为MDP时，必须检验马尔可夫性质是否成立。如果当前状态无法完整描述未来的演变——例如调度决策取决于过去三天的需求趋势——那么需要把这些历史信息也纳入状态定义中。我们将在第四章详细讨论如何设计状态空间。
@@ -398,22 +400,22 @@
     <script>
     (function() {
         const nodes = [
-            {id:'A',  label:'A',  x:45,  y:200, stage:1},
-            {id:'B1', label:'B₁', x:160, y:115, stage:2},
-            {id:'B2', label:'B₂', x:160, y:285, stage:2},
-            {id:'C1', label:'C₁', x:280, y:55,  stage:3},
-            {id:'C2', label:'C₂', x:280, y:155, stage:3},
-            {id:'C3', label:'C₃', x:280, y:255, stage:3},
-            {id:'C4', label:'C₄', x:280, y:355, stage:3},
-            {id:'D1', label:'D₁', x:410, y:95,  stage:4},
-            {id:'D2', label:'D₂', x:410, y:205, stage:4},
-            {id:'D3', label:'D₃', x:410, y:315, stage:4},
-            {id:'E1', label:'E₁', x:530, y:95,  stage:5},
-            {id:'E2', label:'E₂', x:530, y:205, stage:5},
-            {id:'E3', label:'E₃', x:530, y:315, stage:5},
-            {id:'F1', label:'F₁', x:650, y:150, stage:6},
-            {id:'F2', label:'F₂', x:650, y:260, stage:6},
-            {id:'G',  label:'G',  x:775, y:200, stage:7},
+            {id:'A',  label:'a',  x:45,  y:200, stage:1},
+            {id:'B1', label:'b₁', x:160, y:115, stage:2},
+            {id:'B2', label:'b₂', x:160, y:285, stage:2},
+            {id:'C1', label:'c₁', x:280, y:55,  stage:3},
+            {id:'C2', label:'c₂', x:280, y:155, stage:3},
+            {id:'C3', label:'c₃', x:280, y:255, stage:3},
+            {id:'C4', label:'c₄', x:280, y:355, stage:3},
+            {id:'D1', label:'d₁', x:410, y:95,  stage:4},
+            {id:'D2', label:'d₂', x:410, y:205, stage:4},
+            {id:'D3', label:'d₃', x:410, y:315, stage:4},
+            {id:'E1', label:'e₁', x:530, y:95,  stage:5},
+            {id:'E2', label:'e₂', x:530, y:205, stage:5},
+            {id:'E3', label:'e₃', x:530, y:315, stage:5},
+            {id:'F1', label:'f₁', x:650, y:150, stage:6},
+            {id:'F2', label:'f₂', x:650, y:260, stage:6},
+            {id:'G',  label:'g',  x:775, y:200, stage:7},
         ];
 
         const edges = [
@@ -565,7 +567,7 @@
 
             if (nodeId === 'G') {
                 finished = true;
-                document.getElementById('sp-info').innerHTML = '你到达了终点 <strong>G</strong>！总路程为 <strong>' + totalCost + '</strong>。最短路程为 <strong>18</strong>（路线 A→B₁→C₂→D₁→E₂→F₂→G）。' + (totalCost === 18 ? ' 恭喜你找到了最优路径！' : ' 试试能否找到更短的路线？点击"重新开始"再试一次。');
+                document.getElementById('sp-info').innerHTML = '你到达了终点 <strong>g</strong>！总路程为 <strong>' + totalCost + '</strong>。最短路程为 <strong>18</strong>（路线 a→b₁→c₂→d₁→e₂→f₂→g）。' + (totalCost === 18 ? ' 恭喜你找到了最优路径！' : ' 试试能否找到更短的路线？点击"重新开始"再试一次。');
             } else {
                 const reachable = getReachable();
                 const names = reachable.map(id => nodeMap[id].label).join('、');
@@ -584,8 +586,8 @@
             pathNodes = ['A'];
             totalCost = 0;
             finished = false;
-            document.getElementById('sp-info').innerHTML = '你当前在城市 <strong>A</strong>。点击一个蓝色高亮的节点，选择你要前往的下一个城市。';
-            document.getElementById('sp-path').innerHTML = '已走路径：<span>A</span> &nbsp;|&nbsp; 累计路程：<span>0</span>';
+            document.getElementById('sp-info').innerHTML = '你当前在城市 <strong>a</strong>。点击一个蓝色高亮的节点，选择你要前往的下一个城市。';
+            document.getElementById('sp-path').innerHTML = '已走路径：<span>a</span> &nbsp;|&nbsp; 累计路程：<span>0</span>';
             draw();
         };
 
