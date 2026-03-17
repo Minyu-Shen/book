@@ -3,23 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>1.3.2 值函数与贝尔曼方程 - 运筹智能</title>
+    <title>1.3.2 值函数与贝尔曼期望方程 - 运筹智能</title>
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
     <style>
-        .concept-card {
-            background: var(--sidebar-bg);
-            border-left: 4px solid var(--accent-color);
-            padding: 1rem 1.5rem;
-            margin: 1.5rem 0;
-            border-radius: 0 6px 6px 0;
-        }
-        .concept-card .concept-name {
-            font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem;
-        }
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
         .trans-table { width: auto; border-collapse: collapse; margin: 1rem auto; font-size: 0.95rem; }
         .trans-table th, .trans-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: center; }
         .trans-table th { background: var(--primary-color); color: white; }
@@ -47,7 +39,7 @@
                 <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
                 <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
                 <li><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
-                <li><a href="../ch01/1.3.2.html" class="active">1.3.2 值函数与贝尔曼方程</a></li>
+                <li><a href="../ch01/1.3.2.html" class="active">1.3.2 值函数与贝尔曼期望方程</a></li>
                 <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
                 <li><a href="../ch01/1.5.html">1.5 不依赖模型的学习算法</a></li>
                 <li><a href="../ch01/1.6.html">1.6 策略梯度方法</a></li>
@@ -86,143 +78,200 @@
         </aside>
 
         <main class="main-content">
-            <h1>1.3.2 值函数与贝尔曼方程</h1>
+            <h1>1.3.2 值函数与贝尔曼期望方程</h1>
 
-            <p>在1.3.1中，我们初步认识了值函数——它衡量"一个状态有多好"。本节我们将严格定义值函数，从回报 $G_t$ 出发一步步推导出<strong>贝尔曼期望方程</strong>，展示其矩阵形式，然后通过一个网约车司机的例子验证这些概念。</p>
+            <p>本节的标题特别强调了"<strong>期望</strong>"二字。这是因为贝尔曼方程有两个版本：本节介绍的<strong>贝尔曼期望方程</strong>（Bellman Expectation Equation）用于评估一个<em>给定的</em>策略 $\pi$，它计算的是在策略 $\pi$ 下的<em>期望</em>回报；而后续1.4节中将出现的<strong>贝尔曼最优方程</strong>（Bellman Optimality Equation）则用于寻找最优策略。两者形式相似但目的不同，区分它们很重要。</p>
 
             <!-- ==================== 值函数定义 ==================== -->
-            <h2>状态值函数与动作值函数</h2>
+            <h2>值函数的定义</h2>
 
             <div class="concept-card">
                 <div class="concept-name">状态值函数 $V^\pi(s)$</div>
-                <p>给定策略 $\pi$，状态值函数定义为从状态 $s$ 出发、遵循策略 $\pi$ 行动所获得的<strong>累计折扣回报的期望</strong>：</p>
+                <p>给定策略 $\pi$，状态值函数定义为从状态 $s$ 出发、遵循策略 $\pi$ 行动所获得的累计折扣回报的期望：</p>
                 <div class="formula-block">
-                    $$V^\pi(s) \;=\; \mathbb{E}_\pi\!\left[\, G_t \;\middle|\; S_t = s \,\right], \quad \text{其中 } G_t = \sum_{k=0}^{\infty} \gamma^k R_{t+k}$$
+                    $$V^\pi(s) \;=\; \mathbb{E}_\pi\!\left[\, G_t \;\middle|\; S_t = s \,\right] \tag{1}$$
                 </div>
+                <p>其中回报 $G_t = \sum_{k=0}^{\infty} \gamma^k R_{t+k}$ 是从时间步 $t$ 开始的累计折扣奖励。</p>
             </div>
 
             <div class="concept-card">
                 <div class="concept-name">动作值函数 $Q^\pi(s, a)$</div>
-                <p>在状态 $s$ 下执行<strong>特定动作 $a$</strong>，之后再遵循策略 $\pi$，所获得的累计折扣回报的期望：</p>
+                <p>在状态 $s$ 下执行特定动作 $a$，之后再遵循策略 $\pi$，所获得的累计折扣回报的期望：</p>
                 <div class="formula-block">
-                    $$Q^\pi(s, a) \;=\; \mathbb{E}_\pi\!\left[\, G_t \;\middle|\; S_t = s,\, A_t = a \,\right]$$
+                    $$Q^\pi(s, a) \;=\; \mathbb{E}_\pi\!\left[\, G_t \;\middle|\; S_t = s,\, A_t = a \,\right] \tag{2}$$
                 </div>
-                <p>两者的关系：$V^\pi(s) = \sum_{a \in \mathcal{A}(s)} \pi(a \mid s) \; Q^\pi(s, a)$，即 $V^\pi$ 是 $Q^\pi$ 在策略下的加权平均。</p>
+                <p>$V^\pi$ 与 $Q^\pi$ 的关系：</p>
+                <div class="formula-block">
+                    $$V^\pi(s) = \sum_{a \in \mathcal{A}(s)} \pi(a \mid s) \; Q^\pi(s, a) \tag{3}$$
+                </div>
+                <p>即 $V^\pi$ 是 $Q^\pi$ 在策略 $\pi$ 下对动作的加权平均。</p>
             </div>
+
+            <!-- ==================== 两个随机性来源 ==================== -->
+            <h2>理解期望：两个随机性的来源</h2>
+
+            <p>公式(1)中的期望 $\mathbb{E}_\pi$ 到底是对什么取的？这是理解贝尔曼方程的关键。答案是：它包含了<strong>两个独立的随机性来源</strong>。</p>
+
+            <div class="demo-container">
+                <div class="demo-title">MDP中的两重随机性</div>
+                <svg width="680" height="180" viewBox="0 0 680 180" style="max-width:100%;">
+                    <defs>
+                        <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4a5568"/></marker>
+                    </defs>
+                    <!-- 状态 s_t -->
+                    <circle cx="80" cy="90" r="35" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2.5"/>
+                    <text x="80" y="86" text-anchor="middle" font-size="13" fill="#1a365d" font-weight="600">状态</text>
+                    <text x="80" y="103" text-anchor="middle" font-size="14" fill="#2b6cb0" font-style="italic">s<tspan font-size="10" dy="3">t</tspan></text>
+
+                    <!-- 箭头1 -->
+                    <line x1="115" y1="90" x2="185" y2="90" stroke="#4a5568" stroke-width="2" marker-end="url(#arr)"/>
+
+                    <!-- 随机性1: 策略 -->
+                    <rect x="190" y="55" width="120" height="70" rx="8" fill="#fef3c7" stroke="#d69e2e" stroke-width="2"/>
+                    <text x="250" y="78" text-anchor="middle" font-size="12" fill="#92400e" font-weight="700">随机性 ①</text>
+                    <text x="250" y="96" text-anchor="middle" font-size="12" fill="#92400e">策略选择动作</text>
+                    <text x="250" y="114" text-anchor="middle" font-size="13" fill="#92400e" font-style="italic">A<tspan font-size="10" dy="3">t</tspan><tspan dy="-3"> ~ π(·|s</tspan><tspan font-size="10" dy="3">t</tspan><tspan dy="-3">)</tspan></text>
+
+                    <!-- 箭头2 -->
+                    <line x1="310" y1="90" x2="375" y2="90" stroke="#4a5568" stroke-width="2" marker-end="url(#arr)"/>
+
+                    <!-- 动作 a_t -->
+                    <rect x="380" y="65" width="70" height="50" rx="6" fill="white" stroke="#4a5568" stroke-width="1.5"/>
+                    <text x="415" y="86" text-anchor="middle" font-size="13" fill="#1a365d" font-weight="600">动作</text>
+                    <text x="415" y="103" text-anchor="middle" font-size="14" fill="#4a5568" font-style="italic">a<tspan font-size="10" dy="3">t</tspan></text>
+
+                    <!-- 箭头3 -->
+                    <line x1="450" y1="90" x2="510" y2="90" stroke="#4a5568" stroke-width="2" marker-end="url(#arr)"/>
+
+                    <!-- 随机性2: 环境转移 -->
+                    <rect x="515" y="55" width="120" height="70" rx="8" fill="#e6fffa" stroke="#38a169" stroke-width="2"/>
+                    <text x="575" y="78" text-anchor="middle" font-size="12" fill="#22543d" font-weight="700">随机性 ②</text>
+                    <text x="575" y="96" text-anchor="middle" font-size="12" fill="#22543d">环境状态转移</text>
+                    <text x="575" y="114" text-anchor="middle" font-size="13" fill="#22543d" font-style="italic">S<tspan font-size="10" dy="3">t+1</tspan><tspan dy="-3"> ~ P(·|s,a)</tspan></text>
+                </svg>
+                <p style="text-align:left; font-size:0.92rem; margin-top:0.8rem;">
+                    <strong style="color:#92400e;">① 策略的随机性</strong>：智能体按策略 $\pi(a \mid s)$ <strong>选择动作</strong>。如果策略是确定性的，则这一层没有随机性。<br>
+                    <strong style="color:#22543d;">② 环境的随机性</strong>：动作执行后，<strong>环境</strong>按转移概率 $P(s' \mid s, a)$ 决定下一个状态。即使动作确定，下一个状态也可能是随机的。
+                </p>
+            </div>
+
+            <p>期望 $\mathbb{E}_\pi$ 就是对这两重随机性的综合。一个网约车司机在市中心（状态 $s$），按策略以某个概率选择"接单"或"空驶"（随机性①）；如果选择了"接单"，乘客的目的地是随机的——可能去市中心、郊区或机场（随机性②）。这两层随机性叠加在一起，决定了下一个状态 $S_{t+1}$。</p>
 
             <!-- ==================== 贝尔曼方程推导 ==================== -->
             <h2>贝尔曼期望方程的推导</h2>
 
-            <p>值函数的定义涉及无穷求和，看似难以计算。但我们可以利用回报 $G_t$ 的递推结构来简化。</p>
+            <p>理解了两个随机性来源后，我们来推导贝尔曼期望方程。核心思路是利用回报 $G_t$ 的递推结构。</p>
 
             <div class="derivation">
                 <div class="step-label">第一步：回报的递推分解</div>
                 <p>将回报 $G_t$ 拆成"当前奖励 + 折扣后的未来回报"：</p>
                 <div class="formula-block">
-                    $$G_t = R_t + \gamma R_{t+1} + \gamma^2 R_{t+2} + \cdots = R_t + \gamma \underbrace{(R_{t+1} + \gamma R_{t+2} + \cdots)}_{G_{t+1}} = R_t + \gamma G_{t+1}$$
+                    $$G_t = R_t + \gamma R_{t+1} + \gamma^2 R_{t+2} + \cdots = R_t + \gamma \underbrace{(R_{t+1} + \gamma R_{t+2} + \cdots)}_{G_{t+1}} = R_t + \gamma \, G_{t+1} \tag{4}$$
                 </div>
             </div>
 
             <div class="derivation">
-                <div class="step-label">第二步：对两端取条件期望</div>
-                <p>在 $S_t = s$ 的条件下取期望：</p>
+                <div class="step-label">第二步：对公式(4)两端取条件期望</div>
+                <p>在 $S_t = s$ 的条件下，对公式(4)取期望，并利用期望的线性性：</p>
                 <div class="formula-block">
-                    $$V^\pi(s) = \mathbb{E}_\pi[G_t \mid S_t = s] = \mathbb{E}_\pi[R_t + \gamma G_{t+1} \mid S_t = s]$$
-                </div>
-                <p>利用期望的线性性，拆为两项：</p>
-                <div class="formula-block">
-                    $$= \mathbb{E}_\pi[R_t \mid S_t = s] + \gamma \, \mathbb{E}_\pi[G_{t+1} \mid S_t = s]$$
+                    $$V^\pi(s) = \mathbb{E}_\pi[G_t \mid S_t = s] = \mathbb{E}_\pi[R_t \mid S_t = s] + \gamma \, \mathbb{E}_\pi[G_{t+1} \mid S_t = s] \tag{5}$$
                 </div>
             </div>
 
             <div class="derivation">
-                <div class="step-label">第三步：展开第一项——即时奖励的期望</div>
-                <p>即时奖励 $R_t = R(S_t, A_t)$ 取决于状态和动作。在策略 $\pi$ 下，动作 $A_t$ 以概率 $\pi(a \mid s)$ 被选取：</p>
+                <div class="step-label">第三步：展开公式(5)的第一项——对随机性①求期望</div>
+                <p>即时奖励 $R_t = R(S_t, A_t)$ 取决于动作。动作由策略 $\pi$ 以概率 $\pi(a \mid s)$ 选取（随机性①）：</p>
                 <div class="formula-block">
-                    $$\mathbb{E}_\pi[R_t \mid S_t = s] = \sum_{a \in \mathcal{A}(s)} \pi(a \mid s) \, R(s, a)$$
+                    $$\mathbb{E}_\pi[R_t \mid S_t = s] = \sum_{a \in \mathcal{A}(s)} \pi(a \mid s) \, R(s, a) \tag{6}$$
                 </div>
             </div>
 
             <div class="derivation">
-                <div class="step-label">第四步：展开第二项——未来回报的期望</div>
-                <p>$G_{t+1}$ 从 $S_{t+1}$ 开始，利用全期望公式，先对 $A_t$ 和 $S_{t+1}$ 条件化：</p>
+                <div class="step-label">第四步：展开公式(5)的第二项——对随机性①②依次求期望</div>
+                <p>$G_{t+1}$ 从 $S_{t+1}$ 开始。利用全期望公式，先对动作 $A_t$（随机性①），再对下一状态 $S_{t+1}$（随机性②）条件化：</p>
                 <div class="formula-block">
-                    $$\mathbb{E}_\pi[G_{t+1} \mid S_t = s] = \sum_{a \in \mathcal{A}(s)} \pi(a \mid s) \sum_{s' \in \mathcal{S}} P(s' \mid s, a) \, \mathbb{E}_\pi[G_{t+1} \mid S_{t+1} = s']$$
+                    $$\mathbb{E}_\pi[G_{t+1} \mid S_t = s] = \sum_{a \in \mathcal{A}(s)} \pi(a \mid s) \sum_{s' \in \mathcal{S}} P(s' \mid s, a) \, \underbrace{\mathbb{E}_\pi[G_{t+1} \mid S_{t+1} = s']}_{= \, V^\pi(s') \text{（马尔可夫性质）}} \tag{7}$$
                 </div>
-                <p>注意到 $\mathbb{E}_\pi[G_{t+1} \mid S_{t+1} = s']$ 正是 $V^\pi(s')$（马尔可夫性质保证了这一点）：</p>
-                <div class="formula-block">
-                    $$= \sum_{a \in \mathcal{A}(s)} \pi(a \mid s) \sum_{s' \in \mathcal{S}} P(s' \mid s, a) \, V^\pi(s')$$
-                </div>
+                <p>关键一步：由马尔可夫性质，$\mathbb{E}_\pi[G_{t+1} \mid S_{t+1} = s']$ 只取决于 $s'$，与更早的历史无关，因此恰好等于 $V^\pi(s')$。</p>
             </div>
 
             <div class="derivation">
-                <div class="step-label">第五步：合并，得到贝尔曼期望方程</div>
-                <p>将第三步和第四步合并：</p>
+                <div class="step-label">第五步：将公式(6)和(7)代入公式(5)，得到贝尔曼期望方程</div>
                 <div class="formula-block">
-                    $$\boxed{V^\pi(s) = \sum_{a \in \mathcal{A}(s)} \pi(a \mid s) \left[\, R(s, a) + \gamma \sum_{s' \in \mathcal{S}} P(s' \mid s, a) \, V^\pi(s') \,\right]}$$
+                    $$\boxed{V^\pi(s) = \sum_{a \in \mathcal{A}(s)} \pi(a \mid s) \left[\, R(s, a) + \gamma \sum_{s' \in \mathcal{S}} P(s' \mid s, a) \, V^\pi(s') \,\right]} \tag{8}$$
                 </div>
             </div>
 
-            <p>对于<strong>确定性策略</strong> $a = \pi(s)$，方程进一步简化为：</p>
+            <p>公式(8)的结构完美映射了两个随机性：外层求和 $\sum_a \pi(a|s)$ 对应<strong>策略选择动作</strong>（随机性①），内层求和 $\sum_{s'} P(s'|s,a)$ 对应<strong>环境状态转移</strong>（随机性②）。</p>
+
+            <p>对于<strong>确定性策略</strong> $a = \pi(s)$，外层求和退化为单项：</p>
             <div class="formula-block">
-                $$V^\pi(s) = R\big(s, \pi(s)\big) + \gamma \sum_{s' \in \mathcal{S}} P\big(s' \mid s, \pi(s)\big) \, V^\pi(s')$$
+                $$V^\pi(s) = R\big(s, \pi(s)\big) + \gamma \sum_{s' \in \mathcal{S}} P\big(s' \mid s, \pi(s)\big) \, V^\pi(s') \tag{9}$$
             </div>
 
             <!-- ==================== 矩阵形式 ==================== -->
             <h2>矩阵形式：策略评估 = 求解线性方程组</h2>
 
-            <p>对于有 $n = |\mathcal{S}|$ 个状态的MDP，贝尔曼期望方程可以写成矩阵形式。给定一个确定性策略 $\pi$，定义：</p>
-
+            <p>对于有 $n = |\mathcal{S}|$ 个状态的MDP和确定性策略 $\pi$，定义：</p>
             <ul style="margin: 0.5rem 0 1rem 2rem;">
                 <li>$\mathbf{V} \in \mathbb{R}^n$：值函数向量，$\mathbf{V}_i = V^\pi(s_i)$</li>
                 <li>$\mathbf{R}_\pi \in \mathbb{R}^n$：奖励向量，$(\mathbf{R}_\pi)_i = R(s_i, \pi(s_i))$</li>
                 <li>$\mathbf{P}_\pi \in \mathbb{R}^{n \times n}$：策略下的转移矩阵，$(\mathbf{P}_\pi)_{ij} = P(s_j \mid s_i, \pi(s_i))$</li>
             </ul>
 
-            <p>则贝尔曼期望方程变为：</p>
+            <p>则公式(9)的矩阵形式为：</p>
 
             <div class="formula-block">
-                $$\mathbf{V} = \mathbf{R}_\pi + \gamma \, \mathbf{P}_\pi \, \mathbf{V}$$
+                $$\mathbf{V} = \mathbf{R}_\pi + \gamma \, \mathbf{P}_\pi \, \mathbf{V} \tag{10}$$
             </div>
 
-            <p>移项整理：</p>
-
-            <div class="formula-block">
-                $$(\mathbf{I} - \gamma \mathbf{P}_\pi) \, \mathbf{V} = \mathbf{R}_\pi$$
-            </div>
-
-            <p>当 $\gamma < 1$ 时，$(\mathbf{I} - \gamma \mathbf{P}_\pi)$ 是可逆的，因此值函数有<strong>唯一的解析解</strong>：</p>
+            <p>移项整理，当 $\gamma < 1$ 时 $(\mathbf{I} - \gamma \mathbf{P}_\pi)$ 可逆，值函数有<strong>唯一解析解</strong>：</p>
 
             <div class="result-box">
-                $$\mathbf{V} = (\mathbf{I} - \gamma \mathbf{P}_\pi)^{-1} \, \mathbf{R}_\pi$$
+                $$\mathbf{V} = (\mathbf{I} - \gamma \mathbf{P}_\pi)^{-1} \, \mathbf{R}_\pi \tag{11}$$
             </div>
 
             <div class="note">
-                <strong>核心认识：</strong>评估一个给定策略 $\pi$ 的好坏，本质上就是求解一个线性方程组，或等价地，求一个矩阵的逆。对于 $n$ 个状态的MDP，计算复杂度为 $O(n^3)$。当状态空间很大时（现实管理问题中常见），直接求逆不可行，需要使用迭代方法——这将在1.4节中介绍。
+                <strong>核心认识：</strong>评估一个给定策略 $\pi$ 的好坏，本质上就是求解一个线性方程组——或者说求一个矩阵的逆。计算复杂度为 $O(n^3)$。当状态空间很大时（管理科学问题中常见），直接求逆不可行，需要迭代方法——这将在1.4节中介绍。
             </div>
 
             <!-- ==================== 例子 ==================== -->
             <h2>例子：网约车司机的接单决策</h2>
 
-            <p>一位网约车司机在一座城市中运营，城市分为三个区域：<strong>市中心</strong>（$c$）、<strong>郊区</strong>（$s$）和<strong>机场</strong>（$a$）。每完成一单后，司机需要决定下一步怎么做。</p>
+            <p>一位网约车司机在一座城市中运营，城市分为三个区域：<strong>市中心</strong>（$c$）、<strong>郊区</strong>（$s$）和<strong>机场</strong>（$a$）。我们用MDP建模司机的决策过程。</p>
 
             <h3>MDP建模</h3>
 
             <p><strong>状态空间</strong>：$\mathcal{S} = \{c, s, a\}$，即司机当前所在区域。</p>
 
-            <p><strong>动作空间</strong>：</p>
+            <p><strong>动作空间</strong>（每个状态有两个可选动作）：</p>
             <ul style="margin: 0.3rem 0 1rem 2rem;">
-                <li>市中心（$c$）：<strong>接单</strong> 或 <strong>空驶去机场</strong>（赌一把机场大单）</li>
-                <li>郊区（$s$）：<strong>接单</strong> 或 <strong>空驶去市中心</strong>（逃离低收入区域）</li>
-                <li>机场（$a$）：<strong>接单</strong> 或 <strong>空驶去市中心</strong>（放弃等待，主动回城）</li>
+                <li>市中心（$c$）：<strong>接单</strong>（接受下一个乘客）或 <strong>空驶去机场</strong></li>
+                <li>郊区（$s$）：<strong>接单</strong> 或 <strong>空驶去市中心</strong></li>
+                <li>机场（$a$）：<strong>接单</strong> 或 <strong>空驶去市中心</strong></li>
             </ul>
 
-            <p><strong>转移概率与奖励</strong>如下图所示：</p>
+            <p><strong>转移概率与奖励</strong>见下表。注意两个随机性的体现：空驶动作的转移是<strong>确定的</strong>（环境无随机性），但接单动作的转移是<strong>随机的</strong>（乘客目的地不可控，这正是环境的随机性②）。</p>
 
-            <!-- 状态转移图 -->
+            <table class="trans-table">
+                <thead>
+                    <tr><th>状态</th><th>动作</th><th>$R(s,a)$</th><th>$P(c|s,a)$</th><th>$P(s|s,a)$</th><th>$P(a|s,a)$</th><th>环境随机性</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>$c$</td><td>接单</td><td>$+8$</td><td>0.5</td><td>0.3</td><td>0.2</td><td>有（乘客目的地随机）</td></tr>
+                    <tr><td>$c$</td><td>空驶去机场</td><td>$-4$</td><td>0</td><td>0</td><td>1.0</td><td>无（确定到达机场）</td></tr>
+                    <tr><td>$s$</td><td>接单</td><td>$+1$</td><td>0.1</td><td>0.8</td><td>0.1</td><td>有（乘客目的地随机）</td></tr>
+                    <tr><td>$s$</td><td>空驶去市中心</td><td>$-3$</td><td>1.0</td><td>0</td><td>0</td><td>无（确定到达市中心）</td></tr>
+                    <tr><td>$a$</td><td>接单</td><td>$+14$</td><td>0.6</td><td>0.4</td><td>0</td><td>有（乘客目的地随机）</td></tr>
+                    <tr><td>$a$</td><td>空驶去市中心</td><td>$-5$</td><td>1.0</td><td>0</td><td>0</td><td>无（确定到达市中心）</td></tr>
+                </tbody>
+            </table>
+
+            <p>下面的状态转移图展示了这个MDP的完整结构。<strong>弧线表示动作</strong>：蓝色实线弧是"接单"（乘客目的地随机，因此同一动作有多条弧指向不同的下一状态），橙色虚线弧是"空驶"（确定性转移，只有一条弧）。</p>
+
             <div class="demo-container">
-                <div class="demo-title">状态转移图（三区域网约车MDP）</div>
-                <svg width="700" height="400" viewBox="0 0 700 400" style="max-width:100%;">
+                <div class="demo-title">状态转移图</div>
+                <svg width="700" height="410" viewBox="0 0 700 410" style="max-width:100%;">
                     <defs>
                         <marker id="ab" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2b6cb0"/></marker>
                         <marker id="ao" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#dd6b20"/></marker>
@@ -233,96 +282,71 @@
                     <text x="170" y="140" text-anchor="middle" font-size="14" font-weight="700" fill="#1a365d">市中心</text>
                     <text x="170" y="165" text-anchor="middle" font-size="20" font-weight="700" fill="#2b6cb0" font-style="italic">c</text>
 
-                    <circle cx="350" cy="340" r="55" fill="#fefcbf" stroke="#d69e2e" stroke-width="3"/>
-                    <text x="350" y="330" text-anchor="middle" font-size="14" font-weight="700" fill="#1a365d">郊区</text>
-                    <text x="350" y="355" text-anchor="middle" font-size="20" font-weight="700" fill="#d69e2e" font-style="italic">s</text>
+                    <circle cx="350" cy="345" r="55" fill="#fefcbf" stroke="#d69e2e" stroke-width="3"/>
+                    <text x="350" y="335" text-anchor="middle" font-size="14" font-weight="700" fill="#1a365d">郊区</text>
+                    <text x="350" y="360" text-anchor="middle" font-size="20" font-weight="700" fill="#d69e2e" font-style="italic">s</text>
 
                     <circle cx="530" cy="150" r="55" fill="#f0fff4" stroke="#38a169" stroke-width="3"/>
                     <text x="530" y="140" text-anchor="middle" font-size="14" font-weight="700" fill="#1a365d">机场</text>
                     <text x="530" y="165" text-anchor="middle" font-size="20" font-weight="700" fill="#38a169" font-style="italic">a</text>
 
-                    <!-- 接单弧线（蓝色实线） -->
+                    <!-- === 接单弧线（蓝色实线）=== -->
 
-                    <!-- c自环：接单50%留市中心 -->
+                    <!-- c自环：接单50%留市中心, R=8 -->
                     <path d="M 135 100 C 100 30, 240 30, 205 100" fill="none" stroke="#2b6cb0" stroke-width="2" marker-end="url(#ab)"/>
                     <text x="170" y="42" text-anchor="middle" font-size="11" fill="#2b6cb0" font-weight="600">接单 50%, R=8</text>
 
-                    <!-- c→s：接单30%去郊区 -->
-                    <path d="M 145 200 C 130 270, 250 310, 298 330" fill="none" stroke="#2b6cb0" stroke-width="1.5" marker-end="url(#ab)"/>
-                    <text x="175" y="280" text-anchor="middle" font-size="11" fill="#2b6cb0">接单 30%</text>
+                    <!-- c→s：接单30% -->
+                    <path d="M 145 200 C 130 270, 250 310, 298 335" fill="none" stroke="#2b6cb0" stroke-width="1.5" marker-end="url(#ab)"/>
+                    <text x="175" y="285" text-anchor="middle" font-size="11" fill="#2b6cb0">接单 30%</text>
 
-                    <!-- c→a：接单20%去机场 -->
-                    <path d="M 225 140 C 310 105, 400 105, 475 140" fill="none" stroke="#2b6cb0" stroke-width="1.5" marker-end="url(#ab)"/>
+                    <!-- c→a：接单20% -->
+                    <path d="M 225 138 C 310 105, 400 105, 475 138" fill="none" stroke="#2b6cb0" stroke-width="1.5" marker-end="url(#ab)"/>
                     <text x="350" y="100" text-anchor="middle" font-size="11" fill="#2b6cb0">接单 20%</text>
 
-                    <!-- s自环：接单80%留郊区 -->
-                    <path d="M 310 380 C 290 430, 410 430, 390 380" fill="none" stroke="#2b6cb0" stroke-width="2" marker-end="url(#ab)"/>
-                    <text x="350" y="395" text-anchor="middle" font-size="11" fill="#2b6cb0" font-weight="600">接单 80%, R=1</text>
+                    <!-- s自环：接单80%留郊区, R=1 -->
+                    <path d="M 310 385 C 290 440, 410 440, 390 385" fill="none" stroke="#2b6cb0" stroke-width="2" marker-end="url(#ab)"/>
+                    <text x="350" y="400" text-anchor="middle" font-size="11" fill="#2b6cb0" font-weight="600">接单 80%, R=1</text>
 
-                    <!-- s→c：接单10%去市中心 -->
-                    <path d="M 305 310 C 260 260, 200 230, 185 205" fill="none" stroke="#2b6cb0" stroke-width="1.5" marker-end="url(#ab)"/>
-                    <text x="220" y="250" text-anchor="middle" font-size="11" fill="#2b6cb0">接单 10%</text>
+                    <!-- s→c：接单10% -->
+                    <path d="M 305 315 C 260 265, 200 230, 185 205" fill="none" stroke="#2b6cb0" stroke-width="1.5" marker-end="url(#ab)"/>
+                    <text x="220" y="253" text-anchor="middle" font-size="11" fill="#2b6cb0">接单 10%</text>
 
-                    <!-- s→a：接单10%去机场 -->
-                    <path d="M 400 315 C 450 280, 500 230, 520 205" fill="none" stroke="#2b6cb0" stroke-width="1.5" marker-end="url(#ab)"/>
-                    <text x="485" y="268" text-anchor="middle" font-size="11" fill="#2b6cb0">接单 10%</text>
+                    <!-- s→a：接单10% -->
+                    <path d="M 400 318 C 450 280, 500 230, 520 205" fill="none" stroke="#2b6cb0" stroke-width="1.5" marker-end="url(#ab)"/>
+                    <text x="488" y="268" text-anchor="middle" font-size="11" fill="#2b6cb0">接单 10%</text>
 
-                    <!-- a→c：接单60%去市中心 -->
-                    <path d="M 478 165 C 400 195, 290 195, 225 165" fill="none" stroke="#2b6cb0" stroke-width="2" marker-end="url(#ab)"/>
-                    <text x="350" y="195" text-anchor="middle" font-size="11" fill="#2b6cb0" font-weight="600">接单 60%, R=14</text>
+                    <!-- a→c：接单60%, R=14 -->
+                    <path d="M 478 162 C 400 195, 290 195, 225 162" fill="none" stroke="#2b6cb0" stroke-width="2" marker-end="url(#ab)"/>
+                    <text x="350" y="198" text-anchor="middle" font-size="11" fill="#2b6cb0" font-weight="600">接单 60%, R=14</text>
 
-                    <!-- a→s：接单40%去郊区 -->
-                    <path d="M 510 203 C 490 260, 430 300, 395 320" fill="none" stroke="#2b6cb0" stroke-width="1.5" marker-end="url(#ab)"/>
-                    <text x="475" y="290" text-anchor="middle" font-size="11" fill="#2b6cb0">接单 40%</text>
+                    <!-- a→s：接单40% -->
+                    <path d="M 510 203 C 490 265, 430 305, 398 323" fill="none" stroke="#2b6cb0" stroke-width="1.5" marker-end="url(#ab)"/>
+                    <text x="480" y="288" text-anchor="middle" font-size="11" fill="#2b6cb0">接单 40%</text>
 
-                    <!-- 空驶弧线（橙色虚线） -->
+                    <!-- === 空驶弧线（橙色虚线，确定性转移）=== -->
 
-                    <!-- c→a 空驶 -->
-                    <path d="M 222 130 C 310 70, 420 70, 480 130" fill="none" stroke="#dd6b20" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#ao)"/>
-                    <text x="350" y="62" text-anchor="middle" font-size="11" fill="#dd6b20" font-weight="600">空驶 R=-4</text>
+                    <!-- c→a 空驶, R=-4 -->
+                    <path d="M 222 128 C 310 68, 420 68, 480 128" fill="none" stroke="#dd6b20" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#ao)"/>
+                    <text x="350" y="60" text-anchor="middle" font-size="11" fill="#dd6b20" font-weight="600">空驶 100%, R=-4</text>
 
-                    <!-- s→c 空驶 -->
-                    <path d="M 300 325 C 230 300, 175 250, 160 205" fill="none" stroke="#dd6b20" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#ao)"/>
-                    <text x="200" y="305" text-anchor="middle" font-size="11" fill="#dd6b20" font-weight="600">空驶 R=-3</text>
+                    <!-- s→c 空驶, R=-3 -->
+                    <path d="M 300 328 C 230 305, 175 255, 160 205" fill="none" stroke="#dd6b20" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#ao)"/>
+                    <text x="193" y="310" text-anchor="middle" font-size="11" fill="#dd6b20" font-weight="600">空驶 R=-3</text>
 
-                    <!-- a→c 空驶 -->
-                    <path d="M 475 155 C 390 165, 290 165, 225 155" fill="none" stroke="#dd6b20" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#ao)"/>
-                    <text x="350" y="176" text-anchor="middle" font-size="11" fill="#dd6b20" font-weight="600">空驶 R=-5</text>
+                    <!-- a→c 空驶, R=-5 -->
+                    <path d="M 475 155 C 390 168, 290 168, 225 155" fill="none" stroke="#dd6b20" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#ao)"/>
+                    <text x="350" y="180" text-anchor="middle" font-size="11" fill="#dd6b20" font-weight="600">空驶 R=-5</text>
                 </svg>
                 <div class="legend">
-                    <span style="color:#2b6cb0;">蓝色实线</span> = 接单（乘客目的地随机）&nbsp;&nbsp;
-                    <span style="color:#dd6b20;">橙色虚线</span> = 空驶（确定性转移，100%）&nbsp;&nbsp;
+                    <span style="color:#2b6cb0;">蓝色实线</span> = 接单动作（转移随机：乘客目的地不可控）&nbsp;&nbsp;
+                    <span style="color:#dd6b20;">橙色虚线</span> = 空驶动作（转移确定：司机自行驾驶）&nbsp;&nbsp;
                     $\gamma = 0.9$
                 </div>
             </div>
 
-            <p>这个MDP的关键特征：</p>
-            <ul style="margin: 0.5rem 0 1rem 2rem;">
-                <li><strong>市中心</strong>：收入适中（$R=8$），是"稳定区"——50%留在市中心，且有20%概率自然到达机场</li>
-                <li><strong>郊区</strong>：收入很低（$R=1$），是"陷阱区"——80%概率停留在郊区内循环</li>
-                <li><strong>机场</strong>：收入最高（$R=14$），但每次接单后一定离开（60%回市中心，40%去郊区），是"高回报但不可停留"的区域</li>
-            </ul>
-
-            <p>决策困境不止一个：在郊区要不要空驶去市中心？在市中心值不值得空驶去机场赌大单？</p>
-
-            <h3>完整的转移概率与奖励表</h3>
-
-            <table class="trans-table">
-                <thead>
-                    <tr><th>状态</th><th>动作</th><th>$R(s,a)$</th><th>$P(c|s,a)$</th><th>$P(s|s,a)$</th><th>$P(a|s,a)$</th></tr>
-                </thead>
-                <tbody>
-                    <tr><td>$c$</td><td>接单</td><td>$+8$</td><td>0.5</td><td>0.3</td><td>0.2</td></tr>
-                    <tr><td>$c$</td><td>空驶去机场</td><td>$-4$</td><td>0</td><td>0</td><td>1.0</td></tr>
-                    <tr><td>$s$</td><td>接单</td><td>$+1$</td><td>0.1</td><td>0.8</td><td>0.1</td></tr>
-                    <tr><td>$s$</td><td>空驶去市中心</td><td>$-3$</td><td>1.0</td><td>0</td><td>0</td></tr>
-                    <tr><td>$a$</td><td>接单</td><td>$+14$</td><td>0.6</td><td>0.4</td><td>0</td></tr>
-                    <tr><td>$a$</td><td>空驶去市中心</td><td>$-5$</td><td>1.0</td><td>0</td><td>0</td></tr>
-                </tbody>
-            </table>
-
             <!-- ==================== 策略评估 ==================== -->
-            <h2>策略评估：用贝尔曼方程计算 $V^\pi$</h2>
+            <h2>用公式(11)评估两个策略</h2>
 
             <div class="policy-compare">
                 <div>
@@ -337,55 +361,35 @@
                 </div>
             </div>
 
-            <h3>求解 $V^{\pi_1}$（有单就接）</h3>
+            <h3>$\pi_1$ 的策略评估</h3>
 
-            <p>三个状态都选择接单，代入贝尔曼方程得三元线性方程组：</p>
-
-            <div class="formula-block">
-                $$\begin{cases}
-                V(c) = 8 + 0.9\big[0.5 V(c) + 0.3 V(s) + 0.2 V(a)\big] \\[6pt]
-                V(s) = 1 + 0.9\big[0.1 V(c) + 0.8 V(s) + 0.1 V(a)\big] \\[6pt]
-                V(a) = 14 + 0.9\big[0.6 V(c) + 0.4 V(s)\big]
-                \end{cases}$$
-            </div>
-
-            <p>用矩阵形式表示：$(\mathbf{I} - \gamma \mathbf{P}_{\pi_1}) \mathbf{V} = \mathbf{R}_{\pi_1}$，其中</p>
+            <p>三个状态都选择接单。对应的转移矩阵和奖励向量为：</p>
 
             <div class="formula-block">
                 $$\mathbf{P}_{\pi_1} = \begin{pmatrix} 0.5 & 0.3 & 0.2 \\ 0.1 & 0.8 & 0.1 \\ 0.6 & 0.4 & 0 \end{pmatrix}, \quad \mathbf{R}_{\pi_1} = \begin{pmatrix} 8 \\ 1 \\ 14 \end{pmatrix}$$
             </div>
 
-            <p>求解 $\mathbf{V} = (\mathbf{I} - 0.9 \, \mathbf{P}_{\pi_1})^{-1} \mathbf{R}_{\pi_1}$，得到：</p>
+            <p>代入公式(11) $\mathbf{V} = (\mathbf{I} - 0.9\,\mathbf{P}_{\pi_1})^{-1} \mathbf{R}_{\pi_1}$，求解得：</p>
 
             <div class="result-box">
                 $$V^{\pi_1}(c) \approx 51.2, \quad V^{\pi_1}(s) \approx 37.8, \quad V^{\pi_1}(a) \approx 55.3$$
             </div>
 
-            <h3>求解 $V^{\pi_2}$（郊区逃离）</h3>
+            <h3>$\pi_2$ 的策略评估</h3>
 
-            <p>$\pi_2$ 在郊区选择空驶（确定性转移到市中心，$R=-3$），其余接单：</p>
-
-            <div class="formula-block">
-                $$\begin{cases}
-                V(c) = 8 + 0.9\big[0.5 V(c) + 0.3 V(s) + 0.2 V(a)\big] \\[6pt]
-                V(s) = -3 + 0.9 \, V(c) \\[6pt]
-                V(a) = 14 + 0.9\big[0.6 V(c) + 0.4 V(s)\big]
-                \end{cases}$$
-            </div>
-
-            <p>注意第二个方程变得非常简单——空驶是确定性的。对应的转移矩阵变为：</p>
+            <p>$\pi_2$ 在郊区选择空驶（确定性转移到市中心，$R=-3$）。转移矩阵第二行变为 $(1, 0, 0)$：</p>
 
             <div class="formula-block">
                 $$\mathbf{P}_{\pi_2} = \begin{pmatrix} 0.5 & 0.3 & 0.2 \\ 1.0 & 0 & 0 \\ 0.6 & 0.4 & 0 \end{pmatrix}, \quad \mathbf{R}_{\pi_2} = \begin{pmatrix} 8 \\ -3 \\ 14 \end{pmatrix}$$
             </div>
 
-            <p>求解得：</p>
+            <p>求解公式(11)：</p>
 
             <div class="result-box">
                 $$V^{\pi_2}(c) \approx 62.8, \quad V^{\pi_2}(s) \approx 53.5, \quad V^{\pi_2}(a) \approx 67.2$$
             </div>
 
-            <h3>对比与讨论</h3>
+            <h3>对比</h3>
 
             <table class="trans-table">
                 <thead>
@@ -398,49 +402,21 @@
                 </tbody>
             </table>
 
-            <p>$\pi_2$ 在<strong>所有状态</strong>上大幅优于 $\pi_1$。关键洞察：郊区是一个"陷阱"——接单只赚1元，且80%概率继续留在郊区。花3元油钱逃回市中心，短期亏损，但长期获得的高收入（市中心$R=8$，还有20%概率自然到达机场赚$R=14$）远远弥补了空驶成本。</p>
+            <p>$\pi_2$ 在所有状态上大幅优于 $\pi_1$。关键洞察：郊区是一个"陷阱"——接单只赚1元，且80%概率继续留在郊区（环境随机性②让司机难以脱身）。花3元油钱逃回市中心，短期亏损，但长期来看市中心的高收入（$R=8$，且有20%概率自然到达高收入的机场）远远弥补了空驶成本。</p>
 
-            <p>注意机场并不是"最优目的地"：虽然机场单价最高，但我们不必刻意空驶去机场——在市中心接单就有20%概率自然到达机场。</p>
-
-            <!-- ==================== Q值分析 ==================== -->
-            <h2>用 $Q^\pi$ 发现策略的改进方向</h2>
-
-            <p>在 $\pi_1$（有单就接）下，计算郊区的动作值函数：</p>
-
-            <div class="formula-block">
-                $$Q^{\pi_1}(s, \text{接单}) = 1 + 0.9(0.1 \times 51.2 + 0.8 \times 37.8 + 0.1 \times 55.3) \approx 37.8$$
-            </div>
-            <div class="formula-block">
-                $$Q^{\pi_1}(s, \text{空驶}) = -3 + 0.9 \times 51.2 \approx 43.1$$
-            </div>
-
-            <p>$Q^{\pi_1}(s, \text{空驶}) = 43.1 > Q^{\pi_1}(s, \text{接单}) = 37.8$。即使在"有单就接"的策略下评估，空驶的长期回报也更高。这正是改进策略的信号——把郊区的动作从"接单"换成"空驶"，就得到了更好的 $\pi_2$。</p>
-
-            <p>再看市中心：是否值得空驶去机场？</p>
-
-            <div class="formula-block">
-                $$Q^{\pi_2}(c, \text{接单}) = 8 + 0.9(0.5 \times 62.8 + 0.3 \times 53.5 + 0.2 \times 67.2) \approx 62.8$$
-            </div>
-            <div class="formula-block">
-                $$Q^{\pi_2}(c, \text{空驶去机场}) = -4 + 0.9 \times 67.2 \approx 56.5$$
-            </div>
-
-            <p>$Q^{\pi_2}(c, \text{接单}) = 62.8 > Q^{\pi_2}(c, \text{空驶去机场}) = 56.5$。在市中心接单已经很好了（有自然20%概率去机场），不值得花4元油钱专门跑一趟。</p>
-
-            <div class="note">
-                <strong>关键认识：</strong>贝尔曼期望方程是<strong>评估</strong>给定策略的工具——它告诉我们"按这个策略走，每个状态值多少"，本质是求矩阵的逆。$Q^\pi$ 进一步揭示"哪些动作比当前策略更好"。如何<strong>系统地利用这些信息找到最优策略</strong>，是1.4节的主题。
-            </div>
+            <p>值得注意的是，机场虽然单价最高（$R=14$），但 $\pi_2$ 并不要求司机空驶去机场——在市中心接单自然有20%概率到达机场，无需刻意追求。这说明<strong>最优的做法不是简单地"往收入最高的地方跑"</strong>，而是取决于转移概率和奖励的综合权衡——这正是值函数所捕捉的。</p>
 
             <!-- ==================== 小结 ==================== -->
             <h2>小结</h2>
 
-            <p>本节完成了四件事：</p>
+            <p>本节完成了三件事：</p>
             <ol style="margin: 0.5rem 0 1rem 2rem;">
-                <li>从回报 $G_t$ 的递推结构出发，<strong>逐步推导</strong>了贝尔曼期望方程</li>
-                <li>展示了贝尔曼方程的<strong>矩阵形式</strong> $\mathbf{V} = (\mathbf{I} - \gamma \mathbf{P}_\pi)^{-1} \mathbf{R}_\pi$，阐明策略评估的本质是求解线性方程组</li>
-                <li>通过网约车司机的三区域例子，<strong>数值验证</strong>了不同策略的值函数差异</li>
-                <li>利用 $Q^\pi$ <strong>分析</strong>了策略的改进方向，解释了"为什么不必专门跑机场"</li>
+                <li>严格定义了 $V^\pi$ 和 $Q^\pi$，阐明了值函数期望中<strong>两个随机性来源</strong>——策略选择动作的随机性和环境状态转移的随机性</li>
+                <li>从回报 $G_t$ 出发<strong>逐步推导</strong>了贝尔曼期望方程(8)，并给出其矩阵形式的解析解(11)：$\mathbf{V} = (\mathbf{I} - \gamma \mathbf{P}_\pi)^{-1} \mathbf{R}_\pi$</li>
+                <li>通过网约车司机的三区域例子，<strong>数值验证</strong>了公式(11)在策略评估中的应用</li>
             </ol>
+
+            <p>我们现在能够评估任何给定策略的好坏——但一个自然的问题是：<strong>如何系统地找到最优策略？</strong>这是下一节（1.4 依赖模型的动态规划算法）的主题，其中将介绍贝尔曼<strong>最优</strong>方程、值迭代和策略迭代算法。</p>
 
             <div class="chapter-nav">
                 <a href="../ch01/1.3.1.html">&larr; 1.3.1 基本概念与定义</a>
