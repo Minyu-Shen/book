@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1.3.2 值函数与贝尔曼方程 - 运筹智能</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <style>
+        .concept-card {
+            background: var(--sidebar-bg);
+            border-left: 4px solid var(--accent-color);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 6px 6px 0;
+        }
+        .concept-card .concept-name {
+            font-weight: 700;
+            color: var(--accent-color);
+            font-size: 1.05rem;
+            margin-bottom: 0.5rem;
+        }
+        .trans-table {
+            width: auto;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.95rem;
+        }
+        .trans-table th, .trans-table td {
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 0.8rem;
+            text-align: center;
+        }
+        .trans-table th {
+            background: var(--primary-color);
+            color: white;
+        }
+        .trans-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .policy-compare {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin: 1.5rem 0;
+        }
+        .policy-compare > div {
+            flex: 1;
+            min-width: 280px;
+            background: var(--sidebar-bg);
+            padding: 1.2rem;
+            border-radius: 8px;
+        }
+        .policy-compare h3 { margin-top: 0; color: var(--primary-color); }
+        .result-box {
+            background: var(--highlight-color);
+            border: 2px solid var(--accent-color);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+        .derivation {
+            background: var(--sidebar-bg);
+            padding: 1.2rem 1.5rem;
+            border-radius: 6px;
+            margin: 1.5rem 0;
+        }
+        .derivation .step-label {
+            font-weight: 600;
+            color: var(--accent-color);
+            margin-bottom: 0.3rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="book-title"><a href="../../index.html" style="text-decoration:none;color:inherit;">运筹智能</a></div>
+            <nav>
+                <ul>
+                <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
+                <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
+                <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
+                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
+                <li><a href="../ch01/1.3.2.html" class="active">1.3.2 值函数与贝尔曼方程</a></li>
+                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
+                <li><a href="../ch01/1.5.html">1.5 不依赖模型的学习算法</a></li>
+                <li><a href="../ch01/1.6.html">1.6 策略梯度方法</a></li>
+                <li><a href="../ch01/1.7.html">1.7 例子：等红绿灯问题</a></li>
+                <li><a href="../ch01/1.8.html">1.8 例子：动态库存补货策略</a></li>
+                <li class="sidebar-chapter">第二章 深度学习基础</li>
+                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
+                <li><a href="../ch03/3.2.html">3.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
+                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch04/4.2.html">4.2 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch04/4.3.html">4.3 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch04/4.4.html">4.4 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第五章 仿真器搭建</li>
+                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch05/5.4.html">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
+                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
+                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
+                <li><a href="../ch07/7.2.html">7.2 公交串车控制</a></li>
+                <li><a href="../ch07/7.3.html">7.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第八章 进阶话题</li>
+                <li><a href="../ch08/8.1.html">8.1 多智能体强化学习</a></li>
+                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>1.3.2 值函数与贝尔曼方程</h1>
+
+            <p>在上一小节中，我们建立了MDP五元组 $\langle \mathcal{S}, \mathcal{A}, P, R, \gamma \rangle$ 的概念体系，并初步认识了值函数。本节我们将通过一个完整的随机MDP例子，严格定义值函数，并推导出<strong>贝尔曼期望方程</strong>（Bellman Expectation Equation）——它是评估一个给定策略好坏的核心工具。</p>
+
+            <!-- ==================== 设备维护例子 ==================== -->
+            <h2>例子：设备维护决策</h2>
+
+            <p>一家工厂有一台关键设备，设备有三种状态：<strong>良好</strong>（$g$）、<strong>磨损</strong>（$w$）和<strong>故障</strong>（$b$）。工厂管理者每天需要决定对设备采取什么操作。这是一个典型的管理决策问题，我们用MDP来建模。</p>
+
+            <h3>状态空间与动作空间</h3>
+
+            <p>状态空间：$\mathcal{S} = \{g, w, b\}$</p>
+
+            <p>动作空间取决于当前状态：</p>
+            <ul style="margin: 0.5rem 0 1rem 2rem;">
+                <li>设备良好时：$\mathcal{A}(g) = \{\text{运行}, \text{保养}\}$</li>
+                <li>设备磨损时：$\mathcal{A}(w) = \{\text{运行}, \text{保养}\}$</li>
+                <li>设备故障时：$\mathcal{A}(b) = \{\text{维修}\}$（只能维修）</li>
+            </ul>
+
+            <h3>转移概率</h3>
+
+            <p>这里是MDP与确定性问题的关键区别：设备状态的变化是<strong>随机的</strong>。良好的设备运行一天后，有可能保持良好，也有可能变为磨损。完整的转移概率如下：</p>
+
+            <table class="trans-table">
+                <thead>
+                    <tr><th>当前状态</th><th>动作</th><th>$P(\,g\, |\, s, a)$</th><th>$P(\,w\, |\, s, a)$</th><th>$P(\,b\, |\, s, a)$</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>$g$</td><td>运行</td><td>0.7</td><td>0.3</td><td>0</td></tr>
+                    <tr><td>$g$</td><td>保养</td><td>1.0</td><td>0</td><td>0</td></tr>
+                    <tr><td>$w$</td><td>运行</td><td>0</td><td>0.5</td><td>0.5</td></tr>
+                    <tr><td>$w$</td><td>保养</td><td>1.0</td><td>0</td><td>0</td></tr>
+                    <tr><td>$b$</td><td>维修</td><td>1.0</td><td>0</td><td>0</td></tr>
+                </tbody>
+            </table>
+
+            <p>解读几行关键的转移概率：</p>
+            <ul style="margin: 0.5rem 0 1rem 2rem;">
+                <li>良好设备运行后，70%概率保持良好，30%概率变为磨损</li>
+                <li>磨损设备继续运行，50%概率保持磨损，50%概率发生故障</li>
+                <li>无论何种状态，保养/维修后设备都恢复为良好</li>
+            </ul>
+
+            <h3>奖励函数</h3>
+
+            <table class="trans-table">
+                <thead>
+                    <tr><th>状态</th><th>动作</th><th>奖励 $R(s, a)$</th><th>含义</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>$g$</td><td>运行</td><td>$+10$</td><td>正常生产收益</td></tr>
+                    <tr><td>$g$</td><td>保养</td><td>$-2$</td><td>停产做保养，付出成本</td></tr>
+                    <tr><td>$w$</td><td>运行</td><td>$+6$</td><td>带病运行，产能下降</td></tr>
+                    <tr><td>$w$</td><td>保养</td><td>$-4$</td><td>磨损状态保养更贵</td></tr>
+                    <tr><td>$b$</td><td>维修</td><td>$-8$</td><td>故障维修代价很高</td></tr>
+                </tbody>
+            </table>
+
+            <p>折扣因子取 $\gamma = 0.9$。现在，这个MDP的所有要素都已完整定义。下面我们用它来严格理解值函数。</p>
+
+            <!-- ==================== 状态值函数 ==================== -->
+            <h2>状态值函数 $V^\pi(s)$</h2>
+
+            <div class="concept-card">
+                <div class="concept-name">定义：状态值函数</div>
+                <p>给定策略 $\pi$，<strong>状态值函数</strong> $V^\pi(s)$ 定义为从状态 $s$ 出发、遵循策略 $\pi$ 行动所获得的累计折扣奖励的期望：</p>
+                <div class="formula-block">
+                    $$V^\pi(s) \;=\; \mathbb{E}_\pi\!\left[\, \sum_{k=0}^{\infty} \gamma^k R_{t+k} \;\middle|\; S_t = s \,\right]$$
+                </div>
+            </div>
+
+            <p>让我们把这个期望展开。在时间步 $t$，智能体处于状态 $S_t = s$，按照策略 $\pi$ 选择动作 $A_t \sim \pi(\cdot \mid s)$，获得即时奖励 $R(s, A_t)$，然后转移到下一个状态 $S_{t+1} \sim P(\cdot \mid s, A_t)$。因此：</p>
+
+            <div class="formula-block">
+                $$V^\pi(s) = \sum_{a \in \mathcal{A}(s)} \pi(a \mid s) \left[\, R(s, a) \;+\; \gamma \sum_{s' \in \mathcal{S}} P(s' \mid s, a) \; V^\pi(s') \,\right]$$
+            </div>
+
+            <p>这就是<strong>贝尔曼期望方程</strong>（Bellman Expectation Equation）。它的含义非常直观：</p>
+
+            <div class="note">
+                <strong>贝尔曼期望方程的直觉：</strong>一个状态的价值 = 按策略选择各个动作的概率加权下，每个动作带来的【即时奖励 + 折扣后的下一状态的价值】。
+            </div>
+
+            <p>对于<strong>确定性策略</strong> $\pi(s) = a$（在每个状态只选一个动作），方程简化为：</p>
+
+            <div class="formula-block">
+                $$V^\pi(s) = R\big(s, \pi(s)\big) + \gamma \sum_{s' \in \mathcal{S}} P\big(s' \mid s, \pi(s)\big) \; V^\pi(s')$$
+            </div>
+
+            <!-- ==================== 动作值函数 ==================== -->
+            <h2>动作值函数 $Q^\pi(s, a)$</h2>
+
+            <div class="concept-card">
+                <div class="concept-name">定义：动作值函数</div>
+                <p><strong>动作值函数</strong> $Q^\pi(s, a)$ 衡量的是：在状态 $s$ 下执行动作 $a$，之后再遵循策略 $\pi$ 行动，所获得的累计折扣奖励的期望：</p>
+                <div class="formula-block">
+                    $$Q^\pi(s, a) \;=\; R(s, a) \;+\; \gamma \sum_{s' \in \mathcal{S}} P(s' \mid s, a) \; V^\pi(s')$$
+                </div>
+            </div>
+
+            <p>$V^\pi$ 和 $Q^\pi$ 之间有一个简洁的关系——$V^\pi$ 是 $Q^\pi$ 在策略 $\pi$ 下的加权平均：</p>
+
+            <div class="formula-block">
+                $$V^\pi(s) = \sum_{a \in \mathcal{A}(s)} \pi(a \mid s) \; Q^\pi(s, a)$$
+            </div>
+
+            <p>$Q^\pi(s, a)$ 的意义在于：它可以告诉我们，在状态 $s$ 下，某个动作 $a$ 到底好不好——即使这个动作不是策略 $\pi$ 推荐的。这为后续改进策略提供了关键信息。</p>
+
+            <!-- ==================== 数值计算 ==================== -->
+            <h2>数值示例：评估两个不同的策略</h2>
+
+            <p>贝尔曼期望方程不只是一个理论公式——它给出了一组<strong>线性方程</strong>，可以直接求解 $V^\pi$。让我们用设备维护问题来验证。</p>
+
+            <div class="policy-compare">
+                <div>
+                    <h3>策略 $\pi_1$：一直运行</h3>
+                    <p>$\pi_1(g) = \text{运行}$<br>$\pi_1(w) = \text{运行}$<br>$\pi_1(b) = \text{维修}$</p>
+                    <p style="font-size:0.88rem; color:#718096;">激进策略：能开就开，坏了再修。</p>
+                </div>
+                <div>
+                    <h3>策略 $\pi_2$：磨损时保养</h3>
+                    <p>$\pi_2(g) = \text{运行}$<br>$\pi_2(w) = \text{保养}$<br>$\pi_2(b) = \text{维修}$</p>
+                    <p style="font-size:0.88rem; color:#718096;">稳健策略：磨损就保养，避免故障。</p>
+                </div>
+            </div>
+
+            <h3>求解 $V^{\pi_1}$</h3>
+
+            <p>对策略 $\pi_1$，代入贝尔曼期望方程，得到三个方程：</p>
+
+            <div class="formula-block">
+                $$\begin{cases}
+                V^{\pi_1}(g) = 10 + 0.9\big[0.7 \cdot V^{\pi_1}(g) + 0.3 \cdot V^{\pi_1}(w)\big] \\[6pt]
+                V^{\pi_1}(w) = 6 + 0.9\big[0.5 \cdot V^{\pi_1}(w) + 0.5 \cdot V^{\pi_1}(b)\big] \\[6pt]
+                V^{\pi_1}(b) = -8 + 0.9 \cdot V^{\pi_1}(g)
+                \end{cases}$$
+            </div>
+
+            <p>这是一个三元一次方程组。由第三个方程代入第二个，再代入第一个，解得：</p>
+
+            <div class="result-box">
+                $$V^{\pi_1}(g) \approx 65.3, \quad V^{\pi_1}(w) \approx 52.4, \quad V^{\pi_1}(b) \approx 50.8$$
+            </div>
+
+            <h3>求解 $V^{\pi_2}$</h3>
+
+            <p>对策略 $\pi_2$（磨损时选择保养，恢复为良好）：</p>
+
+            <div class="formula-block">
+                $$\begin{cases}
+                V^{\pi_2}(g) = 10 + 0.9\big[0.7 \cdot V^{\pi_2}(g) + 0.3 \cdot V^{\pi_2}(w)\big] \\[6pt]
+                V^{\pi_2}(w) = -4 + 0.9 \cdot V^{\pi_2}(g) \\[6pt]
+                V^{\pi_2}(b) = -8 + 0.9 \cdot V^{\pi_2}(g)
+                \end{cases}$$
+            </div>
+
+            <p>注意第二个方程变简单了：保养后一定恢复为良好，所以 $V^{\pi_2}(w)$ 直接依赖于 $V^{\pi_2}(g)$。解得：</p>
+
+            <div class="result-box">
+                $$V^{\pi_2}(g) \approx 70.2, \quad V^{\pi_2}(w) \approx 59.2, \quad V^{\pi_2}(b) \approx 55.2$$
+            </div>
+
+            <h3>对比与讨论</h3>
+
+            <table class="trans-table">
+                <thead>
+                    <tr><th>状态</th><th>$V^{\pi_1}$（一直运行）</th><th>$V^{\pi_2}$（磨损保养）</th><th>差异</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>$g$（良好）</td><td>65.3</td><td><strong>70.2</strong></td><td>+4.9</td></tr>
+                    <tr><td>$w$（磨损）</td><td>52.4</td><td><strong>59.2</strong></td><td>+6.8</td></tr>
+                    <tr><td>$b$（故障）</td><td>50.8</td><td><strong>55.2</strong></td><td>+4.4</td></tr>
+                </tbody>
+            </table>
+
+            <p>策略 $\pi_2$ 在<strong>所有状态</strong>上都优于 $\pi_1$。虽然 $\pi_1$ 在磨损时继续运行能多赚6元（相比保养的-4元），但50%的故障风险导致的-8元维修代价，从长远看拖累了整体收益。$\pi_2$ 通过及时保养避免了故障，获得了更高的长期回报。</p>
+
+            <p>这正是值函数的威力：它不只看眼前一步的奖励，而是把<strong>未来所有时间步的累计回报</strong>都考虑在内。</p>
+
+            <h3>用 $Q^\pi$ 理解策略的改进空间</h3>
+
+            <p>我们还可以计算 $\pi_1$ 下的动作值函数，来发现哪里有改进空间：</p>
+
+            <div class="formula-block">
+                $$Q^{\pi_1}(w, \text{运行}) = 6 + 0.9(0.5 \times 52.4 + 0.5 \times 50.8) = 52.4$$
+                $$Q^{\pi_1}(w, \text{保养}) = -4 + 0.9 \times 65.3 = 54.8$$
+            </div>
+
+            <p>在磨损状态下，$Q^{\pi_1}(w, \text{保养}) = 54.8 > Q^{\pi_1}(w, \text{运行}) = 52.4$。这告诉我们：即使在"一直运行"的策略下评估，保养动作也比继续运行更好。这就是策略 $\pi_2$ 优于 $\pi_1$ 的数学原因。</p>
+
+            <div class="note">
+                <strong>关键认识：</strong>贝尔曼期望方程是用来<strong>评估</strong>一个给定策略 $\pi$ 的工具——它告诉我们"如果一直按 $\pi$ 行动，每个状态值多少"。但它本身不直接告诉我们最优策略是什么。如何<strong>找到</strong>最优策略，是下一节（1.4 依赖模型的动态规划算法）的主题。
+            </div>
+
+            <!-- ==================== 小结 ==================== -->
+            <h2>小结</h2>
+
+            <p>本节通过设备维护问题，我们完成了三件事：</p>
+
+            <ol style="margin: 0.5rem 0 1rem 2rem;">
+                <li><strong>严格定义</strong>了状态值函数 $V^\pi(s)$ 和动作值函数 $Q^\pi(s, a)$，并明确了它们的关系</li>
+                <li><strong>推导</strong>了贝尔曼期望方程，它将值函数表示为一个可求解的线性方程组</li>
+                <li><strong>验证</strong>了不同策略的值函数差异，展示了 $Q^\pi$ 如何揭示策略的改进方向</li>
+            </ol>
+
+            <p>下一步的自然问题是：既然我们能评估任何策略，能否系统地找到<strong>最优策略</strong>？答案是肯定的。在1.4节中，我们将介绍值迭代和策略迭代两种经典算法。</p>
+
+            <div class="chapter-nav">
+                <a href="../ch01/1.3.html">&larr; 1.3 马尔可夫决策过程</a>
+                <a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法 &rarr;</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
