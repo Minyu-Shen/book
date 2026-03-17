@@ -59,6 +59,19 @@ body {
     margin-bottom: 0.5rem;
 }
 
+.sidebar nav ul li.sidebar-chapter {
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 0.88rem;
+    margin-top: 1.2rem;
+    margin-bottom: 0.3rem;
+    padding: 0 0.5rem;
+}
+
+.sidebar nav ul li.sidebar-chapter:first-child {
+    margin-top: 0;
+}
+
 .sidebar nav ul li a {
     color: var(--text-color);
     text-decoration: none;
