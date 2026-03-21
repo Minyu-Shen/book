@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4.5 从问题特征到网络架构的选择 - 运筹智能</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <script defer src="../../js/code-copy.js"></script>
+    <style>
+        .concept-card {
+            background: var(--sidebar-bg);
+            border-left: 4px solid var(--accent-color);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 6px 6px 0;
+        }
+        .concept-card .concept-name {
+            font-weight: 700;
+            color: var(--accent-color);
+            font-size: 1.05rem;
+            margin-bottom: 0.5rem;
+        }
+        .fig-caption { text-align:center; font-size:0.9rem; color:#718096; margin-top:0.5rem; margin-bottom:1.5rem; }
+        .arch-section { margin-top: 2rem; }
+        .arch-section h3 { border-bottom: 2px solid #e2e8f0; padding-bottom: 0.3rem; }
+        .inline-flow {
+            text-align: center;
+            font-size: 1rem;
+            color: var(--accent-color);
+            font-weight: 600;
+            margin: 1rem 0;
+            letter-spacing: 0.02em;
+        }
+        .guide-box {
+            background: #f7fafc;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.2rem 1.5rem;
+            margin: 1.5rem 0;
+        }
+        .guide-box ol {
+            margin: 0.5rem 0 0.5rem 1.5rem;
+            line-height: 2;
+        }
+        .guide-box .guide-title {
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 1.05rem;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="book-title"><a href="../../index.html" style="text-decoration:none;color:inherit;">运筹智能</a></div>
+            <nav>
+                <ul>
+                <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
+                <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
+                <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
+                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
+                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.3.html">1.5.3 SARSA与Q-learning</a></li>
+                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
+                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-chapter">第二章 深度学习基础</li>
+                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
+                <li><a href="../ch03/3.2.html">3.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
+                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch04/4.2.html">4.2 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch04/4.3.html">4.3 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch04/4.4.html">4.4 回合定义与时域建模</a></li>
+                <li><a href="../ch04/4.5.html" class="active">4.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第五章 仿真器搭建</li>
+                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch05/5.4.html">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
+                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
+                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
+                <li><a href="../ch07/7.2.html">7.2 公交串车控制</a></li>
+                <li><a href="../ch07/7.3.html">7.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第八章 进阶话题</li>
+                <li><a href="../ch08/8.1.html">8.1 多智能体强化学习</a></li>
+                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>4.5 从问题特征到网络架构的选择</h1>
+
+            <!-- ==================== 引言 ==================== -->
+
+            <p>在前几节中，我们依次解决了建模管道的核心问题：如何将管理科学问题抽象为MDP（4.1），如何设计状态空间、动作空间与奖励函数（4.2），如何确定决策时机与频率（4.3），以及如何定义回合与处理时域建模（4.4）。至此，MDP的数学框架已经搭建完毕。剩下最后一个问题：用什么样的神经网络来表示策略 $\pi_\theta$ 和值函数 $V_\phi$？</p>
+
+            <p>第二章介绍了多种神经网络架构，从最基础的多层感知机（MLP，2.1节）到卷积神经网络（CNN）和循环神经网络（RNN，2.2节），再到Attention机制与Transformer（2.3节）以及图神经网络（GNN，2.4节）。这些架构并非可以随意替换的模块。每种架构都有其擅长处理的数据结构，选择的依据在于问题本身的状态与动作特征。</p>
+
+            <p>本节提供一个从问题特征到架构选择的决策框架。核心原则很简单：<strong>让网络架构匹配数据的内在结构</strong>。如果状态是一张网格图，就用擅长提取空间特征的CNN；如果状态是一组变长的实体集合，就用能处理变长输入的Attention机制。用错了架构，不仅浪费算力，还可能让模型难以学到有效策略。</p>
+
+            <!-- ==================== 问题特征分类 ==================== -->
+            <h2>问题特征与架构的对应关系</h2>
+
+            <p>下表总结了管理科学中常见的状态结构类型，以及每种结构所对应的推荐架构。</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>状态结构</th>
+                        <th>典型问题</th>
+                        <th>推荐架构</th>
+                        <th>参考章节</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>固定长度向量</td>
+                        <td>库存管理、单车控制</td>
+                        <td>MLP</td>
+                        <td>2.1</td>
+                    </tr>
+                    <tr>
+                        <td>时间序列</td>
+                        <td>需求预测辅助决策、金融交易</td>
+                        <td>RNN / LSTM / Transformer</td>
+                        <td>2.2, 2.3</td>
+                    </tr>
+                    <tr>
+                        <td>网格 / 图像</td>
+                        <td>仓库布局、棋盘游戏</td>
+                        <td>CNN</td>
+                        <td>2.2</td>
+                    </tr>
+                    <tr>
+                        <td>图结构</td>
+                        <td>交通网络、供应链网络</td>
+                        <td>GNN</td>
+                        <td>2.4</td>
+                    </tr>
+                    <tr>
+                        <td>变长集合</td>
+                        <td>车队调度、组合优化</td>
+                        <td>Attention / Set Encoder</td>
+                        <td>2.3</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p>接下来我们逐一讨论每种架构的适用场景、数据流和使用要点。</p>
+
+            <!-- ==================== MLP ==================== -->
+            <div class="arch-section">
+            <h3>MLP：固定维度的向量状态</h3>
+
+            <p>如果状态可以表示为一个固定长度的向量 $s \in \mathbb{R}^d$，MLP就是最直接的选择。例如在库存管理问题中，状态可能是 $s = [\text{库存量},\; \text{需求预测},\; \text{季节指标}]^\top$，始终是一个三维向量。MLP将这个向量通过若干隐藏层映射为动作的logits或值估计：</p>
+
+            <p class="inline-flow">$s \in \mathbb{R}^d \;\longrightarrow\; \text{MLP} \;\longrightarrow\;$ 动作logits / 值估计</p>
+
+            <p>典型配置是2到3个隐藏层，每层64到256个神经元，激活函数用ReLU。MLP的优点是实现简单、训练快速，适合作为任何问题的第一版基线。即使后续需要更复杂的架构，也建议先用MLP跑通整个训练流程，确认MDP建模和奖励设计没有问题，再逐步升级网络。</p>
+            </div>
+
+            <!-- ==================== CNN ==================== -->
+            <div class="arch-section">
+            <h3>CNN：空间结构的状态</h3>
+
+            <p>当状态具有网格或图像的空间结构时，CNN是自然的选择。卷积操作能提取局部空间模式，并通过多层堆叠捕获越来越大范围的特征。典型应用包括仓库机器人在网格地图上的导航、棋盘游戏（如围棋）中的落子决策等。</p>
+
+            <p class="inline-flow">$s \in \mathbb{R}^{H \times W \times C} \;\longrightarrow\; \text{CNN} \;\longrightarrow\; \text{MLP} \;\longrightarrow\;$ 输出</p>
+
+            <p>在管理科学研究中，纯图像类的状态相对少见。但如果你的问题涉及二维空间布局（如仓储货架排列、生产车间的设备分布），CNN可以直接从空间信息中学习策略，而不需要人工提取特征。</p>
+            </div>
+
+            <!-- ==================== RNN/Transformer ==================== -->
+            <div class="arch-section">
+            <h3>RNN / Transformer：序列结构的状态</h3>
+
+            <p>当决策依赖于时间序列模式，或者环境是部分可观测的需要利用历史信息时，序列模型就派上用场了。典型场景包括：需求预测驱动的补货决策（需要看过去若干周期的需求走势）、金融交易（需要分析价格序列中的趋势和波动）。</p>
+
+            <p class="inline-flow">$(s_1, s_2, \ldots, s_t) \;\longrightarrow\; \text{RNN / Transformer} \;\longrightarrow\;$ 动作</p>
+
+            <p>RNN（特别是LSTM和GRU变体）通过隐状态逐步处理序列，适合中等长度的时间窗口。Transformer通过自注意力机制并行处理整个序列，在长序列上表现更好，但计算开销也更大。选择哪一个取决于序列长度和计算预算：序列较短（几十步以内）时两者差异不大，序列很长时Transformer通常更有优势。</p>
+            </div>
+
+            <!-- ==================== GNN ==================== -->
+            <div class="arch-section">
+            <h3>GNN：图结构的状态</h3>
+
+            <p>当系统中的实体按照图的拓扑结构相互连接时，GNN是最合适的架构。例如交通信号控制问题中，路口是节点，道路是边，每个路口的特征（排队长度、等待时间）需要结合相邻路口的信息才能做出好的决策。供应链网络优化中，仓库和零售点组成图结构，库存调拨决策需要考虑上下游节点的状态。</p>
+
+            <p class="inline-flow">节点/边特征 $\;\longrightarrow\;$ 消息传递 $\;\longrightarrow\;$ 节点嵌入 $\;\longrightarrow\;$ 池化 $\;\longrightarrow\;$ 动作</p>
+
+            <p>GNN的核心优势在于<strong>置换等变性</strong>：如果把图中两个节点的编号交换，GNN的输出也相应交换，而不会产生不一致的结果。这意味着GNN天然地尊重了图的拓扑结构，不会因为节点编号的任意性而浪费学习能力。此外，训练好的GNN可以直接应用于不同规模的图（例如从5个路口的小网络推广到50个路口的大网络），这种泛化能力对管理科学应用非常重要。</p>
+            </div>
+
+            <!-- ==================== Attention ==================== -->
+            <div class="arch-section">
+            <h3>Attention / Set Encoder：变长集合输入</h3>
+
+            <p>在管理科学的许多问题中，状态包含数量可变的实体。网约车派单中，待服务的乘客请求数量每时每刻都在变化；车队调度中，可用车辆数量也不固定；组合优化问题中，待处理的任务集合随时间动态变化。这类变长集合输入无法直接用固定维度的MLP处理，<strong>Attention机制</strong>是目前最主流的解决方案。</p>
+
+            <p>处理变长集合的基本思路分为三步：</p>
+            <ol>
+                <li><strong>独立编码</strong>：用一个共享的编码网络将每个实体的特征映射为嵌入向量。</li>
+                <li><strong>交叉注意力</strong>：让不同类型的实体之间相互关注。例如在派单问题中，让每辆车关注所有待服务请求，计算匹配分数。</li>
+                <li><strong>输出打分</strong>：对需要选择的实体进行打分（用于选择动作），或对所有实体的嵌入进行池化（用于值估计）。</li>
+            </ol>
+
+            <p>以网约车派单为例：当一个新请求 $r$ 到达时，需要从 $N$ 辆可用车辆中选择一辆去服务。设车辆 $i$ 的嵌入为 $v_i$，请求的嵌入为 $r$，通过注意力打分计算每辆车的匹配度：</p>
+
+            $$\text{score}(v_i, r) = \frac{(W_Q \, r)^\top (W_K \, v_i)}{\sqrt{d}} \tag{4.5-1}$$
+
+            <p>其中 $W_Q$ 和 $W_K$ 分别是查询（query）和键（key）的投影矩阵，$d$ 是嵌入维度。然后通过softmax加上可行性掩码得到动作概率：</p>
+
+            $$\pi(v_i \mid s, r) = \frac{\exp(\text{score}(v_i, r)) \cdot m_i}{\sum_{j=1}^{N} \exp(\text{score}(v_j, r)) \cdot m_j} \tag{4.5-2}$$
+
+            <p>其中 $m_i = 1$ 表示车辆 $i$ 可被派遣，$m_i = 0$ 表示车辆 $i$ 不可用（例如正在执行其他任务）。掩码确保了策略只会选择可行的动作，这对于满足约束条件至关重要。</p>
+
+            <p>这种架构的关键优势在于：无论当前有3辆还是300辆可用车辆，同一个网络都能处理，输出维度自动适应实体数量的变化。这正是管理科学问题中最常见的需求，因此Attention机制在这一领域有着广泛的应用。</p>
+            </div>
+
+            <!-- ==================== 残差策略 ==================== -->
+            <h2>残差策略：在启发式基线上学习修正</h2>
+
+            <p>管理科学问题通常已有成熟的启发式算法。库存管理有$(s, S)$策略，车辆调度有最近邻分配，生产排程有优先规则。这些启发式算法虽然不是最优的，但往往已经达到了不错的性能。从零开始训练一个RL策略，意味着要重新发现这些启发式中已经蕴含的知识，效率很低。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">残差策略（Residual Policy）</div>
+                <p>与其让神经网络从零学习完整策略，不如让它在已有的启发式基线上学习<strong>修正量</strong>。具体做法是：将每个动作的打分拆分为启发式部分和学习部分的加权和。</p>
+                <p>设实体 $i$ 的启发式打分为 $\ell_i^{\text{baseline}}$（例如按距离排序的得分），神经网络输出的修正打分为 $\ell_i^{\text{learned}}$，最终打分为：</p>
+                $$\ell_i = \ell_i^{\text{baseline}} + \alpha \cdot \ell_i^{\text{learned}} \tag{4.5-3}$$
+                <p>其中 $\alpha$ 是一个可学习的温度参数，控制神经网络修正的幅度。</p>
+                <p>这样做有三个好处。第一，策略从训练一开始就具备接近启发式的性能，不会出现随机探索阶段的糟糕表现。第二，网络只需要学习启发式策略的不足之处，学习负担大大减轻。第三，通过对比 $\ell_i^{\text{baseline}}$ 和 $\alpha \cdot \ell_i^{\text{learned}}$，可以直观地看到RL在哪些情况下修正了启发式的决策，增强了可解释性。</p>
+            </div>
+
+            <!-- ==================== 共享编码器 ==================== -->
+            <h2>共享编码器与独立输出头</h2>
+
+            <p>在Actor-Critic算法（如PPO、SAC）中，策略网络和值网络需要处理相同的状态输入。一个常见的工程模式是让两个网络共享底层的特征编码器，只在输出端分成两个独立的头：Actor头输出动作分布，Critic头输出值估计。</p>
+
+            <!-- SVG 架构图 -->
+            <div style="text-align:center; margin: 2rem 0 0.5rem 0;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 310" width="440" height="310" style="max-width:100%;">
+                    <!-- 状态输入框 -->
+                    <rect x="140" y="255" width="160" height="40" rx="6" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="1.5"/>
+                    <foreignObject x="140" y="255" width="160" height="40">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:40px;font-size:15px;color:#2d3748;font-weight:600;">状态特征</div>
+                    </foreignObject>
+
+                    <!-- 连线: 输入 → 编码器 -->
+                    <line x1="220" y1="255" x2="220" y2="215" stroke="#4a5568" stroke-width="2" stroke-linecap="round"/>
+
+                    <!-- 共享编码器 -->
+                    <rect x="120" y="165" width="200" height="50" rx="6" fill="#dbeafe" stroke="#2b6cb0" stroke-width="2"/>
+                    <foreignObject x="120" y="165" width="200" height="50">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:50px;font-size:15px;color:#2b6cb0;font-weight:700;">共享编码器</div>
+                    </foreignObject>
+
+                    <!-- 分叉连线: 编码器 → Actor / Critic -->
+                    <line x1="170" y1="165" x2="120" y2="125" stroke="#c53030" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="270" y1="165" x2="320" y2="125" stroke="#48bb78" stroke-width="2" stroke-linecap="round"/>
+
+                    <!-- Actor头 -->
+                    <rect x="30" y="75" width="180" height="50" rx="6" fill="#fed7d7" stroke="#c53030" stroke-width="2"/>
+                    <foreignObject x="30" y="75" width="180" height="50">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:50px;font-size:15px;color:#c53030;font-weight:700;">Actor 头</div>
+                    </foreignObject>
+
+                    <!-- Critic头 -->
+                    <rect x="230" y="75" width="180" height="50" rx="6" fill="#f0fff4" stroke="#48bb78" stroke-width="2"/>
+                    <foreignObject x="230" y="75" width="180" height="50">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:50px;font-size:15px;color:#2f855a;font-weight:700;">Critic 头</div>
+                    </foreignObject>
+
+                    <!-- 输出连线 -->
+                    <line x1="120" y1="75" x2="120" y2="42" stroke="#c53030" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="320" y1="75" x2="320" y2="42" stroke="#48bb78" stroke-width="2" stroke-linecap="round"/>
+
+                    <!-- 输出标签 -->
+                    <foreignObject x="30" y="12" width="180" height="30">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:30px;font-size:14px;color:#c53030;font-weight:600;">动作分布 $\pi_\theta(a \mid s)$</div>
+                    </foreignObject>
+                    <foreignObject x="230" y="12" width="180" height="30">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:30px;font-size:14px;color:#2f855a;font-weight:600;">值估计 $V_\phi(s)$</div>
+                    </foreignObject>
+                </svg>
+            </div>
+            <div class="fig-caption">图 4.5-1　Actor-Critic共享编码器架构。底层的共享编码器处理状态特征并提取潜在表示，上层的Actor头和Critic头分别输出动作分布和值估计。</div>
+
+            <p>参数共享有两方面的好处。首先，特征编码只需计算一次就能同时服务于策略和值函数，节省了计算开销。其次，共享编码器能让两个任务的梯度信号相互补充，起到正则化的效果，有助于学到更好的状态表示。</p>
+
+            <p>需要注意的是，如果策略和值函数对状态特征的需求差异很大，共享编码器反而可能引起<strong>梯度冲突</strong>，导致两个任务互相干扰。实际使用时，可以通过监测Actor和Critic的训练曲线来判断是否需要分离编码器。如果两者中的一方持续无法收敛，尝试使用独立编码器往往能解决问题。</p>
+
+            <!-- ==================== 实用选择指南 ==================== -->
+            <h2>实用选择指南</h2>
+
+            <p>面对一个新问题，我们建议按以下顺序逐步增加网络的复杂度。</p>
+
+            <div class="guide-box">
+                <div class="guide-title">架构选择路线图</div>
+                <ol>
+                    <li><strong>从MLP开始。</strong>将状态编码为固定长度向量，用2到3层MLP作为策略和值网络。这一步的目的是验证MDP建模和奖励函数的正确性。</li>
+                    <li><strong>如果状态包含变长实体集合</strong>（如车辆列表、任务队列），引入Attention机制处理变长输入。</li>
+                    <li><strong>如果实体之间存在图结构的连接关系</strong>（如路网、供应链），用GNN来聚合邻居信息。</li>
+                    <li><strong>如果决策依赖于时间序列模式</strong>（如历史需求、价格走势），加入RNN或Transformer编码时序特征。</li>
+                    <li><strong>如果已有性能不错的启发式算法</strong>，采用残差策略，让网络在启发式基线上学习修正。</li>
+                    <li><strong>只有当更简单的架构确实不够用时</strong>，才引入更复杂的结构。</li>
+                </ol>
+            </div>
+
+            <div class="concept-card">
+                <div class="concept-name">从简单开始，按需增加复杂度</div>
+                <p>选择网络架构时，最重要的原则是<strong>先让系统跑起来，再让它跑得好</strong>。一个用MLP跑通的训练流程，远比一个用复杂架构却无法收敛的实验更有价值。每增加一层复杂度，都应该有明确的理由和可衡量的收益。</p>
+            </div>
+
+            <!-- ==================== 本章小结 ==================== -->
+            <h2>本章小结</h2>
+
+            <p>本章围绕一个核心问题展开：<strong>如何将一个管理科学问题转化为可以用强化学习求解的形式</strong>。我们沿着建模管道依次讨论了四个步骤。4.1节讨论了如何将实际问题抽象为MDP，确定智能体、环境和交互边界。4.2节讨论了状态空间、动作空间和奖励函数的设计，将问题的关键信息编码为MDP的语言。4.3节讨论了决策时机和频率的建模，确定智能体在什么时间点做决策。本节（4.5节）讨论了如何根据问题的状态和动作特征选择合适的网络架构，完成了从问题到模型的最后一步。</p>
+
+            <p>有了这套完整的建模工具，下一步就是搭建仿真环境来训练和评估RL策略。这正是第五章将要解决的问题。</p>
+
+            <div class="chapter-nav">
+                <a href="../ch04/4.4.html">&larr; 4.4 回合定义与时域建模</a>
+                <a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器 &rarr;</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

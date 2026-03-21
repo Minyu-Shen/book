@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1.6.2 Q-learning - 运筹智能</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .trans-table { width: auto; border-collapse: collapse; margin: 1rem auto; font-size: 0.95rem; }
+        .trans-table th, .trans-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: center; }
+        .trans-table th { background: var(--primary-color); color: white; }
+        .trans-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .result-box { background: var(--highlight-color); border: 2px solid var(--accent-color); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; text-align: center; }
+        .algo-box { background: #f7fafc; border: 2px solid var(--accent-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .algo-box .algo-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .algo-box ol { margin: 0.3rem 0 0.3rem 1.5rem; line-height: 2; }
+        .algo-box .algo-note { font-size: 0.9rem; color: #718096; margin-top: 0.5rem; }
+        .update-step { background: #fffbeb; border-left: 3px solid #d69e2e; padding: 0.6rem 1rem; margin: 0.8rem 0; border-radius: 0 6px 6px 0; font-size: 0.93rem; line-height: 1.7; }
+        .update-step .step-head { font-weight: 600; color: #975a16; }
+        .offpolicy-note { background: #faf5ff; border-left: 3px solid #805ad5; padding: 0.6rem 1rem; margin: 0.8rem 0; border-radius: 0 6px 6px 0; font-size: 0.93rem; line-height: 1.7; }
+        .rl-ctrl { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; margin-bottom:0.8rem; font-size:0.88rem; }
+        .rl-ctrl button { padding:0.3rem 0.7rem; border:1px solid #2b6cb0; background:white; color:#2b6cb0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.84rem; transition:all 0.15s; }
+        .rl-ctrl button:hover { background:#2b6cb0; color:white; }
+        .rl-info { background:#ebf4ff; border-radius:6px; padding:0.4rem 0.8rem; font-size:0.88rem; margin-top:0.6rem; }
+        .hc-path { background:#f7fafc; border:1px solid #e2e8f0; border-radius:6px; padding:0.4rem 0.8rem; font-size:0.88rem; margin-bottom:0.8rem; line-height:1.8; }
+        .hc-path .hc-arrow { color:#2b6cb0; font-weight:600; }
+        .hc-path .hc-cur { color:#c53030; font-weight:700; }
+        .q-cell { transition: background-color 0.6s ease; }
+        .q-ref { color:#a0aec0; font-size:0.85em; }
+    </style>
+    <script defer src="../../js/code-copy.js"></script>
+</head>
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="book-title"><a href="../../index.html" style="text-decoration:none;color:inherit;">运筹智能</a></div>
+            <nav>
+                <ul>
+                <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
+                <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
+                <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
+                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
+                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
+                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.6.1.html">1.6.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.6.2.html" class="active">1.6.2 Q-learning</a></li>
+                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.1.html">1.7.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.2.html">1.7.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.3.html">1.7.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第二章 深度学习基础</li>
+                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
+                <li><a href="../ch03/3.2.html">3.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
+                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch04/4.2.html">4.2 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch04/4.3.html">4.3 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch04/4.4.html">4.4 回合定义与时域建模</a></li>
+                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第五章 仿真器搭建</li>
+                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch05/5.4.html">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
+                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
+                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
+                <li><a href="../ch07/7.2.html">7.2 公交串车控制</a></li>
+                <li><a href="../ch07/7.3.html">7.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第八章 进阶话题</li>
+                <li><a href="../ch08/8.1.html">8.1 多智能体强化学习</a></li>
+                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>1.6.2 Q-learning：Off-policy TD 控制</h1>
+
+            <!-- ==================== Q-learning ==================== -->
+            <h2>Q-learning：Off-policy 的 TD 控制</h2>
+
+            <p>Q-learning（Watkins, 1989）是强化学习中最重要的算法之一。它和 SARSA 的唯一区别在于 TD 目标的构造方式。回忆 SARSA 的更新规则(1.6-1)：TD 目标 $R_t + \gamma\, Q(S_{t+1}, A_{t+1})$ 中的 $A_{t+1}$ 是 $\varepsilon$-greedy <strong>实际选出并将要执行</strong>的下一个动作。Q-learning 则不同：它不关心智能体下一步实际会选什么动作，而是直接取下一状态所有动作中 $Q$ 值最大的那个——好像在"想象"自己下一步一定会采取最优动作：</p>
+
+            <div class="concept-card">
+                <div class="concept-name">Q-learning 更新规则</div>
+                $$Q(S_t, A_t) \leftarrow Q(S_t, A_t) + \alpha \left[\, R_t + \gamma \, \max_{a} Q(S_{t+1}, a) - Q(S_t, A_t) \,\right] \tag{1.6-3}$$
+                <p style="margin-top:0.5rem;">TD 目标是 $R_t + \gamma\,\max_a Q(S_{t+1}, a)$，与实际选择的 $A_{t+1}$ 无关。</p>
+            </div>
+
+            <p>对比1.4.2节中的<strong>贝尔曼最优方程</strong>(1.4-9)，Q-learning 的更新目标正是其采样版本：</p>
+
+            $$\underbrace{R_t + \gamma \max_{a} Q(S_{t+1}, a)}_{\text{Q-learning TD目标（单次采样）}} \quad \approx \quad \underbrace{R(s,a) + \gamma \sum_{s'} P(s' \mid s, a)\, \max_{a'} Q^*(s', a')}_{\text{贝尔曼最优方程(1.4-9)右端（需要模型）}}$$
+
+            <p>Q-learning 用一次真实转移的样本 $(S_t, A_t, R_t, S_{t+1})$ 来<strong>近似</strong>贝尔曼最优方程中对所有可能后继状态的求和。经过足够多次的采样和更新，$Q$ 值会收敛到 $Q^*$。这已被严格证明（Watkins &amp; Dayan, 1992），证明思路与1.4.2节选读中的压缩映射论证一脉相承：Q-learning 的更新对应贝尔曼最优算子的随机逼近版本（只不过这里是对 $Q$ 值而非 $V$ 值），结合 Robbins-Monro 条件（每个状态-动作对被访问无穷多次，学习率递减且累积无穷大），可以保证 $Q_t \to Q^*$。</p>
+
+            <h3>为什么 Q-learning 是 off-policy 的</h3>
+
+            <p>对比两种算法的 TD 目标：</p>
+
+            $$\text{SARSA：}\; R_t + \gamma\,Q(S_{t+1},\, \underbrace{A_{t+1}}_{\text{实际选出}}) \qquad \text{Q-learning：}\; R_t + \gamma\,\underbrace{\max_{a} Q(S_{t+1}, a)}_{\text{想象的最优动作}} \tag{1.6-4}$$
+
+            <p>SARSA 用 $A_{t+1}$（$\varepsilon$-greedy 实际选出的动作）来估算未来回报。因此 SARSA 回答的问题是：如果我<strong>继续按 $\varepsilon$-greedy 行动</strong>（偶尔随机探索），从 $(S_t, A_t)$ 出发能获得多少期望回报？$Q$ 值收敛到的是 $\varepsilon$-greedy 策略本身的值 $Q^{\pi_\varepsilon}$。</p>
+
+            <p>Q-learning 用 $\max_a Q(S_{t+1}, a)$ 来估算未来回报。这个 $\max$ 意味着什么？它假设在 $S_{t+1}$ 时，智能体一定会选 $Q$ 值最高的动作。因此 Q-learning 回答的问题是：如果我<strong>从下一步开始一直采取最优动作</strong>（不再探索），从 $(S_t, A_t)$ 出发能获得多少期望回报？$Q$ 值收敛到的是最优策略的值 $Q^*$。</p>
+
+            <p>注意这里的关键矛盾：智能体<strong>实际上在用 $\varepsilon$-greedy 探索</strong>（否则无法学习新知识），但它学习的 $Q$ 值却对应一个<strong>纯贪心策略</strong>（每步都选最优动作）。用来生成数据的策略和 $Q$ 值所评估的策略不是同一个——这就是 <strong>off-policy</strong> 的含义。在 off-policy 的语境下，用来生成数据的 $\varepsilon$-greedy 称为<strong>行为策略</strong>（behavior policy），而 $Q$ 值所收敛到的纯贪心策略称为<strong>目标策略</strong>（target policy）。目标策略并没有被显式写成 $\pi(a|s) = \ldots$，而是隐含在 $\max$ 运算中——取 $\max$ 就等价于按纯贪心策略选动作。</p>
+
+            <div class="algo-box">
+                <div class="algo-title">Q-learning 算法</div>
+                <ol>
+                    <li>初始化 $Q(s, a)$ 为任意值（如全0），对所有 $s \in \mathcal{S}$，$a \in \mathcal{A}(s)$</li>
+                    <li>对每个回合（episode）：
+                        <ol type="a">
+                            <li>初始化状态 $S$</li>
+                            <li>对回合中的每一步：
+                                <ol type="i">
+                                    <li>根据 $\varepsilon$-greedy 从 $Q$ 中选择动作 $A$</li>
+                                    <li>执行动作 $A$，观察奖励 $R$ 和下一状态 $S'$</li>
+                                    <li>$Q(S, A) \leftarrow Q(S, A) + \alpha\,[R + \gamma\,\max_a Q(S', a) - Q(S, A)]$</li>
+                                    <li>$S \leftarrow S'$</li>
+                                </ol>
+                            </li>
+                        </ol>
+                    </li>
+                </ol>
+                <div class="algo-note">Q-learning 是 <strong>off-policy</strong> 算法：更新使用 $\max_a Q(S', a)$，与行为策略选择的实际动作无关。对比 SARSA 算法框，SARSA 需要先选出 $A_{t+1}$（既用于更新又用作下一步实际执行的动作），而 Q-learning 不需要。</div>
+            </div>
+
+            <!-- ==================== Q-learning 例子 ==================== -->
+            <h2>例子：网约车司机的 Q-learning</h2>
+
+            <p>继续使用网约车MDP，用 Q-learning 从零开始学习。同样设 $\gamma = 0.9$，$\alpha = 0.1$，$\varepsilon = 0.1$。初始时所有6个 $Q$ 值均为0。每步更新按公式(1.6-3)进行：</p>
+
+            $$Q(\underbrace{S_t}_{\text{当前状态}},\, \underbrace{A_t}_{\text{当前动作}}) \;\leftarrow\; Q(S_t, A_t) \;+\; \underbrace{\alpha}_{0.1} \Big[\, \underbrace{R_t}_{\text{即时奖励}} + \underbrace{\gamma}_{0.9}\, \max_{a} Q(\underbrace{S_{t+1}}_{\text{下一状态}}, a) - Q(S_t, A_t) \,\Big]$$
+
+            <p>与 SARSA 不同，更新所需的信息只有四元组 $(S_t, A_t, R_t, S_{t+1})$，不需要预先选出 $A_{t+1}$。点击下方按钮逐步观察每一步的更新。</p>
+
+            <!-- ==================== 逐步手算演示 ==================== -->
+            <div style="border:2px solid var(--border-color); border-radius:8px; padding:1.2rem; margin:1.5rem 0; background:#fafafa;">
+                <div style="font-weight:700; color:var(--accent-color); margin-bottom:0.6rem; font-size:1.05rem;">逐步演示：Q-learning 的更新过程</div>
+
+                <!-- 轨迹 -->
+                <div class="hc-path" id="ql-hc-path"><span class="hc-cur">$c$</span>（市中心）</div>
+
+                <!-- Q值表 -->
+                <table class="trans-table" style="margin-bottom:0.8rem;">
+                    <thead><tr><th>状态</th><th>$Q(\cdot,$ 接单$)$</th><th>$Q(\cdot,$ 空驶$)$</th></tr></thead>
+                    <tbody>
+                        <tr><td>市中心 ($c$)</td><td id="ql-hc-c-a0" class="q-cell">0.00</td><td id="ql-hc-c-a1" class="q-cell">0.00</td></tr>
+                        <tr><td>郊区 ($b$)</td><td id="ql-hc-b-a0" class="q-cell">0.00</td><td id="ql-hc-b-a1" class="q-cell">0.00</td></tr>
+                        <tr><td>机场 ($a$)</td><td id="ql-hc-a-a0" class="q-cell">0.00</td><td id="ql-hc-a-a1" class="q-cell">0.00</td></tr>
+                    </tbody>
+                </table>
+
+                <!-- 步骤展示区 -->
+                <div id="ql-hc-steps"></div>
+
+                <div style="text-align:center; margin-top:0.8rem; display:flex; gap:0.5rem; justify-content:center;">
+                    <button id="ql-hc-back" onclick="_qlHcBack()" style="padding:0.4rem 1rem; border:1px solid #a0aec0; background:white; color:#a0aec0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.9rem;" disabled>← 上一步</button>
+                    <button id="ql-hc-btn" onclick="_qlHcNext()" style="padding:0.4rem 1.2rem; border:1px solid #2b6cb0; background:white; color:#2b6cb0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.9rem;">下一步 →</button>
+                    <button id="ql-hc-reset" onclick="_qlHcReset()" style="padding:0.4rem 1rem; border:1px solid #a0aec0; background:white; color:#a0aec0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.9rem;">重置</button>
+                </div>
+            </div>
+
+            <p>在学习初期，"空驶"动作的 $Q$ 值为负（因为空驶本身有成本），看起来不如"接单"。但随着学习的深入，智能体会逐渐发现：从郊区空驶到市中心虽然短期亏损，但到了市中心后能获得更高的后续回报。经过充分学习后，$Q$ 值会收敛到理论最优值 $Q^*$：</p>
+
+            <table class="trans-table">
+                <thead>
+                    <tr><th>状态</th><th>$Q^*$(接单)</th><th>$Q^*$(空驶)</th><th>最优动作</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>市中心 (c)</td><td>56.3</td><td>50.0</td><td>接单</td></tr>
+                    <tr><td>郊区 (b)</td><td>46.9</td><td>47.7</td><td>空驶去市中心</td></tr>
+                    <tr><td>机场 (a)</td><td>60.0</td><td>45.7</td><td>接单</td></tr>
+                </tbody>
+            </table>
+
+            <div class="result-box">
+                <strong>Q-learning 得到的最优策略：</strong>市中心→接单，郊区→空驶去市中心，机场→接单<br>
+                与1.4节动态规划得到的结果完全一致！
+            </div>
+
+            <p>关键区别在于：动态规划需要事先知道所有的转移概率（如市中心接单后去郊区的概率是30%），而 Q-learning 完全不需要这些信息。它仅通过反复在三个区域间运营，逐步从经验中学会了同样的最优策略。</p>
+
+<pre><code class="language-python">import numpy as np
+gamma, epsilon = 0.9, 0.1
+T = {
+    'c': {'接单': {'c':(.5,5),'b':(.3,8),'a':(.2,12)}, '空驶去机场': {'a':(1,-4)}},
+    'b': {'接单': {'c':(.1,5),'b':(.8,1),'a':(.1,8)}, '空驶去市中心': {'c':(1,-3)}},
+    'a': {'接单': {'c':(.6,14),'b':(.4,10)}, '空驶去市中心': {'c':(1,-5)}}
+}
+def step(s, action):
+    trans = T[s][action]
+    r, cum = np.random.random(), 0
+    for s_next, (p, reward) in trans.items():
+        cum += p
+        if r &lt; cum: return s_next, reward
+    return s_next, reward
+
+Q = {s: {a: 0.0 for a in T[s]} for s in T}
+N = {s: {a: 0 for a in T[s]} for s in T}  # 访问计数
+for ep in range(10000):
+    s = ['c', 'b', 'a'][ep % 3]
+    for _ in range(200):
+        acts = list(T[s].keys())
+        a = np.random.choice(acts) if np.random.random() &lt; epsilon \
+            else max(acts, key=lambda x: Q[s][x])
+        s2, R = step(s, a)
+        N[s][a] += 1
+        alpha = 10 / (10 + N[s][a])          # 衰减学习率
+        Q[s][a] += alpha * (R + gamma * max(Q[s2].values()) - Q[s][a])
+        s = s2
+
+for s in T:
+    for a in T[s]:
+        print(f'Q({s}, {a}) = {Q[s][a]:.1f}')</code></pre>
+
+            <p>下面是 Q-learning 的交互演示。演示使用衰减学习率 $\alpha_n = 10/(10+n)$（其中 $n$ 为该状态-动作对的访问次数），满足 Robbins-Monro 条件，保证 $Q$ 值收敛到 $Q^*$：</p>
+
+            <div style="border:2px solid var(--border-color); border-radius:8px; padding:1.2rem; margin:1.5rem 0; background:#fafafa;">
+                <div style="font-weight:700; color:var(--accent-color); margin-bottom:0.6rem; font-size:1.05rem;">交互演示：Q-learning 学习 Q 值</div>
+                <div class="rl-ctrl">
+                    <button onclick="_qlStep()">更新100步</button>
+                    <button onclick="_qlFast()">快进5万步</button>
+                    <button onclick="_qlReset()">重置</button>
+                </div>
+                <table class="trans-table">
+                    <thead>
+                        <tr><th>状态</th><th>Q(s, 接单)</th><th>Q*(接单)</th><th>Q(s, 空驶)</th><th>Q*(空驶)</th><th>当前最优动作</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>市中心 (c)</td><td id="ql-q-c-0">0.0</td><td style="color:#a0aec0;">56.3</td><td id="ql-q-c-1">0.0</td><td style="color:#a0aec0;">50.0</td><td id="ql-p-c">—</td></tr>
+                        <tr><td>郊区 (b)</td><td id="ql-q-b-0">0.0</td><td style="color:#a0aec0;">46.9</td><td id="ql-q-b-1">0.0</td><td style="color:#a0aec0;">47.7</td><td id="ql-p-b">—</td></tr>
+                        <tr><td>机场 (a)</td><td id="ql-q-a-0">0.0</td><td style="color:#a0aec0;">60.0</td><td id="ql-q-a-1">0.0</td><td style="color:#a0aec0;">45.7</td><td id="ql-p-a">—</td></tr>
+                    </tbody>
+                </table>
+                <div class="rl-info" id="ql-info">已更新 <strong>0</strong> 步</div>
+            </div>
+
+            <!-- ==================== 对比 ==================== -->
+            <h2>SARSA 与 Q-learning 的对比</h2>
+
+            <table class="trans-table" style="width:100%;">
+                <thead>
+                    <tr><th>比较维度</th><th>SARSA</th><th>Q-learning</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>更新目标</td><td>$R + \gamma\,Q(S', A')$<br>（$A'$由策略选出）</td><td>$R + \gamma\,\max_a Q(S', a)$<br>（取最大值）</td></tr>
+                    <tr><td>学到的Q值</td><td>当前 $\varepsilon$-greedy 策略的Q值</td><td>最优策略的Q值 $Q^*$</td></tr>
+                    <tr><td>策略类型</td><td>on-policy</td><td>off-policy</td></tr>
+                    <tr><td>探索的影响</td><td>探索会降低学到的Q值<br>（因为考虑了探索动作的后果）</td><td>探索不影响Q值的收敛目标<br>（始终朝 $Q^*$ 收敛）</td></tr>
+                    <tr><td>安全性</td><td>更保守：会避开"探索可能带来灾难"的区域</td><td>更激进：假设未来总是最优行动</td></tr>
+                </tbody>
+            </table>
+
+            <!-- ==================== 函数近似 ==================== -->
+            <h2>从表格到函数近似</h2>
+
+            <p>在网约车例子中，状态空间只有3个状态、6个Q值，用表格存储绰绰有余。但在实际的管理科学问题中——比如有成百上千个区域的网约车调度、连续变化的库存水平、高维的交通状态——状态空间可能是巨大的甚至连续的，表格方法不再可行。解决方案是用<strong>函数近似</strong>（function approximation）来表示Q值：用一个参数化的函数 $Q_\theta(s, a)$（如神经网络）来代替查找表，输入状态-动作对，输出Q值估计。这就是<strong>Deep Q-Network（DQN）</strong>等深度强化学习算法的起点，我们将在第三章详细展开。</p>
+
+            <p>至此，1.6节完成了从策略评估到最优控制的最后一步：SARSA（on-policy）和 Q-learning（off-policy）都能在不知道环境模型的情况下，通过与环境交互直接学习最优的动作选择。它们与1.5节的 MC 和 TD 方法共同构成了表格强化学习的完整工具箱。这些方法的共同点是通过"估计值函数 → 从值函数推导策略"的间接路径来寻找最优策略。<a href="../ch01/1.7.html">下一节</a>将介绍一种截然不同的思路——<strong>策略梯度方法</strong>：直接参数化策略 $\pi_\theta$，通过梯度上升优化策略的期望回报。</p>
+
+            <div class="chapter-nav">
+                <a href="../ch01/1.6.1.html">&larr; 1.6.1 SARSA</a>
+                <a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法 &rarr;</a>
+            </div>
+        </main>
+    </div>
+
+    <!-- ==================== JS ==================== -->
+    <script>
+    /* ===== 逐步手算演示 ===== */
+    (function(){
+        var hcIdx = 0;
+        var initPath = '<span class="hc-cur">$c$</span>\uff08\u5e02\u4e2d\u5fc3\uff09';
+        var pathParts = [initPath];
+        var qSnapshots = [{'ql-hc-c-a0':0,'ql-hc-c-a1':0,'ql-hc-b-a0':0,'ql-hc-b-a1':0,'ql-hc-a-a0':0,'ql-hc-a-a1':0}];
+
+        var hcSteps = [
+            {
+                cls: 'update-step',
+                html: '<div class="step-head">\u7b2c0\u6b65\uff1a$S_0 = c$\uff08\u5e02\u4e2d\u5fc3\uff09\uff0c\u6240\u6709 $Q = 0$\uff0c\u968f\u673a\u9009 \u2192 $A_0$ = \u63a5\u5355</div>'
+                    + '\u6267\u884c\u63a5\u5355\uff0c\u91c7\u6837\u5f97\u5230\u4e58\u5ba2\u53bb\u90ca\u533a\uff1a$R_0 = 8$\uff0c$S_1 = b$<br>'
+                    + 'TD\u76ee\u6807\u53d6 $\\max$\uff1a$\\max_a Q(b, a) = \\max(\\underbrace{0}_{Q(b,\\text{\u63a5\u5355})},\\; \\underbrace{0}_{Q(b,\\text{\u7a7a\u9a76})}) = 0$<br>'
+                    + '$Q(\\underbrace{c}_{S_0}, \\underbrace{\\text{\u63a5\u5355}}_{A_0}) \\leftarrow \\underbrace{0}_{\\text{\u65e7\u503c}} + \\underbrace{0.1}_{\\alpha} \\times [\\underbrace{8}_{R_0} + \\underbrace{0.9}_{\\gamma} \\times \\underbrace{0}_{\\max_a Q(S_1,a)} - \\underbrace{0}_{\\text{\u65e7\u503c}}] = \\boldsymbol{0.80}$',
+                upd: {id:'ql-hc-c-a0', val:0.80},
+                path: ' <span class="hc-arrow">\u2192</span> <span style="font-size:0.8em;color:#718096;">\u63a5\u5355, $R$=8</span> <span class="hc-arrow">\u2192</span> <span class="hc-cur">$b$</span>\uff08\u90ca\u533a\uff09'
+            },
+            {
+                cls: 'update-step',
+                html: '<div class="step-head">\u7b2c1\u6b65\uff1a$S_1 = b$\uff08\u90ca\u533a\uff09\uff0c$Q(b,\\cdot) = \\{0, 0\\}$\uff0c\u968f\u673a\u9009 \u2192 $A_1$ = \u63a5\u5355</div>'
+                    + '\u6267\u884c\u63a5\u5355\uff0c\u91c7\u6837\u5f97\u5230\u4e58\u5ba2\u7559\u5728\u90ca\u533a\uff1a$R_1 = 1$\uff0c$S_2 = b$<br>'
+                    + 'TD\u76ee\u6807\u53d6 $\\max$\uff1a$\\max_a Q(b, a) = \\max(0, 0) = 0$<br>'
+                    + '$Q(\\underbrace{b}_{S_1}, \\underbrace{\\text{\u63a5\u5355}}_{A_1}) \\leftarrow \\underbrace{0}_{\\text{\u65e7\u503c}} + 0.1 \\times [\\underbrace{1}_{R_1} + 0.9 \\times \\underbrace{0}_{\\max_a Q(S_2,a)} - 0] = \\boldsymbol{0.10}$',
+                upd: {id:'ql-hc-b-a0', val:0.10},
+                path: ' <span class="hc-arrow">\u2192</span> <span style="font-size:0.8em;color:#718096;">\u63a5\u5355, $R$=1</span> <span class="hc-arrow">\u2192</span> <span class="hc-cur">$b$</span>\uff08\u90ca\u533a\uff09'
+            },
+            {
+                cls: 'update-step',
+                html: '<div class="step-head">\u7b2c2\u6b65\uff1a$S_2 = b$\uff0c$Q(b,\\text{\u63a5\u5355}) = 0.1 > Q(b,\\text{\u7a7a\u9a76}) = 0$\uff0c$\\varepsilon$-\u63a2\u7d22 \u2192 $A_2$ = \u7a7a\u9a76\u53bb\u5e02\u4e2d\u5fc3</div>'
+                    + '\u7a7a\u9a76\u662f\u786e\u5b9a\u6027\u8f6c\u79fb\uff1a$R_2 = -3$\uff0c$S_3 = c$<br>'
+                    + 'TD\u76ee\u6807\u53d6 $\\max$\uff1a$\\max_a Q(c, a) = \\max(\\underbrace{0.80}_{Q(c,\\text{\u63a5\u5355})},\\; \\underbrace{0}_{Q(c,\\text{\u7a7a\u9a76})}) = 0.80$<br>'
+                    + '$Q(\\underbrace{b}_{S_2}, \\underbrace{\\text{\u7a7a\u9a76}}_{A_2}) \\leftarrow \\underbrace{0}_{\\text{\u65e7\u503c}} + 0.1 \\times [\\underbrace{-3}_{R_2} + 0.9 \\times \\underbrace{0.80}_{\\max_a Q(S_3,a)} - 0] = 0.1 \\times (-2.28) = \\boldsymbol{-0.23}$',
+                upd: {id:'ql-hc-b-a1', val:-0.23},
+                path: ' <span class="hc-arrow">\u2192</span> <span style="font-size:0.8em;color:#718096;">\u7a7a\u9a76, $R$=-3</span> <span class="hc-arrow">\u2192</span> <span class="hc-cur">$c$</span>\uff08\u5e02\u4e2d\u5fc3\uff09'
+            },
+            {
+                cls: 'offpolicy-note',
+                html: '<strong>Off-policy \u7684\u542b\u4e49\u3002</strong>\u7b2c2\u6b65\u7684 TD \u76ee\u6807\u4f7f\u7528\u4e86 $\\max_a Q(c, a) = Q(c, \\text{\u63a5\u5355}) = 0.80$\u30021.6.1\u8282 SARSA \u5728\u540c\u4e00\u6b65\uff08\u7b2c2\u6b65\uff09\u4f7f\u7528\u7684\u662f $Q(c, A_3)$\uff0c\u5176\u4e2d $A_3$ \u662f $\\varepsilon$-greedy \u5728 $c$ <strong>\u5b9e\u9645\u9009\u51fa</strong>\u7684\u52a8\u4f5c\u3002\u5f53\u65f6\u78b0\u5de7\u4e5f\u9009\u4e86\u63a5\u5355\uff08$Q = 0.80$\uff09\uff0c\u7ed3\u679c\u76f8\u540c\u3002\u4f46\u5047\u5982 $\\varepsilon$-greedy \u968f\u673a\u63a2\u7d22\u9009\u4e86\u7a7a\u9a76\uff08$Q = 0$\uff09\uff0cSARSA \u7684 TD \u76ee\u6807\u5c31\u53d8\u4e3a $-3 + 0.9 \\times 0 = -3$\uff0c\u66f4\u65b0\u7ed3\u679c\u622a\u7136\u4e0d\u540c\u3002\u800c Q-learning \u65e0\u8bba\u4e0b\u4e00\u6b65\u5b9e\u9645\u9009\u4ec0\u4e48\u52a8\u4f5c\uff0cTD \u76ee\u6807\u59cb\u7ec8\u662f $-3 + 0.9 \\times 0.80 = -2.28$\u2014\u2014\u5b83\u7528\u201c\u60f3\u8c61\u4e2d\u7684\u6700\u4f18\u52a8\u4f5c\u201d\u4ee3\u66ff\u4e86\u201c\u5b9e\u9645\u9009\u51fa\u7684\u52a8\u4f5c\u201d\u3002',
+                upd: null,
+                path: null
+            },
+            {
+                cls: 'update-step',
+                html: '<div class="step-head">\u7b2c3\u6b65\uff1a$S_3 = c$\uff0c$Q(c,\\text{\u63a5\u5355}) = 0.80 > Q(c,\\text{\u7a7a\u9a76}) = 0$\uff0c$\\varepsilon$-\u63a2\u7d22 \u2192 $A_3$ = \u7a7a\u9a76\u53bb\u673a\u573a</div>'
+                    + '\u7a7a\u9a76\u662f\u786e\u5b9a\u6027\u8f6c\u79fb\uff1a$R_3 = -4$\uff0c$S_4 = a$<br>'
+                    + 'TD\u76ee\u6807\u53d6 $\\max$\uff1a$\\max_a Q(a, a) = \\max(0, 0) = 0$<br>'
+                    + '$Q(\\underbrace{c}_{S_3}, \\underbrace{\\text{\u7a7a\u9a76}}_{A_3}) \\leftarrow \\underbrace{0}_{\\text{\u65e7\u503c}} + 0.1 \\times [\\underbrace{-4}_{R_3} + 0.9 \\times \\underbrace{0}_{\\max_a Q(S_4,a)} - 0] = \\boldsymbol{-0.40}$',
+                upd: {id:'ql-hc-c-a1', val:-0.40},
+                path: ' <span class="hc-arrow">\u2192</span> <span style="font-size:0.8em;color:#718096;">\u7a7a\u9a76, $R$=-4</span> <span class="hc-arrow">\u2192</span> <span class="hc-cur">$a$</span>\uff08\u673a\u573a\uff09'
+            },
+            {
+                cls: 'update-step',
+                html: '<div class="step-head">\u7b2c4\u6b65\uff1a$S_4 = a$\uff08\u673a\u573a\uff09\uff0c$Q(a,\\cdot) = \\{0, 0\\}$\uff0c\u968f\u673a\u9009 \u2192 $A_4$ = \u63a5\u5355</div>'
+                    + '\u6267\u884c\u63a5\u5355\uff0c\u91c7\u6837\u5f97\u5230\u4e58\u5ba2\u53bb\u5e02\u4e2d\u5fc3\uff1a$R_4 = 14$\uff0c$S_5 = c$<br>'
+                    + 'TD\u76ee\u6807\u53d6 $\\max$\uff1a$\\max_a Q(c, a) = \\max(\\underbrace{0.80}_{Q(c,\\text{\u63a5\u5355})},\\; \\underbrace{-0.40}_{Q(c,\\text{\u7a7a\u9a76})}) = 0.80$<br>'
+                    + '$Q(\\underbrace{a}_{S_4}, \\underbrace{\\text{\u63a5\u5355}}_{A_4}) \\leftarrow \\underbrace{0}_{\\text{\u65e7\u503c}} + 0.1 \\times [\\underbrace{14}_{R_4} + 0.9 \\times \\underbrace{0.80}_{\\max_a Q(S_5,a)} - 0] = 0.1 \\times 14.72 = \\boldsymbol{1.47}$',
+                upd: {id:'ql-hc-a-a0', val:1.47},
+                path: ' <span class="hc-arrow">\u2192</span> <span style="font-size:0.8em;color:#718096;">\u63a5\u5355, $R$=14</span> <span class="hc-arrow">\u2192</span> <span class="hc-cur">$c$</span>\uff08\u5e02\u4e2d\u5fc3\uff09'
+            }
+        ];
+
+        function $(id){ return document.getElementById(id); }
+
+        function renderQ(snap) {
+            for (var id in snap) {
+                $(id).textContent = snap[id].toFixed(2);
+            }
+        }
+
+        function updateButtons() {
+            var backBtn = $('ql-hc-back');
+            backBtn.disabled = (hcIdx === 0);
+            backBtn.style.color = hcIdx === 0 ? '#a0aec0' : '#2b6cb0';
+            backBtn.style.borderColor = hcIdx === 0 ? '#a0aec0' : '#2b6cb0';
+            var nextBtn = $('ql-hc-btn');
+            nextBtn.disabled = (hcIdx >= hcSteps.length);
+        }
+
+        window._qlHcNext = function(){
+            if (hcIdx >= hcSteps.length) return;
+            var step = hcSteps[hcIdx];
+
+            // Append step div
+            var div = document.createElement('div');
+            div.className = step.cls;
+            div.setAttribute('data-hc-idx', hcIdx);
+            div.innerHTML = step.html;
+            div.style.opacity = '0';
+            $('ql-hc-steps').appendChild(div);
+            requestAnimationFrame(function(){
+                div.style.transition = 'opacity 0.3s ease';
+                div.style.opacity = '1';
+            });
+
+            // Save Q snapshot and update Q-table
+            var prevSnap = qSnapshots[qSnapshots.length - 1];
+            var newSnap = {};
+            for (var k in prevSnap) newSnap[k] = prevSnap[k];
+            if (step.upd) {
+                newSnap[step.upd.id] = step.upd.val;
+                var cell = $(step.upd.id);
+                cell.textContent = step.upd.val.toFixed(2);
+                cell.style.transition = 'none';
+                cell.style.backgroundColor = '#fefcbf';
+                setTimeout(function(){
+                    cell.style.transition = 'background-color 0.8s ease';
+                    cell.style.backgroundColor = '';
+                }, 100);
+            }
+            qSnapshots.push(newSnap);
+
+            // Update path
+            if (step.path) {
+                pathParts.push(step.path);
+                $('ql-hc-path').innerHTML = pathParts.join('');
+            }
+
+            // Re-render KaTeX
+            if (window.renderMathInElement) {
+                renderMathInElement(div, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+                renderMathInElement($('ql-hc-path'), {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+            }
+
+            hcIdx++;
+            updateButtons();
+        };
+
+        window._qlHcBack = function(){
+            if (hcIdx <= 0) return;
+            hcIdx--;
+
+            // Remove last step div
+            var container = $('ql-hc-steps');
+            var last = container.querySelector('[data-hc-idx="' + hcIdx + '"]');
+            if (last) container.removeChild(last);
+
+            // Pop Q snapshot, restore previous
+            qSnapshots.pop();
+            renderQ(qSnapshots[qSnapshots.length - 1]);
+
+            // Restore path
+            if (hcSteps[hcIdx].path) {
+                pathParts.pop();
+                $('ql-hc-path').innerHTML = pathParts.join('');
+                if (window.renderMathInElement) {
+                    renderMathInElement($('ql-hc-path'), {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+                }
+            }
+
+            updateButtons();
+        };
+
+        window._qlHcReset = function(){
+            hcIdx = 0;
+            pathParts = [initPath];
+            qSnapshots = [{'ql-hc-c-a0':0,'ql-hc-c-a1':0,'ql-hc-b-a0':0,'ql-hc-b-a1':0,'ql-hc-a-a0':0,'ql-hc-a-a1':0}];
+            $('ql-hc-steps').innerHTML = '';
+            $('ql-hc-path').innerHTML = initPath;
+            renderQ(qSnapshots[0]);
+            if (window.renderMathInElement) {
+                renderMathInElement($('ql-hc-path'), {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+            }
+            updateButtons();
+        };
+
+        updateButtons();
+    })();
+
+    /* ===== 快速学习演示（衰减学习率） ===== */
+    (function(){
+        var GM=0.9,EPS=0.1;
+        var T={c:{a0:{c:[.5,5],b:[.3,8],a:[.2,12]},a1:{a:[1,-4]}},b:{a0:{c:[.1,5],b:[.8,1],a:[.1,8]},a1:{c:[1,-3]}},a:{a0:{c:[.6,14],b:[.4,10]},a1:{c:[1,-5]}}};
+        var AN={c:['a0','a1'],b:['a0','a1'],a:['a0','a1']};
+        var LB={c:{a0:'\u63a5\u5355',a1:'\u7a7a\u9a76\u53bb\u673a\u573a'},b:{a0:'\u63a5\u5355',a1:'\u7a7a\u9a76\u53bb\u5e02\u4e2d\u5fc3'},a:{a0:'\u63a5\u5355',a1:'\u7a7a\u9a76\u53bb\u5e02\u4e2d\u5fc3'}};
+        var Q,N,steps,cur;
+        function sampleStep(s,act){var tr=T[s][act],r=Math.random(),cum=0,ns,rw;for(var k in tr){cum+=tr[k][0];if(r<cum){ns=k;rw=tr[k][1];break;}ns=k;rw=tr[k][1];}return{ns:ns,rw:rw};}
+        function $(id){return document.getElementById(id);}
+        function initQ(){Q={c:{a0:0,a1:0},b:{a0:0,a1:0},a:{a0:0,a1:0}};N={c:{a0:0,a1:0},b:{a0:0,a1:0},a:{a0:0,a1:0}};}
+        function doN(n){for(var i=0;i<n;i++){var ai=Math.random()<EPS?AN[cur][Math.floor(Math.random()*2)]:(Q[cur].a0>=Q[cur].a1?'a0':'a1');var res=sampleStep(cur,ai);var mx=Math.max(Q[res.ns].a0,Q[res.ns].a1);N[cur][ai]++;var al=Math.min(0.5,10/(10+N[cur][ai]));Q[cur][ai]+=al*(res.rw+GM*mx-Q[cur][ai]);cur=res.ns;steps++;}}
+        function upd(){['c','b','a'].forEach(function(s){$('ql-q-'+s+'-0').textContent=Q[s].a0.toFixed(1);$('ql-q-'+s+'-1').textContent=Q[s].a1.toFixed(1);var b=Q[s].a0>=Q[s].a1?0:1;$('ql-q-'+s+'-0').style.cssText=b===0?'font-weight:700;color:#276749':'';$('ql-q-'+s+'-1').style.cssText=b===1?'font-weight:700;color:#276749':'';$('ql-p-'+s).textContent=LB[s][b===0?'a0':'a1'];});$('ql-info').innerHTML='\u5df2\u66f4\u65b0 <strong>'+steps+'</strong> \u6b65';}
+        window._qlStep=function(){doN(100);upd();};
+        window._qlFast=function(){doN(50000);upd();};
+        window._qlReset=function(){initQ();steps=0;cur='c';upd();};
+        initQ();steps=0;cur='c';upd();
+    })();
+    </script>
+</body>
+</html>

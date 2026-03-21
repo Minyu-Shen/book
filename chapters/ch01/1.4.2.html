@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1.4.2 值迭代 - 运筹智能</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .trans-table { width: auto; border-collapse: collapse; margin: 1rem auto; font-size: 0.95rem; }
+        .trans-table th, .trans-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: center; }
+        .trans-table th { background: var(--primary-color); color: white; }
+        .trans-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .result-box { background: var(--highlight-color); border: 2px solid var(--accent-color); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; text-align: center; }
+        .derivation { background: var(--sidebar-bg); padding: 1.2rem 1.5rem; border-radius: 6px; margin: 1.5rem 0; }
+        .derivation .step-label { font-weight: 600; color: var(--accent-color); margin-bottom: 0.3rem; }
+        .algo-box { background: #f7fafc; border: 2px solid var(--accent-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .algo-box .algo-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .algo-box ol { margin: 0.3rem 0 0.3rem 1.5rem; line-height: 2; }
+        .algo-box .algo-note { font-size: 0.9rem; color: #718096; margin-top: 0.5rem; }
+        .optional-reading { background:#fafafa; border:1px solid #e2e8f0; border-left:4px solid #a0aec0; border-radius:0 8px 8px 0; margin:2.5rem 0; }
+        .optional-reading summary { padding:1rem 1.5rem; cursor:pointer; font-weight:700; color:#4a5568; font-size:1.1rem; list-style:none; }
+        .optional-reading summary::-webkit-details-marker { display:none; }
+        .optional-reading summary::before { content:'▶ '; font-size:0.8em; margin-right:0.3rem; transition:transform 0.2s; }
+        .optional-reading[open] summary::before { content:'▼ '; }
+        .optional-reading[open] summary { border-bottom:1px solid #e2e8f0; }
+        .optional-reading .opt-body { padding:1.2rem 1.5rem; }
+        .optional-reading .opt-body h3 { color:var(--primary-color); margin-top:1.8rem; margin-bottom:0.6rem; font-size:1.15rem; }
+        .optional-reading .opt-body h3:first-child { margin-top:0.5rem; }
+    </style>
+    <script defer src="../../js/code-copy.js"></script>
+</head>
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="book-title"><a href="../../index.html" style="text-decoration:none;color:inherit;">运筹智能</a></div>
+            <nav>
+                <ul>
+                <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
+                <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
+                <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
+                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html" class="active">1.4.2 值迭代</a></li>
+                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
+                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.6.1.html">1.6.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.6.2.html">1.6.2 Q-learning</a></li>
+                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.1.html">1.7.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.2.html">1.7.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.3.html">1.7.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第二章 深度学习基础</li>
+                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
+                <li><a href="../ch03/3.2.html">3.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
+                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch04/4.2.html">4.2 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch04/4.3.html">4.3 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch04/4.4.html">4.4 回合定义与时域建模</a></li>
+                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第五章 仿真器搭建</li>
+                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch05/5.4.html">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
+                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
+                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
+                <li><a href="../ch07/7.2.html">7.2 公交串车控制</a></li>
+                <li><a href="../ch07/7.3.html">7.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第八章 进阶话题</li>
+                <li><a href="../ch08/8.1.html">8.1 多智能体强化学习</a></li>
+                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>1.4.2 值迭代</h1>
+
+            <p>策略迭代的每一轮都需要完整地评估当前策略，即求解一个 $|\mathcal{S}| \times |\mathcal{S}|$ 的线性方程组（复杂度 $O(|\mathcal{S}|^3)$）。当状态空间较大时，这个代价很高。一个自然的问题是：能否在策略评估还不精确的时候就提前进行改进？</p>
+
+            <p>极端情况下，如果我们只做<strong>一步</strong>评估就立刻改进，会怎样？</p>
+
+            <!-- ==================== 从策略迭代到值迭代 ==================== -->
+            <h2>将评估压缩为一步</h2>
+
+            <p>回顾策略评估的迭代公式（贝尔曼期望方程的迭代形式）：</p>
+            <div class="formula-block">
+                $$v_{k+1}(s) = \sum_{a} \pi(a \mid s) \left[ R(s,a) + \gamma \sum_{s'} P(s' \mid s,a) \, v_k(s') \right]$$
+            </div>
+
+            <p>如果做完这一步备份（backup）就立即进行贪婪改进，等价于把上式中对动作的加权平均替换为取最大值：</p>
+
+            <div class="formula-block">
+                $$v_{k+1}(s) = \max_{a \in \mathcal{A}(s)} \left[\, R(s, a) + \gamma \sum_{s' \in \mathcal{S}} P(s' \mid s, a) \, v_k(s') \,\right] \tag{1.4-8}$$
+            </div>
+
+            <p>这正是贝尔曼最优方程(1.4-4)被当作迭代更新规则来使用。反复应用公式(1.4-8)，值函数将收敛到最优值函数 $V^*$，最终从 $V^*$ 提取出最优策略。这就是<strong>值迭代</strong>（Value Iteration）算法。</p>
+
+            <div class="algo-box">
+                <div class="algo-title">算法：值迭代（Value Iteration）</div>
+                <p><strong>输入</strong>：MDP $\langle \mathcal{S}, \mathcal{A}, P, R, \gamma \rangle$，收敛阈值 $\theta$</p>
+                <ol>
+                    <li>初始化：$v_0(s) = 0$，对所有 $s \in \mathcal{S}$</li>
+                    <li>重复以下步骤，直到 $\max_s |v_{k+1}(s) - v_k(s)| < \theta$：
+                        <ol type="a" style="margin-top:0.3rem;">
+                            <li>对每个状态 $s$：$v_{k+1}(s) = \max_{a} \left[ R(s,a) + \gamma \sum_{s'} P(s'|s,a) \, v_k(s') \right]$</li>
+                        </ol>
+                    </li>
+                    <li>输出最优策略：$\pi^*(s) = \arg\max_a \left[ R(s,a) + \gamma \sum_{s'} P(s'|s,a) \, v_k(s') \right]$</li>
+                </ol>
+                <p class="algo-note">注意：迭代过程中没有显式的策略，只有值函数在不断更新。策略仅在最后一步从收敛的值函数中提取。</p>
+            </div>
+
+            <p>为什么值迭代一定收敛？因为公式(1.4-8)定义的更新算子（贝尔曼最优算子）是一个 $\gamma$-压缩映射：无论从哪个初始值函数出发，每次更新都会让 $v_k$ 与真正的 $V^*$ 之间的距离至少缩小 $\gamma$ 倍。由压缩映射定理（Banach不动点定理），反复应用这个算子必然收敛到唯一的不动点 $V^*$。</p>
+
+            <!-- ==================== 例子：值迭代 ==================== -->
+            <h2>例子：网约车司机的值迭代</h2>
+
+            <p>从 $v_0(c) = v_0(b) = v_0(a) = 0$ 出发，应用公式(1.4-8)进行迭代。下表展示了前几轮的值函数变化（每轮选择使值最大的动作）：</p>
+
+            <table class="trans-table">
+                <thead>
+                    <tr><th>迭代轮次 $k$</th><th>$v_k(c)$</th><th>$v_k(b)$</th><th>$v_k(a)$</th><th>$\max|v_k - v_{k-1}|$</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>0</td><td>0</td><td>0</td><td>0</td><td></td></tr>
+                    <tr><td>1</td><td>7.3</td><td>2.1</td><td>12.4</td><td>12.4</td></tr>
+                    <tr><td>2</td><td>13.4</td><td>5.4</td><td>17.1</td><td>6.1</td></tr>
+                    <tr><td>3</td><td>17.9</td><td>9.0</td><td>21.6</td><td>4.5</td></tr>
+                    <tr><td>5</td><td>25.1</td><td>16.5</td><td>28.8</td><td>3.5</td></tr>
+                    <tr><td>10</td><td>37.9</td><td>29.3</td><td>41.6</td><td>2.0</td></tr>
+                    <tr><td>20</td><td>49.9</td><td>41.2</td><td>53.5</td><td>0.7</td></tr>
+                    <tr><td>50</td><td>56.0</td><td>47.4</td><td>59.7</td><td>0.01</td></tr>
+                    <tr><td>$\infty$</td><td><strong>56.3</strong></td><td><strong>47.7</strong></td><td><strong>60.0</strong></td><td>0</td></tr>
+                </tbody>
+            </table>
+
+            <p>值函数逐渐收敛到与策略迭代完全相同的 $V^*$。值得注意的是，从第 3 轮开始，郊区 $b$ 的最优动作就已经是空驶去市中心（$v_3(b)=9.0$ 来自空驶动作 $-3+0.9 \times 13.4 = 9.1$，而接单只给 $8.7$）。也就是说，值迭代很早就识别出了正确的策略结构，只是值函数的精度还需要更多轮次来收敛。</p>
+
+            <!-- ==================== Q*值迭代 ==================== -->
+            <h2>基于 $Q$ 值的值迭代</h2>
+
+            <p>上面的值迭代直接更新 $V^*$，最后再从 $V^*$ 提取策略。但提取策略时仍然需要模型：$\pi^*(s) = \arg\max_a [R(s,a) + \gamma \sum_{s'} P(s'|s,a)\,V^*(s')]$。如果我们直接迭代 $Q^*$，就可以跳过这一步，因为最优策略可以直接从 $Q^*$ 读出：$\pi^*(s) = \arg\max_a Q^*(s,a)$。代价是需要维护的变量从 $|\mathcal{S}|$ 个 $V$ 值增加到 $|\mathcal{S}| \times |\mathcal{A}|$ 个 $Q$ 值，存储和每轮计算量都相应增大。在本例中从 3 个值变为 6 个，差距不大；但当状态空间和动作空间都很大时，这个倍数会很显著。</p>
+
+            <p>类似于 $V^*$ 满足贝尔曼最优方程(1.4-4)，$Q^*$ 也满足对应的方程。将(1.4-4)中的 $V^*(s') = \max_{a'} Q^*(s',a')$ 代入公式(1.3-9)的 $Q$-$V$ 关系，得到：</p>
+
+            <div class="formula-block">
+                $$\boxed{Q^*(s,a) = R(s,a) + \gamma \sum_{s'} P(s' \mid s,a)\, \max_{a'} Q^*(s',a')} \tag{1.4-9}$$
+            </div>
+
+            <p>对比 $Q$ 的贝尔曼期望方程(1.3-10)：期望方程对下一步动作按策略 $\pi$ 做<strong>加权平均</strong> $\sum_{a'} \pi(a'|s') Q(s',a')$，最优方程则取<strong>最大值</strong> $\max_{a'} Q^*(s',a')$。将(1.4-9)当作迭代规则使用，就得到基于 $Q$ 值的值迭代：</p>
+
+            <div class="formula-block">
+                $$q_{k+1}(s,a) = R(s,a) + \gamma \sum_{s'} P(s' \mid s,a)\, \max_{a'} q_k(s',a') \tag{1.4-10}$$
+            </div>
+
+            <p>对网约车例子运行 $Q$ 值迭代至收敛，得到所有6个 $Q^*$ 值：</p>
+
+            <table class="trans-table">
+                <thead>
+                    <tr><th>状态</th><th>动作</th><th>$Q^*$</th><th>最优动作</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td rowspan="2">市中心 ($c$)</td><td>接单</td><td><strong>56.3</strong></td><td rowspan="2">接单</td></tr>
+                    <tr><td>空驶去机场</td><td>50.0</td></tr>
+                    <tr><td rowspan="2">郊区 ($b$)</td><td>接单</td><td>46.9</td><td rowspan="2">空驶去市中心</td></tr>
+                    <tr><td>空驶去市中心</td><td><strong>47.7</strong></td></tr>
+                    <tr><td rowspan="2">机场 ($a$)</td><td>接单</td><td><strong>60.0</strong></td><td rowspan="2">接单</td></tr>
+                    <tr><td>空驶去市中心</td><td>45.7</td></tr>
+                </tbody>
+            </table>
+
+            <p>注意表中加粗的 $Q^*$ 值恰好与前面 $V^*$ 值迭代的收敛结果相同：$56.3$，$47.7$，$60.0$。这并非巧合，而是贝尔曼最优方程(1.4-4)的直接体现：$V^*(s) = \max_a Q^*(s,a)$。每个状态的 $V^*$ 就是该状态下所有动作的 $Q^*$ 值取最大。$Q^*$ 表比 $V^*$ 信息更丰富：它不仅告诉我们每个状态的最优价值，还告诉我们每个动作各自的价值，以及最优动作比次优动作好多少。</p>
+
+            <p>有了 $Q^*$，最优策略可以直接读出：每个状态选 $Q^*$ 值最大的动作，无需再访问模型。这一性质使得 $Q$ 值成为无模型控制算法的核心对象。1.6节的 SARSA 和 Q-learning 正是将公式(1.4-10)的思想从"已知模型的精确计算"推广到"从经验中采样学习"。</p>
+
+            <!-- ==================== 对比 ==================== -->
+            <h2>策略迭代与值迭代的比较</h2>
+
+            <table class="trans-table">
+                <thead>
+                    <tr><th></th><th>策略迭代</th><th>值迭代</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td style="font-weight:600">核心操作</td><td>完整评估 + 贪婪改进</td><td>一步备份取 max</td></tr>
+                    <tr><td style="font-weight:600">每轮代价</td><td>$O(|\mathcal{S}|^3)$（矩阵求逆）</td><td>$O(|\mathcal{S}|^2 \cdot |\mathcal{A}|)$（遍历状态和动作）</td></tr>
+                    <tr><td style="font-weight:600">外层迭代次数</td><td>通常很少（本例仅2轮）</td><td>通常较多（本例约50轮）</td></tr>
+                    <tr><td style="font-weight:600">收敛结果</td><td colspan="2" style="text-align:center">相同的 $V^*$ 和 $\pi^*$</td></tr>
+                    <tr><td style="font-weight:600">适用场景</td><td>状态空间适中</td><td>状态空间较大但动作较少</td></tr>
+                </tbody>
+            </table>
+
+            <p>两种方法在本质上是同一个思想的两个极端：策略迭代在每次改进前做<strong>完整的</strong>策略评估，值迭代在每次改进前只做<strong>一步</strong>评估。介于两者之间的方案也是可行的，例如做若干步（而非完整的）评估后就改进，这被称为广义策略迭代（Generalized Policy Iteration）。</p>
+
+            <!-- ==================== 局限性 ==================== -->
+            <h2>模型依赖的局限</h2>
+
+            <p>策略迭代和值迭代有一个共同的前提：完全知道MDP的转移概率 $P(s'|s,a)$ 和奖励函数 $R(s,a)$。在网约车例子中，我们假设知道了乘客目的地的精确概率分布。但在许多实际管理问题中，这些信息是未知的或难以精确估计的：</p>
+            <ul style="margin:0.3rem 0 1rem 2rem;">
+                <li>公交系统中，每个站点的乘客到达率随时间和天气变化</li>
+                <li>库存管理中，需求的概率分布可能未知或不稳定</li>
+                <li>网约车平台中，供需模式随时段和城市区域动态变化</li>
+            </ul>
+
+            <p>更关键的是，当状态空间非常大时（如连续状态或组合爆炸），即使知道模型，遍历所有状态的动态规划也不可行。下一节将介绍不依赖模型的方法，它们通过与环境的交互来学习值函数，而无需事先知道 $P$ 和 $R$。</p>
+
+            <!-- ==================== 小结 ==================== -->
+            <h2>小结</h2>
+
+            <p>1.4节完成了从策略评估到最优策略求解的闭环：</p>
+            <ol style="margin: 0.5rem 0 1rem 2rem;">
+                <li>利用 $V^\pi$ 计算动作值函数 $Q^\pi(s,a)$（一步前瞻），通过贪婪选择获得更好的策略</li>
+                <li><strong>策略迭代</strong>交替进行评估与改进，在有限步内收敛到最优策略 $\pi^*$</li>
+                <li><strong>值迭代</strong>将评估压缩为一步，直接对值函数做贝尔曼最优更新，同样收敛到 $V^*$</li>
+                <li>值迭代也可以直接对 $Q$ 值进行（公式(1.4-10)），得到的 $Q^*$ 可以直接读出最优策略，无需访问模型</li>
+                <li>以上算法都需要已知模型（$P$ 和 $R$），当模型未知或状态空间过大时，需要无模型的学习方法</li>
+            </ol>
+
+            <!-- ==================== 选读 ==================== -->
+            <details class="optional-reading">
+                <summary>选读：为什么动态规划一定收敛</summary>
+                <div class="opt-body">
+
+                <p>正文中声称策略评估和值迭代一定收敛。本节给出严格的数学证明。核心思路是证明贝尔曼算子是压缩映射，从而由 Banach 不动点定理保证迭代收敛到唯一不动点。</p>
+
+                <h3>压缩映射</h3>
+
+                <p>给定一个度量空间 $(X, d)$，算子 $\mathcal{T}: X \to X$ 称为 $\gamma$-<strong>压缩映射</strong>，如果存在常数 $\gamma \in [0,1)$ 使得对所有 $x_1, x_2 \in X$：</p>
+                <div class="formula-block">
+                    $$d(\mathcal{T}x_1,\; \mathcal{T}x_2) \leq \gamma \, d(x_1, x_2) \tag{1.4-11}$$
+                </div>
+                <p>直觉上，对任意两个点施加算子 $\mathcal{T}$ 后，它们之间的距离至少缩小了 $\gamma$ 倍。注意 $\gamma$ 必须严格小于 1，否则算子只是非扩张的（nonexpansive），不保证收敛。</p>
+
+                <p>在我们的问题中，$X$ 是所有值函数的集合（从 $\mathcal{S}$ 到 $\mathbb{R}$ 的映射），度量取无穷范数：</p>
+                <div class="formula-block">
+                    $$d(v_1, v_2) = \|v_1 - v_2\|_\infty = \max_{s \in \mathcal{S}} |v_1(s) - v_2(s)|$$
+                </div>
+
+                <h3>Banach 不动点定理</h3>
+
+                <div class="concept-card">
+                    <div class="concept-name">定理（Banach 不动点定理）</div>
+                    <p>设 $(X, d)$ 是非空的完备度量空间，$\mathcal{T}: X \to X$ 是 $\gamma$-压缩映射。则 $\mathcal{T}$ 在 $X$ 中有且仅有一个不动点 $x^*$（即 $\mathcal{T}(x^*) = x^*$）。从任意初始点 $x_0$ 出发，序列 $x_{k+1} = \mathcal{T}(x_k)$ 收敛到 $x^*$。</p>
+                </div>
+
+                <div class="derivation">
+                    <div class="step-label">存在性：迭代序列是 Cauchy 序列</div>
+                    <p>首先证明相邻两步之间的距离指数衰减。由压缩性质反复应用可得（数学归纳法）：</p>
+                    <div class="formula-block">
+                        $$d(x_{k+1}, x_k) = d(\mathcal{T}x_k, \mathcal{T}x_{k-1}) \leq \gamma \, d(x_k, x_{k-1}) \leq \cdots \leq \gamma^k \, d(x_1, x_0)$$
+                    </div>
+                    <p>对任意 $m > n$，利用三角不等式：</p>
+                    <div class="formula-block">
+                        $$d(x_m, x_n) \leq \sum_{i=n}^{m-1} d(x_{i+1}, x_i) \leq \sum_{i=n}^{m-1} \gamma^i \, d(x_1, x_0) \leq \frac{\gamma^n}{1 - \gamma} \, d(x_1, x_0) \tag{1.4-12}$$
+                    </div>
+                    <p>当 $n \to \infty$ 时，右端趋于 0。因此 $\{x_k\}$ 是 Cauchy 序列，在完备度量空间中必收敛到某个极限 $x^*$。</p>
+                    <p>还需验证 $x^*$ 确实是不动点。由于压缩映射是连续的（Lipschitz 连续），可以对 $x_{k+1} = \mathcal{T}(x_k)$ 两端取极限：</p>
+                    <div class="formula-block">
+                        $$x^* = \lim_{k \to \infty} x_{k+1} = \lim_{k \to \infty} \mathcal{T}(x_k) = \mathcal{T}\!\left(\lim_{k \to \infty} x_k\right) = \mathcal{T}(x^*)$$
+                    </div>
+                </div>
+
+                <div class="derivation">
+                    <div class="step-label">唯一性：反证法</div>
+                    <p>假设存在两个不动点 $x_1^*$ 和 $x_2^*$，则：</p>
+                    <div class="formula-block">
+                        $$d(x_1^*, x_2^*) = d(\mathcal{T}x_1^*, \mathcal{T}x_2^*) \leq \gamma \, d(x_1^*, x_2^*)$$
+                    </div>
+                    <p>由于 $\gamma < 1$，上式仅在 $d(x_1^*, x_2^*) = 0$ 时成立，即 $x_1^* = x_2^*$。</p>
+                </div>
+
+                <h3>贝尔曼最优算子是压缩映射</h3>
+
+                <p>定义贝尔曼最优算子 $\mathcal{T}$ 为：$(\mathcal{T}v)(s) = \max_{a} [R(s,a) + \gamma \sum_{s'} P(s'|s,a) \, v(s')]$。下面证明它在 $\|\cdot\|_\infty$ 下是 $\gamma$-压缩映射。</p>
+
+                <div class="derivation">
+                    <div class="step-label">证明 $\|\mathcal{T}v_1 - \mathcal{T}v_2\|_\infty \leq \gamma \|v_1 - v_2\|_\infty$</div>
+
+                    <div class="formula-block">
+                        $$\|\mathcal{T}v_1 - \mathcal{T}v_2\|_\infty = \max_{s} \left|\mathcal{T}v_1(s) - \mathcal{T}v_2(s)\right| \tag{1.4-13}$$
+                    </div>
+
+                    <p>展开算子定义，需要处理两个 max 的差。关键不等式是：对任意函数 $f,g$，$|\max_a f(a) - \max_a g(a)| \leq \max_a |f(a) - g(a)|$。</p>
+
+                    <p>（证明这个不等式：设 $a^* = \arg\max_a f(a)$，则 $\max_a f(a) - \max_a g(a) \leq f(a^*) - g(a^*) \leq |f(a^*) - g(a^*)| \leq \max_a |f(a) - g(a)|$。对称地，$\max_a g(a) - \max_a f(a)$ 也满足同样的上界。两者取绝对值即得。）</p>
+
+                    <p>应用这个不等式，$R(s,a)$ 项消去：</p>
+
+                    <div class="formula-block">
+                        $$\leq \max_s \max_a \left| \gamma \sum_{s'} P(s'|s,a) \big(v_1(s') - v_2(s')\big) \right|$$
+                    </div>
+
+                    <p>由三角不等式 $|\sum_i c_i x_i| \leq \sum_i c_i |x_i|$（其中 $c_i \geq 0$），以及概率求和 $\sum_{s'} P(s'|s,a) = 1$，凸组合不超过最大值：</p>
+
+                    <div class="formula-block">
+                        $$\leq \gamma \max_s \max_a \sum_{s'} P(s'|s,a) |v_1(s') - v_2(s')| \leq \gamma \max_{s'} |v_1(s') - v_2(s')| = \gamma \|v_1 - v_2\|_\infty$$
+                    </div>
+
+                    <p>因此贝尔曼最优算子 $\mathcal{T}$ 是 $\gamma$-压缩映射。由 Banach 不动点定理，值迭代 $v_{k+1} = \mathcal{T}v_k$ 从任意初始值函数出发，必收敛到唯一不动点 $V^*$（即贝尔曼最优方程的解）。</p>
+                </div>
+
+                <h3>贝尔曼期望算子也是压缩映射</h3>
+
+                <p>定义贝尔曼期望算子 $\mathcal{T}_\pi$ 为：$(\mathcal{T}_\pi v)(s) = \sum_a \pi(a|s) [R(s,a) + \gamma \sum_{s'} P(s'|s,a) \, v(s')]$。证明方法类似，且更简单（因为不涉及 max 运算）。</p>
+
+                <div class="derivation">
+                    <div class="step-label">证明 $\|\mathcal{T}_\pi v_1 - \mathcal{T}_\pi v_2\|_\infty \leq \gamma \|v_1 - v_2\|_\infty$</div>
+
+                    <p>展开算子并消去 $R(s,a)$ 项：</p>
+
+                    <div class="formula-block">
+                        $$\|\mathcal{T}_\pi v_1 - \mathcal{T}_\pi v_2\|_\infty = \max_s \left| \sum_a \pi(a|s) \, \gamma \sum_{s'} P(s'|s,a) \big(v_1(s') - v_2(s')\big) \right| \tag{1.4-14}$$
+                    </div>
+
+                    <p>对策略概率 $\pi(a|s)$ 和转移概率 $P(s'|s,a)$ 逐层放缩，凸组合不超过最大值：</p>
+
+                    <div class="formula-block">
+                        $$\leq \gamma \max_s \sum_a \pi(a|s) \sum_{s'} P(s'|s,a) \, |v_1(s') - v_2(s')| \leq \gamma \max_{s'} |v_1(s') - v_2(s')| = \gamma \|v_1 - v_2\|_\infty$$
+                    </div>
+
+                    <p>最后一步用到 $\sum_a \pi(a|s) \sum_{s'} P(s'|s,a) = 1$（概率归一化）。</p>
+
+                    <p>因此策略评估的迭代 $v_{k+1} = \mathcal{T}_\pi v_k$ 也保证收敛到唯一不动点 $V^\pi$。这解释了为什么1.3.3节中直接求解线性方程组得到的 $V^\pi$ 与迭代计算的结果一致。</p>
+                </div>
+
+                </div>
+            </details>
+
+            <div class="chapter-nav">
+                <a href="../ch01/1.4.1.html">&larr; 1.4.1 策略迭代</a>
+                <a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分 &rarr;</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

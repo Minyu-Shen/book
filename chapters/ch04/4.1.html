@@ -9,6 +9,29 @@
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .checklist-box { background: #f7fafc; border: 2px solid var(--accent-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .checklist-box .checklist-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .checklist-item { margin: 0.8rem 0; padding: 0.6rem 1rem; border-left: 3px solid var(--accent-color); background: white; border-radius: 0 6px 6px 0; }
+        .checklist-item .item-label { font-weight: 700; color: var(--primary-color); margin-bottom: 0.2rem; }
+        .checklist-item .item-desc { font-size: 0.93rem; color: var(--text-color); line-height: 1.7; }
+        .example-box { background: #fafafa; border: 2px solid var(--border-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .example-box .example-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .example-table { width: 100%; border-collapse: collapse; margin: 0.8rem 0; font-size: 0.95rem; }
+        .example-table th { background: var(--primary-color); color: white; padding: 0.6rem 1rem; text-align: left; width: 28%; }
+        .example-table td { padding: 0.6rem 1rem; border: 1px solid var(--border-color); }
+        .example-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .pitfall-box { background: #fffbeb; border: 2px solid #d69e2e; border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .pitfall-box .pitfall-title { font-weight: 700; color: #b7791f; font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid #d69e2e; padding-bottom: 0.5rem; }
+        .pitfall-item { margin: 0.8rem 0; padding: 0.6rem 1rem; border-left: 3px solid #d69e2e; background: white; border-radius: 0 6px 6px 0; }
+        .pitfall-item .pitfall-label { font-weight: 700; color: #c53030; margin-bottom: 0.2rem; }
+        .pitfall-item .pitfall-desc { font-size: 0.93rem; color: var(--text-color); line-height: 1.7; }
+        .formula-block { background: var(--sidebar-bg); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; overflow-x: auto; }
+        .note { background: var(--highlight-color); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+    </style>
+    <script defer src="../../js/code-copy.js"></script>
 </head>
 <body>
     <div class="page-wrapper">
@@ -20,13 +43,18 @@
                 <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
                 <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
                 <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
-                <li><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
-                <li><a href="../ch01/1.3.2.html">1.3.2 值函数与贝尔曼期望方程</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
                 <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
-                <li><a href="../ch01/1.5.html">1.5 不依赖模型的学习算法</a></li>
-                <li><a href="../ch01/1.6.html">1.6 策略梯度方法</a></li>
-                <li><a href="../ch01/1.7.html">1.7 例子：等红绿灯问题</a></li>
-                <li><a href="../ch01/1.8.html">1.8 例子：动态库存补货策略</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
+                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.3.html">1.5.3 SARSA与Q-learning</a></li>
+                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
+                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
                 <li class="sidebar-chapter">第二章 深度学习基础</li>
                 <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
                 <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
@@ -41,7 +69,8 @@
                 <li><a href="../ch04/4.1.html" class="active">4.1 如何将管理科学问题抽象为MDP</a></li>
                 <li><a href="../ch04/4.2.html">4.2 状态空间、动作空间与奖励函数的设计</a></li>
                 <li><a href="../ch04/4.3.html">4.3 决策时机与决策频率的建模</a></li>
-                <li><a href="../ch04/4.4.html">4.4 从问题特征到网络架构的选择</a></li>
+                <li><a href="../ch04/4.4.html">4.4 回合定义与时域建模</a></li>
+                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
                 <li class="sidebar-chapter">第五章 仿真器搭建</li>
                 <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
                 <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
@@ -62,7 +91,308 @@
         <main class="main-content">
             <h1>4.1 如何将管理科学问题抽象为MDP</h1>
 
-            <p>（内容待补充）</p>
+            <!-- ==================== 引言 ==================== -->
+
+            <p>前三章介绍了强化学习的理论框架与算法工具。从表格方法（动态规划、蒙特卡洛、时序差分）到深度强化学习（DQN、PPO、SAC），我们已经掌握了一套从给定 MDP 中求解最优策略的方法。然而，当真正面对一个管理科学问题时，第一个挑战往往不是选择哪种算法，而是如何将问题建模为 MDP。</p>
+
+            <p>算法的角色是在给定的 MDP 中寻找最优策略，但 MDP 本身的质量决定了最优策略的上限。一个粗糙的 MDP 建模可能丢失关键信息，导致即使找到了最优策略，其实际表现也远不如预期；反过来，一个过于复杂的建模会使状态空间爆炸，让算法难以收敛。MDP 建模的好坏，决定了任何算法所能达到的天花板。</p>
+
+            <!-- ==================== MDP建模是一种选择 ==================== -->
+
+            <h2>MDP 建模是一种选择</h2>
+
+            <p>初学者常有一个误解：给定一个实际问题，它的 MDP 建模是唯一确定的。事实恰恰相反。同一个现实问题可以被建模为完全不同的 MDP，不同的建模方式在状态定义、动作定义、奖励函数等方面都可能有所不同。每一种建模都是一种<strong>选择</strong>，而非唯一的正确答案。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">核心观点：MDP 建模不是唯一的</div>
+                <p>同一个管理科学问题可以被建模为多种不同的 MDP。状态如何定义、动作空间如何划分、奖励信号如何设计，都是建模者的选择。不同的建模选择会导致不同的学习难度、求解效率和最终策略质量。好的建模需要对问题结构的深入理解，这是算法无法替代的。</p>
+            </div>
+
+            <p>举个简单的例子。假设我们要用 RL 优化一个仓库的补货策略。仅在状态定义上，就至少有以下两种选择：</p>
+
+            <ul>
+                <li><strong>方案 A</strong>：状态只包含当前库存量 $I_t$。这个定义简洁，状态空间小，但可能丢失了需求的季节性规律等信息。</li>
+                <li><strong>方案 B</strong>：状态包含当前库存量 $I_t$、过去 $k$ 天的需求历史 $(D_{t-1}, D_{t-2}, \ldots, D_{t-k})$、以及当前日期（编码季节信息）。这个定义更丰富，保留了更多信息，但状态空间显著增大。</li>
+            </ul>
+
+            <p>这两种方案没有绝对的优劣之分。方案 A 在需求接近独立同分布时可能就足够了；方案 B 在需求有明显时间相关性时更有优势，但也需要更多的样本和更强的函数逼近能力。选择哪种建模，取决于问题的具体特征和可用的计算资源。</p>
+
+            <!-- ==================== 五要素清单 ==================== -->
+
+            <h2>从问题到 MDP 的五要素清单</h2>
+
+            <p>面对一个新的管理科学问题，我们建议按照以下五个要素逐一梳理，系统地构建 MDP 建模。这个清单既是建模的起点，也是检查建模完整性的工具。</p>
+
+            <div class="checklist-box">
+                <div class="checklist-title">MDP 建模五要素清单</div>
+                <div class="checklist-item">
+                    <div class="item-label">1. 谁是决策者（智能体）？</div>
+                    <div class="item-desc">明确决策的主体。在管理科学中，智能体通常是一个管理系统或调度算法，而非具体的个人。需要回答：谁在做决策？决策的频率是什么？</div>
+                </div>
+                <div class="checklist-item">
+                    <div class="item-label">2. 决策者能观察到什么（状态）？</div>
+                    <div class="item-desc">列出决策时刻可获取的全部信息，然后筛选出对决策有影响的关键变量。需要区分：哪些信息在训练时和部署时都可获取？哪些只在训练时可获取（仿真器内部变量）？状态定义应以部署时可获取的信息为准。</div>
+                </div>
+                <div class="checklist-item">
+                    <div class="item-label">3. 决策者能做什么（动作）？</div>
+                    <div class="item-desc">定义每个决策时刻的可选动作集合。动作可以是离散的（选择一个选项）或连续的（设定一个数值）。需要考虑：动作空间是否随状态变化？是否存在物理约束？</div>
+                </div>
+                <div class="checklist-item">
+                    <div class="item-label">4. 系统如何演化（转移）？</div>
+                    <div class="item-desc">描述系统从当前状态在执行动作后如何转移到下一个状态。在管理科学中，转移通常包含随机性（随机需求、随机到达等）。转移动力学由仿真器实现，算法不需要显式知道转移概率。</div>
+                </div>
+                <div class="checklist-item">
+                    <div class="item-label">5. 目标是什么（奖励）？</div>
+                    <div class="item-desc">将管理目标转化为每步的数值信号。需要回答：目标是最大化收益还是最小化成本？是否有多个目标需要权衡？奖励信号能否在每步即时计算，还是只在回合结束时才能获得？</div>
+                </div>
+            </div>
+
+            <p>接下来，我们通过三个典型的管理科学问题，演示如何使用这个五要素清单完成 MDP 建模。</p>
+
+            <!-- ==================== 例1：库存补货 ==================== -->
+
+            <h2>建模实例一：动态库存补货</h2>
+
+            <p>考虑一个单产品、单仓库的库存管理问题。仓库每天面临随机的客户需求，管理者需要决定每天的补货量，目标是在满足需求的同时最小化库存持有成本、缺货成本和采购成本的总和。</p>
+
+            <div class="example-box">
+                <div class="example-title">例 4.1-1：动态库存补货的 MDP 建模</div>
+                <table class="example-table">
+                    <tr>
+                        <th>要素</th>
+                        <th>建模</th>
+                    </tr>
+                    <tr>
+                        <td><strong>智能体</strong></td>
+                        <td>仓库补货管理系统</td>
+                    </tr>
+                    <tr>
+                        <td><strong>状态</strong> $S_t$</td>
+                        <td>当前库存量 $I_t \in \{0, 1, \ldots, I_{\max}\}$</td>
+                    </tr>
+                    <tr>
+                        <td><strong>动作</strong> $A_t$</td>
+                        <td>补货量 $a_t \in \{0, 1, \ldots, a_{\max}\}$，受仓库容量约束 $I_t + a_t \leq I_{\max}$</td>
+                    </tr>
+                    <tr>
+                        <td><strong>转移</strong></td>
+                        <td>$I_{t+1} = \max(I_t + a_t - D_t,\; 0)$，其中需求 $D_t$ 为随机变量</td>
+                    </tr>
+                    <tr>
+                        <td><strong>奖励</strong> $R_{t+1}$</td>
+                        <td>负的总成本（见下方公式）</td>
+                    </tr>
+                </table>
+            </div>
+
+            <p>这里奖励函数取负的总成本，因为 RL 框架是最大化累积奖励，而库存管理的目标是最小化总成本。具体地，每步奖励定义为：</p>
+
+            <div class="formula-block">
+                $$R_{t+1} = -\Big[\, c_p \cdot a_t + c_h \cdot (I_t + a_t - D_t)^{+} + c_s \cdot (D_t - I_t - a_t)^{+} \,\Big] \tag{4.1-1}$$
+            </div>
+
+            <p>其中 $c_p$ 是单位采购成本，$c_h$ 是单位库存持有成本，$c_s$ 是单位缺货成本，$(x)^{+} = \max(x, 0)$。公式(4.1-1)中的三项分别对应：采购成本、持有成本（对剩余库存收费）和缺货成本（对未满足需求收费）。</p>
+
+            <p>这个建模有几个值得注意的地方。首先，我们假设补货在当天立即到达（零提前期）。如果提前期不为零，比如补货需要 $L$ 天才能到达，那么状态需要扩展为 $(I_t, o_{t,1}, o_{t,2}, \ldots, o_{t,L})$，其中 $o_{t,j}$ 表示第 $j$ 天后将到达的在途订单量。其次，我们将需求 $D_t$ 假设为独立同分布的随机变量，这使得当前库存量 $I_t$ 就足以构成马尔可夫状态。如果需求存在时间趋势或季节性，就需要在状态中加入更多信息。</p>
+
+            <!-- ==================== 例2：网约车调度 ==================== -->
+
+            <h2>建模实例二：网约车调度</h2>
+
+            <p>在第一章中，我们用一个三状态（市中心 $c$、郊区 $b$、机场 $a$）的网约车司机决策问题来引入 MDP 的基本概念。那个例子高度简化：只有一个司机、三个位置、确定性的奖励。现实中的网约车平台调度要复杂得多：一个城市有成千上万的司机和乘客，平台需要实时决定将哪辆车派给哪个乘客。</p>
+
+            <div class="example-box">
+                <div class="example-title">例 4.1-2：网约车订单调度的 MDP 建模</div>
+                <table class="example-table">
+                    <tr>
+                        <th>要素</th>
+                        <th>建模</th>
+                    </tr>
+                    <tr>
+                        <td><strong>智能体</strong></td>
+                        <td>平台调度系统（集中式决策者）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>状态</strong> $S_t$</td>
+                        <td>所有空闲车辆的位置分布、当前待派发订单集合、各区域需求预测、时段信息等</td>
+                    </tr>
+                    <tr>
+                        <td><strong>动作</strong> $A_t$</td>
+                        <td>为每个待派发订单指定一辆空闲车辆（组合优化问题）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>转移</strong></td>
+                        <td>车辆按派单结果接送乘客，新订单随机到达，车辆完成订单后释放</td>
+                    </tr>
+                    <tr>
+                        <td><strong>奖励</strong> $R_{t+1}$</td>
+                        <td>本步完成派单的总订单收入，或负的乘客平均等待时间</td>
+                    </tr>
+                </table>
+            </div>
+
+            <p>与第一章的玩具模型相比，真实场景的建模面临若干新的挑战。</p>
+
+            <p>第一，<strong>状态空间的维度和结构</strong>发生了质变。玩具模型的状态是一个离散标签（$c$、$b$ 或 $a$），而真实场景的状态需要描述整个城市的供需格局。一种常见的做法是将城市划分为 $N$ 个网格区域，用一个 $N$ 维向量表示各区域的空闲车辆数，再用另一个 $N$ 维向量表示各区域的待派发订单数。这种结构化的状态表示天然适合用神经网络来处理。</p>
+
+            <p>第二，<strong>动作空间是组合性的</strong>。如果当前有 $m$ 个待派发订单和 $n$ 辆空闲车辆，那么所有可能的派单方案数量随 $m$ 和 $n$ 指数增长。直接在这个组合空间上优化是不现实的。实际中通常将问题分解：用 RL 学习每个订单-车辆对的匹配价值，再用经典的匹配算法（如 KM 算法）根据这些价值求解最优匹配。</p>
+
+            <p>第三，<strong>奖励函数的设计需要权衡多个目标</strong>。平台既希望最大化总收入，又希望缩短乘客等待时间，还需要兼顾司机之间的收入公平性。如何将这些目标整合到一个标量奖励信号中，是建模时需要仔细设计的。</p>
+
+            <!-- ==================== 例3：动态定价 ==================== -->
+
+            <h2>建模实例三：动态定价</h2>
+
+            <p>动态定价在航空公司座位销售、酒店客房预订、电商促销等场景中广泛存在。以航空公司为例：一个航班有 $C$ 个座位，距起飞还有 $T$ 个时段，航空公司需要在每个时段决定票价，目标是最大化总收入。定价过高会导致座位卖不出去，定价过低则损失了可能的收入。</p>
+
+            <div class="example-box">
+                <div class="example-title">例 4.1-3：航班座位动态定价的 MDP 建模</div>
+                <table class="example-table">
+                    <tr>
+                        <th>要素</th>
+                        <th>建模</th>
+                    </tr>
+                    <tr>
+                        <td><strong>智能体</strong></td>
+                        <td>航空公司定价系统</td>
+                    </tr>
+                    <tr>
+                        <td><strong>状态</strong> $S_t$</td>
+                        <td>剩余座位数 $C_t$、距起飞的剩余时段数 $T - t$、已观察到的需求模式</td>
+                    </tr>
+                    <tr>
+                        <td><strong>动作</strong> $A_t$</td>
+                        <td>当前时段的票价 $p_t \in [p_{\min},\; p_{\max}]$（连续动作空间）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>转移</strong></td>
+                        <td>需求 $D_t(p_t)$ 随价格递减（价格弹性），剩余座位 $C_{t+1} = C_t - \min(D_t(p_t),\; C_t)$</td>
+                    </tr>
+                    <tr>
+                        <td><strong>奖励</strong> $R_{t+1}$</td>
+                        <td>当期售票收入（见下方公式）</td>
+                    </tr>
+                </table>
+            </div>
+
+            <p>每步的奖励为实际售出座位带来的收入：</p>
+
+            <div class="formula-block">
+                $$R_{t+1} = p_t \cdot \min\!\big(D_t(p_t),\; C_t\big) \tag{4.1-2}$$
+            </div>
+
+            <p>其中 $D_t(p_t)$ 是在价格 $p_t$ 下的随机需求量。一个常见的需求模型是：</p>
+
+            <div class="formula-block">
+                $$D_t(p_t) \sim \text{Poisson}\!\Big(\lambda_t \cdot \exp\!\big(-\beta \cdot p_t\big)\Big) \tag{4.1-3}$$
+            </div>
+
+            <p>这里 $\lambda_t$ 是基础到达率（可能随时段变化），$\beta > 0$ 是价格敏感系数。公式(4.1-3)表明需求的期望值随价格指数衰减，这是收益管理文献中常用的假设。</p>
+
+            <p>动态定价问题有几个建模上的特点。首先，动作空间是<strong>连续</strong>的，这意味着需要使用适合连续动作的算法（如 PPO 或 SAC）。其次，问题有<strong>明确的终止条件</strong>：航班起飞时回合结束，且座位卖完时无需再决策，因此自然地被建模为有限期（finite-horizon）MDP。第三，状态转移中需求对价格的响应（即价格弹性）需要从数据中学习或提前标定，这是仿真器设计的核心。</p>
+
+            <!-- ==================== 三个例子的对比 ==================== -->
+
+            <h2>三个例子的横向对比</h2>
+
+            <p>将上面三个建模实例放在一起对比，可以看到管理科学中 MDP 建模的多样性。</p>
+
+            <table>
+                <tr>
+                    <th></th>
+                    <th>动态库存补货</th>
+                    <th>网约车调度</th>
+                    <th>动态定价</th>
+                </tr>
+                <tr>
+                    <td><strong>动作类型</strong></td>
+                    <td>离散（补货量）</td>
+                    <td>组合（车辆-订单匹配）</td>
+                    <td>连续（价格）</td>
+                </tr>
+                <tr>
+                    <td><strong>时间范围</strong></td>
+                    <td>无限期</td>
+                    <td>无限期</td>
+                    <td>有限期</td>
+                </tr>
+                <tr>
+                    <td><strong>状态维度</strong></td>
+                    <td>低（一维或数维）</td>
+                    <td>高（数百至数千维）</td>
+                    <td>中等（数维）</td>
+                </tr>
+                <tr>
+                    <td><strong>随机性来源</strong></td>
+                    <td>需求</td>
+                    <td>订单到达、乘客目的地</td>
+                    <td>需求（受价格影响）</td>
+                </tr>
+                <tr>
+                    <td><strong>适用算法</strong></td>
+                    <td>DQN、表格方法</td>
+                    <td>PPO + 匹配算法</td>
+                    <td>PPO、SAC</td>
+                </tr>
+            </table>
+
+            <p>这张表展示了一个重要的事实：不同问题的 MDP 建模在动作类型、时间范围、状态维度等方面差异巨大。<strong>没有一种万能的建模模板</strong>，每个问题都需要根据自身的结构特征来量身定制。而这种定制能力，正是本章希望帮助读者建立的。</p>
+
+            <!-- ==================== 常见建模陷阱 ==================== -->
+
+            <h2>常见建模陷阱</h2>
+
+            <p>在实际建模中，初学者容易犯一些典型的错误。这些错误往往不会导致程序报错，但会让训练出来的策略在部署时表现远低于预期。以下四种陷阱尤其常见。</p>
+
+            <div class="pitfall-box">
+                <div class="pitfall-title">MDP 建模四大陷阱</div>
+
+                <div class="pitfall-item">
+                    <div class="pitfall-label">陷阱一：状态包含了部署时不可获取的信息</div>
+                    <div class="pitfall-desc">
+                        在仿真器中训练时，我们可以访问环境的全部内部变量，例如未来的需求序列、其他智能体的内部策略等。如果将这些信息放入状态，算法可以轻松学到高性能策略，但这个策略在部署时无法使用，因为那些信息在真实环境中不可获取。<strong>建模时必须严格区分训练可用信息和部署可用信息，状态定义应以后者为准。</strong>
+                    </div>
+                </div>
+
+                <div class="pitfall-item">
+                    <div class="pitfall-label">陷阱二：状态过于粗糙，丢失了马尔可夫性</div>
+                    <div class="pitfall-desc">
+                        MDP 的理论基础是马尔可夫性：给定当前状态 $S_t$，未来的演化与历史无关。如果状态定义遗漏了关键信息，这个性质就不成立。例如，在有提前期的库存问题中，如果状态只包含当前库存量而不包含在途订单，那么仅凭 $I_t$ 无法预测未来库存的变化，马尔可夫性被破坏。虽然 RL 算法在一定程度上能容忍轻微的非马尔可夫性，但严重的信息缺失会显著损害学习效果。
+                    </div>
+                </div>
+
+                <div class="pitfall-item">
+                    <div class="pitfall-label">陷阱三：动作空间与实际可执行范围不匹配</div>
+                    <div class="pitfall-desc">
+                        如果建模时的动作空间包含了实际不可执行的动作（例如，允许补货量超过仓库剩余容量），算法可能会频繁选择这些无效动作，浪费探索预算。反过来，如果动作空间过于狭窄，遗漏了某些有价值的选项，就人为限制了策略的优化空间。正确的做法是：动作空间应与实际的可执行范围一致，或者通过动作掩码（action masking）在每步动态屏蔽不可行的动作。
+                    </div>
+                </div>
+
+                <div class="pitfall-item">
+                    <div class="pitfall-label">陷阱四：奖励函数与真实目标不一致</div>
+                    <div class="pitfall-desc">
+                        RL 算法会忠实地最大化给定的奖励函数，但如果奖励函数不能准确反映真实目标，算法就会走向偏差。例如，在网约车调度中，如果奖励只考虑完成订单数量而不考虑乘客等待时间，算法可能倾向于只服务短途订单（容易快速完成），而忽略等待已久的长途乘客。奖励函数的设计需要仔细思考，确保算法优化的方向与管理目标一致。
+                    </div>
+                </div>
+            </div>
+
+            <div class="note">
+                <strong>建模的迭代性</strong>：上述陷阱提示我们，MDP 建模不是一次性完成的。通常需要经历"建模—训练—分析策略行为—修正建模"的多轮迭代。观察训练出来的策略行为，往往能反过来揭示建模中的问题。
+            </div>
+
+            <!-- ==================== 小结与展望 ==================== -->
+
+            <h2>小结</h2>
+
+            <p>本节建立了从实际问题到 MDP 建模的基本方法论。核心要点有三个：</p>
+
+            <ol>
+                <li><strong>MDP 建模是一种选择</strong>。同一个问题可以有多种合理的建模方式，选择的好坏直接影响算法的学习效率和最终策略质量。</li>
+                <li><strong>五要素清单</strong>（智能体、状态、动作、转移、奖励）提供了系统化的建模流程，确保不遗漏关键要素。</li>
+                <li><strong>常见陷阱</strong>（信息泄漏、马尔可夫性缺失、动作空间不匹配、奖励偏差）是实际建模中最需要警惕的问题。</li>
+            </ol>
+
+            <p>有了整体的建模框架之后，接下来的几节将深入每个要素的设计细节。4.2 节讨论状态空间、动作空间与奖励函数的具体设计技巧；4.3 节探讨决策时机与决策频率的建模问题；4.4 节讨论回合定义与时域建模；4.5 节根据问题特征选择合适的网络架构。</p>
 
             <div class="chapter-nav">
                 <a href="../ch03/3.4.html">&larr; 3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a>

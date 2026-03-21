@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1.4.1 策略迭代 - 运筹智能</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .trans-table { width: auto; border-collapse: collapse; margin: 1rem auto; font-size: 0.95rem; }
+        .trans-table th, .trans-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: center; }
+        .trans-table th { background: var(--primary-color); color: white; }
+        .trans-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .result-box { background: var(--highlight-color); border: 2px solid var(--accent-color); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; text-align: center; }
+        .derivation { background: var(--sidebar-bg); padding: 1.2rem 1.5rem; border-radius: 6px; margin: 1.5rem 0; }
+        .derivation .step-label { font-weight: 600; color: var(--accent-color); margin-bottom: 0.3rem; }
+        .algo-box { background: #f7fafc; border: 2px solid var(--accent-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .algo-box .algo-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .algo-box ol { margin: 0.3rem 0 0.3rem 1.5rem; line-height: 2; }
+        .algo-box .algo-note { font-size: 0.9rem; color: #718096; margin-top: 0.5rem; }
+        .highlight-row { background: #fefcbf !important; font-weight: 600; }
+        .optional-reading { background:#fafafa; border:1px solid #e2e8f0; border-left:4px solid #a0aec0; border-radius:0 8px 8px 0; margin:2.5rem 0; }
+        .optional-reading summary { padding:1rem 1.5rem; cursor:pointer; font-weight:700; color:#4a5568; font-size:1.1rem; list-style:none; }
+        .optional-reading summary::-webkit-details-marker { display:none; }
+        .optional-reading summary::before { content:'▶ '; font-size:0.8em; margin-right:0.3rem; transition:transform 0.2s; }
+        .optional-reading[open] summary::before { content:'▼ '; }
+        .optional-reading[open] summary { border-bottom:1px solid #e2e8f0; }
+        .optional-reading .opt-body { padding:1.2rem 1.5rem; }
+        .optional-reading .opt-body h3 { color:var(--primary-color); margin-top:1.8rem; margin-bottom:0.6rem; font-size:1.15rem; }
+        .optional-reading .opt-body h3:first-child { margin-top:0.5rem; }
+    </style>
+    <script defer src="../../js/code-copy.js"></script>
+</head>
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="book-title"><a href="../../index.html" style="text-decoration:none;color:inherit;">运筹智能</a></div>
+            <nav>
+                <ul>
+                <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
+                <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
+                <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
+                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html" class="active">1.4.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
+                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
+                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.6.1.html">1.6.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.6.2.html">1.6.2 Q-learning</a></li>
+                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.1.html">1.7.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.2.html">1.7.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.3.html">1.7.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第二章 深度学习基础</li>
+                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
+                <li><a href="../ch03/3.2.html">3.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
+                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch04/4.2.html">4.2 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch04/4.3.html">4.3 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch04/4.4.html">4.4 回合定义与时域建模</a></li>
+                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第五章 仿真器搭建</li>
+                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch05/5.4.html">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
+                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
+                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
+                <li><a href="../ch07/7.2.html">7.2 公交串车控制</a></li>
+                <li><a href="../ch07/7.3.html">7.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第八章 进阶话题</li>
+                <li><a href="../ch08/8.1.html">8.1 多智能体强化学习</a></li>
+                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>1.4.1 策略迭代</h1>
+
+            <p>上一节中，我们学会了评估一个给定策略 $\pi$ 的好坏：通过求解贝尔曼期望方程，得到每个状态的值函数 $V^\pi(s)$。在网约车例子中，我们评估了两个策略，发现 $\pi_2$（郊区逃离）在所有状态上都优于 $\pi_1$（有单就接）。</p>
+
+            <p>但这引出了一个关键问题：$\pi_2$ 是怎么来的？能否从 $\pi_1$ 出发，通过某种系统的方法<strong>自动找到</strong>更好的策略？本节将回答这个问题。</p>
+
+            <!-- ==================== 从评估到改进 ==================== -->
+            <h2>从策略评估到策略改进</h2>
+
+            <p>假设我们已经评估了策略 $\pi_1$（有单就接），得到了值函数 $V^{\pi_1}(c)=52.3$，$V^{\pi_1}(b)=42.3$，$V^{\pi_1}(a)=55.9$。现在我们想利用这些信息来改进策略。</p>
+
+            <p>改进的思路很直接：在每个状态 $s$，与其盲目按 $\pi_1$ 行动，不如逐一考察每个可选动作，计算如果执行该动作然后再遵循 $\pi_1$，长期回报会是多少。这就是<strong>动作值函数</strong> $Q^{\pi}(s,a)$ 的含义，它可以通过 $V^{\pi}$ 和已知的模型直接计算：</p>
+
+            <div class="formula-block">
+                $$Q^\pi(s, a) = R(s, a) + \gamma \sum_{s' \in \mathcal{S}} P(s' \mid s, a) \, V^\pi(s') \tag{1.4-1}$$
+            </div>
+
+            <p>公式(1.4-1)的含义是：在状态 $s$ 执行动作 $a$，获得即时奖励 $R(s,a)$，然后到达下一个状态 $s'$（按转移概率 $P$），从 $s'$ 开始遵循策略 $\pi$ 的长期回报是 $V^\pi(s')$。这就是一步前瞻（one-step lookahead）的思想。</p>
+
+            <p>让我们用网约车的例子来算一算。以 $\pi_1$ 的值函数 $V^{\pi_1}$ 代入公式(1.4-1)，计算每个状态下所有可选动作的 $Q$ 值：</p>
+
+            <table class="trans-table">
+                <thead>
+                    <tr><th>状态</th><th>动作</th><th>$Q^{\pi_1}(s,a)$ 的计算</th><th>$Q^{\pi_1}$</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>$c$</td><td>接单</td><td>$7.3 + 0.9 \times (0.5 \times 52.3 + 0.3 \times 42.3 + 0.2 \times 55.9)$</td><td><strong>52.3</strong></td></tr>
+                    <tr><td>$c$</td><td>空驶去机场</td><td>$-4 + 0.9 \times 55.9$</td><td>46.3</td></tr>
+                    <tr class="highlight-row"><td>$b$</td><td>接单</td><td>$2.1 + 0.9 \times (0.1 \times 52.3 + 0.8 \times 42.3 + 0.1 \times 55.9)$</td><td>42.3</td></tr>
+                    <tr class="highlight-row"><td>$b$</td><td>空驶去市中心</td><td>$-3 + 0.9 \times 52.3$</td><td><strong>44.1</strong></td></tr>
+                    <tr><td>$a$</td><td>接单</td><td>$12.4 + 0.9 \times (0.6 \times 52.3 + 0.4 \times 42.3)$</td><td><strong>55.9</strong></td></tr>
+                    <tr><td>$a$</td><td>空驶去市中心</td><td>$-5 + 0.9 \times 52.3$</td><td>42.1</td></tr>
+                </tbody>
+            </table>
+
+            <p>仔细观察表中黄色高亮的两行：在郊区状态 $b$，空驶去市中心的 $Q$ 值（44.1）高于接单（42.3）。这意味着，如果司机在郊区改为空驶去市中心，然后之后再照常遵循 $\pi_1$，长期回报就会提高 $44.1 - 42.3 = 1.8$。而在市中心和机场，$\pi_1$ 的选择（接单）已经是 $Q$ 值最大的动作，无需改动。</p>
+
+            <p>这自然引出了<strong>贪婪策略改进</strong>的思想：在每个状态，选择使 $Q^\pi(s,a)$ 最大的动作，得到新策略 $\pi'$：</p>
+
+            <div class="formula-block">
+                $$\pi'(s) = \arg\max_{a \in \mathcal{A}(s)} Q^\pi(s, a) \tag{1.4-2}$$
+            </div>
+
+            <p>将这个规则应用到 $\pi_1$ 上，得到的新策略恰好就是 $\pi_2$（郊区逃离）：市中心和机场继续接单，郊区改为空驶去市中心。1.3.3节中我们已经验证了 $\pi_2$ 在所有状态上优于 $\pi_1$。这不是巧合，而是贪婪改进的一般性质。</p>
+
+            <!-- ==================== 策略改进定理 ==================== -->
+            <h2>策略改进定理</h2>
+
+            <div class="concept-card">
+                <div class="concept-name">策略改进定理（Policy Improvement Theorem）</div>
+                <p>设 $\pi$ 是任意策略，$\pi'$ 是基于 $V^\pi$ 的贪婪策略（由公式(1.4-2)定义）。则对所有状态 $s \in \mathcal{S}$：</p>
+                <div class="formula-block">
+                    $$V^{\pi'}(s) \geq V^\pi(s) \tag{1.4-3}$$
+                </div>
+                <p>即贪婪改进后的策略至少和原策略一样好，且在所有状态上同时成立。</p>
+            </div>
+
+            <p>直觉上，贪婪改进保证了每个状态的单步决策都不变差，而这些局部优势经过递推累积起来，就保证了整个策略的全局提升。严格证明见本节末尾的选读部分。</p>
+
+            <!-- ==================== 贝尔曼最优方程 ==================== -->
+            <h2>贝尔曼最优方程</h2>
+
+            <p>如果贪婪改进无法再提升策略，即对所有状态 $s$ 都有 $V^\pi(s) = \max_a Q^\pi(s,a)$，那么 $\pi$ 就已经是最优策略。此时值函数满足一个特殊的方程：</p>
+
+            <div class="concept-card">
+                <div class="concept-name">贝尔曼最优方程（Bellman Optimality Equation）</div>
+                <div class="formula-block">
+                    $$V^*(s) = \max_{a \in \mathcal{A}(s)} \left[\, R(s, a) + \gamma \sum_{s' \in \mathcal{S}} P(s' \mid s, a) \, V^*(s') \,\right] \tag{1.4-4}$$
+                </div>
+                <p>最优策略为：$\pi^*(s) = \arg\max_{a \in \mathcal{A}(s)} \left[\, R(s, a) + \gamma \sum_{s'} P(s' \mid s, a) \, V^*(s') \,\right]$</p>
+            </div>
+
+            <p>对比1.3.3节的贝尔曼期望方程(1.3-8)和上面的贝尔曼最优方程(1.4-4)：期望方程对动作做<strong>加权平均</strong>（按策略 $\pi$ 的概率），最优方程对动作取<strong>最大值</strong>。前者用于评估一个给定策略，后者刻画最优策略必须满足的条件。</p>
+
+            <p>值得注意的是，正是这个 $\max$ 算子使得贝尔曼最优方程成为一个<strong>非线性</strong>方程组，无法像贝尔曼期望方程那样通过解线性方程组直接求得 $V^*$。这也是为什么我们需要策略迭代、值迭代等迭代算法来逼近最优解。</p>
+
+            <!-- ==================== 策略迭代算法 ==================== -->
+            <h2>策略迭代算法</h2>
+
+            <p>把策略评估和策略改进交替进行，就得到了策略迭代（Policy Iteration）算法：</p>
+
+            <div class="algo-box">
+                <div class="algo-title">算法：策略迭代（Policy Iteration）</div>
+                <p><strong>输入</strong>：MDP $\langle \mathcal{S}, \mathcal{A}, P, R, \gamma \rangle$</p>
+                <ol>
+                    <li>初始化：选择任意策略 $\pi_0$（如随机策略或全部选第一个动作）</li>
+                    <li>重复以下步骤，直到策略不再改变：
+                        <ol type="a" style="margin-top:0.3rem;">
+                            <li><strong>策略评估</strong>：求解 $\mathbf{V}^\pi = (\mathbf{I} - \gamma \mathbf{P}_\pi)^{-1} \mathbf{R}_\pi$，得到 $V^\pi(s)$</li>
+                            <li><strong>策略改进</strong>：对每个状态 $s$，令 $\pi'(s) = \arg\max_a \left[ R(s,a) + \gamma \sum_{s'} P(s'|s,a) V^\pi(s') \right]$</li>
+                            <li>若 $\pi' = \pi$，输出 $\pi^* = \pi$，终止；否则令 $\pi \leftarrow \pi'$，回到步骤 2a</li>
+                        </ol>
+                    </li>
+                </ol>
+                <p class="algo-note">由于有限MDP的确定性策略数量是有限的（$\prod_s |\mathcal{A}(s)|$），且每次改进都严格提升值函数（除非已最优），算法必在有限步内收敛。</p>
+            </div>
+
+            <!-- ==================== 例子：策略迭代 ==================== -->
+            <h2>例子：网约车司机的策略迭代</h2>
+
+            <p>让我们在网约车例子上完整运行策略迭代算法。</p>
+
+            <h3>第一轮迭代</h3>
+
+            <p><strong>评估 $\pi_1$</strong>（有单就接）：由1.3.3节可知，$V^{\pi_1}(c)=52.3$，$V^{\pi_1}(b)=42.3$，$V^{\pi_1}(a)=55.9$。</p>
+
+            <p><strong>改进</strong>：计算所有状态-动作对的 $Q^{\pi_1}$ 值（见前面的表格），在每个状态取最大的动作：</p>
+            <ul style="margin:0.3rem 0 1rem 2rem;">
+                <li>市中心 $c$：$Q(c,\text{接单})=52.3 > Q(c,\text{空驶去机场})=46.3$，选<strong>接单</strong>（不变）</li>
+                <li>郊区 $b$：$Q(b,\text{空驶去市中心})=44.1 > Q(b,\text{接单})=42.3$，改为<strong>空驶去市中心</strong></li>
+                <li>机场 $a$：$Q(a,\text{接单})=55.9 > Q(a,\text{空驶去市中心})=42.1$，选<strong>接单</strong>（不变）</li>
+            </ul>
+            <p>新策略 $\pi_2 = \{c:\text{接单},\; b:\text{空驶去市中心},\; a:\text{接单}\}$，与 $\pi_1$ 不同，继续迭代。</p>
+
+            <h3>第二轮迭代</h3>
+
+            <p><strong>评估 $\pi_2$</strong>（郊区逃离）：由1.3.3节可知，$V^{\pi_2}(c)=56.3$，$V^{\pi_2}(b)=47.7$，$V^{\pi_2}(a)=60.0$。</p>
+
+            <p><strong>改进</strong>：计算 $Q^{\pi_2}$ 值：</p>
+
+            <table class="trans-table">
+                <thead>
+                    <tr><th>状态</th><th>动作</th><th>$Q^{\pi_2}(s,a)$</th><th>贪婪选择</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>$c$</td><td>接单</td><td>$\mathbf{56.3}$</td><td rowspan="2">接单 ✓</td></tr>
+                    <tr><td>$c$</td><td>空驶去机场</td><td>$50.0$</td></tr>
+                    <tr><td>$b$</td><td>接单</td><td>$46.9$</td><td rowspan="2">空驶去市中心 ✓</td></tr>
+                    <tr><td>$b$</td><td>空驶去市中心</td><td>$\mathbf{47.7}$</td></tr>
+                    <tr><td>$a$</td><td>接单</td><td>$\mathbf{60.0}$</td><td rowspan="2">接单 ✓</td></tr>
+                    <tr><td>$a$</td><td>空驶去市中心</td><td>$45.7$</td></tr>
+                </tbody>
+            </table>
+
+            <p>贪婪策略 $\pi' = \pi_2$，策略没有改变，算法收敛。</p>
+
+            <div class="result-box">
+                <p>策略迭代仅用 <strong>2 轮</strong> 就从 $\pi_1$ 收敛到最优策略 $\pi^* = \pi_2$。</p>
+                <p>$$V^*(c) = 56.3, \quad V^*(b) = 47.7, \quad V^*(a) = 60.0$$</p>
+            </div>
+
+            <p>可以验证最优值函数满足贝尔曼最优方程(1.4-4)：在每个状态，$V^*$ 恰好等于最大 $Q$ 值。例如在郊区，$V^*(b) = 47.7 = \max(46.9, 47.7) = Q^*(b, \text{空驶去市中心})$。</p>
+
+            <div class="note">
+                <strong>洞察：</strong>策略迭代自动发现了最优策略的关键特征：在郊区不要接单（期望车费仅2.1元，且80%概率留在郊区），应该花3元油钱逃回市中心。这种短期牺牲换取长期收益的权衡，正是值函数所捕捉的。
+            </div>
+
+            <!-- ==================== 选读 ==================== -->
+            <details class="optional-reading">
+                <summary>选读：策略改进定理的严格证明</summary>
+                <div class="opt-body">
+
+                <p>要证明：对所有状态 $s$，贪婪改进后的策略 $\pi'$ 满足 $V^{\pi'}(s) \geq V^\pi(s)$。</p>
+
+                <p>贪婪策略在每个状态选使 $Q^\pi$ 最大的动作，因此一定不差于 $\pi$ 选的动作。将 $Q^\pi$ 按定义展开，并写成条件期望的形式：</p>
+
+                <div class="formula-block">
+                    $$\begin{aligned}
+                    V^\pi(s) &= Q^\pi(s, \pi(s)) \\[4pt]
+                    &\leq \max_a Q^\pi(s,a) = Q^\pi(s, \pi'(s)) \\[4pt]
+                    &= R(s, \pi'(s)) + \gamma \sum_{s'} P(s' \mid s, \pi'(s)) \, V^\pi(s') \\[4pt]
+                    &= \mathbb{E}\!\left[R_{t+1} + \gamma V^\pi(S_{t+1}) \;\middle|\; S_t = s,\, A_t = \pi'(s)\right]
+                    \end{aligned} \tag{1.4-5}$$
+                </div>
+
+                <p>对所有 $s'$ 都有 $V^\pi(s') \leq Q^\pi(s', \pi'(s'))$，因此可以在期望内部将 $V^\pi(S_{t+1})$ 替换为 $Q^\pi(S_{t+1}, \pi'(S_{t+1}))$，再将这个 $Q^\pi$ 展开为条件期望：</p>
+
+                <div class="formula-block">
+                    $$\begin{aligned}
+                    &\leq \mathbb{E}\!\left[R_{t+1} + \gamma \, Q^\pi\!\big(S_{t+1},\, \pi'(S_{t+1})\big) \;\middle|\; S_t = s,\, A_t = \pi'(s)\right] \\[6pt]
+                    &= \mathbb{E}\!\left[R_{t+1} + \gamma \, \mathbb{E}\!\left[R_{t+2} + \gamma V^\pi(S_{t+2}) \;\middle|\; S_{t+1},\, A_{t+1} = \pi'(S_{t+1})\right] \;\middle|\; S_t = s,\, A_t = \pi'(s)\right]
+                    \end{aligned}$$
+                </div>
+
+                <p>现在出现了嵌套的条件期望。MDP 的马尔可夫性质保证：给定 $(S_{t+1}, A_{t+1})$，未来的 $(R_{t+2}, S_{t+2})$ 与过去的 $(S_t, A_t)$ 条件独立。因此可以在内层条件中加入 $S_t = s, A_t = \pi'(s)$ 而不改变结果。此时内层条件包含了外层条件，可以应用<strong>重期望公式</strong>（law of iterated expectations）将两层期望合并为一层：</p>
+
+                <div class="formula-block">
+                    $$\begin{aligned}
+                    &= \mathbb{E}\!\left[R_{t+1} + \gamma \, \mathbb{E}\!\left[R_{t+2} + \gamma V^\pi(S_{t+2}) \;\middle|\; S_{t+1}, A_{t+1}, S_t\!=\!s, A_t\!=\!\pi'(s)\right] \;\middle|\; S_t = s,\, A_t = \pi'(s)\right] \\[6pt]
+                    &= \mathbb{E}\!\left[R_{t+1} + \gamma R_{t+2} + \gamma^2 V^\pi(S_{t+2}) \;\middle|\; S_t = s,\, A_t = \pi'(s)\right]
+                    \end{aligned} \tag{1.4-6}$$
+                </div>
+
+                <p>公式(1.4-6)中，前两步的动作都遵循 $\pi'$。对 $V^\pi(S_{t+2})$ 再次执行同样的操作（贪婪不等式 → 展开 $Q$ → 马尔可夫性质 + 重期望公式），不断延长"按 $\pi'$ 行动"的步数：</p>
+
+                <div class="formula-block">
+                    $$\begin{aligned}
+                    &\leq \mathbb{E}\!\left[R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \gamma^3 V^\pi(S_{t+3}) \;\middle|\; S_t = s,\, A_t = \pi'(s)\right] \\[4pt]
+                    &\;\;\vdots \\[4pt]
+                    &\leq \mathbb{E}\!\left[\sum_{i=0}^{k-1} \gamma^i R_{t+i+1} \;+\; \gamma^k V^\pi(S_{t+k}) \;\middle|\; S_t = s,\, A_t = \pi'(s)\right]
+                    \end{aligned}$$
+                </div>
+
+                <p>由于 $\gamma < 1$ 且 $V^\pi$ 有界，残余项 $\gamma^k V^\pi(S_{t+k}) \to 0$。令 $k \to \infty$，所有动作都按 $\pi'$ 选取：</p>
+
+                <div class="formula-block">
+                    $$V^\pi(s) \leq \mathbb{E}_{\pi'}\!\left[\sum_{i=0}^{\infty} \gamma^i R_{t+i+1} \;\middle|\; S_t = s\right] = V^{\pi'}(s) \tag{1.4-7}$$
+                </div>
+
+                <p>对所有状态 $s$ 成立。证毕。</p>
+
+                <h3>策略迭代何时终止</h3>
+
+                <p>当 $\pi' = \pi$ 时，公式(1.4-5)的第二行不等号变为等号，即 $V^\pi(s) = \max_a Q^\pi(s,a)$，这恰好是贝尔曼最优方程(1.4-4)。因此 $\pi$ 已是最优策略。有限 MDP 的确定性策略数量为 $\prod_s |\mathcal{A}(s)|$，每次改进都严格提升值函数（除非已最优），因此策略迭代必在有限步内收敛。</p>
+
+                </div>
+            </details>
+
+            <div class="chapter-nav">
+                <a href="../ch01/1.4.html">&larr; 1.4 依赖模型的动态规划算法</a>
+                <a href="../ch01/1.4.2.html">1.4.2 值迭代 &rarr;</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

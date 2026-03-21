@@ -93,6 +93,18 @@ body {
     font-weight: 600;
 }
 
+.sidebar nav ul li.sidebar-subsection a {
+    padding-left: 1.8rem;
+    font-size: 0.85rem;
+}
+
+.sidebar nav ul li.sidebar-subsection a::before {
+    content: "›";
+    margin-right: 0.4rem;
+    color: var(--accent-color);
+    font-weight: 700;
+}
+
 .main-content {
     flex: 1;
     margin-left: 280px;
@@ -160,6 +172,39 @@ p code {
     background: var(--code-bg);
     padding: 0.15rem 0.4rem;
     border-radius: 3px;
+}
+
+/* === 代码复制按钮 === */
+.code-copy-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.25rem 0.6rem;
+    background: rgba(255, 255, 255, 0.1);
+    color: #a0aec0;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.78rem;
+    transition: all 0.2s;
+    opacity: 0;
+}
+
+pre:hover .code-copy-btn {
+    opacity: 1;
+}
+
+.code-copy-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #e2e8f0;
+}
+
+.code-copy-btn.copied {
+    background: #48bb78;
+    color: white;
+    border-color: #48bb78;
+    opacity: 1;
 }
 
 /* === 交互动画容器 === */

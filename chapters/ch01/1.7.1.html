@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1.7.1 策略梯度定理 - 运筹智能</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .trans-table { width: auto; border-collapse: collapse; margin: 1rem auto; font-size: 0.95rem; }
+        .trans-table th, .trans-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: center; }
+        .trans-table th { background: var(--primary-color); color: white; }
+        .trans-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .result-box { background: var(--highlight-color); border: 2px solid var(--accent-color); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; text-align: center; }
+        .algo-box { background: #f7fafc; border: 2px solid var(--accent-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .algo-box .algo-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .algo-box ol { margin: 0.3rem 0 0.3rem 1.5rem; line-height: 2; }
+        .algo-box .algo-note { font-size: 0.9rem; color: #718096; margin-top: 0.5rem; }
+        .update-step { background: #fffbeb; border-left: 3px solid #d69e2e; padding: 0.6rem 1rem; margin: 0.8rem 0; border-radius: 0 6px 6px 0; font-size: 0.93rem; line-height: 1.7; }
+        .update-step .step-head { font-weight: 600; color: #975a16; }
+        .rl-ctrl { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; margin-bottom:0.8rem; font-size:0.88rem; }
+        .rl-ctrl button { padding:0.3rem 0.7rem; border:1px solid #2b6cb0; background:white; color:#2b6cb0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.84rem; transition:all 0.15s; }
+        .rl-ctrl button:hover { background:#2b6cb0; color:white; }
+        .rl-info { background:#ebf4ff; border-radius:6px; padding:0.4rem 0.8rem; font-size:0.88rem; margin-top:0.6rem; }
+        details.optional-reading { background: #f0f7ff; border: 1px solid #bee3f8; border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; }
+        details.optional-reading summary { font-weight: 700; color: #2b6cb0; cursor: pointer; font-size: 1.02rem; }
+        details.optional-reading summary:hover { text-decoration: underline; }
+        details.optional-reading > *:not(summary) { margin-top: 0.8rem; }
+    </style>
+    <script defer src="../../js/code-copy.js"></script>
+</head>
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="book-title"><a href="../../index.html" style="text-decoration:none;color:inherit;">运筹智能</a></div>
+            <nav>
+                <ul>
+                <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
+                <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
+                <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
+                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
+                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
+                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.6.1.html">1.6.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.6.2.html">1.6.2 Q-learning</a></li>
+                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.1.html" class="active">1.7.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.2.html">1.7.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.3.html">1.7.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第二章 深度学习基础</li>
+                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
+                <li><a href="../ch03/3.2.html">3.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
+                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch04/4.2.html">4.2 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch04/4.3.html">4.3 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch04/4.4.html">4.4 回合定义与时域建模</a></li>
+                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第五章 仿真器搭建</li>
+                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch05/5.4.html">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
+                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
+                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
+                <li><a href="../ch07/7.2.html">7.2 公交串车控制</a></li>
+                <li><a href="../ch07/7.3.html">7.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第八章 进阶话题</li>
+                <li><a href="../ch08/8.1.html">8.1 多智能体强化学习</a></li>
+                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>1.7.1 策略梯度定理</h1>
+
+            <!-- ==================== 为什么需要策略梯度 ==================== -->
+            <h2>为什么需要策略梯度？</h2>
+
+            <p>在前面两节中，SARSA和Q-learning都属于<strong>基于值函数的方法</strong>：先学到动作值函数 $Q(s,a)$，再通过 $\arg\max_a Q(s,a)$ 导出策略。这种方法在网约车这样的小规模离散问题上效果很好，但当我们把目光投向更广泛的管理科学场景时，会遇到几个局限。</p>
+
+            <p>第一，$\arg\max$ 操作要求我们遍历所有动作，逐一比较Q值。当动作空间是连续的（例如定价问题中价格可以是任意实数，或物流调度中车辆行驶方向可以是 $[0, 2\pi)$ 中的任意角度），遍历就不再可行。第二，基于Q值贪心的策略天然是确定性的，每个状态只输出一个动作。但有些场景中，随机策略是最优的，或者我们希望策略在多个近优动作上保持一定的多样性。第三，Q值的微小变化可能导致 $\arg\max$ 的结果跳变，使得策略更新不够平滑，在某些问题上造成训练不稳定。</p>
+
+            <p>策略梯度方法采取了完全不同的思路：直接用一组参数 $\theta$ 表示策略 $\pi_\theta(a \mid s)$，然后通过梯度上升优化 $\theta$，使得期望回报最大。策略的输出本身就是动作的概率分布，不需要 $\arg\max$，天然支持连续动作和随机策略。参数 $\theta$ 的小幅变化只会让概率分布发生小幅变化，策略更新因而更加平滑。</p>
+
+            <!-- ==================== 参数化策略 ==================== -->
+            <h2>参数化策略</h2>
+
+            <p>策略梯度方法的第一步是将策略表示为参数 $\theta$ 的可微函数 $\pi_\theta(a \mid s)$。关键要求是<strong>可微性</strong>：$\pi_\theta$ 关于 $\theta$ 的梯度 $\nabla_\theta \pi_\theta(a \mid s)$ 必须存在，这样才能用梯度上升来优化。</p>
+
+            <p>一种通用的做法是：对每个动作计算一个分数 $f_\theta(s, a)$，再用 softmax 函数将分数映射为概率：</p>
+
+            $$\pi_\theta(a \mid s) = \frac{\exp\!\big(f_\theta(s,a)\big)}{\sum_{a' \in \mathcal{A}(s)} \exp\!\big(f_\theta(s,a')\big)}$$
+
+            <p>$f_\theta$ 可以是任意关于 $\theta$ 可微的函数。当 $f_\theta(s,a) = \theta^\top \phi(s,a)$ 取线性形式时，这就是管理科学和计量经济学中熟悉的<strong>多项 Logit 模型</strong>（multinomial logit）；当 $f_\theta$ 是神经网络时，$\theta$ 代表网络权重，策略能够自动学习状态特征，处理高维连续的状态空间，这将在第三章展开。</p>
+
+            <p>在本章的网约车例子中（只有3个状态、每个状态2个动作），我们取最简单的线性形式。将每个 $(s,a)$ 对表示为 one-hot 特征向量 $\phi(s,a) \in \mathbb{R}^6$（仅在对应位置为 $1$，其余为 $0$），参数 $\theta \in \mathbb{R}^6$，则 $f_\theta(s,a) = \theta^\top \phi(s,a)$。由于特征是 one-hot 的，内积退化为查表：$\theta^\top \phi(s,a) = \theta_{s,a}$。代入 softmax：</p>
+
+            $$\pi_\theta(a \mid s) = \frac{\exp(\theta_{s,a})}{\sum_{a' \in \mathcal{A}(s)} \exp(\theta_{s,a'})} \tag{1.7-1}$$
+
+            <p>网约车问题共有6个参数，构成向量 $\theta \in \mathbb{R}^6$：</p>
+
+            $$\theta = (\theta_{c,\text{接单}},\; \theta_{c,\text{空驶}},\; \theta_{b,\text{接单}},\; \theta_{b,\text{空驶}},\; \theta_{a,\text{接单}},\; \theta_{a,\text{空驶}})$$
+
+            <p>当所有参数为零时，softmax 输出均匀分布 $0.5$，即完全随机的策略。$\theta_{s,a}$ 越大，动作 $a$ 在状态 $s$ 下被选中的概率越高。例如，如果学习使 $\theta_{b,\text{空驶}}$ 远大于 $\theta_{b,\text{接单}}$，司机在郊区就会以接近 $1$ 的概率选择空驶去市中心。</p>
+
+            <p>这与 SARSA 和 Q-learning 中的 $Q$ 值表有本质区别。$Q$ 值表的每个元素直接代表动作价值，由 TD 规则离散更新。这里的 $\theta_{s,a}$ 是连续实数，通过 softmax 光滑地映射到概率，$\pi_\theta(a \mid s)$ 关于 $\theta$ 处处可微，可以进行标准的梯度计算。更强大的参数化形式是用神经网络替代线性效用函数，让 $\theta$ 代表网络权重，自动学习状态特征，这将在第三章展开。</p>
+
+            <!-- ==================== 目标函数 ==================== -->
+            <h2>目标函数</h2>
+
+            <p>有了参数化策略 $\pi_\theta$，我们需要定义优化目标。在无限期MDP中，给定策略 $\pi_\theta$ 后，系统退化为马尔可夫链，其状态分布收敛到1.3.3节定义的稳态分布 $\mathbf{d}^{\pi_\theta}$。我们将目标函数定义为稳态分布下的期望值函数：</p>
+
+            $$J(\theta) = \sum_{s} d^{\pi_\theta}(s) \, V^{\pi_\theta}(s) \tag{1.7-2}$$
+
+            <p>$J(\theta)$ 衡量的是：按策略 $\pi_\theta$ 长期运行后，系统在稳态下的期望累计折扣回报。对于网约车问题，$J(\theta)$ 综合考虑了司机在各区域的长期驻留比例 $d^{\pi_\theta}(s)$ 和各区域的期望回报 $V^{\pi_\theta}(s)$，反映了策略的整体性能。我们的目标是找到使 $J(\theta)$ 最大的参数 $\theta^*$。</p>
+
+            <!-- ==================== 策略梯度定理 ==================== -->
+            <h2>策略梯度定理</h2>
+
+            <p>为了用梯度上升优化 $J(\theta)$，我们需要计算 $\nabla_\theta J(\theta)$。这看似困难：$J(\theta)$ 对 $\theta$ 的依赖关系非常复杂——$\theta$ 不仅影响策略 $\pi_\theta$ 的动作选择，还通过改变动作间接影响状态分布 $d^{\pi_\theta}$ 和值函数 $V^{\pi_\theta}$。策略梯度定理的重要性在于，它给出了一个不需要对状态分布求导的梯度公式：</p>
+
+            <div class="concept-card">
+                <div class="concept-name">策略梯度定理（Policy Gradient Theorem）</div>
+                $$\nabla_\theta J(\theta) = \frac{1}{1-\gamma}\,\mathbb{E}_{S \sim d^{\pi_\theta}}\!\bigg[\mathbb{E}_{A \sim \pi_\theta(\cdot|S)}\!\Big[\nabla_\theta \ln \pi_\theta(A \mid S) \cdot Q^{\pi_\theta}(S, A)\Big]\bigg] \tag{1.7-3}$$
+                <p style="margin-top:0.5rem;">其中 $d^{\pi_\theta}$ 是策略 $\pi_\theta$ 下马尔可夫链的稳态分布，$Q^{\pi_\theta}(s,a)$ 是动作值函数。</p>
+            </div>
+
+            <p>这个定理有两点值得注意。</p>
+
+            <p>第一，<strong>梯度公式不涉及环境转移概率 $P(s' \mid s,a)$ 的导数</strong>。$\theta$ 改变了策略 $\pi_\theta$，进而改变了稳态分布 $d^{\pi_\theta}$，但定理告诉我们不需要对 $d^{\pi_\theta}$ 求导。右端只对策略 $\pi_\theta$ 本身求导，环境动力学只通过期望的形式参与。这意味着即使不知道环境的转移概率（model-free），只要能与环境交互采样，就可以估计这个梯度。</p>
+
+            <p>第二，<strong>公式的直觉非常清晰</strong>。$\nabla_\theta \ln \pi_\theta(A \mid S)$ 是一个方向，沿着这个方向更新 $\theta$ 会使得动作 $A$ 在状态 $S$ 下被选中的概率增大。$Q^{\pi_\theta}(S, A)$ 衡量了这个动作有多好。两者相乘意味着：好的动作（$Q$ 值高）被大幅强化，差的动作被少量强化。经过在稳态分布 $d^{\pi_\theta}$ 下的期望平均，所有状态-动作对的贡献汇聚成梯度方向。</p>
+
+            <p>关于前面的常数 $\frac{1}{1-\gamma}$：它是证明过程中几何级数 $1 + \gamma + \gamma^2 + \cdots$ 求和的结果，只影响梯度的大小，不影响方向。在实际算法（如 REINFORCE 或 PPO）的采样实现中，我们通常直接对轨迹样本做经验平均来估计期望，这个常数系数会被合并进学习率 $\alpha$，因此在写代码时很少显式地乘以它。后续的算法描述和代码实现中，我们也将省略这个系数。</p>
+
+            <p>用网约车的一个具体片段来说明。假设司机在郊区 $b$ 选择了空驶去市中心，之后的轨迹产生了较高的回报。策略梯度会沿着增大 $\pi_\theta(\text{空驶} \mid b)$ 的方向更新 $\theta$。反过来，如果在郊区接单后的回报很低，梯度的推动力度就小得多。经过大量采样的平均，好的动作会被持续强化，差的动作会逐渐减弱。</p>
+
+            <details class="optional-reading">
+                <summary>选读：策略梯度定理的证明</summary>
+                <p>证明需要三个引理。我们先逐一证明，最后组合得到定理。为了简洁，以下省略 $\pi_\theta$ 的下标 $\theta$，用 $\pi$ 表示参数化策略。</p>
+
+                <p style="margin-top:1.2rem;"><strong>引理 1（递归公式）。</strong>定义 $g(s, a;\theta) \triangleq Q^\pi(s,a) \cdot \nabla_\theta \ln \pi(a \mid s)$。则</p>
+                $$\frac{\partial V^\pi(s)}{\partial \theta} = \mathbb{E}_{A \sim \pi(\cdot|s)}\!\left[g(s, A;\theta) \;+\; \gamma\, \mathbb{E}_{S' \sim P(\cdot|s,A)}\!\left[\frac{\partial V^\pi(S')}{\partial \theta}\right]\right]$$
+
+                <p><em>证明。</em>由 $V^\pi(s) = \sum_a \pi(a \mid s)\, Q^\pi(s,a)$，对 $\theta$ 求梯度并利用乘法法则：</p>
+                $$\frac{\partial V^\pi(s)}{\partial \theta} = \sum_a \frac{\partial \pi(a \mid s)}{\partial \theta}\, Q^\pi(s,a) + \sum_a \pi(a \mid s)\, \frac{\partial Q^\pi(s,a)}{\partial \theta}$$
+
+                <p>第一项中，添加 $\pi / \pi = 1$ 的因子：$\frac{\partial \pi}{\partial \theta} = \pi \cdot \frac{1}{\pi} \cdot \frac{\partial \pi}{\partial \theta} = \pi \cdot \frac{\partial \ln \pi}{\partial \theta}$。因此</p>
+                $$\sum_a \frac{\partial \pi(a \mid s)}{\partial \theta}\, Q^\pi(s,a) = \sum_a \pi(a \mid s)\, \frac{\partial \ln \pi(a \mid s)}{\partial \theta}\, Q^\pi(s,a) = \mathbb{E}_{A \sim \pi}\!\left[g(s, A;\theta)\right]$$
+
+                <p>第二项中，利用贝尔曼方程 $Q^\pi(s,a) = R(s,a) + \gamma \sum_{s'} P(s' \mid s,a)\, V^\pi(s')$。由于 $R$ 和 $P$ 都不依赖 $\theta$：</p>
+                $$\frac{\partial Q^\pi(s,a)}{\partial \theta} = \gamma \sum_{s'} P(s' \mid s,a)\, \frac{\partial V^\pi(s')}{\partial \theta} = \gamma\, \mathbb{E}_{S' \sim P(\cdot|s,a)}\!\left[\frac{\partial V^\pi(S')}{\partial \theta}\right]$$
+
+                <p>将两项合并，得到引理 1。$\square$</p>
+
+                <p>引理 1 揭示了递归结构：$\frac{\partial V^\pi(s)}{\partial \theta}$ 由两部分组成——当前状态的局部梯度贡献 $g(s,A;\theta)$，以及对下一状态 $S'$ 的递归。</p>
+
+                <p style="margin-top:1.2rem;"><strong>引理 2（连加展开）。</strong>将引理 1 的递归反复展开，得到</p>
+                $$\begin{aligned}
+                \frac{\partial J(\theta)}{\partial \theta} &= \mathbb{E}_{S_0,\,A_0}\!\left[g(S_0, A_0;\theta)\right] \\
+                &\quad + \gamma \cdot \mathbb{E}_{S_0,\,A_0,\,S_1,\,A_1}\!\left[g(S_1, A_1;\theta)\right] \\
+                &\quad + \gamma^2 \cdot \mathbb{E}_{S_0,\,A_0,\,S_1,\,A_1,\,S_2,\,A_2}\!\left[g(S_2, A_2;\theta)\right] \\
+                &\quad + \;\cdots
+                \end{aligned}$$
+                <p>其中 $S_0 \sim d^{\pi_\theta}$，$A_t \sim \pi(\cdot \mid S_t)$，$S_{t+1} \sim P(\cdot \mid S_t, A_t)$。</p>
+
+                <p><em>证明。</em>由 $J(\theta) = \mathbb{E}_{S_0 \sim d^{\pi_\theta}}[V^\pi(S_0)]$，对 $\theta$ 求梯度：$\frac{\partial J}{\partial \theta} = \mathbb{E}_{S_0 \sim d}\!\left[\frac{\partial V^\pi(S_0)}{\partial \theta}\right]$。</p>
+
+                <p>对 $\frac{\partial V^\pi(S_0)}{\partial \theta}$ 应用引理 1：</p>
+                $$\frac{\partial V^\pi(S_0)}{\partial \theta} = \mathbb{E}_{A_0}\!\left[g(S_0, A_0;\theta)\right] + \gamma\, \mathbb{E}_{A_0,\,S_1}\!\left[\frac{\partial V^\pi(S_1)}{\partial \theta}\right]$$
+
+                <p>对 $\frac{\partial V^\pi(S_1)}{\partial \theta}$ 再次应用引理 1：</p>
+                $$\frac{\partial V^\pi(S_1)}{\partial \theta} = \mathbb{E}_{A_1}\!\left[g(S_1, A_1;\theta)\right] + \gamma\, \mathbb{E}_{A_1,\,S_2}\!\left[\frac{\partial V^\pi(S_2)}{\partial \theta}\right]$$
+
+                <p>代入上式：</p>
+                $$\begin{aligned}
+                \frac{\partial V^\pi(S_0)}{\partial \theta} &= \mathbb{E}_{A_0}\!\left[g(S_0, A_0;\theta)\right] \\
+                &\quad + \gamma\, \mathbb{E}_{A_0,\,S_1,\,A_1}\!\left[g(S_1, A_1;\theta)\right] \\
+                &\quad + \gamma^2\, \mathbb{E}_{A_0,\,S_1,\,A_1,\,S_2}\!\left[\frac{\partial V^\pi(S_2)}{\partial \theta}\right]
+                \end{aligned}$$
+
+                <p>按此规律继续展开。在无限期折扣MDP中，由于 $\gamma < 1$，尾项 $\gamma^n \frac{\partial V^\pi}{\partial \theta}$ 随 $n \to \infty$ 趋于零。取 $S_0$ 的期望得到引理 2。$\square$</p>
+
+                <p style="margin-top:1.2rem;"><strong>引理 3（稳态分布的不动点性质）。</strong>设 $d(\cdot)$ 是策略 $\pi$ 下马尔可夫链的稳态分布。对任意函数 $f$，</p>
+                $$\mathbb{E}_{S \sim d}\!\left[\mathbb{E}_{A \sim \pi(\cdot|S)}\!\Big[\mathbb{E}_{S' \sim P(\cdot|S,A)}\!\left[f(S')\right]\Big]\right] = \mathbb{E}_{S' \sim d}\!\left[f(S')\right]$$
+
+                <p><em>证明。</em>将左端的期望写成求和形式：</p>
+                $$\text{LHS} = \sum_{s} d(s) \sum_{a} \pi(a \mid s) \sum_{s'} P(s' \mid s, a)\, f(s')$$
+
+                <p>交换求和顺序，先对 $s'$ 求和：</p>
+                $$= \sum_{s'} f(s') \underbrace{\sum_{s} \sum_{a} P(s' \mid s, a)\, \pi(a \mid s)\, d(s)}_{= \,d(s')}$$
+
+                <p>被大括号标记的部分恰好是稳态分布的定义（1.3.3节）：从 $d$ 出发经过一步转移后仍为 $d$。因此</p>
+                $$= \sum_{s'} f(s')\, d(s') = \mathbb{E}_{S' \sim d}\!\left[f(S')\right] = \text{RHS} \quad\square$$
+
+                <p>引理 3 的含义非常直观：如果系统已经处于稳态，那么做一步转移（先按 $\pi$ 选动作、再按 $P$ 转移状态）后，分布不变。反复应用引理 3，可以得到一个推论：从 $S_0 \sim d$ 出发，经过任意 $t$ 步转移后，$S_t$ 仍然服从 $d$。</p>
+
+                <p style="margin-top:1.2rem;"><strong>组合三个引理完成证明。</strong>对引理 2 的每一项，利用引理 3 的推论化简。以第二项为例：</p>
+                $$\begin{aligned}
+                &\mathbb{E}_{S_0 \sim d}\!\Big[\mathbb{E}_{A_0,\,S_1,\,A_1}\!\left[g(S_1, A_1;\theta)\right]\Big] \\
+                &= \mathbb{E}_{S_1 \sim d}\!\Big[\mathbb{E}_{A_1}\!\left[g(S_1, A_1;\theta)\right]\Big] \quad\text{（由引理 3，剥掉一层转移）}
+                \end{aligned}$$
+
+                <p>类似地，第 $t$ 项中反复应用引理 3，剥掉 $t$ 层转移，最终都化为同一个表达式 $\mathbb{E}_{S \sim d}[\mathbb{E}_{A \sim \pi}[g(S, A;\theta)]]$。代入引理 2：</p>
+
+                $$\begin{aligned}
+                \frac{\partial J(\theta)}{\partial \theta} &= (1 + \gamma + \gamma^2 + \cdots)\, \mathbb{E}_{S \sim d}\!\Big[\mathbb{E}_{A \sim \pi(\cdot|S)}\!\left[g(S, A;\theta)\right]\Big] \\[6pt]
+                &= \frac{1}{1-\gamma}\, \mathbb{E}_{S \sim d^{\pi_\theta}}\!\bigg[\mathbb{E}_{A \sim \pi_\theta(\cdot|S)}\!\Big[\nabla_\theta \ln \pi_\theta(A \mid S) \cdot Q^{\pi_\theta}(S,A)\Big]\bigg]
+                \end{aligned}$$
+
+                <p>最后一步将 $g$ 的定义代回。这就是公式(1.7-3)。$\square$</p>
+            </details>
+
+            <p>策略梯度定理为策略优化提供了理论基础。它告诉我们梯度的精确形式，但其中的动作值函数 $Q^{\pi_\theta}(s,a)$ 是未知的。如何在实践中利用这个定理？下一节将介绍 REINFORCE 算法：用蒙特卡洛回报 $G_t$ 替代 $Q^{\pi_\theta}$，仅通过与环境交互就能估计策略梯度。</p>
+
+            <div class="chapter-nav">
+                <a href="../ch01/1.7.html">&larr; 1.7 控制问题（二）：基于策略的方法</a>
+                <a href="../ch01/1.7.2.html">1.7.2 REINFORCE算法 &rarr;</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

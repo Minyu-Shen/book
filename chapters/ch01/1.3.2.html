@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>1.3.2 值函数与贝尔曼期望方程 - 运筹智能</title>
+    <title>1.3.2 值函数 - 运筹智能</title>
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -12,21 +12,19 @@
     <style>
         .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
         .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
-        .trans-table { width: auto; border-collapse: collapse; margin: 1rem auto; font-size: 0.95rem; }
-        .trans-table th, .trans-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: center; }
-        .trans-table th { background: var(--primary-color); color: white; }
-        .trans-table tr:nth-child(even) { background: var(--sidebar-bg); }
-        .policy-compare { display: flex; gap: 2rem; flex-wrap: wrap; margin: 1.5rem 0; }
-        .policy-compare > div { flex: 1; min-width: 240px; background: var(--sidebar-bg); padding: 1.2rem; border-radius: 8px; }
-        .policy-compare h3 { margin-top: 0; color: var(--primary-color); }
-        .result-box { background: var(--highlight-color); border: 2px solid var(--accent-color); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; text-align: center; }
-        .demo-container { border: 2px solid var(--border-color); border-radius: 8px; padding: 1.5rem; margin: 2rem 0; background: #fafafa; text-align: center; }
+        .demo-container { border: 2px solid var(--border-color); border-radius: 8px; padding: 1.5rem; margin: 2rem 0; background: #fafafa; overflow-x: auto; }
         .demo-container .demo-title { font-weight: 700; color: var(--accent-color); margin-bottom: 0.5rem; font-size: 1.05rem; text-align: left; }
+        .demo-controls { display: flex; gap: 0.8rem; margin-top: 1rem; flex-wrap: wrap; }
+        .demo-controls button { padding: 0.5rem 1.2rem; border: 1px solid var(--accent-color); background: white; color: var(--accent-color); border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-family: inherit; transition: all 0.2s; }
+        .demo-controls button:hover { background: var(--accent-color); color: white; }
+        .demo-info { margin-top: 1rem; padding: 0.8rem 1rem; background: var(--highlight-color); border-radius: 6px; font-size: 0.92rem; line-height: 1.7; min-height: 2.5rem; }
         .legend { font-size: 0.85rem; color: #718096; margin-top: 0.8rem; text-align: left; }
         .legend span { font-weight: 600; }
-        .derivation { background: var(--sidebar-bg); padding: 1.2rem 1.5rem; border-radius: 6px; margin: 1.5rem 0; }
-        .derivation .step-label { font-weight: 600; color: var(--accent-color); margin-bottom: 0.3rem; }
+        /* Inventory trajectory animation styles */
+        .inv-shelf-item { transition: opacity 0.3s; }
+        .inv-ribbon-node { font-size: 12px; }
     </style>
+    <script defer src="../../js/code-copy.js"></script>
 </head>
 <body>
     <div class="page-wrapper">
@@ -38,13 +36,22 @@
                 <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
                 <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
                 <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
-                <li><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
-                <li><a href="../ch01/1.3.2.html" class="active">1.3.2 值函数与贝尔曼期望方程</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html" class="active">1.3.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
                 <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
-                <li><a href="../ch01/1.5.html">1.5 不依赖模型的学习算法</a></li>
-                <li><a href="../ch01/1.6.html">1.6 策略梯度方法</a></li>
-                <li><a href="../ch01/1.7.html">1.7 例子：等红绿灯问题</a></li>
-                <li><a href="../ch01/1.8.html">1.8 例子：动态库存补货策略</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
+                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
+                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.6.1.html">1.6.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.6.2.html">1.6.2 Q-learning</a></li>
+                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.1.html">1.7.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.2.html">1.7.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.3.html">1.7.3 Actor-Critic框架</a></li>
                 <li class="sidebar-chapter">第二章 深度学习基础</li>
                 <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
                 <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
@@ -59,7 +66,8 @@
                 <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
                 <li><a href="../ch04/4.2.html">4.2 状态空间、动作空间与奖励函数的设计</a></li>
                 <li><a href="../ch04/4.3.html">4.3 决策时机与决策频率的建模</a></li>
-                <li><a href="../ch04/4.4.html">4.4 从问题特征到网络架构的选择</a></li>
+                <li><a href="../ch04/4.4.html">4.4 回合定义与时域建模</a></li>
+                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
                 <li class="sidebar-chapter">第五章 仿真器搭建</li>
                 <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
                 <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
@@ -78,76 +86,142 @@
         </aside>
 
         <main class="main-content">
-            <h1>1.3.2 值函数与贝尔曼期望方程</h1>
+            <h1>1.3.2 值函数</h1>
 
-            <p>本节的标题特别强调了"<strong>期望</strong>"二字。这是因为贝尔曼方程有两个版本：本节介绍的<strong>贝尔曼期望方程</strong>（Bellman Expectation Equation）用于评估一个<em>给定的</em>策略 $\pi$，它计算的是在策略 $\pi$ 下的<em>期望</em>回报；而后续1.4节中将出现的<strong>贝尔曼最优方程</strong>（Bellman Optimality Equation）则用于寻找最优策略。两者形式相似但目的不同，区分它们很重要。</p>
+            <p>在1.3.1节中，我们定义了MDP的基本要素，并初步提到了值函数的概念。本节将严格定义值函数，明确它的数学含义。值函数将策略的好坏转化为具体数值，使得不同策略可以系统比较。下一小节（1.3.3）将推导用于高效计算值函数的贝尔曼期望方程。</p>
 
-            <!-- ==================== 值函数定义 ==================== -->
-            <h2>值函数的定义</h2>
+            <!-- ==================== 轨迹 ==================== -->
+            <h2>轨迹：智能体与环境的交互记录</h2>
 
-            <div class="concept-card">
-                <div class="concept-name">状态值函数 $V^\pi(s)$</div>
-                <p>给定策略 $\pi$，状态值函数定义为从状态 $s$ 出发、遵循策略 $\pi$ 行动所获得的累计折扣回报的期望：</p>
-                <div class="formula-block">
-                    $$V^\pi(s) \;=\; \mathbb{E}_\pi\!\left[\, G_t \;\middle|\; S_t = s \,\right] \tag{1}$$
-                </div>
-                <p>其中回报 $G_t = \sum_{k=0}^{\infty} \gamma^k R_{t+k}$ 是从时间步 $t$ 开始的累计折扣奖励。</p>
+            <p>在定义值函数之前，我们先明确MDP中智能体与环境交互产生的数据形式。当智能体遵循策略 $\pi$ 与环境交互时，从某个初始状态出发，每一步智能体按策略选择动作，环境给出奖励并转移到下一个状态，如此反复，产生一条<strong>轨迹</strong>（trajectory）：</p>
+
+            <div class="formula-block">
+                $$S_0, \, A_0, \, R_0, \, S_1, \, A_1, \, R_1, \, S_2, \, A_2, \, R_2, \, \ldots$$
             </div>
 
-            <div class="concept-card">
-                <div class="concept-name">动作值函数 $Q^\pi(s, a)$</div>
-                <p>在状态 $s$ 下执行特定动作 $a$，之后再遵循策略 $\pi$，所获得的累计折扣回报的期望：</p>
-                <div class="formula-block">
-                    $$Q^\pi(s, a) \;=\; \mathbb{E}_\pi\!\left[\, G_t \;\middle|\; S_t = s,\, A_t = a \,\right] \tag{2}$$
-                </div>
-                <p>$V^\pi$ 与 $Q^\pi$ 的关系：</p>
-                <div class="formula-block">
-                    $$V^\pi(s) = \sum_{a \in \mathcal{A}(s)} \pi(a \mid s) \; Q^\pi(s, a) \tag{3}$$
-                </div>
-                <p>即 $V^\pi$ 是 $Q^\pi$ 在策略 $\pi$ 下对动作的加权平均。</p>
+            <p>轨迹中每一步的生成遵循以下规则：</p>
+            <ul style="margin: 0.5rem 0 1rem 2rem;">
+                <li>动作由策略产生：$A_t \sim \pi(\cdot \mid S_t)$</li>
+                <li>下一状态由环境的转移概率产生：$S_{t+1} \sim P(\cdot \mid S_t, A_t)$</li>
+                <li>奖励由当前状态和动作决定：$R_t = R(S_t, A_t)$</li>
+            </ul>
+
+            <p>站在时间步 $t$ 的视角，此前的状态 $s_0, s_1, \ldots, s_t$，动作 $a_0, \ldots, a_{t-1}$，奖励 $r_0, \ldots, r_{t-1}$ 都已经观测到（用小写字母表示），而从 $A_t$ 起的未来轨迹</p>
+
+            <div class="formula-block">
+                $$A_t, \; R_t, \; S_{t+1}, \; A_{t+1}, \; R_{t+1}, \; S_{t+2}, \; A_{t+2}, \; R_{t+2}, \; \ldots$$
             </div>
+
+            <p>全部是尚未实现的随机变量（用大写字母表示）。下图展示了这种区分。</p>
+
+            <div class="demo-container" style="text-align:center; padding: 1rem 0.5rem;">
+                <svg width="860" height="210" viewBox="0 0 860 210" style="max-width:100%;">
+                    <defs>
+                        <marker id="tarr" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0, 7 2.5, 0 5" fill="#2d3748"/></marker>
+                    </defs>
+                    <!-- 观测值背景 -->
+                    <rect x="5" y="8" width="468" height="170" rx="12" fill="#ebf4ff" opacity="0.5"/>
+                    <!-- 未知变量背景 -->
+                    <rect x="478" y="8" width="377" height="170" rx="12" fill="#fef3c7" opacity="0.5"/>
+
+                    <!-- ===== 观测值链（从 s₀ 开始）===== -->
+                    <!-- s₀ -->
+                    <text x="25" y="72" font-size="19" fill="#2b6cb0" font-style="italic" font-family="Georgia,serif">s</text><text x="37" y="79" font-size="13" fill="#2b6cb0" font-style="italic">0</text>
+                    <line x1="50" y1="68" x2="73" y2="68" stroke="#2d3748" stroke-width="1.8" marker-end="url(#tarr)"/>
+                    <!-- a₀ -->
+                    <text x="80" y="72" font-size="19" fill="#c53030" font-weight="700" font-style="italic" font-family="Georgia,serif">a</text><text x="94" y="79" font-size="13" fill="#c53030" font-weight="700" font-style="italic">0</text>
+                    <line x1="107" y1="68" x2="130" y2="68" stroke="#2d3748" stroke-width="1.8" marker-end="url(#tarr)"/>
+                    <!-- r₀ ↓ -->
+                    <line x1="92" y1="80" x2="92" y2="118" stroke="#2d3748" stroke-width="1.2" marker-end="url(#tarr)"/>
+                    <text x="82" y="142" font-size="18" fill="#6b7c3e" font-style="italic" font-family="Georgia,serif">r</text><text x="93" y="148" font-size="13" fill="#6b7c3e" font-style="italic">0</text>
+
+                    <!-- s₁ -->
+                    <text x="137" y="72" font-size="19" fill="#2b6cb0" font-style="italic" font-family="Georgia,serif">s</text><text x="149" y="79" font-size="13" fill="#2b6cb0" font-style="italic">1</text>
+                    <line x1="162" y1="68" x2="185" y2="68" stroke="#2d3748" stroke-width="1.8" marker-end="url(#tarr)"/>
+                    <!-- a₁ -->
+                    <text x="192" y="72" font-size="19" fill="#c53030" font-weight="700" font-style="italic" font-family="Georgia,serif">a</text><text x="205" y="79" font-size="13" fill="#c53030" font-weight="700" font-style="italic">1</text>
+                    <line x1="218" y1="68" x2="241" y2="68" stroke="#2d3748" stroke-width="1.8" marker-end="url(#tarr)"/>
+                    <!-- r₁ ↓ -->
+                    <line x1="204" y1="80" x2="204" y2="118" stroke="#2d3748" stroke-width="1.2" marker-end="url(#tarr)"/>
+                    <text x="194" y="142" font-size="18" fill="#6b7c3e" font-style="italic" font-family="Georgia,serif">r</text><text x="205" y="148" font-size="13" fill="#6b7c3e" font-style="italic">1</text>
+
+                    <!-- s₂ -->
+                    <text x="248" y="72" font-size="19" fill="#2b6cb0" font-style="italic" font-family="Georgia,serif">s</text><text x="260" y="79" font-size="13" fill="#2b6cb0" font-style="italic">2</text>
+                    <line x1="273" y1="68" x2="298" y2="68" stroke="#2d3748" stroke-width="1.8" marker-end="url(#tarr)"/>
+                    <!-- ··· -->
+                    <text x="306" y="73" font-size="19" fill="#a0aec0" font-weight="700">···</text>
+                    <line x1="332" y1="68" x2="355" y2="68" stroke="#2d3748" stroke-width="1.8" marker-end="url(#tarr)"/>
+
+                    <!-- a_{t−1} -->
+                    <text x="362" y="72" font-size="18" fill="#c53030" font-weight="700" font-style="italic" font-family="Georgia,serif">a</text><text x="376" y="79" font-size="12" fill="#c53030" font-weight="700" font-style="italic">t−1</text>
+                    <line x1="402" y1="68" x2="430" y2="68" stroke="#2d3748" stroke-width="1.8" marker-end="url(#tarr)"/>
+                    <!-- r_{t−1} ↓ -->
+                    <line x1="385" y1="80" x2="385" y2="118" stroke="#2d3748" stroke-width="1.2" marker-end="url(#tarr)"/>
+                    <text x="370" y="142" font-size="17" fill="#6b7c3e" font-style="italic" font-family="Georgia,serif">r</text><text x="382" y="148" font-size="12" fill="#6b7c3e" font-style="italic">t−1</text>
+
+                    <!-- s_t -->
+                    <text x="437" y="72" font-size="19" fill="#2b6cb0" font-style="italic" font-family="Georgia,serif">s</text><text x="450" y="79" font-size="13" fill="#2b6cb0" font-style="italic">t</text>
+
+                    <!-- ===== 未知变量链 ===== -->
+                    <line x1="465" y1="68" x2="498" y2="68" stroke="#2d3748" stroke-width="1.8" marker-end="url(#tarr)"/>
+                    <!-- A_t -->
+                    <text x="505" y="72" font-size="19" fill="#c53030" font-weight="700" font-style="italic" font-family="Georgia,serif">A</text><text x="521" y="79" font-size="13" fill="#c53030" font-weight="700" font-style="italic">t</text>
+                    <line x1="534" y1="68" x2="565" y2="68" stroke="#2d3748" stroke-width="1.8" marker-end="url(#tarr)"/>
+                    <!-- R_t ↓ -->
+                    <line x1="518" y1="80" x2="518" y2="118" stroke="#2d3748" stroke-width="1.2" marker-end="url(#tarr)"/>
+                    <text x="506" y="142" font-size="18" fill="#b7791f" font-style="italic" font-family="Georgia,serif">R</text><text x="521" y="148" font-size="13" fill="#b7791f" font-style="italic">t</text>
+
+                    <!-- S_{t+1} -->
+                    <text x="572" y="72" font-size="18" fill="#2b6cb0" font-style="italic" font-family="Georgia,serif">S</text><text x="587" y="79" font-size="12" fill="#2b6cb0" font-style="italic">t+1</text>
+                    <line x1="612" y1="68" x2="642" y2="68" stroke="#2d3748" stroke-width="1.8" marker-end="url(#tarr)"/>
+                    <!-- A_{t+1} -->
+                    <text x="649" y="72" font-size="18" fill="#c53030" font-weight="700" font-style="italic" font-family="Georgia,serif">A</text><text x="667" y="79" font-size="12" fill="#c53030" font-weight="700" font-style="italic">t+1</text>
+                    <line x1="692" y1="68" x2="722" y2="68" stroke="#2d3748" stroke-width="1.8" marker-end="url(#tarr)"/>
+                    <!-- R_{t+1} ↓ -->
+                    <line x1="670" y1="80" x2="670" y2="118" stroke="#2d3748" stroke-width="1.2" marker-end="url(#tarr)"/>
+                    <text x="655" y="142" font-size="17" fill="#b7791f" font-style="italic" font-family="Georgia,serif">R</text><text x="672" y="148" font-size="12" fill="#b7791f" font-style="italic">t+1</text>
+
+                    <!-- S_{t+2} -->
+                    <text x="729" y="72" font-size="18" fill="#2b6cb0" font-style="italic" font-family="Georgia,serif">S</text><text x="745" y="79" font-size="12" fill="#2b6cb0" font-style="italic">t+2</text>
+                    <line x1="772" y1="68" x2="802" y2="68" stroke="#2d3748" stroke-width="1.8" marker-end="url(#tarr)"/>
+                    <!-- ··· -->
+                    <text x="810" y="73" font-size="19" fill="#a0aec0" font-weight="700">···</text>
+
+                    <!-- 标签 -->
+                    <text x="240" y="196" text-anchor="middle" font-size="16" fill="#2b6cb0" font-weight="700">观测值</text>
+                    <text x="666" y="196" text-anchor="middle" font-size="16" fill="#b7791f" font-weight="700">未知变量</text>
+                </svg>
+                <p style="text-align:center; font-size:0.9rem; color:#718096; margin-top:0.5rem;">图 1.3-1：轨迹的结构。在时间步 $t$，左侧的已观测量用小写字母表示，右侧的未知量用大写字母表示。</p>
+            </div>
+
+            <p>回报 $G_t = \sum_{k=0}^{\infty} \gamma^k R_{t+k}$ 依赖于右侧所有的未知变量，因此 $G_t$ 本身也是随机变量。这些未知变量的随机性来自哪里？答案是<strong>两个独立的来源</strong>。</p>
 
             <!-- ==================== 两个随机性来源 ==================== -->
-            <h2>理解期望：两个随机性的来源</h2>
-
-            <p>公式(1)中的期望 $\mathbb{E}_\pi$ 到底是对什么取的？这是理解贝尔曼方程的关键。答案是：它包含了<strong>两个独立的随机性来源</strong>。</p>
+            <h2>回报的两个随机性来源</h2>
 
             <div class="demo-container">
-                <div class="demo-title">MDP中的两重随机性</div>
+                <div class="demo-title">图 1.3-2：MDP中的两重随机性</div>
                 <svg width="680" height="180" viewBox="0 0 680 180" style="max-width:100%;">
                     <defs>
                         <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4a5568"/></marker>
                     </defs>
-                    <!-- 状态 s_t -->
                     <circle cx="80" cy="90" r="35" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2.5"/>
                     <text x="80" y="86" text-anchor="middle" font-size="13" fill="#1a365d" font-weight="600">状态</text>
-                    <text x="80" y="103" text-anchor="middle" font-size="14" fill="#2b6cb0" font-style="italic">s<tspan font-size="10" dy="3">t</tspan></text>
-
-                    <!-- 箭头1 -->
+                    <text x="80" y="103" text-anchor="middle" font-size="15" fill="#2b6cb0" font-style="italic" font-family="Georgia,serif">s<tspan font-size="12" dy="3" font-style="italic">t</tspan></text>
                     <line x1="115" y1="90" x2="185" y2="90" stroke="#4a5568" stroke-width="2" marker-end="url(#arr)"/>
-
-                    <!-- 随机性1: 策略 -->
                     <rect x="190" y="55" width="120" height="70" rx="8" fill="#fef3c7" stroke="#d69e2e" stroke-width="2"/>
                     <text x="250" y="78" text-anchor="middle" font-size="12" fill="#92400e" font-weight="700">随机性 ①</text>
                     <text x="250" y="96" text-anchor="middle" font-size="12" fill="#92400e">策略选择动作</text>
-                    <text x="250" y="114" text-anchor="middle" font-size="13" fill="#92400e" font-style="italic">A<tspan font-size="10" dy="3">t</tspan><tspan dy="-3"> ~ π(·|s</tspan><tspan font-size="10" dy="3">t</tspan><tspan dy="-3">)</tspan></text>
-
-                    <!-- 箭头2 -->
+                    <text x="250" y="114" text-anchor="middle" font-size="13" fill="#92400e" font-style="italic">A<tspan font-size="11" dy="3" font-style="italic">t</tspan><tspan dy="-3"> ~ π(·|s</tspan><tspan font-size="11" dy="3" font-style="italic">t</tspan><tspan dy="-3">)</tspan></text>
                     <line x1="310" y1="90" x2="375" y2="90" stroke="#4a5568" stroke-width="2" marker-end="url(#arr)"/>
-
-                    <!-- 动作 a_t -->
                     <rect x="380" y="65" width="70" height="50" rx="6" fill="white" stroke="#4a5568" stroke-width="1.5"/>
                     <text x="415" y="86" text-anchor="middle" font-size="13" fill="#1a365d" font-weight="600">动作</text>
-                    <text x="415" y="103" text-anchor="middle" font-size="14" fill="#4a5568" font-style="italic">a<tspan font-size="10" dy="3">t</tspan></text>
-
-                    <!-- 箭头3 -->
+                    <text x="415" y="103" text-anchor="middle" font-size="15" fill="#4a5568" font-style="italic" font-family="Georgia,serif">a<tspan font-size="12" dy="3" font-style="italic">t</tspan></text>
                     <line x1="450" y1="90" x2="510" y2="90" stroke="#4a5568" stroke-width="2" marker-end="url(#arr)"/>
-
-                    <!-- 随机性2: 环境转移 -->
                     <rect x="515" y="55" width="120" height="70" rx="8" fill="#e6fffa" stroke="#38a169" stroke-width="2"/>
                     <text x="575" y="78" text-anchor="middle" font-size="12" fill="#22543d" font-weight="700">随机性 ②</text>
                     <text x="575" y="96" text-anchor="middle" font-size="12" fill="#22543d">环境状态转移</text>
-                    <text x="575" y="114" text-anchor="middle" font-size="13" fill="#22543d" font-style="italic">S<tspan font-size="10" dy="3">t+1</tspan><tspan dy="-3"> ~ P(·|s,a)</tspan></text>
+                    <text x="575" y="114" text-anchor="middle" font-size="13" fill="#22543d" font-style="italic">S<tspan font-size="11" dy="3" font-style="italic">t+1</tspan><tspan dy="-3"> ~ P(·|s,a)</tspan></text>
                 </svg>
                 <p style="text-align:left; font-size:0.92rem; margin-top:0.8rem;">
                     <strong style="color:#92400e;">① 策略的随机性</strong>：智能体按策略 $\pi(a \mid s)$ <strong>选择动作</strong>。如果策略是确定性的，则这一层没有随机性。<br>
@@ -155,272 +229,479 @@
                 </p>
             </div>
 
-            <p>期望 $\mathbb{E}_\pi$ 就是对这两重随机性的综合。一个网约车司机在市中心（状态 $s$），按策略以某个概率选择"接单"或"空驶"（随机性①）；如果选择了"接单"，乘客的目的地是随机的——可能去市中心、郊区或机场（随机性②）。这两层随机性叠加在一起，决定了下一个状态 $S_{t+1}$。</p>
+            <p>这两层随机性交替作用，共同决定了整条未来轨迹。值函数的作用就是对 $G_t$ 求期望，将这两重不确定性平均掉，得到一个确定的数值来衡量当前处境的好坏。</p>
 
-            <!-- ==================== 贝尔曼方程推导 ==================== -->
-            <h2>贝尔曼期望方程的推导</h2>
+            <p>下面通过一个便利店库存管理的例子，直观地展示轨迹的逐步生成过程。在这个例子中，策略是确定性的（库存 $\leq 3$ 就订货），因此随机性①不存在；全部的不确定性来自顾客需求的随机性（随机性②）。</p>
 
-            <p>理解了两个随机性来源后，我们来推导贝尔曼期望方程。核心思路是利用回报 $G_t$ 的递推结构。</p>
+            <h3>便利店库存管理</h3>
 
-            <div class="derivation">
-                <div class="step-label">第一步：回报的递推分解</div>
-                <p>将回报 $G_t$ 拆成"当前奖励 + 折扣后的未来回报"：</p>
-                <div class="formula-block">
-                    $$G_t = R_t + \gamma R_{t+1} + \gamma^2 R_{t+2} + \cdots = R_t + \gamma \underbrace{(R_{t+1} + \gamma R_{t+2} + \cdots)}_{G_{t+1}} = R_t + \gamma \, G_{t+1} \tag{4}$$
-                </div>
-            </div>
-
-            <div class="derivation">
-                <div class="step-label">第二步：对公式(4)两端取条件期望</div>
-                <p>在 $S_t = s$ 的条件下，对公式(4)取期望，并利用期望的线性性：</p>
-                <div class="formula-block">
-                    $$V^\pi(s) = \mathbb{E}_\pi[G_t \mid S_t = s] = \mathbb{E}_\pi[R_t \mid S_t = s] + \gamma \, \mathbb{E}_\pi[G_{t+1} \mid S_t = s] \tag{5}$$
-                </div>
-            </div>
-
-            <div class="derivation">
-                <div class="step-label">第三步：展开公式(5)的第一项——对随机性①求期望</div>
-                <p>即时奖励 $R_t = R(S_t, A_t)$ 取决于动作。动作由策略 $\pi$ 以概率 $\pi(a \mid s)$ 选取（随机性①）：</p>
-                <div class="formula-block">
-                    $$\mathbb{E}_\pi[R_t \mid S_t = s] = \sum_{a \in \mathcal{A}(s)} \pi(a \mid s) \, R(s, a) \tag{6}$$
-                </div>
-            </div>
-
-            <div class="derivation">
-                <div class="step-label">第四步：展开公式(5)的第二项——对随机性①②依次求期望</div>
-                <p>$G_{t+1}$ 从 $S_{t+1}$ 开始。利用全期望公式，先对动作 $A_t$（随机性①），再对下一状态 $S_{t+1}$（随机性②）条件化：</p>
-                <div class="formula-block">
-                    $$\mathbb{E}_\pi[G_{t+1} \mid S_t = s] = \sum_{a \in \mathcal{A}(s)} \pi(a \mid s) \sum_{s' \in \mathcal{S}} P(s' \mid s, a) \, \underbrace{\mathbb{E}_\pi[G_{t+1} \mid S_{t+1} = s']}_{= \, V^\pi(s') \text{（马尔可夫性质）}} \tag{7}$$
-                </div>
-                <p>关键一步：由马尔可夫性质，$\mathbb{E}_\pi[G_{t+1} \mid S_{t+1} = s']$ 只取决于 $s'$，与更早的历史无关，因此恰好等于 $V^\pi(s')$。</p>
-            </div>
-
-            <div class="derivation">
-                <div class="step-label">第五步：将公式(6)和(7)代入公式(5)，得到贝尔曼期望方程</div>
-                <div class="formula-block">
-                    $$\boxed{V^\pi(s) = \sum_{a \in \mathcal{A}(s)} \pi(a \mid s) \left[\, R(s, a) + \gamma \sum_{s' \in \mathcal{S}} P(s' \mid s, a) \, V^\pi(s') \,\right]} \tag{8}$$
-                </div>
-            </div>
-
-            <p>公式(8)的结构完美映射了两个随机性：外层求和 $\sum_a \pi(a|s)$ 对应<strong>策略选择动作</strong>（随机性①），内层求和 $\sum_{s'} P(s'|s,a)$ 对应<strong>环境状态转移</strong>（随机性②）。</p>
-
-            <p>对于<strong>确定性策略</strong> $a = \pi(s)$，外层求和退化为单项：</p>
-            <div class="formula-block">
-                $$V^\pi(s) = R\big(s, \pi(s)\big) + \gamma \sum_{s' \in \mathcal{S}} P\big(s' \mid s, \pi(s)\big) \, V^\pi(s') \tag{9}$$
-            </div>
-
-            <!-- ==================== 矩阵形式 ==================== -->
-            <h2>矩阵形式：策略评估 = 求解线性方程组</h2>
-
-            <p>对于有 $n = |\mathcal{S}|$ 个状态的MDP和确定性策略 $\pi$，定义：</p>
+            <p>考虑一家便利店管理某款热销零食的库存。我们将它建模为MDP：</p>
             <ul style="margin: 0.5rem 0 1rem 2rem;">
-                <li>$\mathbf{V} \in \mathbb{R}^n$：值函数向量，$\mathbf{V}_i = V^\pi(s_i)$</li>
-                <li>$\mathbf{R}_\pi \in \mathbb{R}^n$：奖励向量，$(\mathbf{R}_\pi)_i = R(s_i, \pi(s_i))$</li>
-                <li>$\mathbf{P}_\pi \in \mathbb{R}^{n \times n}$：策略下的转移矩阵，$(\mathbf{P}_\pi)_{ij} = P(s_j \mid s_i, \pi(s_i))$</li>
+                <li><strong>状态</strong> $s$：当前库存量（0 到 10 件）</li>
+                <li><strong>动作</strong>：订货 0 件或 5 件。策略为"库存 $\leq 3$ 时订 5 件，否则不订货"</li>
+                <li><strong>随机需求</strong> $D$：每天顾客购买量，1 件（30%）、2 件（50%）、3 件（20%）</li>
+                <li><strong>奖励</strong>：每售出 1 件获利 $+4$，每件存货过夜成本 $-1$，每单位缺货损失 $-6$</li>
             </ul>
-
-            <p>则公式(9)的矩阵形式为：</p>
-
+            <p>设当天售出量为 $\min(s+a,\, D)$，剩余库存为 $\max(0,\, s+a-D)$，缺货量为 $\max(0,\, D-s-a)$，则奖励为</p>
             <div class="formula-block">
-                $$\mathbf{V} = \mathbf{R}_\pi + \gamma \, \mathbf{P}_\pi \, \mathbf{V} \tag{10}$$
+                $$R_t = 4 \cdot \min(s_t+a_t,\, D_t) \;-\; 1 \cdot \max(0,\, s_t+a_t-D_t) \;-\; 6 \cdot \max(0,\, D_t-s_t-a_t)$$
+            </div>
+            <p>下一时刻的库存为</p>
+            <div class="formula-block">
+                $$s_{t+1} = \max(0,\; s_t + a_t - D_t)$$
+            </div>
+            <p>折扣因子 $\gamma = 0.9$。</p>
+
+            <p>点击下方的"下一步"按钮，观察智能体如何按策略行动，环境如何随机响应，轨迹如何逐步生成。</p>
+
+            <div class="demo-container">
+                <div class="demo-title">图 1.3-3：交互演示——便利店库存轨迹</div>
+                <svg id="inv-svg" width="740" height="480" viewBox="0 0 740 480" style="max-width:100%;display:block;margin:0 auto;"></svg>
+                <div class="demo-info" id="inv-info">初始库存 5 件。点击"下一步"开始模拟每日运营。</div>
+                <div id="inv-return" style="margin-top:0.6rem; padding:0.5rem 1rem; background:var(--sidebar-bg); border-radius:6px; font-size:1rem; min-height:1.5rem;"></div>
+                <div class="demo-controls">
+                    <button onclick="invStep()">下一步</button>
+                    <button onclick="invToggle()" id="inv-btn-run">自动运行</button>
+                    <button onclick="invReset()">重置</button>
+                </div>
             </div>
 
-            <p>移项整理，当 $\gamma < 1$ 时 $(\mathbf{I} - \gamma \mathbf{P}_\pi)$ 可逆，值函数有<strong>唯一解析解</strong>：</p>
+            <script>
+            (function(){
+                'use strict';
+                var NS = 'http://www.w3.org/2000/svg';
+                function ce(tag, attrs) {
+                    var el = document.createElementNS(NS, tag);
+                    for (var k in attrs) el.setAttribute(k, attrs[k]);
+                    return el;
+                }
+                function $(id) { return document.getElementById(id); }
 
-            <div class="result-box">
-                $$\mathbf{V} = (\mathbf{I} - \gamma \mathbf{P}_\pi)^{-1} \, \mathbf{R}_\pi \tag{11}$$
+                // MDP parameters
+                var GAMMA = 0.9;
+                var MAX_STOCK = 10;
+                var DEMAND_DIST = [{d:1, p:0.3}, {d:2, p:0.5}, {d:3, p:0.2}];
+
+                function policy(s) { return s <= 3 ? 5 : 0; }
+                function sampleDemand() {
+                    var r = Math.random(), c = 0;
+                    for (var i = 0; i < DEMAND_DIST.length; i++) {
+                        c += DEMAND_DIST[i].p;
+                        if (r < c) return DEMAND_DIST[i].d;
+                    }
+                    return DEMAND_DIST[DEMAND_DIST.length - 1].d;
+                }
+                function calcReward(stock, action, demand) {
+                    var available = stock + action;
+                    var sold = Math.min(available, demand);
+                    var unmet = Math.max(0, demand - available);
+                    var leftover = available - sold;
+                    return sold * 4 - leftover * 1 - unmet * 6;
+                }
+
+                // State
+                var stock = 5;
+                var stepNum = 0;
+                var trajectory = []; // [{s, a, r, d, s_next}]
+                var running = false;
+                var runTimer = null;
+                var animating = false;
+
+                // Layout constants
+                var SVG_W = 740, SVG_H = 480;
+                var SHELF_Y = 50, SHELF_H = 200;
+                var RIBBON_Y = 300, RIBBON_H = 160;
+                var ITEM_SIZE = 30;
+                var ITEM_GAP = 5;
+                var SHELF_X = 120;
+                var SHELF_WIDTH = 480;
+
+                // Draw person icon at (cx, cy) - simple stick figure
+                function drawPerson(svg, cx, cy, color, scale) {
+                    var s = scale || 1;
+                    var g = ce('g', {transform: 'translate('+cx+','+cy+') scale('+s+')'});
+                    g.appendChild(ce('circle', {cx:0, cy:-12, r:6, fill:color, stroke:'none'}));
+                    g.appendChild(ce('line', {x1:0, y1:-6, x2:0, y2:8, stroke:color, 'stroke-width':2.5, 'stroke-linecap':'round'}));
+                    g.appendChild(ce('line', {x1:-7, y1:0, x2:7, y2:0, stroke:color, 'stroke-width':2, 'stroke-linecap':'round'}));
+                    g.appendChild(ce('line', {x1:0, y1:8, x2:-5, y2:18, stroke:color, 'stroke-width':2, 'stroke-linecap':'round'}));
+                    g.appendChild(ce('line', {x1:0, y1:8, x2:5, y2:18, stroke:color, 'stroke-width':2, 'stroke-linecap':'round'}));
+                    svg.appendChild(g);
+                    return g;
+                }
+
+                // Draw delivery box icon at (cx, cy)
+                function drawBox(svg, cx, cy, color) {
+                    var g = ce('g', {transform: 'translate('+cx+','+cy+')'});
+                    g.appendChild(ce('rect', {x:-14, y:-10, width:28, height:20, rx:3, fill:color, stroke:'#975a16', 'stroke-width':1.5}));
+                    g.appendChild(ce('line', {x1:-14, y1:-2, x2:14, y2:-2, stroke:'#975a16', 'stroke-width':1}));
+                    g.appendChild(ce('line', {x1:0, y1:-10, x2:0, y2:-2, stroke:'#975a16', 'stroke-width':1}));
+                    svg.appendChild(g);
+                    return g;
+                }
+
+                function draw() {
+                    var svg = $('inv-svg');
+                    svg.innerHTML = '';
+
+                    // --- TOP HALF: Store scene ---
+                    // Shelf
+                    var shelfTop = SHELF_Y + 80;
+                    svg.appendChild(ce('rect', {x: SHELF_X, y: shelfTop, width: SHELF_WIDTH, height: 55, rx: 5, fill: '#f7f2e8', stroke: '#c4a87a', 'stroke-width': 2.5}));
+                    // Shelf legs
+                    svg.appendChild(ce('line', {x1: SHELF_X + 25, y1: shelfTop + 55, x2: SHELF_X + 25, y2: shelfTop + 75, stroke: '#c4a87a', 'stroke-width': 3}));
+                    svg.appendChild(ce('line', {x1: SHELF_X + SHELF_WIDTH - 25, y1: shelfTop + 55, x2: SHELF_X + SHELF_WIDTH - 25, y2: shelfTop + 75, stroke: '#c4a87a', 'stroke-width': 3}));
+
+                    // Items on shelf
+                    var itemStartX = SHELF_X + 18;
+                    for (var i = 0; i < stock; i++) {
+                        var ix = itemStartX + i * (ITEM_SIZE + ITEM_GAP);
+                        var iy = shelfTop - ITEM_SIZE + 5;
+                        svg.appendChild(ce('rect', {x: ix, y: iy, width: ITEM_SIZE, height: ITEM_SIZE, rx: 4, fill: '#ed8936', stroke: '#c05621', 'stroke-width': 1.5}));
+                        // Small label on item
+                        var iLabel = ce('text', {x: ix + ITEM_SIZE/2, y: iy + ITEM_SIZE/2 + 4, 'text-anchor': 'middle', 'font-size': '11', fill: 'white', 'font-weight': '700'});
+                        iLabel.textContent = '\u2615'; // coffee emoji placeholder — simple dot
+                        svg.appendChild(iLabel);
+                    }
+
+                    // State label (large, KaTeX rendered)
+                    var stFo = document.createElementNS(NS, 'foreignObject');
+                    stFo.setAttribute('x', SVG_W/2 - 120); stFo.setAttribute('y', SHELF_Y + 5);
+                    stFo.setAttribute('width', 240); stFo.setAttribute('height', 40);
+                    var stDiv = document.createElement('div');
+                    stDiv.style.cssText = 'text-align:center;font-size:20px;font-weight:700;color:#1a365d;';
+                    try { stDiv.innerHTML = '\u5E93\u5B58 ' + katex.renderToString('s_{' + stepNum + '} = ' + stock, {throwOnError:false}) + ' \u4EF6'; }
+                    catch(e) { stDiv.textContent = '\u5E93\u5B58 s' + stepNum + ' = ' + stock + ' \u4EF6'; }
+                    stFo.appendChild(stDiv);
+                    svg.appendChild(stFo);
+
+                    // Delivery icon (left side)
+                    drawBox(svg, 55, shelfTop + 5, '#fefcbf');
+                    var dlvLabel = ce('text', {x: 55, y: shelfTop + 30, 'text-anchor': 'middle', 'font-size': '11', fill: '#975a16', 'font-weight': '600'});
+                    dlvLabel.textContent = '\u8BA2\u8D27';
+                    svg.appendChild(dlvLabel);
+                    svg.appendChild(ce('line', {x1: 75, y1: shelfTop + 5, x2: SHELF_X - 5, y2: shelfTop + 5, stroke: '#d69e2e', 'stroke-width': 1.5, 'stroke-dasharray': '4,3'}));
+
+                    // Customer icon (right side)
+                    drawPerson(svg, SVG_W - 55, shelfTop - 5, '#e53e3e', 1.1);
+                    var custLabel = ce('text', {x: SVG_W - 55, y: shelfTop + 30, 'text-anchor': 'middle', 'font-size': '11', fill: '#e53e3e', 'font-weight': '600'});
+                    custLabel.textContent = '\u987E\u5BA2';
+                    svg.appendChild(custLabel);
+                    svg.appendChild(ce('line', {x1: SHELF_X + SHELF_WIDTH + 5, y1: shelfTop + 5, x2: SVG_W - 75, y2: shelfTop + 5, stroke: '#e53e3e', 'stroke-width': 1.5, 'stroke-dasharray': '4,3'}));
+
+                    // --- BOTTOM HALF: Trajectory ribbon ---
+                    svg.appendChild(ce('line', {x1: 0, y1: RIBBON_Y - 15, x2: SVG_W, y2: RIBBON_Y - 15, stroke: '#e2e8f0', 'stroke-width': 1}));
+                    var ribbonLabel = ce('text', {x: 20, y: RIBBON_Y + 5, 'font-size': '14', 'font-weight': '700', fill: '#1a365d'});
+                    ribbonLabel.textContent = '\u8F68\u8FF9';
+                    svg.appendChild(ribbonLabel);
+
+                    drawRibbon(svg);
+                }
+
+                function subscript(n) {
+                    var subs = '\u2080\u2081\u2082\u2083\u2084\u2085\u2086\u2087\u2088\u2089';
+                    var s = '' + n;
+                    var result = '';
+                    for (var i = 0; i < s.length; i++) result += subs[parseInt(s[i])];
+                    return result;
+                }
+
+                function drawRibbon(svg) {
+                    var nodeW = 62, arrowW = 20, cy = RIBBON_Y + 45;
+                    if (trajectory.length === 0 && stepNum === 0) {
+                        drawRibbonNode(svg, 70, cy, 's_0{=}' + stock, '#2b6cb0', '#ebf4ff', 'circle');
+                        updateReturn();
+                        return;
+                    }
+
+                    var groupW = nodeW * 3 + arrowW * 3;
+                    var maxVisible = Math.floor((SVG_W - 90) / groupW);
+                    var startIdx = Math.max(0, trajectory.length - maxVisible);
+
+                    var cx = 30;
+                    if (startIdx === 0) {
+                        drawRibbonNode(svg, cx + nodeW/2, cy, 's_0{=}' + trajectory[0].s, '#2b6cb0', '#ebf4ff', 'circle');
+                        cx += nodeW;
+                    } else {
+                        var dots = ce('text', {x: cx + 10, y: cy + 5, 'font-size': '16', fill: '#a0aec0', 'font-weight': '700'});
+                        dots.textContent = '\u2026';
+                        svg.appendChild(dots);
+                        cx += 28;
+                    }
+
+                    for (var i = startIdx; i < trajectory.length; i++) {
+                        var tr = trajectory[i];
+                        drawArrow(svg, cx, cy, cx + arrowW, cy);
+                        cx += arrowW;
+                        drawRibbonNode(svg, cx + nodeW/2, cy, 'a_{' + i + '}{=}' + tr.a, '#38a169', '#f0fff4', 'rect');
+                        cx += nodeW;
+                        drawArrow(svg, cx, cy, cx + arrowW, cy);
+                        cx += arrowW;
+                        var rColor = tr.r >= 0 ? '#d69e2e' : '#e53e3e';
+                        var rBg = tr.r >= 0 ? '#fefcbf' : '#fed7d7';
+                        drawRibbonNode(svg, cx + nodeW/2, cy, 'r_{' + i + '}{=}' + (tr.r >= 0 ? '+' : '') + tr.r, rColor, rBg, 'rect');
+                        cx += nodeW;
+                        drawArrow(svg, cx, cy, cx + arrowW, cy);
+                        cx += arrowW;
+                        drawRibbonNode(svg, cx + nodeW/2, cy, 's_{' + (i+1) + '}{=}' + tr.s_next, '#2b6cb0', '#ebf4ff', 'circle');
+                        cx += nodeW;
+                    }
+
+                    updateReturn();
+                }
+
+                function updateReturn() {
+                    var el = $('inv-return');
+                    if (trajectory.length === 0) { el.innerHTML = ''; return; }
+                    var terms = [], gVal = 0;
+                    for (var j = 0; j < trajectory.length; j++) {
+                        var coeff = Math.pow(GAMMA, j);
+                        gVal += coeff * trajectory[j].r;
+                        if (j < 5) {
+                            var rv = trajectory[j].r;
+                            var rvStr = rv < 0 ? '(' + rv + ')' : '' + rv;
+                            if (j === 0) terms.push('' + rv);
+                            else terms.push(GAMMA.toFixed(1) + '^{' + j + '} \\times ' + rvStr);
+                        }
+                    }
+                    if (trajectory.length > 5) terms.push('\\cdots');
+                    var latex = 'G_0 = ' + terms.join(' + ') + ' = ' + gVal.toFixed(1);
+                    el.innerHTML = '$$' + latex + '$$';
+                    if (window.renderMathInElement) renderMathInElement(el, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});
+                }
+
+                function drawRibbonNode(svg, cx, cy, latex, color, bg, shape) {
+                    var w = 62, h = 30;
+                    if (shape === 'circle') {
+                        svg.appendChild(ce('circle', {cx: cx, cy: cy, r: h/2 + 4, fill: bg, stroke: color, 'stroke-width': 2}));
+                    } else {
+                        svg.appendChild(ce('rect', {x: cx - w/2, y: cy - h/2, width: w, height: h, rx: 6, fill: bg, stroke: color, 'stroke-width': 2}));
+                    }
+                    var fo = document.createElementNS(NS, 'foreignObject');
+                    fo.setAttribute('x', cx - w/2); fo.setAttribute('y', cy - h/2);
+                    fo.setAttribute('width', w); fo.setAttribute('height', h);
+                    var div = document.createElement('div');
+                    div.style.cssText = 'display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:'+color+';font-weight:700;font-size:13px;';
+                    try { div.innerHTML = katex.renderToString(latex, {throwOnError:false}); }
+                    catch(e) { div.textContent = latex; }
+                    fo.appendChild(div);
+                    svg.appendChild(fo);
+                }
+
+                function drawArrow(svg, x1, y1, x2, y2) {
+                    svg.appendChild(ce('line', {x1: x1, y1: y1, x2: x2 - 3, y2: y2, stroke: '#a0aec0', 'stroke-width': 1.5}));
+                    // arrowhead
+                    var pts = (x2 - 3) + ',' + (y2 - 3) + ' ' + x2 + ',' + y2 + ' ' + (x2 - 3) + ',' + (y2 + 3);
+                    svg.appendChild(ce('polygon', {points: pts, fill: '#a0aec0'}));
+                }
+
+                function animateStep(action, demand, reward, oldStock, newStock) {
+                    animating = true;
+                    var svg = $('inv-svg');
+                    var shelfTop = SHELF_Y + 80;
+
+                    // Phase 1: Delivery arrives (if ordering)
+                    if (action > 0) {
+                        var boxG = drawBox(svg, 10, shelfTop - 15, '#fefcbf');
+                        var boxLabel = ce('text', {x: 10, y: shelfTop - 30, 'text-anchor': 'middle', 'font-size': '15', 'font-weight': '700', fill: '#38a169'});
+                        boxLabel.textContent = '+' + action;
+                        svg.appendChild(boxLabel);
+                        var t0 = performance.now(), endX = SHELF_X - 25;
+                        requestAnimationFrame(function moveBox(now) {
+                            var t = Math.min((now - t0) / 400, 1);
+                            var ease = t < .5 ? 2*t*t : 1 - Math.pow(-2*t+2,2)/2;
+                            var x = 10 + (endX - 10) * ease;
+                            boxG.setAttribute('transform', 'translate('+x+','+(shelfTop - 15)+')');
+                            boxLabel.setAttribute('x', String(x));
+                            if (t < 1) requestAnimationFrame(moveBox);
+                            else setTimeout(phase2, 250);
+                        });
+                    } else {
+                        var noOrd = ce('text', {x: 55, y: shelfTop - 30, 'text-anchor': 'middle', 'font-size': '13', fill: '#a0aec0'});
+                        noOrd.textContent = '\u4E0D\u8BA2\u8D27';
+                        svg.appendChild(noOrd);
+                        setTimeout(phase2, 200);
+                    }
+
+                    function phase2() {
+                        // Phase 2: Customer arrives and takes items
+                        var sold = Math.min(oldStock + action, demand);
+                        var unmet = Math.max(0, demand - (oldStock + action));
+                        var custG = drawPerson(svg, SVG_W - 10, shelfTop - 10, '#e53e3e', 1.2);
+                        var custDemand = ce('text', {x: SVG_W - 10, y: shelfTop - 35, 'text-anchor': 'middle', 'font-size': '15', 'font-weight': '700', fill: '#e53e3e'});
+                        custDemand.textContent = '\u8981\u4E70 ' + demand + ' \u4EF6';
+                        svg.appendChild(custDemand);
+                        var t0 = performance.now(), endX = SHELF_X + SHELF_WIDTH + 35;
+                        requestAnimationFrame(function moveCust(now) {
+                            var t = Math.min((now - t0) / 400, 1);
+                            var ease = t < .5 ? 2*t*t : 1 - Math.pow(-2*t+2,2)/2;
+                            var x = SVG_W - 10 + (endX - (SVG_W - 10)) * ease;
+                            custG.setAttribute('transform', 'translate('+x+','+(shelfTop - 10)+') scale(1.2)');
+                            custDemand.setAttribute('x', String(x));
+                            if (t < 1) requestAnimationFrame(moveCust);
+                            else {
+                                if (unmet > 0) {
+                                    var warn = ce('text', {x: SVG_W - 55, y: shelfTop + 60, 'text-anchor': 'middle', 'font-size': '14', 'font-weight': '700', fill: '#e53e3e'});
+                                    warn.textContent = '\u7F3A\u8D27 ' + unmet + ' \u4EF6\uFF01';
+                                    svg.appendChild(warn);
+                                }
+                                setTimeout(function() { phase3(reward); }, 300);
+                            }
+                        });
+                    }
+
+                    function phase3(r) {
+                        // Phase 3: Reward popup (large, clear)
+                        var rLabel = ce('text', {x: SVG_W / 2, y: SHELF_Y + 20, 'text-anchor': 'middle', 'font-size': '28', 'font-weight': '800', fill: r >= 0 ? '#276749' : '#c53030', 'font-family': 'Georgia,serif'});
+                        rLabel.textContent = '\u5956\u52B1 ' + (r >= 0 ? '+' : '') + r;
+                        svg.appendChild(rLabel);
+
+                        var t0 = performance.now();
+                        requestAnimationFrame(function fadeR(now) {
+                            var t = Math.min((now - t0) / 700, 1);
+                            rLabel.setAttribute('opacity', String(1 - t * t));
+                            rLabel.setAttribute('y', String(SHELF_Y + 20 - 20 * t));
+                            if (t < 1) requestAnimationFrame(fadeR);
+                            else {
+                                stock = newStock;
+                                stepNum++;
+                                draw();
+                                animating = false;
+                            }
+                        });
+                    }
+                }
+
+                function doStep() {
+                    if (animating) return;
+                    var s = stock;
+                    var a = policy(s);
+                    var d = sampleDemand();
+                    var available = s + a;
+                    var sold = Math.min(available, d);
+                    var unmet = Math.max(0, d - available);
+                    var leftover = available - sold;
+                    var r = sold * 4 - leftover * 1 - unmet * 6;
+                    var s_next = Math.min(MAX_STOCK, Math.max(0, s + a - d));
+
+                    trajectory.push({s: s, a: a, r: r, d: d, s_next: s_next});
+
+                    // Update info
+                    var policyStr = s <= 3 ? '\u5E93\u5B58\u2264 3\uFF0C\u8BA2\u8D27 5 \u4EF6' : '\u5E93\u5B58 > 3\uFF0C\u4E0D\u8BA2\u8D27';
+                    var info = '<strong>\u7B2C ' + (stepNum + 1) + ' \u5929</strong>\uFF1A';
+                    info += '\u5E93\u5B58 ' + s + ' \u4EF6\uFF0C';
+                    info += '\u7B56\u7565\u51B3\u5B9A' + policyStr;
+                    info += '\uFF08\u8BA2\u8D27 ' + a + '\uFF09\u3002';
+                    info += '\u968F\u673A\u9700\u6C42 = ' + d + ' \u4EF6\uFF0C';
+                    info += '\u552E\u51FA ' + sold + ' \u4EF6';
+                    if (unmet > 0) info += '\uFF0C<span style="color:#e53e3e;font-weight:700">\u7F3A\u8D27 ' + unmet + ' \u4EF6</span>';
+                    info += '\u3002\u5956\u52B1 = <span style="color:' + (r >= 0 ? '#276749' : '#c53030') + ';font-weight:700">' + (r >= 0 ? '+' : '') + r + '</span>';
+                    info += '\uFF0C\u8F6C\u79FB\u5230\u5E93\u5B58 ' + s_next + '\u3002';
+                    $('inv-info').innerHTML = info;
+
+                    animateStep(a, d, r, s, s_next);
+                }
+
+                var runInterval = null;
+                function toggle() {
+                    if (running) {
+                        running = false;
+                        clearInterval(runInterval);
+                        runInterval = null;
+                        $('inv-btn-run').textContent = '\u81EA\u52A8\u8FD0\u884C';
+                    } else {
+                        running = true;
+                        $('inv-btn-run').textContent = '\u6682\u505C';
+                        runInterval = setInterval(function() {
+                            if (!animating && stepNum < 30) doStep();
+                            else if (stepNum >= 30) {
+                                running = false;
+                                clearInterval(runInterval);
+                                runInterval = null;
+                                $('inv-btn-run').textContent = '\u81EA\u52A8\u8FD0\u884C';
+                            }
+                        }, 800);
+                    }
+                }
+
+                function reset() {
+                    running = false;
+                    animating = false;
+                    if (runInterval) { clearInterval(runInterval); runInterval = null; }
+                    stock = 5;
+                    stepNum = 0;
+                    trajectory = [];
+                    $('inv-btn-run').textContent = '\u81EA\u52A8\u8FD0\u884C';
+                    $('inv-info').textContent = '\u521D\u59CB\u5E93\u5B58 5 \u4EF6\u3002\u70B9\u51FB\u201C\u4E0B\u4E00\u6B65\u201D\u5F00\u59CB\u6A21\u62DF\u6BCF\u65E5\u8FD0\u8425\u3002';
+                    draw();
+                }
+
+                // Expose to global
+                window.invStep = doStep;
+                window.invToggle = toggle;
+                window.invReset = reset;
+
+                // Initial draw
+                draw();
+            })();
+            </script>
+
+            <!-- ==================== 值函数定义 ==================== -->
+            <h2>值函数的定义</h2>
+
+            <p>值函数的作用就是对回报 $G_t$ 求期望，将未来轨迹的不确定性平均掉，得到一个确定的数值。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">状态值函数 $V^\pi(s)$</div>
+                <p>给定策略 $\pi$，<strong>状态值函数</strong>定义为从状态 $s$ 出发、遵循策略 $\pi$ 行动所获得的回报的期望：</p>
+                <div class="formula-block">
+                    $$V^\pi(s) \;=\; \mathbb{E}_\pi\!\left[\, G_t \;\middle|\; S_t = s \,\right] \tag{1.3-1}$$
+                </div>
+                <p>将 $\mathbb{E}_\pi$ 中隐含的随机变量显式写出来：</p>
+                <div class="formula-block">
+                    $$V^\pi(s) = \sum_{a_t} \pi(a_t \mid s) \sum_{s_{t+1}} P(s_{t+1} \mid s, a_t) \sum_{a_{t+1}} \pi(a_{t+1} \mid s_{t+1}) \sum_{s_{t+2}} P(s_{t+2} \mid s_{t+1}, a_{t+1}) \cdots \left[\sum_{k=0}^{\infty} \gamma^k R(s_{t+k}, a_{t+k})\right]$$
+                </div>
+                <p>当状态空间和动作空间是连续的，求和变为积分：</p>
+                <div class="formula-block">
+                    $$V^\pi(s) = \int_{\mathcal{A}} \pi(a_t \mid s) \int_{\mathcal{S}} p(s_{t+1} \mid s, a_t) \int_{\mathcal{A}} \pi(a_{t+1} \mid s_{t+1}) \int_{\mathcal{S}} p(s_{t+2} \mid s_{t+1}, a_{t+1}) \cdots \left[\sum_{k=0}^{\infty} \gamma^k R(s_{t+k}, a_{t+k})\right] \mathrm{d}s_{t+2}\, \mathrm{d}a_{t+1}\, \mathrm{d}s_{t+1}\, \mathrm{d}a_t$$
+                </div>
+                <p>两种形式的区别仅在于求和（$\sum$）与积分（$\int$）以及概率质量函数（$P$）与概率密度函数（$p$）。无论哪种情形，期望的含义相同：对策略选择动作和环境状态转移这两重随机性的综合平均。</p>
+            </div>
+
+            <div class="concept-card">
+                <div class="concept-name">动作值函数 $Q^\pi(s, a)$</div>
+                <p>如果不只固定当前状态，还固定第一步动作为 $a$，之后再遵循策略 $\pi$，所获得的回报期望就是<strong>动作值函数</strong>：</p>
+                <div class="formula-block">
+                    $$Q^\pi(s, a) \;=\; \mathbb{E}_\pi\!\left[\, G_t \;\middle|\; S_t = s,\, A_t = a \,\right] \tag{1.3-2}$$
+                </div>
+                <p>与 $V^\pi$ 的区别在于第一步动作 $A_t = a$ 已经确定，期望从 $S_{t+1}$ 开始。离散情形：</p>
+                <div class="formula-block">
+                    $$Q^\pi(s, a) = \sum_{s_{t+1}} P(s_{t+1} \mid s, a) \sum_{a_{t+1}} \pi(a_{t+1} \mid s_{t+1}) \sum_{s_{t+2}} P(s_{t+2} \mid s_{t+1}, a_{t+1}) \cdots \left[\sum_{k=0}^{\infty} \gamma^k R(s_{t+k}, a_{t+k})\right]$$
+                </div>
+                <p>连续情形：</p>
+                <div class="formula-block">
+                    $$Q^\pi(s, a) = \int_{\mathcal{S}} p(s_{t+1} \mid s, a) \int_{\mathcal{A}} \pi(a_{t+1} \mid s_{t+1}) \int_{\mathcal{S}} p(s_{t+2} \mid s_{t+1}, a_{t+1}) \cdots \left[\sum_{k=0}^{\infty} \gamma^k R(s_{t+k}, a_{t+k})\right] \mathrm{d}s_{t+2}\, \mathrm{d}a_{t+1}\, \mathrm{d}s_{t+1}$$
+                </div>
+                <p>对比两个定义：$V^\pi(s)$ 对动作 $A_t$ 也求了期望（按 $\pi(\cdot \mid s)$ 加权），$Q^\pi(s,a)$ 则把第一步动作钉死。因此两者的关系是：</p>
+                <div class="formula-block">
+                    $$V^\pi(s) = \sum_{a \in \mathcal{A}(s)} \pi(a \mid s) \; Q^\pi(s, a) \tag{1.3-3}$$
+                </div>
+                <p>连续情形下，求和变为积分：$V^\pi(s) = \int_{\mathcal{A}} \pi(a \mid s) \, Q^\pi(s, a) \, \mathrm{d}a$。</p>
             </div>
 
             <div class="note">
-                <strong>核心认识：</strong>评估一个给定策略 $\pi$ 的好坏，本质上就是求解一个线性方程组——或者说求一个矩阵的逆。计算复杂度为 $O(n^3)$。当状态空间很大时（管理科学问题中常见），直接求逆不可行，需要迭代方法——这将在1.4节中介绍。
+                <strong>关于离散与连续。</strong>状态空间和动作空间是离散还是连续，取决于具体问题：库存量、排队人数等是离散的，价格、速度、坐标等是连续的。上面的展开表明，两种情形在数学结构上完全一致，区别仅在于求和与积分、概率质量函数与概率密度函数。为了表述简洁，本书后续推导默认使用离散记号（$\sum$ 和 $P$），读者可以将其直接替换为连续对应物（$\int$ 和 $p$），所有结论依然成立。
             </div>
-
-            <!-- ==================== 例子 ==================== -->
-            <h2>例子：网约车司机的接单决策</h2>
-
-            <p>一位网约车司机在一座城市中运营，城市分为三个区域：<strong>市中心</strong>（$c$）、<strong>郊区</strong>（$s$）和<strong>机场</strong>（$a$）。我们用MDP建模司机的决策过程。</p>
-
-            <h3>MDP建模</h3>
-
-            <p><strong>状态空间</strong>：$\mathcal{S} = \{c, s, a\}$，即司机当前所在区域。</p>
-
-            <p><strong>动作空间</strong>（每个状态有两个可选动作）：</p>
-            <ul style="margin: 0.3rem 0 1rem 2rem;">
-                <li>市中心（$c$）：<strong>接单</strong>（接受下一个乘客）或 <strong>空驶去机场</strong></li>
-                <li>郊区（$s$）：<strong>接单</strong> 或 <strong>空驶去市中心</strong></li>
-                <li>机场（$a$）：<strong>接单</strong> 或 <strong>空驶去市中心</strong></li>
-            </ul>
-
-            <p><strong>转移概率与奖励</strong>见下表。注意两个随机性的体现：空驶动作的转移是<strong>确定的</strong>（环境无随机性），但接单动作的转移是<strong>随机的</strong>（乘客目的地不可控，这正是环境的随机性②）。</p>
-
-            <table class="trans-table">
-                <thead>
-                    <tr><th>状态</th><th>动作</th><th>$R(s,a)$</th><th>$P(c|s,a)$</th><th>$P(s|s,a)$</th><th>$P(a|s,a)$</th><th>环境随机性</th></tr>
-                </thead>
-                <tbody>
-                    <tr><td>$c$</td><td>接单</td><td>$+8$</td><td>0.5</td><td>0.3</td><td>0.2</td><td>有（乘客目的地随机）</td></tr>
-                    <tr><td>$c$</td><td>空驶去机场</td><td>$-4$</td><td>0</td><td>0</td><td>1.0</td><td>无（确定到达机场）</td></tr>
-                    <tr><td>$s$</td><td>接单</td><td>$+1$</td><td>0.1</td><td>0.8</td><td>0.1</td><td>有（乘客目的地随机）</td></tr>
-                    <tr><td>$s$</td><td>空驶去市中心</td><td>$-3$</td><td>1.0</td><td>0</td><td>0</td><td>无（确定到达市中心）</td></tr>
-                    <tr><td>$a$</td><td>接单</td><td>$+14$</td><td>0.6</td><td>0.4</td><td>0</td><td>有（乘客目的地随机）</td></tr>
-                    <tr><td>$a$</td><td>空驶去市中心</td><td>$-5$</td><td>1.0</td><td>0</td><td>0</td><td>无（确定到达市中心）</td></tr>
-                </tbody>
-            </table>
-
-            <p>下面的状态转移图展示了这个MDP的完整结构。<strong>弧线表示动作</strong>：蓝色实线弧是"接单"（乘客目的地随机，因此同一动作有多条弧指向不同的下一状态），橙色虚线弧是"空驶"（确定性转移，只有一条弧）。</p>
-
-            <div class="demo-container">
-                <div class="demo-title">状态转移图</div>
-                <svg width="700" height="410" viewBox="0 0 700 410" style="max-width:100%;">
-                    <defs>
-                        <marker id="ab" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2b6cb0"/></marker>
-                        <marker id="ao" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#dd6b20"/></marker>
-                    </defs>
-
-                    <!-- 状态圆 -->
-                    <circle cx="170" cy="150" r="55" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="3"/>
-                    <text x="170" y="140" text-anchor="middle" font-size="14" font-weight="700" fill="#1a365d">市中心</text>
-                    <text x="170" y="165" text-anchor="middle" font-size="20" font-weight="700" fill="#2b6cb0" font-style="italic">c</text>
-
-                    <circle cx="350" cy="345" r="55" fill="#fefcbf" stroke="#d69e2e" stroke-width="3"/>
-                    <text x="350" y="335" text-anchor="middle" font-size="14" font-weight="700" fill="#1a365d">郊区</text>
-                    <text x="350" y="360" text-anchor="middle" font-size="20" font-weight="700" fill="#d69e2e" font-style="italic">s</text>
-
-                    <circle cx="530" cy="150" r="55" fill="#f0fff4" stroke="#38a169" stroke-width="3"/>
-                    <text x="530" y="140" text-anchor="middle" font-size="14" font-weight="700" fill="#1a365d">机场</text>
-                    <text x="530" y="165" text-anchor="middle" font-size="20" font-weight="700" fill="#38a169" font-style="italic">a</text>
-
-                    <!-- === 接单弧线（蓝色实线）=== -->
-
-                    <!-- c自环：接单50%留市中心, R=8 -->
-                    <path d="M 135 100 C 100 30, 240 30, 205 100" fill="none" stroke="#2b6cb0" stroke-width="2" marker-end="url(#ab)"/>
-                    <text x="170" y="42" text-anchor="middle" font-size="11" fill="#2b6cb0" font-weight="600">接单 50%, R=8</text>
-
-                    <!-- c→s：接单30% -->
-                    <path d="M 145 200 C 130 270, 250 310, 298 335" fill="none" stroke="#2b6cb0" stroke-width="1.5" marker-end="url(#ab)"/>
-                    <text x="175" y="285" text-anchor="middle" font-size="11" fill="#2b6cb0">接单 30%</text>
-
-                    <!-- c→a：接单20% -->
-                    <path d="M 225 138 C 310 105, 400 105, 475 138" fill="none" stroke="#2b6cb0" stroke-width="1.5" marker-end="url(#ab)"/>
-                    <text x="350" y="100" text-anchor="middle" font-size="11" fill="#2b6cb0">接单 20%</text>
-
-                    <!-- s自环：接单80%留郊区, R=1 -->
-                    <path d="M 310 385 C 290 440, 410 440, 390 385" fill="none" stroke="#2b6cb0" stroke-width="2" marker-end="url(#ab)"/>
-                    <text x="350" y="400" text-anchor="middle" font-size="11" fill="#2b6cb0" font-weight="600">接单 80%, R=1</text>
-
-                    <!-- s→c：接单10% -->
-                    <path d="M 305 315 C 260 265, 200 230, 185 205" fill="none" stroke="#2b6cb0" stroke-width="1.5" marker-end="url(#ab)"/>
-                    <text x="220" y="253" text-anchor="middle" font-size="11" fill="#2b6cb0">接单 10%</text>
-
-                    <!-- s→a：接单10% -->
-                    <path d="M 400 318 C 450 280, 500 230, 520 205" fill="none" stroke="#2b6cb0" stroke-width="1.5" marker-end="url(#ab)"/>
-                    <text x="488" y="268" text-anchor="middle" font-size="11" fill="#2b6cb0">接单 10%</text>
-
-                    <!-- a→c：接单60%, R=14 -->
-                    <path d="M 478 162 C 400 195, 290 195, 225 162" fill="none" stroke="#2b6cb0" stroke-width="2" marker-end="url(#ab)"/>
-                    <text x="350" y="198" text-anchor="middle" font-size="11" fill="#2b6cb0" font-weight="600">接单 60%, R=14</text>
-
-                    <!-- a→s：接单40% -->
-                    <path d="M 510 203 C 490 265, 430 305, 398 323" fill="none" stroke="#2b6cb0" stroke-width="1.5" marker-end="url(#ab)"/>
-                    <text x="480" y="288" text-anchor="middle" font-size="11" fill="#2b6cb0">接单 40%</text>
-
-                    <!-- === 空驶弧线（橙色虚线，确定性转移）=== -->
-
-                    <!-- c→a 空驶, R=-4 -->
-                    <path d="M 222 128 C 310 68, 420 68, 480 128" fill="none" stroke="#dd6b20" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#ao)"/>
-                    <text x="350" y="60" text-anchor="middle" font-size="11" fill="#dd6b20" font-weight="600">空驶 100%, R=-4</text>
-
-                    <!-- s→c 空驶, R=-3 -->
-                    <path d="M 300 328 C 230 305, 175 255, 160 205" fill="none" stroke="#dd6b20" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#ao)"/>
-                    <text x="193" y="310" text-anchor="middle" font-size="11" fill="#dd6b20" font-weight="600">空驶 R=-3</text>
-
-                    <!-- a→c 空驶, R=-5 -->
-                    <path d="M 475 155 C 390 168, 290 168, 225 155" fill="none" stroke="#dd6b20" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#ao)"/>
-                    <text x="350" y="180" text-anchor="middle" font-size="11" fill="#dd6b20" font-weight="600">空驶 R=-5</text>
-                </svg>
-                <div class="legend">
-                    <span style="color:#2b6cb0;">蓝色实线</span> = 接单动作（转移随机：乘客目的地不可控）&nbsp;&nbsp;
-                    <span style="color:#dd6b20;">橙色虚线</span> = 空驶动作（转移确定：司机自行驾驶）&nbsp;&nbsp;
-                    $\gamma = 0.9$
-                </div>
-            </div>
-
-            <!-- ==================== 策略评估 ==================== -->
-            <h2>用公式(11)评估两个策略</h2>
-
-            <div class="policy-compare">
-                <div>
-                    <h3>策略 $\pi_1$：有单就接</h3>
-                    <p>$\pi_1(c) = \text{接单}$<br>$\pi_1(s) = \text{接单}$<br>$\pi_1(a) = \text{接单}$</p>
-                    <p style="font-size:0.88rem; color:#718096;">来什么单接什么单，从不空驶。</p>
-                </div>
-                <div>
-                    <h3>策略 $\pi_2$：郊区逃离</h3>
-                    <p>$\pi_2(c) = \text{接单}$<br>$\pi_2(s) = \text{空驶去市中心}$<br>$\pi_2(a) = \text{接单}$</p>
-                    <p style="font-size:0.88rem; color:#718096;">郊区单子太差，花油钱逃回市中心。</p>
-                </div>
-            </div>
-
-            <h3>$\pi_1$ 的策略评估</h3>
-
-            <p>三个状态都选择接单。对应的转移矩阵和奖励向量为：</p>
-
-            <div class="formula-block">
-                $$\mathbf{P}_{\pi_1} = \begin{pmatrix} 0.5 & 0.3 & 0.2 \\ 0.1 & 0.8 & 0.1 \\ 0.6 & 0.4 & 0 \end{pmatrix}, \quad \mathbf{R}_{\pi_1} = \begin{pmatrix} 8 \\ 1 \\ 14 \end{pmatrix}$$
-            </div>
-
-            <p>代入公式(11) $\mathbf{V} = (\mathbf{I} - 0.9\,\mathbf{P}_{\pi_1})^{-1} \mathbf{R}_{\pi_1}$，求解得：</p>
-
-            <div class="result-box">
-                $$V^{\pi_1}(c) \approx 51.2, \quad V^{\pi_1}(s) \approx 37.8, \quad V^{\pi_1}(a) \approx 55.3$$
-            </div>
-
-            <h3>$\pi_2$ 的策略评估</h3>
-
-            <p>$\pi_2$ 在郊区选择空驶（确定性转移到市中心，$R=-3$）。转移矩阵第二行变为 $(1, 0, 0)$：</p>
-
-            <div class="formula-block">
-                $$\mathbf{P}_{\pi_2} = \begin{pmatrix} 0.5 & 0.3 & 0.2 \\ 1.0 & 0 & 0 \\ 0.6 & 0.4 & 0 \end{pmatrix}, \quad \mathbf{R}_{\pi_2} = \begin{pmatrix} 8 \\ -3 \\ 14 \end{pmatrix}$$
-            </div>
-
-            <p>求解公式(11)：</p>
-
-            <div class="result-box">
-                $$V^{\pi_2}(c) \approx 62.8, \quad V^{\pi_2}(s) \approx 53.5, \quad V^{\pi_2}(a) \approx 67.2$$
-            </div>
-
-            <h3>对比</h3>
-
-            <table class="trans-table">
-                <thead>
-                    <tr><th>状态</th><th>$V^{\pi_1}$（有单就接）</th><th>$V^{\pi_2}$（郊区逃离）</th><th>提升</th></tr>
-                </thead>
-                <tbody>
-                    <tr><td>$c$（市中心）</td><td>51.2</td><td><strong>62.8</strong></td><td>+11.6</td></tr>
-                    <tr><td>$s$（郊区）</td><td>37.8</td><td><strong>53.5</strong></td><td>+15.7</td></tr>
-                    <tr><td>$a$（机场）</td><td>55.3</td><td><strong>67.2</strong></td><td>+11.9</td></tr>
-                </tbody>
-            </table>
-
-            <p>$\pi_2$ 在所有状态上大幅优于 $\pi_1$。关键洞察：郊区是一个"陷阱"——接单只赚1元，且80%概率继续留在郊区（环境随机性②让司机难以脱身）。花3元油钱逃回市中心，短期亏损，但长期来看市中心的高收入（$R=8$，且有20%概率自然到达高收入的机场）远远弥补了空驶成本。</p>
-
-            <p>值得注意的是，机场虽然单价最高（$R=14$），但 $\pi_2$ 并不要求司机空驶去机场——在市中心接单自然有20%概率到达机场，无需刻意追求。这说明<strong>最优的做法不是简单地"往收入最高的地方跑"</strong>，而是取决于转移概率和奖励的综合权衡——这正是值函数所捕捉的。</p>
 
             <!-- ==================== 小结 ==================== -->
             <h2>小结</h2>
 
-            <p>本节完成了三件事：</p>
-            <ol style="margin: 0.5rem 0 1rem 2rem;">
-                <li>严格定义了 $V^\pi$ 和 $Q^\pi$，阐明了值函数期望中<strong>两个随机性来源</strong>——策略选择动作的随机性和环境状态转移的随机性</li>
-                <li>从回报 $G_t$ 出发<strong>逐步推导</strong>了贝尔曼期望方程(8)，并给出其矩阵形式的解析解(11)：$\mathbf{V} = (\mathbf{I} - \gamma \mathbf{P}_\pi)^{-1} \mathbf{R}_\pi$</li>
-                <li>通过网约车司机的三区域例子，<strong>数值验证</strong>了公式(11)在策略评估中的应用</li>
-            </ol>
+            <p>本节首先建立了轨迹的概念，明确了回报 $G_t$ 的随机性来自策略选择动作和环境状态转移两个来源。通过便利店库存管理的交互演示，直观地展示了轨迹的逐步生成过程。在此基础上，严格定义了状态值函数 $V^\pi(s)$ 和动作值函数 $Q^\pi(s,a)$，并给出了离散和连续两种情形下的显式展开。</p>
 
-            <p>我们现在能够评估任何给定策略的好坏——但一个自然的问题是：<strong>如何系统地找到最优策略？</strong>这是下一节（1.4 依赖模型的动态规划算法）的主题，其中将介绍贝尔曼<strong>最优</strong>方程、值迭代和策略迭代算法。</p>
+            <p>一个核心问题仍未解决：按定义计算值函数需要对无穷未来求和，这显然不可行。下一小节将推导<strong>贝尔曼期望方程</strong>，它将这个无穷求和转化为优雅的递推关系，使得值函数的计算变得可行。</p>
 
             <div class="chapter-nav">
                 <a href="../ch01/1.3.1.html">&larr; 1.3.1 基本概念与定义</a>
-                <a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法 &rarr;</a>
+                <a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程 &rarr;</a>
             </div>
         </main>
     </div>

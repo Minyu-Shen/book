@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1.6.1 SARSA - 运筹智能</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .trans-table { width: auto; border-collapse: collapse; margin: 1rem auto; font-size: 0.95rem; }
+        .trans-table th, .trans-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: center; }
+        .trans-table th { background: var(--primary-color); color: white; }
+        .trans-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .result-box { background: var(--highlight-color); border: 2px solid var(--accent-color); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; text-align: center; }
+        .algo-box { background: #f7fafc; border: 2px solid var(--accent-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .algo-box .algo-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .algo-box ol { margin: 0.3rem 0 0.3rem 1.5rem; line-height: 2; }
+        .algo-box .algo-note { font-size: 0.9rem; color: #718096; margin-top: 0.5rem; }
+        .update-step { background: #fffbeb; border-left: 3px solid #d69e2e; padding: 0.6rem 1rem; margin: 0.8rem 0; border-radius: 0 6px 6px 0; font-size: 0.93rem; line-height: 1.7; }
+        .update-step .step-head { font-weight: 600; color: #975a16; }
+        .onpolicy-note { background: #ebf8ff; border-left: 3px solid #2b6cb0; padding: 0.6rem 1rem; margin: 0.8rem 0; border-radius: 0 6px 6px 0; font-size: 0.93rem; line-height: 1.7; }
+        .rl-ctrl { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; margin-bottom:0.8rem; font-size:0.88rem; }
+        .rl-ctrl button { padding:0.3rem 0.7rem; border:1px solid #2b6cb0; background:white; color:#2b6cb0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.84rem; transition:all 0.15s; }
+        .rl-ctrl button:hover { background:#2b6cb0; color:white; }
+        .rl-ctrl button.active { background:#2b6cb0; color:white; }
+        .rl-info { background:#ebf4ff; border-radius:6px; padding:0.4rem 0.8rem; font-size:0.88rem; margin-top:0.6rem; }
+        .demo-layout { display:flex; gap:1.2rem; flex-wrap:wrap; align-items:flex-start; }
+        .demo-svg-wrap { flex:0 0 auto; }
+        .demo-table-wrap { flex:1; min-width:240px; }
+        .demo-log { margin-top:0.8rem; font-size:0.85rem; line-height:1.6; max-height:180px; overflow-y:auto; }
+        .demo-log .log-entry { background:#fffbeb; border-left:2px solid #d69e2e; padding:0.3rem 0.6rem; margin-bottom:0.3rem; border-radius:0 4px 4px 0; }
+        .demo-log .log-entry .log-step { font-weight:600; color:#975a16; }
+        .demo-log .log-entry .log-delta { color:#276749; font-weight:600; }
+        .q-cell { transition: background-color 0.6s ease; }
+        .optional-reading { background:#fafafa; border:1px solid #e2e8f0; border-left:4px solid #a0aec0; border-radius:0 8px 8px 0; margin:2.5rem 0; }
+        .optional-reading summary { padding:1rem 1.5rem; cursor:pointer; font-weight:700; color:#4a5568; font-size:1.1rem; list-style:none; }
+        .optional-reading summary::-webkit-details-marker { display:none; }
+        .optional-reading summary::before { content:'▶ '; font-size:0.8em; margin-right:0.3rem; transition:transform 0.2s; }
+        .optional-reading[open] summary::before { content:'▼ '; }
+        .optional-reading[open] summary { border-bottom:1px solid #e2e8f0; }
+        .optional-reading .opt-body { padding:1.2rem 1.5rem; }
+        .hc-path { background:#f7fafc; border:1px solid #e2e8f0; border-radius:6px; padding:0.4rem 0.8rem; font-size:0.88rem; margin-bottom:0.8rem; line-height:1.8; }
+        .hc-path .hc-arrow { color:#2b6cb0; font-weight:600; }
+        .hc-path .hc-cur { color:#c53030; font-weight:700; }
+        .q-ref { color:#a0aec0; font-size:0.85em; }
+    </style>
+    <script defer src="../../js/code-copy.js"></script>
+</head>
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="book-title"><a href="../../index.html" style="text-decoration:none;color:inherit;">运筹智能</a></div>
+            <nav>
+                <ul>
+                <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
+                <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
+                <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
+                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
+                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
+                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.6.1.html" class="active">1.6.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.6.2.html">1.6.2 Q-learning</a></li>
+                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.1.html">1.7.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.2.html">1.7.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.3.html">1.7.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第二章 深度学习基础</li>
+                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
+                <li><a href="../ch03/3.2.html">3.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
+                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch04/4.2.html">4.2 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch04/4.3.html">4.3 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch04/4.4.html">4.4 回合定义与时域建模</a></li>
+                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第五章 仿真器搭建</li>
+                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch05/5.4.html">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
+                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
+                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
+                <li><a href="../ch07/7.2.html">7.2 公交串车控制</a></li>
+                <li><a href="../ch07/7.3.html">7.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第八章 进阶话题</li>
+                <li><a href="../ch08/8.1.html">8.1 多智能体强化学习</a></li>
+                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>1.6.1 SARSA</h1>
+
+            <!-- ==================== 从预测到控制 ==================== -->
+            <h2>从预测到控制：为什么需要 $Q$ 值</h2>
+
+            <p>1.5节介绍的 MC 和 TD 方法解决的是<strong>预测问题</strong>：给定策略 $\pi$，估计其状态值函数 $V^\pi(s)$。然而，我们最终的目标是<strong>控制问题</strong>：找到最优策略 $\pi^*$。如果只有 $V(s)$，要改善策略就必须知道转移概率 $P(s' \mid s, a)$，因为需要计算每个动作的期望回报来比较优劣：</p>
+
+            $$\pi'(s) = \arg\max_a \left[\sum_{s'} P(s' \mid s, a)\bigl[R(s,a) + \gamma\,V^\pi(s')\bigr]\right]$$
+
+            <p>这又回到了"依赖模型"的老路。解决方案是直接学习<strong>动作值函数</strong> $Q(s, a)$。有了 $Q$ 值，策略改善只需 $\pi'(s) = \arg\max_a Q(s, a)$，完全不需要转移概率。</p>
+
+            <!-- ==================== SARSA 核心思想 ==================== -->
+            <h2>SARSA 的核心思想</h2>
+
+            <p>1.5.2节的 TD(0) 通过单步自举更新 $V$ 值：</p>
+
+            $$V(S_t) \leftarrow V(S_t) + \alpha\bigl[\underbrace{R_t + \gamma\,V(S_{t+1})}_{\text{TD目标}} - V(S_t)\bigr]$$
+
+            <p>能否用同样的思路更新 $Q$ 值？回忆1.3.3节的贝尔曼期望方程(1.3-10)，它对 $Q$ 成立：</p>
+
+            $$Q^\pi(s,a) = R(s,a) + \gamma \sum_{s'} P(s' \mid s, a) \sum_{a'} \pi(a' \mid s')\, Q^\pi(s', a')$$
+
+            <p>注意方程右端的两个求和。$\sum_{s'} P(s' \mid s,a)$ 需要转移概率模型，1.5.2节已经演示了如何用一次实际转移的样本 $S_{t+1}$ 来替代它。而 $\sum_{a'} \pi(a' \mid s')$ 需要<strong>显式知道</strong>策略 $\pi$ 在每个状态下选各个动作的概率。</p>
+
+            <p>SARSA 的巧妙之处在于：它不需要显式写出 $\pi(a'|s')$。策略<strong>隐含在 $Q$ 值表中</strong>：哪个动作的 $Q$ 值最大，就选哪个（后文会加入少量随机探索）。因此不必计算 $\sum_{a'} \pi(a'|s') Q(s',a')$，只需让智能体在 $S_{t+1}$ 按当前 $Q$ 值表选出一个动作 $A_{t+1}$，用 $Q(S_{t+1}, A_{t+1})$ 这一个样本来近似那个求和。这样，贝尔曼方程右端的两个求和都被单次采样替代：</p>
+
+            <div class="concept-card">
+                <div class="concept-name">SARSA 更新规则</div>
+                $$Q(S_t, A_t) \leftarrow Q(S_t, A_t) + \alpha \left[\, \underbrace{R_t + \gamma \, Q(S_{t+1}, A_{t+1})}_{\text{TD目标}} - Q(S_t, A_t) \,\right] \tag{1.6-1}$$
+            </div>
+
+            <p>每次更新需要五个量：当前状态 $S_t$、当前动作 $A_t$、即时奖励 $R_t$、下一状态 $S_{t+1}$、下一动作 $A_{t+1}$。取首字母，即为算法名称 <strong>SARSA</strong>。</p>
+
+            <h3>SARSA 就是策略迭代</h3>
+
+            <p>回忆1.4.1节的策略迭代：先<strong>评估</strong>当前策略（求出 $Q^\pi$），再<strong>改善</strong>策略（对每个状态取 $\arg\max_a Q^\pi(s,a)$），如此交替直到收敛。SARSA 做的是同样的事，只是把评估和改善融合在了每一步中：</p>
+
+            <ol style="margin:0.3rem 0 1rem 1.5rem; line-height:2;">
+                <li><strong>评估</strong>：用公式(1.6-1)更新 $Q$ 值（TD 学习，每步执行一次）</li>
+                <li><strong>改善</strong>：用更新后的 $Q$ 值表选择下一个动作 $A_{t+1} = \arg\max_a Q(S_{t+1}, a)$</li>
+            </ol>
+
+            <p>每次 SARSA 更新改变了 $Q$ 值，$\arg\max$ 就可能指向不同的动作，策略也随之改变。这种评估与改善持续交替的框架称为<strong>广义策略迭代</strong>（Generalized Policy Iteration, GPI）。</p>
+
+            <p>但纯贪心改善有一个严重问题。考虑网约车例子：</p>
+
+            <div class="concept-card" style="border-left-color:#d69e2e;">
+                <p>假设司机在郊区 $b$，所有 $Q$ 值初始为0。第一单碰巧留在了郊区（概率0.8），获得车费 $R = 1$，于是 $Q(b, \text{接单})$ 被更新为 $0 + 0.1 \times 1 = 0.1$，而 $Q(b, \text{空驶去市中心})$ 仍为0。如果采用纯贪心策略，司机此后每次到郊区都会选接单（因为 $0.1 > 0$），永远不会尝试空驶去市中心。</p>
+                <p style="margin-top:0.5rem;">然而从1.4节的策略迭代结果我们知道，郊区的最优策略恰恰是<strong>空驶去市中心</strong>！纯贪心策略被一次低质量的早期经验锁死，错过了更好的选择。</p>
+            </div>
+
+            <p>1.4节的策略迭代不存在这个问题，因为它通过求解线性方程组来精确评估策略，能算出每个动作的真实价值。而 SARSA 从经验中学习，没被尝试过的动作的 $Q$ 值无法更新。这就是经典的<strong>探索-利用困境</strong>（exploration-exploitation dilemma）：智能体既要利用已有知识选择好的动作，又需要偶尔探索未知的动作以免遗漏更优方案。</p>
+
+            <!-- ==================== ε-greedy ==================== -->
+            <h2>$\varepsilon$-greedy 探索策略</h2>
+
+            <p>最常用的解决方案是将纯贪心稍加修改：以 $1-\varepsilon$ 的概率选择 $\arg\max_a Q(s,a)$（利用），以 $\varepsilon$ 的概率随机选择一个动作（探索）。这就是 $\varepsilon$-greedy 策略：</p>
+
+            <div class="concept-card">
+                <div class="concept-name">$\varepsilon$-greedy 策略</div>
+                $$\pi(a \mid s) = \begin{cases} 1 - \varepsilon + \dfrac{\varepsilon}{|\mathcal{A}(s)|}, & \text{if } a = \arg\max_{a'} Q(s, a') \\[4pt] \dfrac{\varepsilon}{|\mathcal{A}(s)|}, & \text{otherwise} \end{cases} \tag{1.6-2}$$
+                <p style="margin-top:0.5rem;">当 $\varepsilon = 0.1$ 且有2个动作时，最优动作被选中的概率是 $0.95$，其余动作被选中的概率是 $0.05$。这保证了每个动作都有正概率被选中，从而避免上述被锁死的困境。</p>
+            </div>
+
+            <p>将 $\varepsilon$-greedy 代入 SARSA 的框架，算法的完整循环变为：用 $\varepsilon$-greedy 选动作 → 执行并观察奖励 → 更新 $Q$ 值 → 用更新后的 $Q$ 值表再次 $\varepsilon$-greedy 选动作 → ...</p>
+
+            <p>注意，在这个循环中，用来<strong>生成数据</strong>的策略（$\varepsilon$-greedy）和 SARSA 正在<strong>评估</strong>的策略是同一个。这种性质有一个专门的名称：</p>
+
+            <div class="concept-card">
+                <div class="concept-name">On-policy 与 off-policy</div>
+                <p>如果算法用来<strong>生成数据</strong>（选择动作、与环境交互）的策略，和它正在<strong>评估、改善</strong>的策略是同一个，就称为 <strong>on-policy</strong>。反之，如果两者可以不同，就称为 <strong>off-policy</strong>。</p>
+                <p style="margin-top:0.5rem;">SARSA 是 on-policy 算法。1.6.2节将介绍的 Q-learning 是 off-policy 算法。</p>
+            </div>
+
+            <p>On-policy 的一个直接后果是：TD 目标 $R_t + \gamma\,Q(S_{t+1}, A_{t+1})$ 中的 $A_{t+1}$ 是 $\varepsilon$-greedy 实际选出的动作，包括偶尔的随机探索。如果碰巧选了一个差的探索动作，这个"坏选择"的后果会被反映在 TD 目标中，拉低当前 $(S_t, A_t)$ 的 $Q$ 值。因此 SARSA 学到的 $Q$ 值不是最优策略的，而是 $\varepsilon$-greedy 策略自身的。</p>
+
+            <!-- ==================== SARSA 算法 ==================== -->
+            <h2>SARSA 算法</h2>
+
+            <div class="algo-box">
+                <div class="algo-title">SARSA 算法</div>
+                <ol>
+                    <li>初始化 $Q(s, a)$ 为任意值（如全0），对所有 $s \in \mathcal{S}$，$a \in \mathcal{A}(s)$</li>
+                    <li>对每个回合（episode）：
+                        <ol type="a">
+                            <li>初始化状态 $S_0$</li>
+                            <li>根据 $\varepsilon$-greedy 从 $Q$ 中选择动作 $A_0$</li>
+                            <li>对 $t = 0, 1, 2, \ldots$（直到回合结束）：
+                                <ol type="i">
+                                    <li>执行动作 $A_t$，观察奖励 $R_t$ 和下一状态 $S_{t+1}$</li>
+                                    <li>根据 $\varepsilon$-greedy 从 $Q$ 中选择 $A_{t+1}$</li>
+                                    <li>$Q(S_t, A_t) \leftarrow Q(S_t, A_t) + \alpha\,[R_t + \gamma\,Q(S_{t+1}, A_{t+1}) - Q(S_t, A_t)]$</li>
+                                    <li>$S_t \leftarrow S_{t+1}$，$A_t \leftarrow A_{t+1}$</li>
+                                </ol>
+                            </li>
+                        </ol>
+                    </li>
+                </ol>
+                <div class="algo-note">注意步骤 (ii)：$A_{t+1}$ 由 $\varepsilon$-greedy 选出后，既用于计算 TD 目标（步骤 iii，评估），又作为下一步实际执行的动作（步骤 iv，改善）。评估和改善共用同一个策略，这正是 on-policy 和 GPI 的体现。</div>
+            </div>
+
+            <!-- ==================== 例子 ==================== -->
+            <h3>例子：网约车司机的SARSA学习</h3>
+
+            <p>继续使用网约车MDP（3个状态、6个状态-动作对），用SARSA算法从零开始学习 $Q$ 值。设 $\gamma = 0.9$，$\alpha = 0.1$，$\varepsilon = 0.1$。每步更新按公式(1.6-1)进行：</p>
+
+            $$Q(\underbrace{S_t}_{\text{当前状态}},\, \underbrace{A_t}_{\text{当前动作}}) \;\leftarrow\; Q(S_t, A_t) \;+\; \underbrace{\alpha}_{0.1} \Big[\, \underbrace{R_t}_{\text{即时奖励}} + \underbrace{\gamma}_{0.9}\, Q(\underbrace{S_{t+1}}_{\text{下一状态}},\, \underbrace{A_{t+1}}_{\text{下一动作}}) - Q(S_t, A_t) \,\Big]$$
+
+            <p>其中 $S_{t+1}$ 和 $R_t$ 是执行 $A_t$ 后从环境<strong>采样</strong>得到的（乘客去哪、车费多少由概率决定），$A_{t+1}$ 是 $\varepsilon$-greedy 根据当前 $Q$ 值表选出的。点击下方按钮逐步观察每一步的更新。</p>
+
+            <!-- ==================== 逐步手算演示 ==================== -->
+            <div style="border:2px solid var(--border-color); border-radius:8px; padding:1.2rem; margin:1.5rem 0; background:#fafafa;">
+                <div style="font-weight:700; color:var(--accent-color); margin-bottom:0.6rem; font-size:1.05rem;">逐步演示：SARSA 的更新过程</div>
+
+                <!-- 轨迹 -->
+                <div class="hc-path" id="hc-path"><span class="hc-cur">$c$</span>（市中心）</div>
+
+                <!-- Q值表 -->
+                <table class="trans-table" style="margin-bottom:0.8rem;">
+                    <thead><tr><th>状态</th><th>$Q(\cdot,$ 接单$)$</th><th>$Q(\cdot,$ 空驶$)$</th></tr></thead>
+                    <tbody>
+                        <tr><td>市中心 ($c$)</td><td id="hc-c-a0" class="q-cell">0.00</td><td id="hc-c-a1" class="q-cell">0.00</td></tr>
+                        <tr><td>郊区 ($b$)</td><td id="hc-b-a0" class="q-cell">0.00</td><td id="hc-b-a1" class="q-cell">0.00</td></tr>
+                        <tr><td>机场 ($a$)</td><td id="hc-a-a0" class="q-cell">0.00</td><td id="hc-a-a1" class="q-cell">0.00</td></tr>
+                    </tbody>
+                </table>
+
+                <!-- 步骤展示区 -->
+                <div id="hc-steps"></div>
+
+                <div style="text-align:center; margin-top:0.8rem; display:flex; gap:0.5rem; justify-content:center;">
+                    <button id="hc-back" onclick="_hcBack()" style="padding:0.4rem 1rem; border:1px solid #a0aec0; background:white; color:#a0aec0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.9rem;" disabled>← 上一步</button>
+                    <button id="hc-btn" onclick="_hcNext()" style="padding:0.4rem 1.2rem; border:1px solid #2b6cb0; background:white; color:#2b6cb0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.9rem;">下一步 →</button>
+                    <button id="hc-reset" onclick="_hcReset()" style="padding:0.4rem 1rem; border:1px solid #a0aec0; background:white; color:#a0aec0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.9rem;">重置</button>
+                </div>
+            </div>
+
+            <!-- ==================== 完整交互演示 ==================== -->
+            <div id="sa-full-demo" style="border:2px solid var(--border-color); border-radius:8px; padding:1.2rem; margin:1.5rem 0; background:#fafafa;">
+                <div style="font-weight:700; color:var(--accent-color); margin-bottom:0.6rem; font-size:1.05rem;">交互演示：SARSA 学习 $Q$ 值</div>
+                <div class="rl-ctrl">
+                    <button onclick="_saOneStep()">单步</button>
+                    <button id="sa-auto-btn" onclick="_saAuto()">自动运行</button>
+                    <button onclick="_saFast()">快进1000步</button>
+                    <button onclick="_saReset()">重置</button>
+                </div>
+
+                <div class="demo-layout">
+                    <!-- 左侧：状态图 -->
+                    <div class="demo-svg-wrap">
+                        <svg id="sa-svg" viewBox="0 0 280 185" style="width:260px;height:175px;">
+                            <line id="sa-edge-bc" x1="60" y1="130" x2="140" y2="35" stroke="#b0b8c4" stroke-width="2" stroke-linecap="round"/>
+                            <line id="sa-edge-ac" x1="220" y1="130" x2="140" y2="35" stroke="#b0b8c4" stroke-width="2" stroke-linecap="round"/>
+                            <line id="sa-edge-ab" x1="60" y1="130" x2="220" y2="130" stroke="#b0b8c4" stroke-width="2" stroke-linecap="round"/>
+                            <path id="sa-loop-c" d="M118,28 A22,18 0 1,1 118,42" fill="none" stroke="#b0b8c4" stroke-width="2" stroke-linecap="round"/>
+                            <path id="sa-loop-b" d="M38,123 A22,18 0 1,1 38,137" fill="none" stroke="#b0b8c4" stroke-width="2" stroke-linecap="round"/>
+                            <circle id="sa-sc" cx="140" cy="35" r="22" fill="white" stroke="#2d3748" stroke-width="2"/>
+                            <circle id="sa-sb" cx="60" cy="130" r="22" fill="white" stroke="#2d3748" stroke-width="2"/>
+                            <circle id="sa-sa" cx="220" cy="130" r="22" fill="white" stroke="#2d3748" stroke-width="2"/>
+                            <text x="140" y="41" text-anchor="middle" font-size="18" font-style="italic" font-weight="600" fill="#2d3748">c</text>
+                            <text x="140" y="4" text-anchor="middle" font-size="12" fill="#718096">市中心</text>
+                            <text x="60" y="136" text-anchor="middle" font-size="18" font-style="italic" font-weight="600" fill="#2d3748">b</text>
+                            <text x="60" y="166" text-anchor="middle" font-size="12" fill="#718096">郊区</text>
+                            <text x="220" y="136" text-anchor="middle" font-size="18" font-style="italic" font-weight="600" fill="#2d3748">a</text>
+                            <text x="220" y="166" text-anchor="middle" font-size="12" fill="#718096">机场</text>
+                        </svg>
+                        <div style="text-align:center; font-size:0.8rem; color:#718096;">图 1.6-1：智能体在三个状态间的转移</div>
+                    </div>
+
+                    <!-- 右侧：Q值表（含 Q* 参考） -->
+                    <div class="demo-table-wrap">
+                        <table class="trans-table" style="width:100%;">
+                            <thead>
+                                <tr><th>状态</th><th>$Q(\cdot,$ 接单$)$</th><th>$Q^*$</th><th>$Q(\cdot,$ 空驶$)$</th><th>$Q^*$</th><th>最优</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>$c$</td><td id="sa-q-c-a0" class="q-cell">0.0</td><td class="q-ref">56.3</td><td id="sa-q-c-a1" class="q-cell">0.0</td><td class="q-ref">50.0</td><td id="sa-p-c">—</td></tr>
+                                <tr><td>$b$</td><td id="sa-q-b-a0" class="q-cell">0.0</td><td class="q-ref">46.9</td><td id="sa-q-b-a1" class="q-cell">0.0</td><td class="q-ref">47.7</td><td id="sa-p-b">—</td></tr>
+                                <tr><td>$a$</td><td id="sa-q-a-a0" class="q-cell">0.0</td><td class="q-ref">60.0</td><td id="sa-q-a-a1" class="q-cell">0.0</td><td class="q-ref">45.7</td><td id="sa-p-a">—</td></tr>
+                            </tbody>
+                        </table>
+                        <div style="font-size:0.78rem; color:#a0aec0; text-align:center;">灰色 $Q^*$ 列为1.4.2节 $Q$ 值迭代求得的最优值</div>
+                    </div>
+                </div>
+
+                <div class="demo-log" id="sa-log"></div>
+                <div class="rl-info" id="sa-info">已更新 <strong>0</strong> 步 &nbsp;|&nbsp; 当前位置：<span id="sa-pos">市中心(c)</span></div>
+                <div style="font-size:0.85rem; color:#718096; margin-top:0.5rem; line-height:1.6;">快进至收敛后，$Q$ 值始终低于灰色 $Q^*$ 列。这是固定 $\varepsilon$ 的必然结果：SARSA 收敛到的是 $Q^{\pi_\varepsilon}$（$\varepsilon$-greedy 策略自身的值），而非 $Q^*$。详见下方"收敛性"一节的讨论。</div>
+            </div>
+
+<pre><code class="language-python">import numpy as np
+gamma, alpha, epsilon = 0.9, 0.1, 0.1
+T = {
+    'c': {'接单': {'c':(.5,5),'b':(.3,8),'a':(.2,12)}, '空驶去机场': {'a':(1,-4)}},
+    'b': {'接单': {'c':(.1,5),'b':(.8,1),'a':(.1,8)}, '空驶去市中心': {'c':(1,-3)}},
+    'a': {'接单': {'c':(.6,14),'b':(.4,10)}, '空驶去市中心': {'c':(1,-5)}}
+}
+def step(s, action):
+    trans = T[s][action]
+    r, cum = np.random.random(), 0
+    for s_next, (p, reward) in trans.items():
+        cum += p
+        if r &lt; cum: return s_next, reward
+    return s_next, reward
+
+def eps_greedy(s, Q):
+    acts = list(T[s].keys())
+    if np.random.random() &lt; epsilon:
+        return np.random.choice(acts)
+    return max(acts, key=lambda a: Q[s][a])
+
+Q = {s: {a: 0.0 for a in T[s]} for s in T}
+for ep in range(10000):
+    s = ['c', 'b', 'a'][ep % 3]
+    a = eps_greedy(s, Q)              # 选初始动作
+    for _ in range(200):
+        s2, R = step(s, a)
+        a2 = eps_greedy(s2, Q)        # 选下一动作 A'（on-policy）
+        Q[s][a] += alpha * (R + gamma * Q[s2][a2] - Q[s][a])   # SARSA 更新
+        s, a = s2, a2                 # S ← S', A ← A'
+
+for s in T:
+    for a in T[s]:
+        print(f'Q({s}, {a}) = {Q[s][a]:.1f}')</code></pre>
+
+            <!-- ==================== 收敛性 ==================== -->
+            <h2>收敛性</h2>
+
+            <div class="concept-card">
+                <div class="concept-name">定理（SARSA 收敛性，Singh et al., 2000）</div>
+                <p>对于有限状态和动作的 MDP，如果满足：</p>
+                <ol style="margin:0.3rem 0 0.3rem 1.5rem; line-height:1.8;">
+                    <li>每个状态-动作对 $(s,a)$ 被访问无穷多次；</li>
+                    <li>学习率满足 Robbins-Monro 条件：$\sum_t \alpha_t(s,a) = \infty$，$\sum_t \alpha_t^2(s,a) < \infty$；</li>
+                </ol>
+                <p style="margin-top:0.5rem;">则 SARSA 的 $Q$ 值以概率1收敛到当前策略 $\pi$ 的真实动作值函数 $Q^\pi$。</p>
+            </div>
+
+            <p>直觉上，SARSA 更新可以写成</p>
+
+            $$Q_{t+1}(s,a) = (1-\alpha_t)\,Q_t(s,a) + \alpha_t\bigl[R_t + \gamma\,Q_t(S_{t+1}, A_{t+1})\bigr]$$
+
+            <p>这是一个<strong>随机逼近</strong>过程。TD 目标 $R_t + \gamma\,Q_t(S_{t+1}, A_{t+1})$ 的期望（对转移和 $A_{t+1}$ 取期望）恰好等于 $Q$ 的贝尔曼期望方程的右端，因此 SARSA 在期望意义上沿正确方向更新。Robbins-Monro 条件保证学习率既足够大（不会过早停止学习），又足够快地衰减（噪声最终被平均掉）。</p>
+
+            <h3>SARSA 收敛到什么？</h3>
+
+            <p>定理中收敛的目标是 $Q^\pi$，即当前 $\varepsilon$-greedy 策略本身的 $Q$ 值。当 $\varepsilon$ 固定不变时，$Q^{\pi_\varepsilon} \neq Q^*$，因为策略以 $\varepsilon$ 的概率执行随机动作，期望回报比最优策略低。这正是交互演示中 SARSA 的收敛值始终低于 $Q^*$ 列的原因。</p>
+
+            <p>如果让 $\varepsilon$ 随训练推进逐渐递减至0（如 $\varepsilon_t = 1/t$），同时保证每个状态-动作对仍被访问无穷多次，这种策略称为 <strong>GLIE</strong>（Greedy in the Limit with Infinite Exploration）。在 GLIE 下，同时让学习率 $\alpha$ 也递减以满足 Robbins-Monro 条件，SARSA 收敛到 $Q^*$。</p>
+
+            <h3>固定 $\varepsilon$ 训练，$\varepsilon = 0$ 部署？</h3>
+
+            <p>实践中一个常见做法是：用固定 $\varepsilon$ 训练至收敛，然后在部署时关闭探索（$\varepsilon = 0$），用纯贪心策略 $\arg\max_a Q^{\pi_\varepsilon}(s,a)$ 行动。这样得到的策略是最优的吗？</p>
+
+            <p>在网约车例子中，答案碰巧是肯定的：虽然 $Q^{\pi_\varepsilon}$ 的数值低于 $Q^*$，但每个状态下两个动作的大小关系没有改变，$\arg\max$ 排序一致。然而这并非总是成立。关键在于 $Q^{\pi_\varepsilon}$ 评估的是"执行 $a$ 之后继续用 $\varepsilon$-greedy 行动"的回报：如果某个动作本身是最优的，但后续的 $\varepsilon$ 探索会在某些路径上带来灾难性后果，$Q^{\pi_\varepsilon}$ 就会对该动作给出偏低的评价，导致排序翻转。</p>
+
+            <p>一个经典的例子是 Sutton &amp; Barto 的<strong>悬崖边走</strong>（cliff walking）问题。如下图所示，智能体在一个 $4 \times 12$ 的网格中从左下角 S 走到右下角 G，每一步可以上下左右移动，每步奖励 $-1$。底部中间一排是悬崖（灰色），踩上去奖励 $-100$ 并被送回起点 S。</p>
+
+            <div style="text-align:center; margin:1rem 0;">
+            <svg viewBox="0 0 520 210" style="width:500px; max-width:100%;">
+                <!-- 网格 -->
+                <g stroke="#cbd5e0" stroke-width="1" fill="none">
+                    <rect x="20" y="10" width="480" height="160"/>
+                    <line x1="20" y1="50" x2="500" y2="50"/>
+                    <line x1="20" y1="90" x2="500" y2="90"/>
+                    <line x1="20" y1="130" x2="500" y2="130"/>
+                    <line x1="60" y1="10" x2="60" y2="170"/><line x1="100" y1="10" x2="100" y2="170"/>
+                    <line x1="140" y1="10" x2="140" y2="170"/><line x1="180" y1="10" x2="180" y2="170"/>
+                    <line x1="220" y1="10" x2="220" y2="170"/><line x1="260" y1="10" x2="260" y2="170"/>
+                    <line x1="300" y1="10" x2="300" y2="170"/><line x1="340" y1="10" x2="340" y2="170"/>
+                    <line x1="380" y1="10" x2="380" y2="170"/><line x1="420" y1="10" x2="420" y2="170"/>
+                    <line x1="460" y1="10" x2="460" y2="170"/>
+                </g>
+                <!-- 悬崖 -->
+                <rect x="60" y="130" width="400" height="40" fill="#4a5568" fill-opacity="0.15"/>
+                <text x="260" y="155" text-anchor="middle" font-size="13" fill="#4a5568" font-weight="600">悬崖（$R = -100$，回到 S）</text>
+                <!-- S 和 G -->
+                <rect x="20" y="130" width="40" height="40" fill="#dbeafe"/>
+                <text x="40" y="155" text-anchor="middle" font-size="15" font-weight="700" fill="#2b6cb0">S</text>
+                <rect x="460" y="130" width="40" height="40" fill="#f0fff4"/>
+                <text x="480" y="155" text-anchor="middle" font-size="15" font-weight="700" fill="#276749">G</text>
+                <!-- 最优路径（蓝色，沿悬崖边） -->
+                <polyline points="40,150 40,130 80,130 120,130 160,130 200,130 240,130 280,130 320,130 360,130 400,130 440,130 480,130 480,150"
+                    fill="none" stroke="#2b6cb0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6,3"/>
+                <!-- SARSA路径（红色，绕远路） -->
+                <polyline points="40,150 40,110 40,70 40,30 80,30 120,30 160,30 200,30 240,30 280,30 320,30 360,30 400,30 440,30 480,30 480,70 480,110 480,150"
+                    fill="none" stroke="#c53030" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- 跌落示意 -->
+                <line x1="200" y1="130" x2="200" y2="148" stroke="#c53030" stroke-width="1.5" stroke-dasharray="3,2" stroke-linecap="round"/>
+                <text x="200" y="175" text-anchor="middle" font-size="10" fill="#c53030">随机跌落</text>
+                <!-- 图例 -->
+                <line x1="30" y1="195" x2="55" y2="195" stroke="#2b6cb0" stroke-width="2.5" stroke-dasharray="6,3" stroke-linecap="round"/>
+                <text x="60" y="199" font-size="11" fill="#4a5568">最优路径（沿悬崖边，最短）</text>
+                <line x1="250" y1="195" x2="275" y2="195" stroke="#c53030" stroke-width="2.5" stroke-linecap="round"/>
+                <text x="280" y="199" font-size="11" fill="#4a5568">SARSA 学到的路径（绕远，但安全）</text>
+            </svg>
+            <div style="font-size:0.8rem; color:#718096;">图 1.6-2：悬崖边走问题。最优路径沿悬崖边走（蓝色虚线），但 $\varepsilon$-greedy 在悬崖边有概率随机跌落。</div>
+            </div>
+
+            <p>最优路径沿悬崖边走（蓝色虚线），仅需13步。但 $\varepsilon$-greedy 在悬崖边的每一步都有概率随机向下跌落，触发 $-100$ 惩罚。SARSA 的 $Q^{\pi_\varepsilon}$ 会把悬崖边路径的价值评得很低（因为它评估的是"用 $\varepsilon$-greedy 走这条路"的回报，包含了跌落的风险），转而让远离悬崖的绕路（红色实线）排名更高。部署时切换到 $\varepsilon = 0$，跌落风险消失，绕路就不再是最优了。</p>
+
+            <p>网约车例子没有这个问题，因为探索的后果是温和的（最差不过多花几块钱油费），不存在类似"跌落悬崖"的不对称惩罚。如果需要保证收敛到 $Q^*$ 和最优策略，应使用递减的 $\varepsilon$。</p>
+
+            <details class="optional-reading">
+                <summary>选读：SARSA 收敛性的证明思路</summary>
+                <div class="opt-body">
+
+                <p>SARSA 的收敛性证明基于<strong>随机逼近理论</strong>（stochastic approximation）。核心思路如下。</p>
+
+                <p>定义 TD 误差 $\delta_t = R_t + \gamma\,Q_t(S_{t+1}, A_{t+1}) - Q_t(S_t, A_t)$，SARSA 更新可写为</p>
+
+                $$Q_{t+1}(s,a) = Q_t(s,a) + \alpha_t(s,a)\,\delta_t\,\mathbf{1}\{S_t=s,A_t=a\}$$
+
+                <p>要证明 $Q_t \to Q^\pi$，需要验证该过程满足 Robbins-Monro 定理的条件：</p>
+
+                <ol style="line-height:2;">
+                    <li><strong>期望方向正确。</strong>取条件期望 $\mathbb{E}[\delta_t \mid Q_t, S_t=s, A_t=a]$，利用 $A_{t+1} \sim \pi(\cdot \mid S_{t+1})$ 和 $S_{t+1} \sim P(\cdot \mid s, a)$，可以验证
+                    $$\mathbb{E}[\delta_t \mid Q_t, S_t\!=\!s, A_t\!=\!a] = \bigl(\mathcal{T}^\pi Q_t\bigr)(s,a) - Q_t(s,a)$$
+                    其中 $\mathcal{T}^\pi$ 是贝尔曼期望算子。由于 $Q^\pi$ 是 $\mathcal{T}^\pi$ 的不动点，当 $Q_t = Q^\pi$ 时期望为0，更新在均值意义上指向不动点。</li>
+
+                    <li><strong>收缩性。</strong>贝尔曼期望算子 $\mathcal{T}^\pi$ 是关于 $\|\cdot\|_\infty$ 的 $\gamma$-压缩映射，即 $\|\mathcal{T}^\pi Q_1 - \mathcal{T}^\pi Q_2\|_\infty \leq \gamma\|Q_1 - Q_2\|_\infty$。这保证了不动点的唯一性以及迭代的全局稳定性。</li>
+
+                    <li><strong>噪声条件。</strong>$\delta_t$ 与其条件期望之差 $w_t = \delta_t - \mathbb{E}[\delta_t \mid Q_t, S_t, A_t]$ 是鞅差序列，且方差有界。结合 Robbins-Monro 条件 $\sum \alpha_t^2 < \infty$，噪声的累积效应收敛到0。</li>
+                </ol>
+
+                <p>以上三个条件结合，由 Jaakkola et al. (1994) 的随机逼近定理可得 $Q_t \to Q^\pi$（a.s.）。完整证明见 Singh et al., <em>Convergence Results for Single-Step On-Policy Reinforcement-Learning Algorithms</em>, Machine Learning, 2000。</p>
+
+                </div>
+            </details>
+
+            <div class="chapter-nav">
+                <a href="../ch01/1.5.2.html">&larr; 1.5.2 时序差分学习</a>
+                <a href="../ch01/1.6.2.html">1.6.2 Q-learning &rarr;</a>
+            </div>
+        </main>
+    </div>
+
+    <!-- ==================== 逐步手算 + 完整演示 JS ==================== -->
+    <script>
+    /* ===== 逐步手算演示 ===== */
+    (function(){
+        var hcIdx = 0;
+        var initPath = '<span class="hc-cur">$c$</span>（市中心）';
+        var pathParts = [initPath];
+        // Q-table snapshots: [before step 0, after step 0, after step 1, ...]
+        // Each snapshot: {id: val, ...}
+        var qSnapshots = [{'hc-c-a0':0,'hc-c-a1':0,'hc-b-a0':0,'hc-b-a1':0,'hc-a-a0':0,'hc-a-a1':0}];
+
+        var hcSteps = [
+            {
+                cls: 'update-step',
+                html: '<div class="step-head">第0步：$S_0 = c$，$\\varepsilon$-greedy：$Q(c,\\cdot) = 0$，随机选 → $A_0$ = 接单</div>'
+                    + '执行接单，采样得到乘客去郊区：$R_0 = 8$，$S_1 = b$<br>'
+                    + '选下一动作：$Q(b,\\cdot) = 0$，随机选 → $A_1$ = 接单<br>'
+                    + '$Q(\\underbrace{c}_{S_0}, \\underbrace{\\text{接单}}_{A_0}) \\leftarrow 0 + 0.1\\times[\\underbrace{8}_{R_0} + 0.9\\times \\underbrace{0}_{Q(S_1,A_1)} - 0] = \\boldsymbol{0.8}$',
+                upd: {id:'hc-c-a0', val:0.80},
+                path: ' <span class="hc-arrow">→</span> <span style="font-size:0.8em;color:#718096;">接单, $R$=8</span> <span class="hc-arrow">→</span> <span class="hc-cur">$b$</span>（郊区）'
+            },
+            {
+                cls: 'update-step',
+                html: '<div class="step-head">第1步：$S_1 = b$，$A_1$ = 接单（上一步选出的 $A_{t+1}$）</div>'
+                    + '执行接单，采样得到乘客留在郊区：$R_1 = 1$，$S_2 = b$<br>'
+                    + '选下一动作：$Q(b,\\text{接单}) = 0$，$Q(b,\\text{空驶}) = 0$，随机选 → $A_2$ = 空驶去市中心<br>'
+                    + '$Q(\\underbrace{b}_{S_1}, \\underbrace{\\text{接单}}_{A_1}) \\leftarrow 0 + 0.1\\times[\\underbrace{1}_{R_1} + 0.9\\times \\underbrace{0}_{Q(S_2,A_2)} - 0] = \\boldsymbol{0.1}$',
+                upd: {id:'hc-b-a0', val:0.10},
+                path: ' <span class="hc-arrow">→</span> <span style="font-size:0.8em;color:#718096;">接单, $R$=1</span> <span class="hc-arrow">→</span> <span class="hc-cur">$b$</span>（郊区）'
+            },
+            {
+                cls: 'update-step',
+                html: '<div class="step-head">第2步：$S_2 = b$，$A_2$ = 空驶去市中心</div>'
+                    + '空驶是确定性转移：$R_2 = -3$，$S_3 = c$<br>'
+                    + '选下一动作：$Q(c,\\text{接单}) = 0.8 > Q(c,\\text{空驶}) = 0$，$\\varepsilon$-greedy → $A_3$ = 接单<br>'
+                    + '$Q(\\underbrace{b}_{S_2}, \\underbrace{\\text{空驶}}_{A_2}) \\leftarrow 0 + 0.1\\times[\\underbrace{-3}_{R_2} + 0.9\\times \\underbrace{0.8}_{Q(S_3,A_3)} - 0] = \\boldsymbol{-0.23}$',
+                upd: {id:'hc-b-a1', val:-0.23},
+                path: ' <span class="hc-arrow">→</span> <span style="font-size:0.8em;color:#718096;">空驶, $R$=-3</span> <span class="hc-arrow">→</span> <span class="hc-cur">$c$</span>（市中心）'
+            },
+            {
+                cls: 'onpolicy-note',
+                html: '<strong>On-policy 的含义。</strong>第2步的 TD 目标使用了 $Q(c,\\text{接单}) = 0.8$，因为 $A_3$ = 接单是 $\\varepsilon$-greedy 在 $c$ 实际选出的动作。假设 $\\varepsilon$-greedy 碰巧以 $\\varepsilon/2$ 的概率选了空驶（$Q$ 值为0），TD 目标会变为 $-3 + 0.9\\times 0 = -3$，更新结果完全不同。这正是 on-policy 的含义：更新结果取决于智能体<strong>实际的行动选择</strong>。',
+                upd: null,
+                path: null
+            },
+            {
+                cls: 'update-step',
+                html: '<div class="step-head">第3步：$S_3 = c$，$A_3$ = 接单</div>'
+                    + '执行接单，采样得到乘客去机场：$R_3 = 12$，$S_4 = a$<br>'
+                    + '选下一动作：$Q(a,\\cdot) = 0$，随机选 → $A_4$ = 接单<br>'
+                    + '$Q(\\underbrace{c}_{S_3}, \\underbrace{\\text{接单}}_{A_3}) \\leftarrow 0.8 + 0.1\\times[\\underbrace{12}_{R_3} + 0.9\\times \\underbrace{0}_{Q(S_4,A_4)} - 0.8] = \\boldsymbol{1.92}$',
+                upd: {id:'hc-c-a0', val:1.92},
+                path: ' <span class="hc-arrow">→</span> <span style="font-size:0.8em;color:#718096;">接单, $R$=12</span> <span class="hc-arrow">→</span> <span class="hc-cur">$a$</span>（机场）'
+            }
+        ];
+
+        function $(id){ return document.getElementById(id); }
+
+        function renderQ(snap) {
+            for (var id in snap) {
+                $(id).textContent = snap[id].toFixed(2);
+            }
+        }
+
+        function updateButtons() {
+            var backBtn = $('hc-back');
+            backBtn.disabled = (hcIdx === 0);
+            backBtn.style.color = hcIdx === 0 ? '#a0aec0' : '#2b6cb0';
+            backBtn.style.borderColor = hcIdx === 0 ? '#a0aec0' : '#2b6cb0';
+            var nextBtn = $('hc-btn');
+            nextBtn.textContent = hcIdx >= hcSteps.length ? '进入完整演示 ↓' : '下一步 →';
+        }
+
+        window._hcNext = function(){
+            if (hcIdx >= hcSteps.length) {
+                $('sa-full-demo').scrollIntoView({behavior:'smooth'});
+                return;
+            }
+            var step = hcSteps[hcIdx];
+
+            // Append step div
+            var div = document.createElement('div');
+            div.className = step.cls;
+            div.setAttribute('data-hc-idx', hcIdx);
+            div.innerHTML = step.html;
+            div.style.opacity = '0';
+            $('hc-steps').appendChild(div);
+            requestAnimationFrame(function(){
+                div.style.transition = 'opacity 0.3s ease';
+                div.style.opacity = '1';
+            });
+
+            // Save Q snapshot and update Q-table
+            var prevSnap = qSnapshots[qSnapshots.length - 1];
+            var newSnap = {};
+            for (var k in prevSnap) newSnap[k] = prevSnap[k];
+            if (step.upd) {
+                newSnap[step.upd.id] = step.upd.val;
+                var cell = $(step.upd.id);
+                cell.textContent = step.upd.val.toFixed(2);
+                cell.style.transition = 'none';
+                cell.style.backgroundColor = '#fefcbf';
+                setTimeout(function(){
+                    cell.style.transition = 'background-color 0.8s ease';
+                    cell.style.backgroundColor = '';
+                }, 100);
+            }
+            qSnapshots.push(newSnap);
+
+            // Update path
+            if (step.path) {
+                pathParts.push(step.path);
+                $('hc-path').innerHTML = pathParts.join('');
+            }
+
+            // Re-render KaTeX
+            if (window.renderMathInElement) {
+                renderMathInElement(div, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+                renderMathInElement($('hc-path'), {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+            }
+
+            hcIdx++;
+            updateButtons();
+        };
+
+        window._hcBack = function(){
+            if (hcIdx <= 0) return;
+            hcIdx--;
+
+            // Remove last step div
+            var container = $('hc-steps');
+            var last = container.querySelector('[data-hc-idx="' + hcIdx + '"]');
+            if (last) container.removeChild(last);
+
+            // Pop Q snapshot, restore previous
+            qSnapshots.pop();
+            renderQ(qSnapshots[qSnapshots.length - 1]);
+
+            // Restore path
+            if (hcSteps[hcIdx].path) {
+                pathParts.pop();
+                $('hc-path').innerHTML = pathParts.join('');
+                if (window.renderMathInElement) {
+                    renderMathInElement($('hc-path'), {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+                }
+            }
+
+            updateButtons();
+        };
+
+        window._hcReset = function(){
+            hcIdx = 0;
+            pathParts = [initPath];
+            qSnapshots = [{'hc-c-a0':0,'hc-c-a1':0,'hc-b-a0':0,'hc-b-a1':0,'hc-a-a0':0,'hc-a-a1':0}];
+            $('hc-steps').innerHTML = '';
+            $('hc-path').innerHTML = initPath;
+            renderQ(qSnapshots[0]);
+            if (window.renderMathInElement) {
+                renderMathInElement($('hc-path'), {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+            }
+            updateButtons();
+        };
+
+        updateButtons();
+    })();
+
+    /* ===== 完整交互演示 ===== */
+    (function(){
+        var GM = 0.9, AL = 0.1, EPS = 0.1;
+        var T = {
+            c: { a0: {c:[.5,5], b:[.3,8], a:[.2,12]}, a1: {a:[1,-4]} },
+            b: { a0: {c:[.1,5], b:[.8,1], a:[.1,8]}, a1: {c:[1,-3]} },
+            a: { a0: {c:[.6,14], b:[.4,10]}, a1: {c:[1,-5]} }
+        };
+        var SN = {c:'市中心', b:'郊区', a:'机场'};
+        var AN = {c:{a0:'接单',a1:'空驶去机场'}, b:{a0:'接单',a1:'空驶去市中心'}, a:{a0:'接单',a1:'空驶去市中心'}};
+
+        var Q, steps, curS, curA, logs, autoId;
+
+        function $(id){ return document.getElementById(id); }
+
+        function sample(s, act) {
+            var tr = T[s][act], r = Math.random(), cum = 0;
+            for (var k in tr) { cum += tr[k][0]; if (r < cum) return {ns:k, rw:tr[k][1]}; }
+            return {ns:k, rw:tr[k][1]};
+        }
+
+        function eg(s) {
+            if (Math.random() < EPS) return Math.random() < 0.5 ? 'a0' : 'a1';
+            return Q[s].a0 >= Q[s].a1 ? 'a0' : 'a1';
+        }
+
+        function doStep(silent) {
+            var res = sample(curS, curA);
+            var ns = res.ns, rw = res.rw;
+            var na = eg(ns);
+            var oldQ = Q[curS][curA];
+            var td = rw + GM * Q[ns][na] - Q[curS][curA];
+            Q[curS][curA] += AL * td;
+            var updS = curS, updA = curA;
+            if (!silent) {
+                logs.unshift({ step:steps, s:curS, a:curA, r:rw, sp:ns, ap:na, oldQ:oldQ, newQ:Q[curS][curA], td:td });
+                if (logs.length > 5) logs.pop();
+            }
+            curS = ns; curA = na; steps++;
+            return {from:updS, to:ns, updS:updS, updA:updA};
+        }
+
+        function flashCell(s, a) {
+            var cell = $('sa-q-' + s + '-' + a);
+            cell.style.transition = 'none';
+            cell.style.backgroundColor = '#fefcbf';
+            setTimeout(function(){ cell.style.transition = 'background-color 0.6s ease'; cell.style.backgroundColor = ''; }, 50);
+        }
+
+        function updateSVG(from, to) {
+            ['bc','ac','ab'].forEach(function(e){ var el=$('sa-edge-'+e); if(el){el.setAttribute('stroke','#b0b8c4');el.setAttribute('stroke-width','2');} });
+            var lc=$('sa-loop-c'),lb=$('sa-loop-b');
+            if(lc){lc.setAttribute('stroke','#b0b8c4');lc.setAttribute('stroke-width','2');}
+            if(lb){lb.setAttribute('stroke','#b0b8c4');lb.setAttribute('stroke-width','2');}
+            if(from===to){var lp=$('sa-loop-'+from);if(lp){lp.setAttribute('stroke','#2b6cb0');lp.setAttribute('stroke-width','3');}}
+            else{var pair=[from,to].sort().join('');var el=$('sa-edge-'+pair);if(el){el.setAttribute('stroke','#2b6cb0');el.setAttribute('stroke-width','3');}}
+            ['c','b','a'].forEach(function(st){var ci=$('sa-s'+st);if(st===to){ci.setAttribute('fill','#dbeafe');ci.setAttribute('stroke','#2b6cb0');ci.setAttribute('stroke-width','3');}else{ci.setAttribute('fill','white');ci.setAttribute('stroke','#2d3748');ci.setAttribute('stroke-width','2');}});
+        }
+
+        function updateUI(info) {
+            ['c','b','a'].forEach(function(s){
+                $('sa-q-'+s+'-a0').textContent=Q[s].a0.toFixed(1);
+                $('sa-q-'+s+'-a1').textContent=Q[s].a1.toFixed(1);
+                var best=Q[s].a0>=Q[s].a1?'a0':'a1';
+                $('sa-q-'+s+'-a0').style.fontWeight=best==='a0'?'700':'';$('sa-q-'+s+'-a0').style.color=best==='a0'?'#276749':'';
+                $('sa-q-'+s+'-a1').style.fontWeight=best==='a1'?'700':'';$('sa-q-'+s+'-a1').style.color=best==='a1'?'#276749':'';
+                $('sa-p-'+s).textContent=AN[s][best];
+            });
+            if(info&&info.updS) flashCell(info.updS,info.updA);
+            if(info&&info.from!==undefined) updateSVG(info.from,info.to);
+            // Log
+            var h='';
+            for(var i=0;i<logs.length;i++){var e=logs[i];var sign=e.td>=0?'+':'';
+                h+='<div class="log-entry"><span class="log-step">第'+e.step+'步</span>：'
+                    +SN[e.s]+'·'+AN[e.s][e.a]+' → R='+e.r+'，'+SN[e.sp]+'·'+AN[e.sp][e.ap]
+                    +'<br>Q('+SN[e.s]+','+AN[e.s][e.a]+'): '+e.oldQ.toFixed(2)+' → '+e.newQ.toFixed(2)
+                    +' <span class="log-delta">(TD误差: '+sign+e.td.toFixed(2)+')</span></div>';}
+            $('sa-log').innerHTML=h;
+            $('sa-info').innerHTML='已更新 <strong>'+steps+'</strong> 步 &nbsp;|&nbsp; 当前位置：'+SN[curS]+'('+curS+')';
+        }
+
+        function reset(){
+            Q={c:{a0:0,a1:0},b:{a0:0,a1:0},a:{a0:0,a1:0}};
+            steps=0;curS='c';curA=eg('c');logs=[];
+            if(autoId){clearInterval(autoId);autoId=null;}
+            var btn=$('sa-auto-btn');if(btn){btn.textContent='自动运行';btn.classList.remove('active');}
+            updateSVG('c','c');updateUI();
+        }
+
+        window._saOneStep=function(){var info=doStep(false);updateUI(info);};
+        window._saAuto=function(){
+            var btn=$('sa-auto-btn');
+            if(autoId){clearInterval(autoId);autoId=null;btn.textContent='自动运行';btn.classList.remove('active');}
+            else{autoId=setInterval(function(){var info=doStep(false);updateUI(info);},300);btn.textContent='暂停';btn.classList.add('active');}
+        };
+        window._saFast=function(){for(var i=0;i<1000;i++)doStep(true);var info=doStep(false);updateUI(info);};
+        window._saReset=reset;
+        reset();
+    })();
+    </script>
+</body>
+</html>

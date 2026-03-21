@@ -9,6 +9,27 @@
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .trans-table { width: auto; border-collapse: collapse; margin: 1rem auto; font-size: 0.95rem; }
+        .trans-table th, .trans-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: center; }
+        .trans-table th { background: var(--primary-color); color: white; }
+        .trans-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .derivation { background: var(--sidebar-bg); padding: 1.2rem 1.5rem; border-radius: 6px; margin: 1.5rem 0; }
+        .derivation .step-label { font-weight: 600; color: var(--accent-color); margin-bottom: 0.3rem; }
+        .demo-container { border: 2px solid var(--border-color); border-radius: 8px; padding: 1.5rem; margin: 2rem 0; background: #fafafa; }
+        .demo-container .demo-title { font-weight: 700; color: var(--accent-color); margin-bottom: 0.3rem; font-size: 1.05rem; }
+        .demo-ctrl { display:flex; gap:1.2rem; flex-wrap:wrap; align-items:center; margin-bottom:1rem; font-size:0.9rem; }
+        .demo-ctrl label { display:flex; align-items:center; gap:0.3rem; cursor:pointer; }
+        .demo-ctrl button { padding:0.3rem 0.7rem; border:1px solid var(--accent-color); background:white; color:var(--accent-color); border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.84rem; transition:all 0.15s; }
+        .demo-ctrl button:hover { background:var(--accent-color); color:white; }
+        .demo-row { display:flex; gap:1.5rem; flex-wrap:wrap; margin:0.8rem 0; }
+        .demo-panel { min-width:280px; }
+        .demo-panel-title { font-weight:600; color:var(--primary-color); font-size:0.9rem; margin-bottom:0.4rem; }
+        .demo-info { background:#ebf4ff; border-radius:6px; padding:0.5rem 0.8rem; font-size:0.88rem; margin-top:0.8rem; line-height:1.7; }
+    </style>
+    <script defer src="../../js/code-copy.js"></script>
 </head>
 <body>
     <div class="page-wrapper">
@@ -20,13 +41,18 @@
                 <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
                 <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
                 <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
-                <li><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
-                <li><a href="../ch01/1.3.2.html">1.3.2 值函数与贝尔曼期望方程</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
                 <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
-                <li><a href="../ch01/1.5.html">1.5 不依赖模型的学习算法</a></li>
-                <li><a href="../ch01/1.6.html">1.6 策略梯度方法</a></li>
-                <li><a href="../ch01/1.7.html">1.7 例子：等红绿灯问题</a></li>
-                <li><a href="../ch01/1.8.html">1.8 例子：动态库存补货策略</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
+                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.3.html">1.5.3 SARSA与Q-learning</a></li>
+                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
+                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
                 <li class="sidebar-chapter">第二章 深度学习基础</li>
                 <li><a href="../ch02/2.1.html" class="active">2.1 从线性回归到神经网络</a></li>
                 <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
@@ -41,7 +67,8 @@
                 <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
                 <li><a href="../ch04/4.2.html">4.2 状态空间、动作空间与奖励函数的设计</a></li>
                 <li><a href="../ch04/4.3.html">4.3 决策时机与决策频率的建模</a></li>
-                <li><a href="../ch04/4.4.html">4.4 从问题特征到网络架构的选择</a></li>
+                <li><a href="../ch04/4.4.html">4.4 回合定义与时域建模</a></li>
+                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
                 <li class="sidebar-chapter">第五章 仿真器搭建</li>
                 <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
                 <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
@@ -62,10 +89,543 @@
         <main class="main-content">
             <h1>2.1 从线性回归到神经网络</h1>
 
-            <p>（内容待补充）</p>
+            <p>在管理科学中，预测是决策的基础。预测需求才能安排库存，预测供给才能调度运力。本节从一个具体的预测问题出发，解释神经网络为什么有效。我们的重点不是公式推导，而是理解神经网络到底在学什么。</p>
+
+            <!-- ==================== 预测问题 ==================== -->
+            <h2>一个预测问题：网约车需求预测</h2>
+
+            <p>某网约车平台希望预测某区域下一小时的叫车需求量。可用的特征有四个：</p>
+            <ul style="margin:0.3rem 0 1rem 2rem;">
+                <li><strong>时间</strong>：一天中的小时数（0-23），用 $\sin$ 和 $\cos$ 编码来捕捉周期性</li>
+                <li><strong>是否周末</strong>：0 或 1</li>
+                <li><strong>是否下雨</strong>：0 或 1</li>
+            </ul>
+
+            <p>真实的需求模式相当复杂：工作日有早晚两个高峰（8点和18点），周末只有一个下午高峰（15点左右）；下雨时人们更倾向于打车，但雨天对需求的放大作用在高峰时段远强于凌晨。这些模式中充满了<strong>非线性</strong>和<strong>特征交互</strong>。</p>
+
+            <!-- ==================== 线性模型的局限 ==================== -->
+            <h2>线性模型为什么不够</h2>
+
+            <p>线性回归假设输出是输入特征的加权和：</p>
+            <div class="formula-block">
+                $$\hat{y} = w_1 x_1 + w_2 x_2 + w_3 x_3 + w_4 x_4 + b \tag{2.1-1}$$
+            </div>
+            <p>其中 $x_1, x_2$ 是时间的 $\sin/\cos$ 编码，$x_3$ 是否周末，$x_4$ 是否下雨。</p>
+
+            <p>这个模型有三个根本限制：</p>
+            <ol style="margin:0.3rem 0 1rem 2rem;">
+                <li><strong>单峰限制</strong>：$\sin/\cos$ 编码只能拟合一天中的一个高峰。工作日的早晚双峰需要更高阶的特征</li>
+                <li><strong>无法区分工作日和周末的时间模式</strong>：$w_1$ 对时间的权重是固定的，不会因为周末而改变。但实际上工作日8点是高峰，周末8点并不是</li>
+                <li><strong>无法捕捉雨天的乘性效应</strong>：线性模型中下雨只能加一个常数（$w_4$），但真实世界中下雨是放大高峰需求，而不是均匀加一个量</li>
+            </ol>
+
+            <!-- ==================== 特征工程 ==================== -->
+            <h2>传统方案：手动构造特征</h2>
+
+            <p>管理科学研究者对这个问题并不陌生。传统做法是<strong>特征工程</strong>：手动构造交叉特征和非线性变换。比如加入 $x_3 \cdot x_1$（周末与时间的交互）、$x_4 \cdot x_1$（雨天与时间的交互）、$\sin(4\pi \cdot \text{hour}/24)$（捕捉双峰）等。</p>
+
+            <p>这种方法有效，但有两个问题：它依赖研究者的领域知识来决定构造什么特征；当特征维度变高或问题变复杂时，所需的交叉项数量爆炸式增长。一个自然的问题是：能否让模型<strong>自动</strong>学会构造有用的特征？</p>
+
+            <!-- ==================== 核心思想：拆开看矩阵 ==================== -->
+            <h2>神经网络：让模型自己学会构造特征</h2>
+
+            <p>这正是神经网络做的事情。一个单隐藏层的神经网络可以写成：</p>
+            <div class="formula-block">
+                $$\hat{y} = \sum_{j=1}^{m} w_j^{(2)} \cdot \text{ReLU}\!\left(\mathbf{r}_j \cdot \mathbf{x} + b_j\right) + b^{(2)} \tag{2.1-2}$$
+            </div>
+            <p>其中 $\mathbf{r}_j$ 是第一层权重矩阵 $W^{(1)} \in \mathbb{R}^{m \times n}$ 的第 $j$ 行，$w_j^{(2)}$ 是第二层的第 $j$ 个权重。</p>
+
+            <p>理解这个公式的关键，不是把它当成整体的矩阵运算，而是<strong>拆开看权重矩阵的每一行在做什么</strong>。整个网络可以分解为三步：探测、门控、汇总。</p>
+
+            <div class="derivation">
+                <div class="step-label">第一步：每一行是一个探测器</div>
+                <p>$W^{(1)}$ 的每一行 $\mathbf{r}_j \in \mathbb{R}^n$ 定义了输入空间中的一个<strong>方向</strong>。$z_j = \mathbf{r}_j \cdot \mathbf{x} + b_j$ 计算的是输入向量 $\mathbf{x}$ 在这个方向上的投影——内积越大，匹配越好。</p>
+
+                <p>用网约车的例子。假设训练后，某一行的权重为：</p>
+
+                <table class="trans-table" style="font-size:0.88rem;">
+                    <thead><tr><th></th><th>$x_1$ (sin)</th><th>$x_2$ (cos)</th><th>$x_3$ (周末)</th><th>$x_4$ (下雨)</th><th>偏置 $b$</th></tr></thead>
+                    <tbody>
+                        <tr><td>权重</td><td>$+2.1$</td><td>$-1.5$</td><td>$-3.0$</td><td>$+0.8$</td><td>$-1.2$</td></tr>
+                    </tbody>
+                </table>
+
+                <p>这一行对 $x_1$（早间时段 $\sin$ 值大）赋正权重，对 $x_3$（周末）赋大的负权重，对 $x_4$（下雨）赋正权重。来验算一下：</p>
+
+                <p><strong>工作日早上8点，下雨</strong>（$x_1 \approx 0.87$，$x_2 \approx -0.5$，周末$=0$，下雨$=1$）：</p>
+                <div class="formula-block">
+                    $$z = 2.1 \times 0.87 + (-1.5) \times (-0.5) + (-3.0) \times 0 + 0.8 \times 1 - 1.2 = +2.18 \quad \text{（正，将被激活）}$$
+                </div>
+
+                <p><strong>周末早上8点，下雨</strong>（同样的时间和天气，但周末$=1$）：</p>
+                <div class="formula-block">
+                    $$z = 2.18 + (-3.0) \times 1 = -0.82 \quad \text{（负，将被抑制）}$$
+                </div>
+
+                <p>这个神经元自动学出了一个复合特征：<strong>工作日早间 + 下雨</strong>。权重向量 $\mathbf{r}_j$ 通过内积同时检测多个条件的组合——这正是特征工程需要手动构造的交叉特征，只不过现在由训练过程自动完成。一个有 $m$ 个隐藏神经元的网络就有 $m$ 个这样的探测器，每个关注输入的不同模式。</p>
+            </div>
+
+            <div class="derivation">
+                <div class="step-label">第二步：ReLU 是门控</div>
+                <p>$h_j = \text{ReLU}(z_j) = \max(0, z_j)$。</p>
+
+                <p>从几何上看，$\mathbf{r}_j \cdot \mathbf{x} + b_j = 0$ 定义了输入空间中的一个<strong>超平面</strong>，将所有可能的输入一分为二。ReLU 只让落在正侧的输入通过：模式匹配时激活，不匹配时输出零。</p>
+
+                <p>每个神经元用自己的超平面切分输入空间。$m$ 个神经元各切一刀，把输入空间划分成了最多 $2^m$ 个区域。在每个区域内，激活的神经元组合不同，网络可以给出不同的预测。这就是为什么即使每个神经元只做线性运算加一个简单的阈值判断，整个网络却能拟合复杂的非线性函数。</p>
+            </div>
+
+            <div class="derivation">
+                <div class="step-label">第三步：输出权重决定贡献</div>
+                <p>当第 $j$ 个神经元激活时，它对预测值的贡献为 $w_j^{(2)} \times h_j$。$w_j^{(2)} > 0$ 表示检测到这个模式会增加预测需求，$w_j^{(2)} < 0$ 则降低预测需求。</p>
+
+                <p>比如，上面那个探测"工作日早高峰+下雨"的神经元，其输出权重 $w_j^{(2)} = +15$，意味着一旦被激活，预测需求大幅增加。另一个探测"凌晨+非周末"的神经元可能有 $w_j^{(2)} = -8$，将预测值拉低。整个网络的预测就是所有被激活的探测器的加权叠加：</p>
+                <div class="formula-block">
+                    $$\hat{y} = \sum_{j:\,h_j > 0} w_j^{(2)} \cdot h_j + b^{(2)} \tag{2.1-3}$$
+                </div>
+            </div>
+
+            <p>回过头看，隐藏层的每个神经元就是一个自动学出来的交叉特征。与手动特征工程相比，神经网络的优势在于：研究者不需要事先知道哪些特征交互是重要的。训练过程会自动在输入空间中搜索最有用的 $m$ 个探测方向，使得预测误差最小。</p>
+
+            <!-- ==================== 交互实验 ==================== -->
+            <div class="demo-container">
+                <div class="demo-title">交互实验：观察每个神经元如何响应</div>
+                <p style="font-size:0.92rem;margin-bottom:1rem;">下面的网络（4个输入、8个隐藏神经元、1个输出）在合成的网约车需求数据上训练完成。拖动滑块改变输入，观察哪些神经元被激活，以及它们各自对预测的贡献。</p>
+
+                <div class="demo-ctrl">
+                    <label>时间：<input type="range" id="nn-hour" min="0" max="24" step="0.5" value="8" style="width:160px;"> <span id="nn-hour-val" style="display:inline-block;min-width:3.5em;">8:00</span></label>
+                    <label><input type="checkbox" id="nn-wk"> 周末</label>
+                    <label><input type="checkbox" id="nn-rain" checked> 下雨</label>
+                    <button onclick="window._nnRetrain()">重新训练</button>
+                </div>
+
+                <div class="demo-row">
+                    <div class="demo-panel">
+                        <div class="demo-panel-title">24小时需求预测</div>
+                        <canvas id="nn-curve" width="440" height="210" style="border:1px solid #e2e8f0;border-radius:4px;background:white;"></canvas>
+                    </div>
+                    <div class="demo-panel">
+                        <div class="demo-panel-title">各神经元的贡献</div>
+                        <canvas id="nn-bars" width="310" height="210" style="border:1px solid #e2e8f0;border-radius:4px;background:white;"></canvas>
+                    </div>
+                </div>
+
+                <div style="margin-top:0.5rem;">
+                    <div class="demo-panel-title">权重矩阵（每行是一个探测方向，绿点标记当前输入下激活的神经元）</div>
+                    <canvas id="nn-weights" width="740" height="185" style="border:1px solid #e2e8f0;border-radius:4px;background:white;"></canvas>
+                </div>
+
+                <div class="demo-info" id="nn-info">页面加载后自动训练...</div>
+            </div>
+
+            <script>
+            (function(){
+            'use strict';
+            var NF=4, NH=8, PI2=6.283185307;
+
+            /* === Seeded random === */
+            var _s=1;
+            function srand(v){_s=v;}
+            function rand(){_s=(_s*16807)%2147483647;return(_s-1)/2147483646;}
+            function randn(){var u=rand()+1e-10,v=rand();return Math.sqrt(-2*Math.log(u))*Math.cos(PI2*v);}
+
+            /* === True demand function === */
+            function trueDemand(h,wk,rn){
+                var m=30*Math.exp(-(h-8)*(h-8)/4)*(1-wk);
+                var e=35*Math.exp(-(h-18)*(h-18)/4)*(1-wk);
+                var w=25*Math.exp(-(h-15)*(h-15)/8)*wk;
+                return 50+m+e+w+rn*(m+e+w)*0.4;
+            }
+
+            /* === Generate training data === */
+            function genData(n){
+                srand(12345);
+                var X=[],Y=[];
+                for(var i=0;i<n;i++){
+                    var h=rand()*24,wk=rand()>5/7?1:0,rn=rand()>0.7?1:0;
+                    X.push([Math.sin(PI2*h/24),Math.cos(PI2*h/24),wk,rn]);
+                    Y.push(trueDemand(h,wk,rn)+randn()*3);
+                }
+                return{X:X,Y:Y};
+            }
+
+            /* === Model === */
+            var W1=[],b1=[],W2=[],b2=0;
+            function fwd(x){
+                var z=[],h=[];
+                for(var j=0;j<NH;j++){
+                    z[j]=b1[j];
+                    for(var i=0;i<NF;i++)z[j]+=W1[j][i]*x[i];
+                    h[j]=z[j]>0?z[j]:0;
+                }
+                var y=b2;
+                for(var j=0;j<NH;j++)y+=W2[j]*h[j];
+                return{z:z,h:h,y:y};
+            }
+            function predict(hour,wk,rn){
+                return fwd([Math.sin(PI2*hour/24),Math.cos(PI2*hour/24),wk,rn]);
+            }
+
+            /* === Helper: zero arrays === */
+            function z1(n){var a=[];for(var i=0;i<n;i++)a[i]=0;return a;}
+            function z2(m,n){var a=[];for(var i=0;i<m;i++){a[i]=[];for(var j=0;j<n;j++)a[i][j]=0;}return a;}
+
+            /* === Training with Adam === */
+            var _trainSeed=42;
+            function train(){
+                var data=genData(3000),X=data.X,Y=data.Y,N=X.length;
+                /* init weights */
+                srand(_trainSeed);
+                W1=[];b1=[];W2=[];b2=0;
+                for(var j=0;j<NH;j++){
+                    W1[j]=[];
+                    for(var i=0;i<NF;i++)W1[j][i]=randn()*0.3;
+                    b1[j]=0; W2[j]=randn()*0.3;
+                }
+                /* Adam state */
+                var lr=0.01,B1=0.9,B2=0.999,eps=1e-8;
+                var mW1=z2(NH,NF),vW1=z2(NH,NF),mb1=z1(NH),vb1=z1(NH);
+                var mW2=z1(NH),vW2=z1(NH),mb2v=0,vb2v=0;
+
+                for(var ep=1;ep<=300;ep++){
+                    var gW1=z2(NH,NF),gb1=z1(NH),gW2=z1(NH),gb2g=0;
+                    for(var d=0;d<N;d++){
+                        var out=fwd(X[d]),dy=2*(out.y-Y[d])/N;
+                        for(var j=0;j<NH;j++){
+                            gW2[j]+=dy*out.h[j];
+                            if(out.z[j]>0){
+                                var dh=dy*W2[j];
+                                for(var i=0;i<NF;i++)gW1[j][i]+=dh*X[d][i];
+                                gb1[j]+=dh;
+                            }
+                        }
+                        gb2g+=dy;
+                    }
+                    var bc1=1-Math.pow(B1,ep),bc2=1-Math.pow(B2,ep);
+                    for(var j=0;j<NH;j++){
+                        for(var i=0;i<NF;i++){
+                            mW1[j][i]=B1*mW1[j][i]+(1-B1)*gW1[j][i];
+                            vW1[j][i]=B2*vW1[j][i]+(1-B2)*gW1[j][i]*gW1[j][i];
+                            W1[j][i]-=lr*(mW1[j][i]/bc1)/(Math.sqrt(vW1[j][i]/bc2)+eps);
+                        }
+                        mb1[j]=B1*mb1[j]+(1-B1)*gb1[j];
+                        vb1[j]=B2*vb1[j]+(1-B2)*gb1[j]*gb1[j];
+                        b1[j]-=lr*(mb1[j]/bc1)/(Math.sqrt(vb1[j]/bc2)+eps);
+                        mW2[j]=B1*mW2[j]+(1-B1)*gW2[j];
+                        vW2[j]=B2*vW2[j]+(1-B2)*gW2[j]*gW2[j];
+                        W2[j]-=lr*(mW2[j]/bc1)/(Math.sqrt(vW2[j]/bc2)+eps);
+                    }
+                    mb2v=B1*mb2v+(1-B1)*gb2g;
+                    vb2v=B2*vb2v+(1-B2)*gb2g*gb2g;
+                    b2-=lr*(mb2v/bc1)/(Math.sqrt(vb2v/bc2)+eps);
+                }
+            }
+
+            /* === DOM helpers === */
+            function $(id){return document.getElementById(id);}
+
+            /* === Draw: 24h demand curve === */
+            function drawCurve(){
+                var cv=$('nn-curve'),ctx=cv.getContext('2d'),CW=cv.width,CH=cv.height;
+                ctx.clearRect(0,0,CW,CH);
+                var hour=parseFloat($('nn-hour').value);
+                var wk=$('nn-wk').checked?1:0, rn=$('nn-rain').checked?1:0;
+                var L=48,R=CW-12,T=15,B=CH-28,PW=R-L,PH=B-T;
+
+                /* compute curves */
+                var hrs=[],tY=[],pY=[],ymin=999,ymax=-999;
+                for(var h=0;h<=24;h+=0.25){
+                    hrs.push(h);
+                    var ty=trueDemand(h,wk,rn), py=predict(h,wk,rn).y;
+                    tY.push(ty); pY.push(py);
+                    ymin=Math.min(ymin,ty,py); ymax=Math.max(ymax,ty,py);
+                }
+                ymin=Math.floor(ymin/10)*10-5; ymax=Math.ceil(ymax/10)*10+5;
+                function xP(h){return L+(h/24)*PW;}
+                function yP(v){return B-((v-ymin)/(ymax-ymin))*PH;}
+
+                /* grid */
+                ctx.strokeStyle='#e2e8f0';ctx.lineWidth=0.5;
+                ctx.font='10px sans-serif';ctx.fillStyle='#a0aec0';ctx.textAlign='right';
+                for(var v=Math.ceil(ymin/10)*10;v<=ymax;v+=10){
+                    ctx.beginPath();ctx.moveTo(L,yP(v));ctx.lineTo(R,yP(v));ctx.stroke();
+                    ctx.fillText(v,L-4,yP(v)+3);
+                }
+                ctx.textAlign='center';
+                for(var h=0;h<=24;h+=6){ctx.fillText(h+':00',xP(h),B+14);}
+
+                /* true curve */
+                ctx.strokeStyle='#2b6cb0';ctx.lineWidth=2;ctx.beginPath();
+                for(var i=0;i<hrs.length;i++){var px=xP(hrs[i]),py=yP(tY[i]);i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}
+                ctx.stroke();
+
+                /* predicted curve (dashed) */
+                ctx.strokeStyle='#e53e3e';ctx.lineWidth=2;ctx.setLineDash([5,3]);ctx.beginPath();
+                for(var i=0;i<hrs.length;i++){var px=xP(hrs[i]),py=yP(pY[i]);i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}
+                ctx.stroke();ctx.setLineDash([]);
+
+                /* current hour line */
+                ctx.strokeStyle='rgba(160,174,192,0.5)';ctx.lineWidth=1;
+                ctx.beginPath();ctx.moveTo(xP(hour),T);ctx.lineTo(xP(hour),B);ctx.stroke();
+
+                /* current prediction dot */
+                var curP=predict(hour,wk,rn).y;
+                ctx.fillStyle='#e53e3e';ctx.beginPath();ctx.arc(xP(hour),yP(curP),5,0,PI2);ctx.fill();
+                ctx.fillStyle='#2b6cb0';ctx.beginPath();ctx.arc(xP(hour),yP(trueDemand(hour,wk,rn)),5,0,PI2);ctx.fill();
+
+                /* legend */
+                ctx.font='10px sans-serif';ctx.textAlign='left';
+                ctx.strokeStyle='#2b6cb0';ctx.lineWidth=2;
+                ctx.beginPath();ctx.moveTo(R-85,T+8);ctx.lineTo(R-65,T+8);ctx.stroke();
+                ctx.fillStyle='#4a5568';ctx.fillText('实际',R-62,T+11);
+                ctx.strokeStyle='#e53e3e';ctx.setLineDash([5,3]);
+                ctx.beginPath();ctx.moveTo(R-85,T+22);ctx.lineTo(R-65,T+22);ctx.stroke();
+                ctx.setLineDash([]);ctx.fillText('预测',R-62,T+25);
+            }
+
+            /* === Draw: neuron contribution bars === */
+            function drawBars(){
+                var cv=$('nn-bars'),ctx=cv.getContext('2d'),CW=cv.width,CH=cv.height;
+                ctx.clearRect(0,0,CW,CH);
+                var hour=parseFloat($('nn-hour').value);
+                var wk=$('nn-wk').checked?1:0, rn=$('nn-rain').checked?1:0;
+                var out=predict(hour,wk,rn);
+                var L=32,R=CW-55,barH=16,gap=3,topM=8,barW=R-L;
+
+                /* find max |contribution| for scaling */
+                var maxC=1;
+                for(var j=0;j<NH;j++){var c=Math.abs(W2[j]*out.h[j]);if(c>maxC)maxC=c;}
+
+                for(var j=0;j<NH;j++){
+                    var y=topM+j*(barH+gap);
+                    var contrib=W2[j]*out.h[j];
+                    var active=out.h[j]>0.001;
+                    /* label */
+                    ctx.font='11px sans-serif';ctx.textAlign='right';
+                    ctx.fillStyle=active?'#2d3748':'#a0aec0';
+                    ctx.fillText('n'+(j+1),L-5,y+barH/2+4);
+
+                    if(active){
+                        var w=Math.abs(contrib)/maxC*barW*0.85;
+                        ctx.fillStyle=contrib>=0?'#38a169':'#e53e3e';
+                        ctx.fillRect(L,y+1,w,barH-2);
+                        ctx.fillStyle='#2d3748';ctx.textAlign='left';ctx.font='10px sans-serif';
+                        ctx.fillText((contrib>=0?'+':'')+contrib.toFixed(1),L+w+4,y+barH/2+3);
+                    }else{
+                        ctx.fillStyle='#edf2f7';ctx.fillRect(L,y+1,barW*0.12,barH-2);
+                        ctx.fillStyle='#a0aec0';ctx.textAlign='left';ctx.font='10px sans-serif';
+                        ctx.fillText('沉默',L+barW*0.12+4,y+barH/2+3);
+                    }
+                }
+                /* bias + total */
+                var totalY=topM+NH*(barH+gap)+2;
+                ctx.strokeStyle='#cbd5e0';ctx.lineWidth=1;
+                ctx.beginPath();ctx.moveTo(L,totalY);ctx.lineTo(R+40,totalY);ctx.stroke();
+
+                ctx.font='10px sans-serif';ctx.textAlign='left';ctx.fillStyle='#718096';
+                ctx.fillText('偏置 b: '+b2.toFixed(1),L,totalY+14);
+
+                ctx.font='12px sans-serif';ctx.fillStyle='#2d3748';
+                ctx.fillText('预测: '+out.y.toFixed(1),L,totalY+30);
+                ctx.font='10px sans-serif';ctx.fillStyle='#718096';
+                ctx.fillText('(实际: '+trueDemand(hour,wk,rn).toFixed(1)+')',L+75,totalY+30);
+            }
+
+            /* === Draw: weight heatmap === */
+            function drawWeights(){
+                var cv=$('nn-weights'),ctx=cv.getContext('2d'),CW=cv.width,CH=cv.height;
+                ctx.clearRect(0,0,CW,CH);
+                var hour=parseFloat($('nn-hour').value);
+                var wk=$('nn-wk').checked?1:0, rn=$('nn-rain').checked?1:0;
+                var out=predict(hour,wk,rn);
+
+                var L=45,T=30,cw=68,ch=17;
+                var fLabels=['sin(h)','cos(h)','周末','下雨'];
+
+                /* max |weight| for color scale */
+                var mx=0.01;
+                for(var j=0;j<NH;j++){
+                    for(var i=0;i<NF;i++)mx=Math.max(mx,Math.abs(W1[j][i]));
+                    mx=Math.max(mx,Math.abs(W2[j]));
+                    mx=Math.max(mx,Math.abs(b1[j]));
+                }
+
+                /* column headers */
+                ctx.font='11px sans-serif';ctx.textAlign='center';ctx.fillStyle='#4a5568';
+                for(var i=0;i<NF;i++)ctx.fillText(fLabels[i],L+i*cw+cw/2,T-8);
+                ctx.fillText('偏置 b',L+NF*cw+10+cw/2,T-8);
+                ctx.fillStyle='#e53e3e';
+                ctx.fillText('w\u2082',L+(NF+1)*cw+20+cw/2,T-8);
+
+                /* separator lines */
+                ctx.strokeStyle='#cbd5e0';ctx.lineWidth=1;
+                var sx1=L+NF*cw+5;
+                ctx.beginPath();ctx.moveTo(sx1,T-3);ctx.lineTo(sx1,T+NH*ch+3);ctx.stroke();
+                var sx2=L+(NF+1)*cw+15;
+                ctx.beginPath();ctx.moveTo(sx2,T-3);ctx.lineTo(sx2,T+NH*ch+3);ctx.stroke();
+
+                for(var j=0;j<NH;j++){
+                    var y=T+j*ch;
+                    var active=out.h[j]>0.001;
+
+                    /* active indicator */
+                    if(active){
+                        ctx.fillStyle='#38a169';
+                        ctx.beginPath();ctx.arc(L-13,y+ch/2,4,0,PI2);ctx.fill();
+                    }else{
+                        ctx.fillStyle='#cbd5e0';
+                        ctx.beginPath();ctx.arc(L-13,y+ch/2,3,0,PI2);ctx.fill();
+                    }
+
+                    /* row label */
+                    ctx.fillStyle=active?'#2d3748':'#a0aec0';
+                    ctx.textAlign='right';ctx.font='10px sans-serif';
+                    ctx.fillText('n'+(j+1),L-22,y+ch/2+3);
+
+                    /* W1 cells */
+                    for(var i=0;i<NF;i++) cell(ctx,L+i*cw,y,cw-1,ch-1,W1[j][i],mx);
+                    /* b1 cell */
+                    cell(ctx,L+NF*cw+10,y,cw-1,ch-1,b1[j],mx);
+                    /* W2 cell */
+                    cell(ctx,L+(NF+1)*cw+20,y,cw-1,ch-1,W2[j],mx);
+                }
+
+                /* legend */
+                ctx.fillStyle='#a0aec0';ctx.font='9px sans-serif';ctx.textAlign='left';
+                ctx.fillText('蓝=负权重  白=零  红=正权重',L,T+NH*ch+16);
+            }
+
+            function cell(ctx,x,y,w,h,val,mx){
+                var t=Math.max(-1,Math.min(1,val/mx));
+                var r,g,b;
+                if(t>=0){r=255;g=Math.round(255-t*195);b=Math.round(255-t*195);}
+                else{var a=-t;r=Math.round(255-a*195);g=Math.round(255-a*195);b=255;}
+                ctx.fillStyle='rgb('+r+','+g+','+b+')';
+                ctx.fillRect(x,y,w,h);
+                ctx.strokeStyle='#e2e8f0';ctx.lineWidth=0.5;ctx.strokeRect(x,y,w,h);
+                ctx.fillStyle=Math.abs(t)>0.45?'white':'#4a5568';
+                ctx.font='9px sans-serif';ctx.textAlign='center';
+                ctx.fillText(val.toFixed(2),x+w/2,y+h/2+3);
+            }
+
+            /* === Info text === */
+            function updateInfo(){
+                var hour=parseFloat($('nn-hour').value);
+                var wk=$('nn-wk').checked?1:0, rn=$('nn-rain').checked?1:0;
+                var out=predict(hour,wk,rn);
+                var yt=trueDemand(hour,wk,rn);
+
+                var nAct=0,maxC=0,maxJ=0;
+                for(var j=0;j<NH;j++){
+                    if(out.h[j]>0.001){
+                        nAct++;
+                        var c=Math.abs(W2[j]*out.h[j]);
+                        if(c>maxC){maxC=c;maxJ=j;}
+                    }
+                }
+                var hh=Math.floor(hour),mm=hour%1>=0.5?'30':'00';
+                var ts=wk?'周末':'工作日';
+                var rs=rn?'，下雨':'';
+                var msg='<strong>'+ts+' '+hh+':'+mm+rs+'</strong>：';
+                msg+=nAct+'/8 个神经元被激活，预测需求 <strong>'+out.y.toFixed(1)+'</strong>（实际 '+yt.toFixed(1)+'）。';
+                if(nAct>0){
+                    var tc=W2[maxJ]*out.h[maxJ];
+                    msg+='贡献最大的是 n'+(maxJ+1)+'（'+(tc>0?'+':'')+tc.toFixed(1)+'）。';
+                }
+                $('nn-info').innerHTML=msg;
+            }
+
+            /* === Master update === */
+            function update(){drawCurve();drawBars();drawWeights();updateInfo();}
+
+            /* === Event handlers === */
+            $('nn-hour').oninput=function(){
+                var h=parseFloat(this.value),hh=Math.floor(h),mm=h%1>=0.5?'30':'00';
+                $('nn-hour-val').textContent=hh+':'+mm;
+                update();
+            };
+            $('nn-wk').onchange=update;
+            $('nn-rain').onchange=update;
+
+            /* === Init === */
+            window._nnRetrain=function(){
+                $('nn-info').innerHTML='训练中...';
+                setTimeout(function(){
+                    _trainSeed=Date.now()%100000;
+                    train();
+                    update();
+                },30);
+            };
+            /* auto-train on load */
+            setTimeout(function(){train();update();},100);
+            })();
+            </script>
+
+            <!-- ==================== 叠加 ==================== -->
+            <h2>为什么有限的神经元能表示丰富的模式</h2>
+
+            <p>$m$ 个神经元只有 $m$ 个探测方向。但真实世界中影响需求的模式远不止 $m$ 个：工作日早高峰、晚高峰、周末下午出行、雨天加成、节假日效应、大型活动、学校开学……当重要模式的数量 $N$ 远超神经元数 $m$ 时，网络怎么办？</p>
+
+            <p>答案在于两个性质。</p>
+
+            <p><strong>稀疏性。</strong>大多数模式在大多数时间是不活跃的。工作日早高峰每周只出现约10小时（占168小时的6%），大型活动更加罕见。如果两个模式几乎从不同时出现，它们可以共用同一个神经元而几乎不产生冲突。</p>
+
+            <p><strong>高维空间的几何。</strong>在低维空间中，正交方向的数量等于维度数——二维平面上只有两个互相垂直的方向。但如果放松要求，只需要<strong>近似正交</strong>（方向之间的内积接近零但不必严格为零），可用的方向会急剧增加。Johnson-Lindenstrauss 引理告诉我们，在 $N$ 维空间中，可以找到大约 $\exp(\epsilon \cdot N)$ 个两两近似正交的方向。方向的数量随维度<strong>指数增长</strong>。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">叠加（Superposition）</div>
+                <p>当特征稀疏时，神经网络可以让多个特征共用同一组神经元。每个特征对应隐藏空间中的一个方向；因为高维空间中近似正交的方向数量远超维度数，这些方向可以几乎不干扰地共存。特征的稀疏性进一步保证了同时激活时的冲突很少发生。这使得网络能用 $m$ 个神经元表示远超 $m$ 个特征。</p>
+            </div>
+
+            <p>回到网约车需求预测：真实世界的需求模式有很多，但它们大多在大部分时间不活跃。一个容量有限的隐藏层之所以能捕捉丰富的模式，正是因为叠加机制。训练过程自动完成了取舍：权衡每个模式的重要性和出现频率，决定哪些值得用专属维度表示，哪些可以叠加共享，哪些可以放弃。</p>
+
+            <!-- ==================== 训练 ==================== -->
+            <h2>训练：如何学到好的表示</h2>
+
+            <p>网络的权重从随机值开始，通过训练逐步调整为有意义的模式探测器。训练过程由三个要素组成：</p>
+
+            <div class="derivation">
+                <div class="step-label">损失函数：定义目标</div>
+                <p>衡量预测值与真实值的差距。回归问题通常用均方误差（MSE）：$\mathcal{L} = \frac{1}{N} \sum_{i=1}^{N} (\hat{y}_i - y_i)^2$。损失越小，预测越准。</p>
+            </div>
+
+            <div class="derivation">
+                <div class="step-label">梯度下降：搜索方向</div>
+                <p>计算损失对每个权重的梯度 $\frac{\partial \mathcal{L}}{\partial w}$，然后沿梯度的反方向更新权重：$w \leftarrow w - \alpha \frac{\partial \mathcal{L}}{\partial w}$。直觉上，梯度告诉我们每个权重应该往哪个方向调、调多少，才能让损失下降最快。</p>
+            </div>
+
+            <div class="derivation">
+                <div class="step-label">反向传播：高效计算梯度</div>
+                <p>从输出层向输入层逐层计算梯度（链式法则）。反向传播不是一种学习算法，而是一种高效计算梯度的技术。</p>
+            </div>
+
+            <p>训练的本质是：通过大量数据样本的反馈，逐步调整每一行权重向量的方向，使得隐藏层学到的探测器越来越好地服务于预测任务。</p>
+
+            <!-- ==================== 深度 ==================== -->
+            <h2>深度的意义：层次化的表示</h2>
+
+            <p>上面的例子只用了一个隐藏层。当我们堆叠多个隐藏层时，网络可以构建<strong>层次化的表示</strong>：第一层学到简单的模式（如时间特征），第二层将这些简单模式组合成更抽象的概念（如通勤模式），第三层再进一步组合（如高峰期雨天的需求激增模式）。这种逐层抽象的能力，正是深度网络优于浅层网络的根本原因。</p>
+
+            <p>通用近似定理保证了单隐藏层网络在理论上可以近似任何连续函数，但深度网络用更少的参数实现同等的表达能力，因为层次化组合比平面罗列高效得多。</p>
+
+            <div class="note">
+                <strong>与强化学习的联系：</strong>在第三章的深度强化学习中，神经网络将用来近似值函数 $Q(s,a)$ 或策略 $\pi(s)$。此时隐藏层学到的表示就是网络对<strong>状态</strong>的理解：哪些状态特征组合预示着高回报，哪些组合意味着危险。好的状态表示是做出好决策的前提。
+            </div>
+
+            <!-- ==================== 小结 ==================== -->
+            <h2>小结</h2>
+
+            <p>本节的核心信息是：</p>
+            <ol style="margin:0.5rem 0 1rem 2rem;">
+                <li>神经网络的本质不是矩阵乘法加激活函数，而是<strong>自动学习有用的特征</strong></li>
+                <li>第一层权重矩阵的每一行定义了一个<strong>探测方向</strong>，通过内积检测输入中的特定模式；ReLU 是门控，只在模式匹配时激活；输出权重决定每个探测器对预测的贡献</li>
+                <li>叠加机制让有限的神经元能表示远超其数量的稀疏模式，其数学基础是高维空间中近似正交方向的数量随维度指数增长</li>
+                <li>训练过程自动搜索输入空间中最有用的探测方向，不需要手动设计特征</li>
+            </ol>
+
+            <p>本节聚焦于全连接网络（MLP）。但管理科学中还有很多数据具有特殊结构：时间序列有时序依赖，交通网络有图结构。针对这些结构，研究者设计了专门的网络架构，这是后续几节的主题。</p>
 
             <div class="chapter-nav">
-                <a href="../ch01/1.8.html">&larr; 1.8 例子：动态库存补货策略</a>
+                <a href="../ch01/1.7.3.html">&larr; 1.7.3 Actor-Critic框架</a>
                 <a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络 &rarr;</a>
             </div>
         </main>

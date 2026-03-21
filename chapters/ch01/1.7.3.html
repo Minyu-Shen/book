@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1.7.3 Actor-Critic框架 - 运筹智能</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .trans-table { width: auto; border-collapse: collapse; margin: 1rem auto; font-size: 0.95rem; }
+        .trans-table th, .trans-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: center; }
+        .trans-table th { background: var(--primary-color); color: white; }
+        .trans-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .result-box { background: var(--highlight-color); border: 2px solid var(--accent-color); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; text-align: center; }
+        .algo-box { background: #f7fafc; border: 2px solid var(--accent-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .algo-box .algo-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .algo-box ol { margin: 0.3rem 0 0.3rem 1.5rem; line-height: 2; }
+        .algo-box .algo-note { font-size: 0.9rem; color: #718096; margin-top: 0.5rem; }
+        .compare-box { display: flex; gap: 1.5rem; flex-wrap: wrap; margin: 1.5rem 0; }
+        .compare-box > div { flex: 1; min-width: 200px; background: var(--sidebar-bg); padding: 1rem 1.2rem; border-radius: 8px; border-top: 3px solid var(--accent-color); }
+        .compare-box > div h4 { margin: 0 0 0.5rem 0; color: var(--primary-color); }
+        .rl-ctrl { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; margin-bottom:0.8rem; font-size:0.88rem; }
+        .rl-ctrl button { padding:0.3rem 0.7rem; border:1px solid #2b6cb0; background:white; color:#2b6cb0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.84rem; transition:all 0.15s; }
+        .rl-ctrl button:hover { background:#2b6cb0; color:white; }
+        .rl-info { background:#ebf4ff; border-radius:6px; padding:0.4rem 0.8rem; font-size:0.88rem; margin-top:0.6rem; }
+    </style>
+    <script defer src="../../js/code-copy.js"></script>
+</head>
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="book-title"><a href="../../index.html" style="text-decoration:none;color:inherit;">运筹智能</a></div>
+            <nav>
+                <ul>
+                <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
+                <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
+                <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
+                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
+                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
+                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.6.1.html">1.6.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.6.2.html">1.6.2 Q-learning</a></li>
+                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.1.html">1.7.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.2.html">1.7.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.3.html" class="active">1.7.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第二章 深度学习基础</li>
+                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
+                <li><a href="../ch03/3.2.html">3.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
+                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch04/4.2.html">4.2 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch04/4.3.html">4.3 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch04/4.4.html">4.4 回合定义与时域建模</a></li>
+                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第五章 仿真器搭建</li>
+                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch05/5.4.html">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
+                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
+                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
+                <li><a href="../ch07/7.2.html">7.2 公交串车控制</a></li>
+                <li><a href="../ch07/7.3.html">7.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第八章 进阶话题</li>
+                <li><a href="../ch08/8.1.html">8.1 多智能体强化学习</a></li>
+                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>1.7.3 Actor-Critic框架</h1>
+
+            <!-- ==================== 从广义策略迭代的视角 ==================== -->
+            <h2>从广义策略迭代的视角</h2>
+
+            <p>回顾1.4节的策略迭代算法：它交替进行两个步骤，策略评估（给定策略，计算值函数）和策略改进（根据值函数，更新策略）。事实上，本章介绍的所有方法都可以看作这一<strong>广义策略迭代</strong>（Generalized Policy Iteration, GPI）框架的不同实例。区别仅在于评估和改进各自使用什么手段：</p>
+
+            <table class="trans-table" style="width:100%;">
+                <thead>
+                    <tr><th>算法</th><th>评估（Critic）</th><th>改进（Actor）</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>策略迭代（1.4）</td><td>精确求解 $V^\pi$</td><td>贪心 $\arg\max$</td></tr>
+                    <tr><td>SARSA（1.6.1）</td><td>TD估计 $Q$</td><td>$\varepsilon$-greedy</td></tr>
+                    <tr><td>Q-learning（1.6.2）</td><td>TD估计 $Q^*$</td><td>$\varepsilon$-greedy（行为策略）</td></tr>
+                    <tr><td>REINFORCE（1.7.2）</td><td>MC回报 $G_t$（隐式）</td><td>梯度上升</td></tr>
+                    <tr><td><strong>Actor-Critic</strong></td><td><strong>TD估计 $V^\pi$</strong></td><td><strong>梯度上升</strong></td></tr>
+                </tbody>
+            </table>
+
+            <p>从表中可以看出，Actor-Critic结合了两方面的优势：它像TD方法一样用自举（bootstrapping）来评估值函数，避免了蒙特卡洛方法等到回合结束才能更新的缺点（1.5.2节已分析了这一点）；同时它像REINFORCE一样直接通过梯度上升优化参数化策略，保留了策略梯度方法的灵活性。</p>
+
+            <!-- ==================== 基线与优势函数 ==================== -->
+            <h2>基线与优势函数</h2>
+
+            <p>1.7.2节的REINFORCE算法使用蒙特卡洛回报 $G_t$ 作为策略梯度的估计信号。正如1.5.2节在预测问题中所分析的，MC回报的方差很高：即使从同一个状态出发，不同轨迹的 $G_t$ 可能相差甚远。方差大意味着梯度估计噪声大，策略参数的更新方向不稳定，收敛速度慢。</p>
+
+            <p>一个有效的降方差技巧是引入<strong>基线</strong>（baseline）。策略梯度定理告诉我们，从 $G_t$ 中减去任何仅依赖于状态 $S_t$ 的函数 $b(S_t)$，都不会改变梯度的期望值：</p>
+
+            $$\nabla_\theta J(\theta) = \mathbb{E}_\pi\left[\sum_{t=0}^{T-1} \big(G_t - b(S_t)\big) \,\nabla_\theta \ln \pi_\theta(A_t \mid S_t)\right] \tag{1.7-5}$$
+
+            <details class="optional-reading">
+                <summary>为什么减去基线不改变梯度期望？（选读）</summary>
+                <p>对于任意仅依赖 $S_t$ 的基线 $b(S_t)$，考虑被减去的项：</p>
+                $$\mathbb{E}_\pi\!\left[b(S_t)\,\nabla_\theta \ln \pi_\theta(A_t \mid S_t)\right] = \sum_s d^\pi(s)\, b(s) \sum_a \nabla_\theta \pi_\theta(a\mid s)$$
+                <p>由于 $\sum_a \pi_\theta(a \mid s) = 1$ 对所有 $\theta$ 成立，对 $\theta$ 求导得到 $\sum_a \nabla_\theta \pi_\theta(a \mid s) = 0$。因此，减去的这一项期望为零，不影响梯度的期望方向。</p>
+            </details>
+
+            <p>虽然减去 $b(S_t)$ 不改变期望，但它会改变方差。最优的基线（使方差最小的那个）接近于状态值函数 $V^\pi(S_t)$。直觉上，$V^\pi(S_t)$ 代表从状态 $S_t$ 出发的平均回报；用 $G_t - V^\pi(S_t)$ 作为梯度信号，衡量的是这次具体经历比平均水平好了多少（或差了多少），而非绝对回报的大小。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">优势函数（Advantage Function）</div>
+                <p>定义动作 $a$ 在状态 $s$ 下的优势为：</p>
+                $$A^\pi(s, a) = Q^\pi(s, a) - V^\pi(s)$$
+                <p>$A^\pi(s,a) > 0$ 表示动作 $a$ 优于当前策略的平均表现，$A^\pi(s,a) < 0$ 则相反。</p>
+            </div>
+
+            <p>在实践中，我们并不需要同时维护 $Q^\pi$ 和 $V^\pi$ 来计算优势函数。注意到 $Q^\pi(S_t, A_t)$ 的一个无偏样本就是 $R_t + \gamma V^\pi(S_{t+1})$（这正是1.5.2节TD目标的含义），因此：</p>
+
+            $$A^\pi(S_t, A_t) \approx R_t + \gamma\, V^\pi(S_{t+1}) - V^\pi(S_t) = \delta_t \tag{1.7-6}$$
+
+            <p>其中 $\delta_t$ 正是1.5.2节介绍的<strong>TD误差</strong>。这个联系非常自然：TD误差衡量的是实际获得的即时奖励加上后继状态的估值与当前状态估值之差，它恰好是优势函数的一步采样估计。当 $\delta_t > 0$，说明这一步的表现好于预期，应当增加选择该动作的概率；反之则降低。</p>
+
+            <!-- ==================== Actor-Critic算法 ==================== -->
+            <h2>Actor-Critic算法</h2>
+
+            <p>有了上面的分析，Actor-Critic的更新规则就非常清晰了。算法同时维护两组参数：</p>
+
+            <div class="compare-box">
+                <div>
+                    <h4>Critic（评论家）</h4>
+                    <p>维护状态值函数 $V(s)$，用TD(0)更新：</p>
+                    $$V(S_t) \leftarrow V(S_t) + \alpha_w \cdot \delta_t$$
+                    <p style="font-size:0.9rem; color:#718096;">与1.5.2节的TD(0)完全相同。</p>
+                </div>
+                <div>
+                    <h4>Actor（演员）</h4>
+                    <p>维护策略参数 $\theta$，用策略梯度更新：</p>
+                    $$\theta \leftarrow \theta + \alpha_\theta \cdot \delta_t \cdot \nabla_\theta \ln \pi_\theta(A_t \mid S_t)$$
+                    <p style="font-size:0.9rem; color:#718096;">用 $\delta_t$ 替代REINFORCE中的 $G_t$。</p>
+                </div>
+            </div>
+
+            <p>其中TD误差为：</p>
+
+            $$\delta_t = R_t + \gamma\, V(S_{t+1}) - V(S_t) \tag{1.7-7}$$
+
+            <div class="algo-box">
+                <div class="algo-title">Actor-Critic 算法</div>
+                <ol>
+                    <li>初始化 $V(s) = 0$，对所有 $s \in \mathcal{S}$；初始化策略参数 $\theta$（如全0）</li>
+                    <li>对每个回合（episode）：
+                        <ol type="a">
+                            <li>初始化状态 $S$</li>
+                            <li>对回合中的每一步：
+                                <ol type="i">
+                                    <li>根据 $\pi_\theta(\cdot \mid S)$ 采样动作 $A$</li>
+                                    <li>执行动作 $A$，观察奖励 $R$ 和下一状态 $S'$</li>
+                                    <li>计算TD误差：$\delta \leftarrow R + \gamma\, V(S') - V(S)$</li>
+                                    <li>Critic更新：$V(S) \leftarrow V(S) + \alpha_w \cdot \delta$</li>
+                                    <li>Actor更新：$\theta \leftarrow \theta + \alpha_\theta \cdot \delta \cdot \nabla_\theta \ln \pi_\theta(A \mid S)$</li>
+                                    <li>$S \leftarrow S'$</li>
+                                </ol>
+                            </li>
+                        </ol>
+                    </li>
+                </ol>
+                <div class="algo-note">与REINFORCE不同，Actor-Critic<strong>每步</strong>都更新（像TD一样），无需等到回合结束。Critic的更新与1.5.2节的TD(0)完全相同；Actor使用TD误差 $\delta_t$ 替代MC回报 $G_t$，方差显著降低。</div>
+            </div>
+
+            <!-- ==================== 例子：网约车 Actor-Critic ==================== -->
+            <h2>例子：网约车司机的Actor-Critic</h2>
+
+            <p>继续使用网约车MDP（$\gamma = 0.9$），用Actor-Critic从零开始学习。策略采用softmax参数化（与1.7.2节相同）：对每个状态 $s$ 和动作 $a$，维护参数 $\theta_{s,a}$，策略概率为</p>
+
+            $$\pi_\theta(a \mid s) = \frac{\exp(\theta_{s,a})}{\sum_{a'} \exp(\theta_{s,a'})}$$
+
+            <p>对于softmax参数化，得分函数的梯度为</p>
+
+            $$\nabla_{\theta_{s,a}} \ln \pi_\theta(a \mid s) = \mathbf{1}[a' = a] - \pi_\theta(a' \mid s)$$
+
+            <p>即对被选中的动作 $a$，梯度分量为 $1 - \pi_\theta(a \mid s)$；对其他动作 $a' \neq a$，梯度分量为 $-\pi_\theta(a' \mid s)$。下面的代码实现了完整的Actor-Critic训练过程：</p>
+
+<pre><code class="language-python">import numpy as np
+gamma = 0.9
+alpha_w, alpha_theta = 0.01, 0.01
+
+T = {
+    'c': {'接单': {'c':(.5,5),'b':(.3,8),'a':(.2,12)}, '空驶去机场': {'a':(1,-4)}},
+    'b': {'接单': {'c':(.1,5),'b':(.8,1),'a':(.1,8)}, '空驶去市中心': {'c':(1,-3)}},
+    'a': {'接单': {'c':(.6,14),'b':(.4,10)}, '空驶去市中心': {'c':(1,-5)}}
+}
+states = ['c', 'b', 'a']
+actions = {s: list(T[s].keys()) for s in states}
+
+def step(s, action):
+    trans = T[s][action]
+    r, cum = np.random.random(), 0
+    for s_next, (p, reward) in trans.items():
+        cum += p
+        if r &lt; cum: return s_next, reward
+    return s_next, reward
+
+# Critic: V table
+V = {s: 0.0 for s in states}
+# Actor: softmax parameters
+theta = {s: {a: 0.0 for a in actions[s]} for s in states}
+
+def policy_probs(s):
+    acts = actions[s]
+    logits = [theta[s][a] for a in acts]
+    max_l = max(logits)
+    exps = [np.exp(l - max_l) for l in logits]
+    total = sum(exps)
+    return {a: e/total for a, e in zip(acts, exps)}
+
+def sample_action(s):
+    probs = policy_probs(s)
+    acts, ps = zip(*probs.items())
+    return acts[np.random.choice(len(acts), p=ps)]
+
+for ep in range(5000):
+    s = np.random.choice(states)
+    for _ in range(200):
+        a = sample_action(s)
+        s_next, r = step(s, a)
+        # TD error
+        delta = r + gamma * V[s_next] - V[s]
+        # Critic update
+        V[s] += alpha_w * delta
+        # Actor update
+        probs = policy_probs(s)
+        for act in actions[s]:
+            if act == a:
+                theta[s][act] += alpha_theta * delta * (1 - probs[act])
+            else:
+                theta[s][act] -= alpha_theta * delta * probs[act]
+        s = s_next
+
+for s in states:
+    probs = policy_probs(s)
+    best = max(probs, key=probs.get)
+    print(f"  {s}: {best} (π={probs[best]:.2f}), V={V[s]:.1f}")</code></pre>
+
+            <p>运行结果：</p>
+
+            <div class="result-box">
+                <strong>Actor-Critic得到的最优策略：</strong>市中心→接单，郊区→空驶去市中心，机场→接单<br>
+                与1.4节动态规划和1.6.2节Q-learning得到的结果一致。
+            </div>
+
+            <!-- ==================== 交互演示 ==================== -->
+            <h2>交互演示：REINFORCE与Actor-Critic的收敛对比</h2>
+
+            <p>下面的图表在网约车例子上同时运行REINFORCE和Actor-Critic，观察策略在郊区($b$)选择空驶去市中心的概率 $\pi(b,\text{空驶去市中心})$ 如何随训练收敛。这是区分最优策略与朴素策略的关键决策：最优策略下，司机在郊区应该选择空驶去市中心（尽管短期亏损 $-3$ 元），因为市中心的后续回报更高。两种算法使用相同的学习率 $\alpha = 0.01$。</p>
+
+            <div class="rl-ctrl">
+                <button onclick="_acRun()">运行仿真</button>
+                <button onclick="_acReset()">重置</button>
+            </div>
+
+            <div style="text-align:center; margin:1rem 0;">
+            <svg id="ac-svg" width="530" height="320" viewBox="0 0 530 320" style="max-width:100%;">
+                <!-- 网格参考线 -->
+                <line x1="55" y1="250" x2="500" y2="250" stroke="#edf2f7" stroke-width="0.5"/>
+                <line x1="55" y1="200" x2="500" y2="200" stroke="#edf2f7" stroke-width="0.5"/>
+                <line x1="55" y1="150" x2="500" y2="150" stroke="#edf2f7" stroke-width="0.5"/>
+                <line x1="55" y1="100" x2="500" y2="100" stroke="#edf2f7" stroke-width="0.5"/>
+                <line x1="55" y1="50" x2="500" y2="50" stroke="#edf2f7" stroke-width="0.5"/>
+
+                <!-- Y轴 -->
+                <line x1="55" y1="25" x2="55" y2="255" stroke="#cbd5e0" stroke-width="1"/>
+                <!-- X轴 -->
+                <line x1="55" y1="250" x2="500" y2="250" stroke="#cbd5e0" stroke-width="1"/>
+
+                <!-- Y轴刻度 0.0, 0.2, 0.4, 0.6, 0.8, 1.0 -->
+                <line x1="51" y1="250" x2="58" y2="250" stroke="#cbd5e0"/><text x="46" y="254" text-anchor="end" font-size="12" fill="#718096">0</text>
+                <line x1="51" y1="210" x2="58" y2="210" stroke="#cbd5e0"/><text x="46" y="214" text-anchor="end" font-size="12" fill="#718096">0.2</text>
+                <line x1="51" y1="170" x2="58" y2="170" stroke="#cbd5e0"/><text x="46" y="174" text-anchor="end" font-size="12" fill="#718096">0.4</text>
+                <line x1="51" y1="130" x2="58" y2="130" stroke="#cbd5e0"/><text x="46" y="134" text-anchor="end" font-size="12" fill="#718096">0.6</text>
+                <line x1="51" y1="90" x2="58" y2="90" stroke="#cbd5e0"/><text x="46" y="94" text-anchor="end" font-size="12" fill="#718096">0.8</text>
+                <line x1="51" y1="50" x2="58" y2="50" stroke="#cbd5e0"/><text x="46" y="54" text-anchor="end" font-size="12" fill="#718096">1.0</text>
+
+                <!-- X轴刻度: 0, 500, 1000, 1500, 2000 -->
+                <text x="55" y="272" text-anchor="middle" font-size="12" fill="#718096">0</text>
+                <text x="166" y="272" text-anchor="middle" font-size="12" fill="#718096">500</text>
+                <text x="278" y="272" text-anchor="middle" font-size="12" fill="#718096">1000</text>
+                <text x="389" y="272" text-anchor="middle" font-size="12" fill="#718096">1500</text>
+                <text x="500" y="272" text-anchor="middle" font-size="12" fill="#718096">2000</text>
+
+                <!-- 轴标签 -->
+                <foreignObject x="220" y="282" width="120" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#718096;text-align:center;">回合数</div></foreignObject>
+                <foreignObject x="0" y="100" width="35" height="80"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#718096;text-align:center;writing-mode:vertical-lr;">$\pi(b, \text{空驶})$</div></foreignObject>
+
+                <!-- 最优参考线 π* ≈ 1.0 -->
+                <line x1="55" y1="50" x2="500" y2="50" stroke="#805ad5" stroke-width="1" stroke-dasharray="6,3" stroke-opacity="0.6"/>
+                <foreignObject x="502" y="40" width="30" height="20"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#805ad5;">$\pi^*$</div></foreignObject>
+
+                <!-- 收敛曲线 -->
+                <polyline id="ac-line-ac" points="" fill="none" stroke="#2b6cb0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline id="ac-line-rf" points="" fill="none" stroke="#c53030" stroke-width="2" stroke-dasharray="8,4" stroke-linecap="round" stroke-linejoin="round"/>
+
+                <!-- 图例 -->
+                <rect x="370" y="192" width="125" height="46" rx="5" fill="white" fill-opacity="0.9" stroke="#e2e8f0" stroke-width="1"/>
+                <line x1="380" y1="208" x2="407" y2="208" stroke="#2b6cb0" stroke-width="2.5" stroke-linecap="round"/>
+                <text x="413" y="212" font-size="12" fill="#2b6cb0" font-weight="600">Actor-Critic</text>
+                <line x1="380" y1="226" x2="407" y2="226" stroke="#c53030" stroke-width="2" stroke-dasharray="8,4" stroke-linecap="round"/>
+                <text x="413" y="230" font-size="12" fill="#c53030" font-weight="600">REINFORCE</text>
+            </svg>
+            </div>
+
+            <div class="rl-info" id="ac-info">点击"运行仿真"开始</div>
+
+            <p style="text-align:center; font-size:0.9rem; color:#718096; margin-top:0.3rem;">图 1.7-1 &nbsp; REINFORCE（虚线）与Actor-Critic（实线）在网约车例子中的收敛对比。纵轴为郊区($b$)选择空驶去市中心的概率，横轴为训练回合数（$\alpha = 0.01$）。</p>
+
+            <script>
+(function(){
+    var GM=0.9, AL=0.01, H=200, N_EP=2000;
+    var T={c:{a0:{c:[.5,5],b:[.3,8],a:[.2,12]},a1:{a:[1,-4]}},b:{a0:{c:[.1,5],b:[.8,1],a:[.1,8]},a1:{c:[1,-3]}},a:{a0:{c:[.6,14],b:[.4,10]},a1:{c:[1,-5]}}};
+    var STS=['c','b','a'];
+
+    function sStep(s,act){var tr=T[s][act],r=Math.random(),cum=0,ns,rw;for(var k in tr){cum+=tr[k][0];if(r<cum){ns=k;rw=tr[k][1];break;}ns=k;rw=tr[k][1];}return{ns:ns,rw:rw};}
+
+    function softmax(logits){var mx=Math.max.apply(null,logits),exps=logits.map(function(l){return Math.exp(l-mx);}),tot=exps.reduce(function(a,b){return a+b;},0);return exps.map(function(e){return e/tot;});}
+
+    function sampleIdx(probs){var r=Math.random(),cum=0;for(var i=0;i<probs.length;i++){cum+=probs[i];if(r<cum)return i;}return probs.length-1;}
+
+    /* chart helpers */
+    function px(i){return 55+(i/(N_EP-1))*445;}
+    function py(v){return 250-Math.min(1,Math.max(0,v))*200;}
+    function buildPts(arr){var pts=[];for(var i=0;i<arr.length;i++)pts.push(px(i).toFixed(1)+','+py(arr[i]).toFixed(1));return pts.join(' ');}
+
+    window._acRun=function(){
+        /* ===== Actor-Critic ===== */
+        var acV={c:0,b:0,a:0};
+        var acTh={c:[0,0],b:[0,0],a:[0,0]};
+        var acHist=[];
+
+        /* ===== REINFORCE ===== */
+        var rfTh={c:[0,0],b:[0,0],a:[0,0]};
+        var rfHist=[];
+
+        for(var ep=0;ep<N_EP;ep++){
+            /* --- Actor-Critic: run one episode of H steps --- */
+            var s=STS[Math.floor(Math.random()*3)];
+            for(var t=0;t<H;t++){
+                var acts=['a0','a1'];
+                var probs=softmax(acTh[s]);
+                var ai=sampleIdx(probs);
+                var act=acts[ai];
+                var res=sStep(s,act);
+                var delta=res.rw+GM*acV[res.ns]-acV[s];
+                /* Critic update */
+                acV[s]+=AL*delta;
+                /* Actor update (softmax grad) */
+                for(var j=0;j<acts.length;j++){
+                    if(j===ai) acTh[s][j]+=AL*delta*(1-probs[j]);
+                    else acTh[s][j]-=AL*delta*probs[j];
+                }
+                s=res.ns;
+            }
+            /* record π(b, a1=空驶去市中心) */
+            var bProbs=softmax(acTh['b']);
+            acHist.push(bProbs[1]);
+
+            /* --- REINFORCE: run one episode of H steps, then update --- */
+            s=STS[Math.floor(Math.random()*3)];
+            var traj=[];
+            for(var t=0;t<H;t++){
+                var probs2=softmax(rfTh[s]);
+                var ai2=sampleIdx(probs2);
+                var act2=['a0','a1'][ai2];
+                var res2=sStep(s,act2);
+                traj.push({s:s,ai:ai2,r:res2.rw});
+                s=res2.ns;
+            }
+            /* compute returns and update */
+            var G=0;
+            for(var t=H-1;t>=0;t--){
+                G=traj[t].r+GM*G;
+                var st=traj[t].s, aidx=traj[t].ai;
+                var probs3=softmax(rfTh[st]);
+                for(var j=0;j<2;j++){
+                    if(j===aidx) rfTh[st][j]+=AL*G*(1-probs3[j]);
+                    else rfTh[st][j]-=AL*G*probs3[j];
+                }
+            }
+            var bProbs2=softmax(rfTh['b']);
+            rfHist.push(bProbs2[1]);
+        }
+
+        document.getElementById('ac-line-ac').setAttribute('points',buildPts(acHist));
+        document.getElementById('ac-line-rf').setAttribute('points',buildPts(rfHist));
+        document.getElementById('ac-info').innerHTML='仿真完成：共 <strong>'+N_EP+'</strong> 个回合（每回合 '+H+' 步）。';
+    };
+
+    window._acReset=function(){
+        document.getElementById('ac-line-ac').setAttribute('points','');
+        document.getElementById('ac-line-rf').setAttribute('points','');
+        document.getElementById('ac-info').innerHTML='点击"运行仿真"开始';
+    };
+})();
+            </script>
+
+            <!-- ==================== 小结与展望 ==================== -->
+            <h2>小结与展望</h2>
+
+            <p>至此，第一章介绍的所有算法可以统一到下面的表格中：</p>
+
+            <table class="trans-table" style="width:100%;">
+                <thead>
+                    <tr><th>算法</th><th>需要模型？</th><th>预测/控制</th><th>值函数/策略</th><th>更新频率</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>DP（1.4）</td><td>是</td><td>控制</td><td>值函数</td><td>—</td></tr>
+                    <tr><td>MC（1.5.1）</td><td>否</td><td>预测</td><td>值函数</td><td>每条轨迹</td></tr>
+                    <tr><td>TD（1.5.2）</td><td>否</td><td>预测</td><td>值函数</td><td>每步</td></tr>
+                    <tr><td>SARSA（1.6.1）</td><td>否</td><td>控制</td><td>值函数（$Q$）</td><td>每步</td></tr>
+                    <tr><td>Q-learning（1.6.2）</td><td>否</td><td>控制</td><td>值函数（$Q$）</td><td>每步</td></tr>
+                    <tr><td>REINFORCE（1.7.2）</td><td>否</td><td>控制</td><td>策略</td><td>每条轨迹</td></tr>
+                    <tr><td>Actor-Critic（1.7.3）</td><td>否</td><td>控制</td><td>策略+值函数</td><td>每步</td></tr>
+                </tbody>
+            </table>
+
+            <p>至此，我们用一个只有3个状态的网约车例子，完整地展示了强化学习的核心算法族谱。这些方法共同的局限是：它们都基于表格表示，状态和动作必须是有限且可枚举的。当状态空间很大或连续时（如有成百上千个区域的网约车调度、连续变化的库存水平），表格方法不再可行。解决方案是用函数近似（如神经网络）来表示值函数或策略。第二章将介绍深度学习基础，第三章将把本章的表格算法升级为深度强化学习：DQN（Q-learning + 神经网络）、PPO（策略梯度 + 神经网络）、SAC（Actor-Critic + 神经网络）。</p>
+
+            <div class="chapter-nav">
+                <a href="../ch01/1.7.2.html">&larr; 1.7.2 REINFORCE算法</a>
+                <a href="../ch02/2.1.html">2.1 从线性回归到神经网络 &rarr;</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

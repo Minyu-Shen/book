@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1.7.2 REINFORCE算法 - 运筹智能</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .trans-table { width: auto; border-collapse: collapse; margin: 1rem auto; font-size: 0.95rem; }
+        .trans-table th, .trans-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: center; }
+        .trans-table th { background: var(--primary-color); color: white; }
+        .trans-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .algo-box { background: #f7fafc; border: 2px solid var(--accent-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .algo-box .algo-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .algo-box ol { margin: 0.3rem 0 0.3rem 1.5rem; line-height: 2; }
+        .algo-box .algo-note { font-size: 0.9rem; color: #718096; margin-top: 0.5rem; }
+        .rl-ctrl { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; margin-bottom:0.8rem; font-size:0.88rem; }
+        .rl-ctrl button { padding:0.3rem 0.7rem; border:1px solid #2b6cb0; background:white; color:#2b6cb0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.84rem; transition:all 0.15s; }
+        .rl-ctrl button:hover { background:#2b6cb0; color:white; }
+        .rl-info { background:#ebf4ff; border-radius:6px; padding:0.4rem 0.8rem; font-size:0.88rem; margin-top:0.6rem; }
+    </style>
+    <script defer src="../../js/code-copy.js"></script>
+</head>
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="book-title"><a href="../../index.html" style="text-decoration:none;color:inherit;">运筹智能</a></div>
+            <nav>
+                <ul>
+                <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
+                <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
+                <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
+                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
+                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
+                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.6.1.html">1.6.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.6.2.html">1.6.2 Q-learning</a></li>
+                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.1.html">1.7.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.2.html" class="active">1.7.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.3.html">1.7.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第二章 深度学习基础</li>
+                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
+                <li><a href="../ch03/3.2.html">3.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
+                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch04/4.2.html">4.2 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch04/4.3.html">4.3 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch04/4.4.html">4.4 回合定义与时域建模</a></li>
+                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第五章 仿真器搭建</li>
+                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch05/5.4.html">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
+                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
+                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
+                <li><a href="../ch07/7.2.html">7.2 公交串车控制</a></li>
+                <li><a href="../ch07/7.3.html">7.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第八章 进阶话题</li>
+                <li><a href="../ch08/8.1.html">8.1 多智能体强化学习</a></li>
+                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>1.7.2 REINFORCE算法</h1>
+
+            <!-- ==================== 回顾策略梯度定理 ==================== -->
+            <h2>回顾策略梯度定理</h2>
+
+            <p>上一节的策略梯度定理(1.7-3)给出了目标函数 $J(\theta)$ 关于参数 $\theta$ 的梯度：</p>
+
+            $$\nabla_\theta J(\theta) = \frac{1}{1-\gamma}\,\mathbb{E}_{S \sim d^{\pi_\theta}}\!\bigg[\mathbb{E}_{A \sim \pi_\theta(\cdot|S)}\!\Big[\nabla_\theta \ln \pi_\theta(A \mid S) \cdot Q^{\pi_\theta}(S, A)\Big]\bigg]$$
+
+            <p>这个公式虽然精确，但无法直接用于计算：动作值函数 $Q^{\pi_\theta}(s,a)$ 是未知的，稳态分布 $d^{\pi_\theta}$ 下的期望也无法精确求解。REINFORCE算法的贡献在于给出了一种纯粹基于采样的方法来估计这个梯度，从而将定理转化为可执行的算法。</p>
+
+            <!-- ==================== 从定理到算法 ==================== -->
+            <h2>从定理到算法</h2>
+
+            <p>将策略梯度定理转化为实际算法，需要解决两个问题：如何处理未知的 $Q^{\pi_\theta}$，以及如何用采样代替期望。</p>
+
+            <h3>第一步：用蒙特卡洛回报替代 $Q^{\pi_\theta}$</h3>
+
+            <p>回忆动作值函数的定义：$Q^{\pi_\theta}(s,a) = \mathbb{E}_{\pi_\theta}[G_t \mid S_t = s, A_t = a]$，即从状态 $s$ 执行动作 $a$ 后，按策略 $\pi_\theta$ 继续行动所获得的期望回报。虽然我们不知道 $Q^{\pi_\theta}$ 的精确值，但如果实际走一条轨迹，沿途计算的回报 $G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \cdots$ 就是 $Q^{\pi_\theta}(S_t, A_t)$ 的一个无偏样本。于是，策略梯度中的关键乘积可以用采样近似：</p>
+
+            $$\nabla_\theta \ln \pi_\theta(A_t \mid S_t) \cdot Q^{\pi_\theta}(S_t, A_t) \quad\longrightarrow\quad \nabla_\theta \ln \pi_\theta(A_t \mid S_t) \cdot G_t$$
+
+            <p>这正是蒙特卡洛思想在策略梯度中的应用：用实际采样的回报代替期望值。</p>
+
+            <h3>第二步：用轨迹采样代替期望</h3>
+
+            <p>策略梯度定理中的双重期望 $\mathbb{E}_{S \sim d^{\pi_\theta}}\mathbb{E}_{A \sim \pi_\theta}[\cdot]$ 是在稳态分布下对所有状态和动作的平均。在实践中，我们让智能体按策略 $\pi_\theta$ 与环境交互，生成一条轨迹 $S_0, A_0, R_1, S_1, A_1, R_2, \ldots$。轨迹上各时刻提供了来自正确分布的样本，因此可以用轨迹上的经验平均来近似期望。考虑折扣因子 $\gamma^t$ 对不同时刻的加权，单条轨迹的梯度估计为：</p>
+
+            $$\nabla_\theta J(\theta) \approx \sum_{t=0}^{T-1} \gamma^t \, \nabla_\theta \ln \pi_\theta(A_t \mid S_t) \cdot G_t$$
+
+            <p>其中 $\gamma^t$ 确保早期时刻的贡献更大，因为早期决策对总回报的影响更显著。前面的常数 $\frac{1}{1-\gamma}$ 只影响梯度大小不影响方向，被吸收进学习率 $\alpha$。</p>
+
+            <h3>得到更新规则</h3>
+
+            <p>将上述梯度估计代入梯度上升 $\theta \leftarrow \theta + \alpha \nabla_\theta J$，对轨迹中每个时刻 $t$ 分别更新：</p>
+
+            $$\theta \leftarrow \theta + \alpha \cdot \gamma^t \cdot G_t \cdot \nabla_\theta \ln \pi_\theta(A_t \mid S_t) \tag{1.7-4}$$
+
+            <p>这个更新规则的直觉很清晰。$\nabla_\theta \ln \pi_\theta(A_t \mid S_t)$ 指向增大动作 $A_t$ 概率的方向，$G_t$ 衡量这个动作之后的实际回报。两者相乘意味着：如果 $G_t$ 较大（这次经历回报高），就沿梯度方向迈一大步，显著增大选择该动作的概率；如果 $G_t$ 较小，更新幅度也相应减小。</p>
+
+            <!-- ==================== 实现细节 ==================== -->
+            <h2>从公式到实现</h2>
+
+            <p>更新公式(1.7-4)中，$G_t$ 的计算已经在1.5.1节介绍过（从后向前递推 $G_t = R_{t+1} + \gamma\,G_{t+1}$）。剩下的关键问题是如何按策略概率采样动作，以及如何计算 $\nabla_\theta \ln \pi_\theta(A_t \mid S_t)$。下面以1.7.1节的softmax线性参数化为例说明。</p>
+
+            <h3>按策略概率采样动作</h3>
+
+            <p>给定状态 $s$，动作选择分三步：</p>
+            <ol style="margin:0.5rem 0 1rem 2rem; line-height:2;">
+                <li>对每个动作 $a$，计算分数 $f_\theta(s,a) = \theta^\top \phi(s,a)$。在网约车例子中 $\phi$ 是 one-hot 特征，所以 $f_\theta(s,a) = \theta_{s,a}$，直接查表。</li>
+                <li>通过softmax将分数转化为概率：$\pi_\theta(a \mid s) = \frac{\exp(f_\theta(s,a))}{\sum_{a'} \exp(f_\theta(s,a'))}$。</li>
+                <li>按概率分布 $\{\pi_\theta(a \mid s)\}_a$ 随机采样一个动作执行。</li>
+            </ol>
+
+            <p>在网约车例子中，每个状态有2个动作。假设当前 $\theta_{b,\text{接单}} = 0.3$，$\theta_{b,\text{空驶}} = 0.8$，那么 softmax 给出 $\pi_\theta(\text{接单} \mid b) = 0.38$，$\pi_\theta(\text{空驶} \mid b) = 0.62$。采样时，有 $62\%$ 的概率选择空驶。</p>
+
+            <h3>计算对数策略梯度 $\nabla_\theta \ln \pi_\theta$</h3>
+
+            <p>对于线性参数化 $f_\theta(s,a) = \theta^\top \phi(s,a)$，softmax 策略为：</p>
+
+            $$\pi_\theta(a \mid s) = \frac{\exp\!\big(\theta^\top \phi(s,a)\big)}{\sum_{a'} \exp\!\big(\theta^\top \phi(s,a')\big)}$$
+
+            <p>取对数，将分式拆为分子减分母：</p>
+
+            $$\ln \pi_\theta(a \mid s) = \theta^\top \phi(s,a) - \ln \sum_{a'} \exp\!\big(\theta^\top \phi(s,a')\big)$$
+
+            <p>对 $\theta$ 求梯度。第一项直接得到 $\phi(s,a)$。第二项的形式是 $\ln g(\theta)$，其中 $g(\theta) = \sum_{a'} \exp\!\big(\theta^\top \phi(s,a')\big)$。对任意可微正值函数，对数的链式法则给出 $\nabla_\theta \ln g = \frac{\nabla_\theta g}{g}$，这个恒等式称为 <strong>log-derivative trick</strong>。代入计算：</p>
+
+            $$\nabla_\theta \ln \sum_{a'} e^{\theta^\top \phi(s,a')} = \frac{\sum_{a'} e^{\theta^\top \phi(s,a')} \cdot \phi(s,a')}{\sum_{a'} e^{\theta^\top \phi(s,a')}} = \sum_{a'} \pi_\theta(a' \mid s)\,\phi(s,a')$$
+
+            <p>最后一个等号是因为每个 $\frac{e^{\theta^\top \phi(s,a')}}{\sum_{a''} e^{\theta^\top \phi(s,a'')}}$ 恰好就是 $\pi_\theta(a' \mid s)$ 的定义。两项相减，得到：</p>
+
+            $$\nabla_\theta \ln \pi_\theta(a \mid s) = \phi(s,a) - \sum_{a'} \pi_\theta(a' \mid s) \, \phi(s,a')$$
+
+            <p>即被选中动作的特征 $\phi(s,a)$，减去策略下的期望特征 $\mathbb{E}_{A \sim \pi_\theta}[\phi(s,A)]$。当 $\phi$ 是 one-hot 特征时（如网约车例子），这退化为对同一状态下各动作参数的分量形式：</p>
+
+            $$\frac{\partial \ln \pi_\theta(a \mid s)}{\partial \theta_{s,a'}} = \begin{cases} 1 - \pi_\theta(a \mid s), & \text{if } a' = a \\ -\pi_\theta(a' \mid s), & \text{if } a' \neq a \end{cases}$$
+
+            <p>这意味着每次更新会同时改变同一状态下所有动作的参数：被选中的动作参数增大，增幅为 $1 - \pi_\theta(a \mid s)$（概率越小增幅越大，因为有更多提升空间）；未被选中动作的参数减小，减幅为 $\pi_\theta(a' \mid s)$。所有变化量由 $\alpha \gamma^t G_t$ 统一缩放。</p>
+
+            <p>Log-derivative trick 对任意参数化策略 $\pi_\theta$ 都成立，不依赖 softmax 的特殊结构（1.7.1节策略梯度定理的证明中，将 $\nabla_\theta \pi$ 改写为 $\pi \cdot \nabla_\theta \ln \pi$，用的正是这个恒等式）。当 $f_\theta$ 是神经网络时，$\nabla_\theta \ln \pi_\theta$ 没有上面那样的解析形式，但仍然可以通过反向传播自动计算，第三章将介绍。</p>
+
+            <!-- ==================== 算法框 ==================== -->
+            <div class="algo-box">
+                <div class="algo-title">REINFORCE 算法</div>
+                <p><strong>输入</strong>：特征函数 $\phi(s,a)$，学习率 $\alpha$，折扣因子 $\gamma$</p>
+                <ol>
+                    <li>初始化参数 $\theta$（如全零向量），此时 $\pi_\theta$ 为均匀随机策略</li>
+                    <li>对每个回合：
+                        <ol type="a">
+                            <li><strong>生成轨迹</strong>：从 $S_0$ 出发，在每个状态 $S_t$ 计算 $\pi_\theta(a \mid S_t) = \text{softmax}\!\big(\theta^\top \phi(S_t, \cdot)\big)$，按此概率采样动作 $A_t$，观察 $R_{t+1}$ 和 $S_{t+1}$，直到回合结束</li>
+                            <li><strong>计算回报</strong>：从后向前递推 $G_t = R_{t+1} + \gamma\,G_{t+1}$</li>
+                            <li><strong>更新参数</strong>：对每个时刻 $t$，计算梯度 $\nabla_\theta \ln \pi_\theta(A_t \mid S_t) = \phi(S_t, A_t) - \sum_{a'} \pi_\theta(a' \mid S_t)\,\phi(S_t, a')$，更新 $\theta \leftarrow \theta + \alpha \, \gamma^t \, G_t \cdot \nabla_\theta \ln \pi_\theta(A_t \mid S_t)$</li>
+                        </ol>
+                    </li>
+                </ol>
+                <div class="algo-note">REINFORCE需要等到回合结束才能更新，因为 $G_t$ 的计算依赖整条轨迹的奖励。这与1.5.1节的蒙特卡洛方法一致：两者都使用完整回报 $G_t$，区别在于MC更新的是值函数，REINFORCE更新的是策略参数。</div>
+            </div>
+
+            <!-- ==================== 例子 ==================== -->
+            <h3>例子：用REINFORCE学习网约车最优策略</h3>
+
+            <p>下面用REINFORCE学习网约车MDP的最优策略（$\gamma = 0.9$，$\alpha = 0.01$）。由于是无限期MDP，每条轨迹模拟 $H_{\text{total}} = 200$ 步，仅对前 $H_{\text{eval}} = 100$ 步更新参数。代码实现直接对应上面算法的三个步骤：</p>
+
+<pre><code class="language-python">import numpy as np
+gamma, alpha = 0.9, 0.01
+H_total, H_eval = 200, 100
+
+# MDP 转移模型
+T = {
+    'c': {'接单': {'c':(.5,5),'b':(.3,8),'a':(.2,12)}, '空驶去机场': {'a':(1,-4)}},
+    'b': {'接单': {'c':(.1,5),'b':(.8,1),'a':(.1,8)}, '空驶去市中心': {'c':(1,-3)}},
+    'a': {'接单': {'c':(.6,14),'b':(.4,10)}, '空驶去市中心': {'c':(1,-5)}}
+}
+states = ['c', 'b', 'a']
+actions = {s: list(T[s].keys()) for s in states}
+
+def step(s, action):
+    trans = T[s][action]
+    r, cum = np.random.random(), 0
+    for s_next, (p, reward) in trans.items():
+        cum += p
+        if r &lt; cum: return s_next, reward
+    return s_next, reward
+
+# ── 策略参数化：θ 向量 + softmax ──
+theta = {s: {a: 0.0 for a in actions[s]} for s in states}
+
+def policy_probs(s):                     # 步骤 2a: 计算 π_θ(a|s)
+    acts = actions[s]
+    logits = [theta[s][a] for a in acts]  # f_θ(s,a) = θ_{s,a}
+    max_l = max(logits)
+    exps = [np.exp(l - max_l) for l in logits]
+    total = sum(exps)
+    return {a: e / total for a, e in zip(acts, exps)}
+
+def sample_action(s):                    # 步骤 2a: 按概率采样动作
+    probs = policy_probs(s)
+    acts = list(probs.keys())
+    ps = [probs[a] for a in acts]
+    return acts[np.random.choice(len(acts), p=ps)]
+
+# ── REINFORCE 主循环 ──
+for ep in range(5000):
+    # 步骤 2a: 生成完整轨迹
+    s = np.random.choice(states)
+    trajectory = []
+    for _ in range(H_total):
+        a = sample_action(s)
+        s_next, r = step(s, a)
+        trajectory.append((s, a, r))
+        s = s_next
+
+    # 步骤 2b: 从后向前计算回报
+    returns = [0.0] * len(trajectory)
+    G = 0.0
+    for t in range(len(trajectory) - 1, -1, -1):
+        G = trajectory[t][2] + gamma * G
+        returns[t] = G
+
+    # 步骤 2c: 计算梯度并更新参数
+    for t in range(H_eval):
+        s_t, a_t, _ = trajectory[t]
+        G_t = returns[t]
+        probs = policy_probs(s_t)
+        # ∂ln π / ∂θ_{s,a'} = 1{a'=a} - π(a'|s)
+        for a in actions[s_t]:
+            if a == a_t:
+                theta[s_t][a] += alpha * (gamma ** t) * G_t * (1 - probs[a])
+            else:
+                theta[s_t][a] -= alpha * (gamma ** t) * G_t * probs[a]
+
+# 输出学到的策略
+for s in states:
+    probs = policy_probs(s)
+    best = max(probs, key=probs.get)
+    print(f"  {s}: {best} (π = {probs[best]:.2f})")</code></pre>
+
+            <p>运行后，REINFORCE会学到与SARSA、Q-learning相同的最优策略：市中心接单，郊区空驶去市中心，机场接单。不过由于策略梯度的方差较大，收敛速度通常慢于基于值函数的方法。</p>
+
+            <!-- ==================== 交互演示 ==================== -->
+            <h3>交互演示：REINFORCE学习策略</h3>
+
+            <p>下面的交互演示展示了REINFORCE如何逐步调整策略概率。初始时所有动作概率均为 $0.50$，随着训练进行，每个状态下的最优动作概率逐渐接近 $1$。</p>
+
+            <div style="border:2px solid var(--border-color); border-radius:8px; padding:1.2rem; margin:1.5rem 0; background:#fafafa;">
+                <div style="font-weight:700; color:var(--accent-color); margin-bottom:0.6rem; font-size:1.05rem;">交互演示：REINFORCE 学习策略概率</div>
+                <div class="rl-ctrl">
+                    <button onclick="_rfStep()">更新100条轨迹</button>
+                    <button onclick="_rfFast()">快进5000条</button>
+                    <button onclick="_rfReset()">重置</button>
+                </div>
+                <table class="trans-table">
+                    <thead>
+                        <tr><th>状态</th><th>$\pi(\text{接单} \mid s)$</th><th>$\pi(\text{空驶} \mid s)$</th><th>当前最优动作</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>市中心 ($c$)</td><td id="rf-p-c-0">0.50</td><td id="rf-p-c-1">0.50</td><td id="rf-best-c">—</td></tr>
+                        <tr><td>郊区 ($b$)</td><td id="rf-p-b-0">0.50</td><td id="rf-p-b-1">0.50</td><td id="rf-best-b">—</td></tr>
+                        <tr><td>机场 ($a$)</td><td id="rf-p-a-0">0.50</td><td id="rf-p-a-1">0.50</td><td id="rf-best-a">—</td></tr>
+                    </tbody>
+                </table>
+                <div class="rl-info" id="rf-info">已训练 <strong>0</strong> 条轨迹</div>
+            </div>
+
+            <!-- ==================== 高方差问题 ==================== -->
+            <h2>高方差问题</h2>
+
+            <p>REINFORCE使用完整回报 $G_t$ 作为梯度估计中的信号，这与1.5.1节的蒙特卡洛方法面临同样的问题：$G_t$ 的方差很大。一条轨迹中，$G_t$ 取决于从时刻 $t$ 到回合结束的所有奖励和状态转移，其中每一步都引入随机性。这些随机性逐步累积，使得不同轨迹的 $G_t$ 差异悬殊。在网约车例子中，同样从郊区 $b$ 出发、选择相同的动作，一条轨迹可能因为连续接到高价订单得到 $G_t = 70$，另一条可能因为反复在郊区循环而只有 $G_t = 15$。</p>
+
+            <p>高方差意味着每次梯度更新的方向波动剧烈，需要大量轨迹才能使平均梯度收敛到正确方向。在上面的交互演示中，你可能已经注意到策略概率在训练过程中并非平稳上升，而是有明显的波动。在更复杂的问题中，这种方差会成为严重的瓶颈。</p>
+
+            <p>一个自然的想法是借鉴1.5.2节的时序差分思想：不等到回合结束再用 $G_t$，而是用TD目标 $R_{t+1} + \gamma \, V(S_{t+1})$ 来替代 $G_t$，用一步的实际奖励加上后续状态的值函数估计来降低方差。这正是下一节将要介绍的 Actor-Critic 方法的核心思想。</p>
+
+            <div class="chapter-nav">
+                <a href="../ch01/1.7.1.html">&larr; 1.7.1 策略梯度定理</a>
+                <a href="../ch01/1.7.3.html">1.7.3 Actor-Critic框架 &rarr;</a>
+            </div>
+        </main>
+    </div>
+
+    <!-- ==================== REINFORCE 交互演示 JS ==================== -->
+    <script>
+    (function(){
+        var GM = 0.9, AL = 0.01, HT = 200, HE = 100;
+        var T = {
+            c: { a0: {c:[.5,5], b:[.3,8], a:[.2,12]}, a1: {a:[1,-4]} },
+            b: { a0: {c:[.1,5], b:[.8,1], a:[.1,8]}, a1: {c:[1,-3]} },
+            a: { a0: {c:[.6,14], b:[.4,10]}, a1: {c:[1,-5]} }
+        };
+        var SS = ['c','b','a'];
+        var AN = {c:['a0','a1'], b:['a0','a1'], a:['a0','a1']};
+        var LB = {
+            c: {a0:'接单', a1:'空驶去机场'},
+            b: {a0:'接单', a1:'空驶去市中心'},
+            a: {a0:'接单', a1:'空驶去市中心'}
+        };
+
+        var theta, episodes;
+
+        function sampleStep(s, act) {
+            var tr = T[s][act], r = Math.random(), cum = 0, ns, rw;
+            for (var k in tr) {
+                cum += tr[k][0];
+                if (r < cum) { ns = k; rw = tr[k][1]; break; }
+                ns = k; rw = tr[k][1];
+            }
+            return {ns: ns, rw: rw};
+        }
+
+        function softmax(s) {
+            var l0 = theta[s].a0, l1 = theta[s].a1;
+            var mx = Math.max(l0, l1);
+            var e0 = Math.exp(l0 - mx), e1 = Math.exp(l1 - mx);
+            var sm = e0 + e1;
+            return {a0: e0/sm, a1: e1/sm};
+        }
+
+        function sampleAction(s) {
+            var p = softmax(s);
+            return Math.random() < p.a0 ? 'a0' : 'a1';
+        }
+
+        function runEpisode() {
+            var s0idx = Math.floor(Math.random() * 3);
+            var s = SS[s0idx];
+            var traj = [];
+            for (var i = 0; i < HT; i++) {
+                var act = sampleAction(s);
+                var res = sampleStep(s, act);
+                traj.push({s: s, a: act, r: res.rw});
+                s = res.ns;
+            }
+            var rets = new Array(HT);
+            var G = 0;
+            for (var t = HT - 1; t >= 0; t--) {
+                G = traj[t].r + GM * G;
+                rets[t] = G;
+            }
+            var gPow = 1;
+            for (var t = 0; t < HE; t++) {
+                var st = traj[t].s, at = traj[t].a;
+                var Gt = rets[t];
+                var pr = softmax(st);
+                if (at === 'a0') {
+                    theta[st].a0 += AL * gPow * Gt * (1 - pr.a0);
+                    theta[st].a1 -= AL * gPow * Gt * pr.a1;
+                } else {
+                    theta[st].a1 += AL * gPow * Gt * (1 - pr.a1);
+                    theta[st].a0 -= AL * gPow * Gt * pr.a0;
+                }
+                gPow *= GM;
+            }
+        }
+
+        function $(id) { return document.getElementById(id); }
+
+        function updateDisplay() {
+            SS.forEach(function(s) {
+                var p = softmax(s);
+                $('rf-p-'+s+'-0').textContent = p.a0.toFixed(2);
+                $('rf-p-'+s+'-1').textContent = p.a1.toFixed(2);
+                var bestIdx = p.a0 >= p.a1 ? 'a0' : 'a1';
+                $('rf-p-'+s+'-0').style.cssText = bestIdx === 'a0' ? 'font-weight:700;color:#276749' : '';
+                $('rf-p-'+s+'-1').style.cssText = bestIdx === 'a1' ? 'font-weight:700;color:#276749' : '';
+                $('rf-best-'+s).textContent = LB[s][bestIdx];
+            });
+            $('rf-info').innerHTML = '已训练 <strong>' + episodes + '</strong> 条轨迹';
+        }
+
+        function initTheta() {
+            theta = {c:{a0:0,a1:0}, b:{a0:0,a1:0}, a:{a0:0,a1:0}};
+        }
+
+        window._rfStep = function() {
+            for (var i = 0; i < 100; i++) { runEpisode(); episodes++; }
+            updateDisplay();
+        };
+        window._rfFast = function() {
+            for (var i = 0; i < 5000; i++) { runEpisode(); episodes++; }
+            updateDisplay();
+        };
+        window._rfReset = function() {
+            initTheta();
+            episodes = 0;
+            updateDisplay();
+        };
+
+        initTheta();
+        episodes = 0;
+        updateDisplay();
+    })();
+    </script>
+</body>
+</html>
