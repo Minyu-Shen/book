@@ -9,6 +9,56 @@
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .trans-table { width: auto; border-collapse: collapse; margin: 1rem auto; font-size: 0.95rem; }
+        .trans-table th, .trans-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: center; }
+        .trans-table th { background: var(--primary-color); color: white; }
+        .trans-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .result-box { background: var(--highlight-color); border: 2px solid var(--accent-color); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; text-align: center; }
+        .algo-box { background: #f7fafc; border: 2px solid var(--accent-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .algo-box .algo-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .algo-box ol { margin: 0.3rem 0 0.3rem 1.5rem; line-height: 2; }
+        .algo-box .algo-note { font-size: 0.9rem; color: #718096; margin-top: 0.5rem; }
+        .note { background: var(--highlight-color); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .derivation { background: #fffff0; border: 1px solid #ecc94b; border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; }
+        .derivation summary { font-weight: 700; color: #975a16; cursor: pointer; font-size: 1rem; }
+        .derivation summary:hover { color: var(--accent-color); }
+        .optional-reading { background: #f0fff4; border: 1px solid #9ae6b4; border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; }
+        .optional-reading summary { font-weight: 700; color: #276749; cursor: pointer; font-size: 1rem; }
+        .optional-reading summary:hover { color: var(--accent-color); }
+        .rl-ctrl { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; margin-bottom:0.8rem; font-size:0.88rem; }
+        .rl-ctrl button { padding:0.3rem 0.7rem; border:1px solid #2b6cb0; background:white; color:#2b6cb0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.84rem; transition:all 0.15s; }
+        .rl-ctrl button:hover { background:#2b6cb0; color:white; }
+        .rl-ctrl button:disabled { opacity:0.5; cursor:not-allowed; }
+        .rl-info { background:#ebf4ff; border-radius:6px; padding:0.4rem 0.8rem; font-size:0.88rem; margin-top:0.6rem; }
+
+        /* 网络结构 SVG */
+        .nn-svg text { font-family: "Source Han Serif SC", Georgia, serif; }
+
+        /* 经验回放表格 */
+        .replay-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+        .replay-table th, .replay-table td { border: 1px solid var(--border-color); padding: 0.4rem 0.6rem; text-align: center; }
+        .replay-table th { background: var(--accent-color); color: white; font-size: 0.85rem; }
+        .replay-table .sampled { background: #fefcbf; }
+
+        /* 训练曲线 canvas */
+        .chart-container { position: relative; width: 100%; margin: 0.5rem 0; }
+        .chart-container canvas { width: 100%; height: 220px; display: block; }
+        .chart-label { font-size: 0.82rem; color: #718096; text-align: center; margin-top: 0.3rem; }
+
+        /* DQN 交互演示 */
+        .dqn-demo { border:2px solid var(--border-color); border-radius:8px; padding:1.2rem; margin:1.5rem 0; background:#fafafa; }
+        .dqn-demo .demo-title { font-weight:700; color:var(--accent-color); margin-bottom:0.6rem; font-size:1.05rem; }
+        .dqn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 0.8rem 0; }
+        @media (max-width: 768px) { .dqn-grid { grid-template-columns: 1fr; } }
+        .dqn-panel { background: white; border: 1px solid var(--border-color); border-radius: 6px; padding: 0.8rem; }
+        .dqn-panel-title { font-weight: 600; font-size: 0.9rem; color: var(--primary-color); margin-bottom: 0.5rem; }
+        .q-cell { display: inline-block; padding: 0.15rem 0.4rem; margin: 0.1rem; border-radius: 3px; font-size: 0.82rem; font-family: "JetBrains Mono", monospace; }
+        .fig-caption { text-align: center; font-size: 0.92rem; color: #4a5568; margin: 0.8rem 0 1.5rem 0; }
+    </style>
+    <script defer src="../../js/code-copy.js"></script>
 </head>
 <body>
     <div class="page-wrapper">
@@ -20,13 +70,18 @@
                 <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
                 <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
                 <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
-                <li><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
-                <li><a href="../ch01/1.3.2.html">1.3.2 值函数与贝尔曼期望方程</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
                 <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
-                <li><a href="../ch01/1.5.html">1.5 不依赖模型的学习算法</a></li>
-                <li><a href="../ch01/1.6.html">1.6 策略梯度方法</a></li>
-                <li><a href="../ch01/1.7.html">1.7 例子：等红绿灯问题</a></li>
-                <li><a href="../ch01/1.8.html">1.8 例子：动态库存补货策略</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
+                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.3.html">1.5.3 SARSA与Q-learning</a></li>
+                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
+                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
                 <li class="sidebar-chapter">第二章 深度学习基础</li>
                 <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
                 <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
@@ -41,7 +96,8 @@
                 <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
                 <li><a href="../ch04/4.2.html">4.2 状态空间、动作空间与奖励函数的设计</a></li>
                 <li><a href="../ch04/4.3.html">4.3 决策时机与决策频率的建模</a></li>
-                <li><a href="../ch04/4.4.html">4.4 从问题特征到网络架构的选择</a></li>
+                <li><a href="../ch04/4.4.html">4.4 回合定义与时域建模</a></li>
+                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
                 <li class="sidebar-chapter">第五章 仿真器搭建</li>
                 <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
                 <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
@@ -62,7 +118,455 @@
         <main class="main-content">
             <h1>3.1 Deep Q-Network</h1>
 
-            <p>（内容待补充）</p>
+            <p>在第一章中，我们学习了Q-learning算法（1.5.2节）：通过反复与环境交互，逐步更新Q值表格，最终收敛到最优动作值函数 $Q^*(s,a)$。在网约车司机的例子中，3个状态、每个状态2个动作，总共只需要维护6个Q值，用一张小表格就能轻松存储。然而，实际的管理科学问题远非如此简单。本节将介绍如何用神经网络替代Q表格，引出深度强化学习的第一个里程碑算法：<strong>Deep Q-Network（DQN）</strong>。</p>
+
+            <!-- ==================== 从Q表到Q网络 ==================== -->
+            <h2>从Q表到Q网络</h2>
+
+            <p>回顾1.5.2节中的Q-learning：我们维护一张Q表（Q-table），表的行是状态 $s$，列是动作 $a$，每个单元格存储 $Q(s,a)$ 的估计值。每次经历一个转移 $(S_t, A_t, R_t, S_{t+1})$，就更新对应单元格的值。这种方法在状态空间 $\mathcal{S}$ 和动作空间 $\mathcal{A}$ 都很小时非常有效。</p>
+
+            <p>但在许多管理科学问题中，状态空间可能非常庞大，甚至是连续的：</p>
+            <ul style="margin: 0.5rem 0 1rem 2rem; line-height: 2;">
+                <li><strong>网约车调度</strong>：司机的位置（经纬度）、当前时刻、周边订单分布、道路拥堵状况……状态维度可达数十甚至上百维</li>
+                <li><strong>库存管理</strong>：多产品库存水平、在途订单数量、需求预测值、供应商交货时间……状态空间随产品数量指数增长</li>
+                <li><strong>交通信号控制</strong>：各车道排队长度、车辆速度分布、上下游路口的信号相位……连续且高维</li>
+            </ul>
+
+            <p>以网约车为例。第一章中我们将问题简化为3个区域（市中心、郊区、机场）。但如果将城市划分为100个区域，同时考虑24个小时的时段，状态空间就扩展到 $100 \times 24 = 2400$ 个状态。若进一步加入需求水平（高/中/低3档），状态数变为 $100 \times 24 \times 3 = 7200$。每增加一个维度，状态数量就会成倍增长。这就是所谓的<strong>维数灾难</strong>（curse of dimensionality）：Q表格的大小随状态维度指数增长，存储和学习都变得不可行。</p>
+
+            <p>解决方案是用一个参数化的函数来<strong>近似</strong> $Q^*(s,a)$，而不是逐个存储。在第二章中，我们已经知道神经网络是一种强大的函数近似器。自然的想法是：用一个参数为 $\theta$ 的神经网络 $Q(s,a;\theta)$ 来代替Q表格。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">Q网络（Q-Network）</div>
+                <p>用神经网络 $Q(s,a;\theta)$ 近似最优动作值函数 $Q^*(s,a)$。网络的输入是状态 $s$，输出是每个动作对应的Q值估计。对于有 $|\mathcal{A}|$ 个动作的问题，网络的输出层有 $|\mathcal{A}|$ 个节点，第 $i$ 个输出对应动作 $a_i$ 的Q值。</p>
+            </div>
+
+            <p>这种设计的优势在于：只需一次前向传播，就能同时得到所有动作的Q值，从而高效地计算 $\arg\max_a Q(s,a;\theta)$。</p>
+
+            <!-- Q网络结构示意图 SVG -->
+            <div style="text-align:center; margin: 1.5rem 0 0.5rem 0;">
+                <svg width="520" height="260" viewBox="0 0 520 260" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;">
+                    <!-- 输入层标签 -->
+                    <text x="50" y="25" text-anchor="middle" font-size="14" fill="#1a365d" font-weight="700">输入层</text>
+                    <text x="50" y="42" text-anchor="middle" font-size="12" fill="#718096">状态 $s$</text>
+                    <!-- 隐藏层标签 -->
+                    <text x="210" y="25" text-anchor="middle" font-size="14" fill="#1a365d" font-weight="700">隐藏层</text>
+                    <!-- 输出层标签 -->
+                    <text x="420" y="25" text-anchor="middle" font-size="14" fill="#1a365d" font-weight="700">输出层</text>
+                    <text x="420" y="42" text-anchor="middle" font-size="12" fill="#718096">Q值</text>
+
+                    <!-- 输入节点 -->
+                    <circle cx="50" cy="80" r="18" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                    <text x="50" y="85" text-anchor="middle" font-size="12" fill="#2b6cb0" font-style="italic">s</text>
+                    <text x="50" y="85" text-anchor="middle" font-size="8" fill="#2b6cb0" dy="4" dx="5">1</text>
+
+                    <circle cx="50" cy="130" r="18" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                    <text x="50" y="135" text-anchor="middle" font-size="12" fill="#2b6cb0" font-style="italic">s</text>
+                    <text x="50" y="135" text-anchor="middle" font-size="8" fill="#2b6cb0" dy="4" dx="5">2</text>
+
+                    <circle cx="50" cy="180" r="18" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                    <text x="50" y="185" text-anchor="middle" font-size="12" fill="#2b6cb0">...</text>
+
+                    <circle cx="50" cy="230" r="18" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                    <text x="50" y="235" text-anchor="middle" font-size="12" fill="#2b6cb0" font-style="italic">s</text>
+                    <text x="50" y="235" text-anchor="middle" font-size="8" fill="#2b6cb0" dy="4" dx="6">n</text>
+
+                    <!-- 隐藏层节点 -->
+                    <circle cx="180" cy="100" r="16" fill="#f0fff4" stroke="#38a169" stroke-width="2"/>
+                    <circle cx="180" cy="155" r="16" fill="#f0fff4" stroke="#38a169" stroke-width="2"/>
+                    <circle cx="180" cy="210" r="16" fill="#f0fff4" stroke="#38a169" stroke-width="2"/>
+
+                    <circle cx="280" cy="100" r="16" fill="#f0fff4" stroke="#38a169" stroke-width="2"/>
+                    <circle cx="280" cy="155" r="16" fill="#f0fff4" stroke="#38a169" stroke-width="2"/>
+                    <circle cx="280" cy="210" r="16" fill="#f0fff4" stroke="#38a169" stroke-width="2"/>
+
+                    <!-- 输出节点 -->
+                    <circle cx="420" cy="95" r="20" fill="#fffff0" stroke="#d69e2e" stroke-width="2"/>
+                    <text x="420" y="99" text-anchor="middle" font-size="11" fill="#975a16" font-style="italic">Q(s,a</text>
+                    <text x="450" y="99" text-anchor="middle" font-size="8" fill="#975a16">1</text>
+                    <text x="455" y="99" text-anchor="middle" font-size="11" fill="#975a16">)</text>
+
+                    <circle cx="420" cy="160" r="20" fill="#fffff0" stroke="#d69e2e" stroke-width="2"/>
+                    <text x="420" y="164" text-anchor="middle" font-size="11" fill="#975a16" font-style="italic">Q(s,a</text>
+                    <text x="450" y="164" text-anchor="middle" font-size="8" fill="#975a16">2</text>
+                    <text x="455" y="164" text-anchor="middle" font-size="11" fill="#975a16">)</text>
+
+                    <circle cx="420" cy="225" r="20" fill="#fffff0" stroke="#d69e2e" stroke-width="2"/>
+                    <text x="420" y="229" text-anchor="middle" font-size="11" fill="#975a16" font-style="italic">Q(s,a</text>
+                    <text x="452" y="229" text-anchor="middle" font-size="8" fill="#975a16">m</text>
+                    <text x="458" y="229" text-anchor="middle" font-size="11" fill="#975a16">)</text>
+
+                    <!-- 连线：输入到隐藏1 -->
+                    <line x1="68" y1="80" x2="164" y2="100" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="68" y1="80" x2="164" y2="155" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="68" y1="80" x2="164" y2="210" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="68" y1="130" x2="164" y2="100" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="68" y1="130" x2="164" y2="155" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="68" y1="130" x2="164" y2="210" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="68" y1="180" x2="164" y2="100" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="68" y1="180" x2="164" y2="155" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="68" y1="180" x2="164" y2="210" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="68" y1="230" x2="164" y2="100" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="68" y1="230" x2="164" y2="155" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="68" y1="230" x2="164" y2="210" stroke="#cbd5e0" stroke-width="1"/>
+
+                    <!-- 连线：隐藏1到隐藏2 -->
+                    <line x1="196" y1="100" x2="264" y2="100" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="196" y1="100" x2="264" y2="155" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="196" y1="100" x2="264" y2="210" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="196" y1="155" x2="264" y2="100" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="196" y1="155" x2="264" y2="155" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="196" y1="155" x2="264" y2="210" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="196" y1="210" x2="264" y2="100" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="196" y1="210" x2="264" y2="155" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="196" y1="210" x2="264" y2="210" stroke="#cbd5e0" stroke-width="1"/>
+
+                    <!-- 连线：隐藏2到输出 -->
+                    <line x1="296" y1="100" x2="400" y2="95" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="296" y1="100" x2="400" y2="160" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="296" y1="100" x2="400" y2="225" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="296" y1="155" x2="400" y2="95" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="296" y1="155" x2="400" y2="160" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="296" y1="155" x2="400" y2="225" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="296" y1="210" x2="400" y2="95" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="296" y1="210" x2="400" y2="160" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="296" y1="210" x2="400" y2="225" stroke="#cbd5e0" stroke-width="1"/>
+
+                    <!-- 参数标注 -->
+                    <text x="130" y="250" text-anchor="middle" font-size="13" fill="#2b6cb0" font-style="italic">θ</text>
+                </svg>
+            </div>
+            <div class="fig-caption">图 3.1-1 &nbsp; Q网络结构示意：输入状态向量 $s$，输出所有动作的Q值估计。网络参数 $\theta$ 通过训练学习。</div>
+
+            <p>对比Q表和Q网络：</p>
+
+            <table class="trans-table" style="width:100%;">
+                <thead>
+                    <tr><th></th><th>Q表（表格方法）</th><th>Q网络（函数近似）</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>存储方式</td><td>$|\mathcal{S}| \times |\mathcal{A}|$ 大小的表格</td><td>参数量为 $|\theta|$ 的神经网络</td></tr>
+                    <tr><td>泛化能力</td><td>没有泛化：不同状态的Q值完全独立</td><td>相似状态共享参数，自动泛化</td></tr>
+                    <tr><td>适用范围</td><td>小型离散状态空间</td><td>大型离散或连续状态空间</td></tr>
+                    <tr><td>更新方式</td><td>直接修改表格中一个单元格</td><td>通过梯度下降更新所有参数 $\theta$</td></tr>
+                </tbody>
+            </table>
+
+            <p>泛化能力是Q网络的关键优势。在表格方法中，在状态 $s_1$ 处获得的经验完全不会帮助估计状态 $s_2$ 的Q值，即使 $s_1$ 和 $s_2$ 非常相似。而神经网络的参数是所有状态共享的，在某个状态处的训练会影响相似状态的输出，从而加速学习。例如在网约车调度中，如果网络学到了"高峰时段在需求密集区域接单Q值高"这一模式，那么对所有高峰时段的密集区域，网络都会给出较高的接单Q值，即使其中某些具体的（区域，时段）组合从未被访问过。</p>
+
+            <!-- ==================== 损失函数与训练目标 ==================== -->
+            <h2>损失函数与训练目标</h2>
+
+            <p>有了Q网络 $Q(s,a;\theta)$，下一个问题是：如何训练它？回顾1.5.2节的Q-learning更新规则：</p>
+
+            $$Q(S_t, A_t) \leftarrow Q(S_t, A_t) + \alpha \left[ R_t + \gamma \max_{a} Q(S_{t+1}, a) - Q(S_t, A_t) \right]$$
+
+            <p>表格Q-learning直接修改表格中的一个单元格。对于神经网络，我们不能直接修改某个输出值，而是需要定义一个<strong>损失函数</strong>，然后通过梯度下降来更新参数 $\theta$。</p>
+
+            <p>从贝尔曼最优方程出发（参见1.4.2节），最优动作值函数满足：</p>
+
+            $$Q^*(s, a) = \mathbb{E}\left[R + \gamma \max_{a'} Q^*(S', a') \;\middle|\; S=s, A=a\right] \tag{3.1-1}$$
+
+            <p>如果我们的Q网络已经完美逼近了 $Q^*$，那么对任意 $(s,a)$，将 $Q(s,a;\theta)$ 代入上式两端应该相等。因此，可以将训练目标定义为最小化两端之差的平方：</p>
+
+            <div class="concept-card">
+                <div class="concept-name">DQN 损失函数（初步版本）</div>
+                $$L(\theta) = \mathbb{E}_{(S,A,R,S')}\left[\left(\underbrace{R + \gamma \max_{a'} Q(S', a'; \theta)}_{\text{TD目标（target）}} - \underbrace{Q(S, A; \theta)}_{\text{当前估计}}\right)^2\right] \tag{3.1-2}$$
+                <p style="margin-top:0.5rem;">其中期望是对经验转移 $(S,A,R,S')$ 取的。TD目标 $R + \gamma \max_{a'} Q(S', a'; \theta)$ 是我们希望Q网络输出逼近的值。</p>
+            </div>
+
+            <p>对每个样本 $(s_t, a_t, r_t, s_{t+1})$，该损失的梯度为：</p>
+
+            $$\nabla_\theta L = -2\left(r_t + \gamma \max_{a'} Q(s_{t+1}, a'; \theta) - Q(s_t, a_t; \theta)\right) \nabla_\theta Q(s_t, a_t; \theta) \tag{3.1-3}$$
+
+            <p>看起来很简单：用梯度下降不断减小TD误差的平方即可。然而，如果直接这样做，训练往往会<strong>不稳定甚至发散</strong>。原因主要有两个：</p>
+
+            <div class="note">
+                <p><strong>问题一：目标不稳定。</strong>在监督学习中，训练标签（如图像的类别）是固定的。但在公式(3.1-2)中，TD目标 $R + \gamma \max_{a'} Q(S', a'; \theta)$ 本身依赖于参数 $\theta$。每当 $\theta$ 更新一次，目标也随之变化。这就像射击一个不断移动的靶子，参数可能在追逐不断变化的目标中来回振荡，无法收敛。</p>
+            </div>
+
+            <div class="note">
+                <p><strong>问题二：样本相关性。</strong>智能体在环境中依次采集的数据 $(s_0, a_0, r_0, s_1), (s_1, a_1, r_1, s_2), \ldots$ 在时间上高度相关。前后相邻的样本共享状态 $s_t$，且来自相似的环境区域。而神经网络的随机梯度下降要求训练样本之间近似独立。如果用相关样本训练，网络容易过度拟合最近的经验，忘记之前学到的知识。</p>
+            </div>
+
+            <p>为了解决这两个问题，Mnih等人（2015）在发表于 <em>Nature</em> 的经典论文中提出了两个关键技巧：<strong>经验回放</strong>和<strong>目标网络</strong>。</p>
+
+            <!-- ==================== 经验回放 ==================== -->
+            <h2>经验回放</h2>
+
+            <p><strong>经验回放</strong>（experience replay）的思想非常直观：把智能体与环境交互产生的转移数据存入一个缓冲区（replay buffer），训练时从缓冲区中<strong>随机抽样</strong>一小批（mini-batch）数据来计算梯度，而不是用最新的一条数据。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">经验回放缓冲区（Replay Buffer）</div>
+                <p>维护一个固定容量为 $N$ 的缓冲区 $\mathcal{D}$，存储智能体的历史转移：</p>
+                $$\mathcal{D} = \{(s_i, a_i, r_i, s_i')\}_{i=1}^{N} \tag{3.1-4}$$
+                <p style="margin-top:0.5rem;">每当智能体产生一条新的转移，将其存入缓冲区（如果缓冲区已满，则覆盖最旧的数据）。训练时，从 $\mathcal{D}$ 中均匀随机抽取大小为 $B$ 的mini-batch来计算梯度。</p>
+            </div>
+
+            <p>下面的表格展示了经验回放的工作过程。假设缓冲区容量 $N=6$，mini-batch大小 $B=3$：</p>
+
+            <table class="replay-table">
+                <thead>
+                    <tr><th>编号</th><th>状态 $s$</th><th>动作 $a$</th><th>奖励 $r$</th><th>下一状态 $s'$</th><th>存入时间</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>$s_0$</td><td>$a_2$</td><td>$+3$</td><td>$s_1$</td><td>第1步</td></tr>
+                    <tr class="sampled"><td>2</td><td>$s_1$</td><td>$a_0$</td><td>$-1$</td><td>$s_2$</td><td>第2步</td></tr>
+                    <tr><td>3</td><td>$s_2$</td><td>$a_1$</td><td>$+5$</td><td>$s_3$</td><td>第3步</td></tr>
+                    <tr class="sampled"><td>4</td><td>$s_3$</td><td>$a_2$</td><td>$+2$</td><td>$s_4$</td><td>第4步</td></tr>
+                    <tr><td>5</td><td>$s_4$</td><td>$a_0$</td><td>$-2$</td><td>$s_5$</td><td>第5步</td></tr>
+                    <tr class="sampled"><td>6</td><td>$s_5$</td><td>$a_1$</td><td>$+7$</td><td>$s_6$</td><td>第6步</td></tr>
+                </tbody>
+            </table>
+            <div class="fig-caption">图 3.1-2 &nbsp; 经验回放示意。缓冲区存储了6条转移数据，黄色高亮行为随机抽取的mini-batch（编号2、4、6），用于一次梯度更新。</div>
+
+            <p>经验回放解决了前面提到的<strong>样本相关性</strong>问题。由于mini-batch是从不同时间步的数据中随机抽取的，样本之间的时序相关性被大大打破。此外，同一条经验可以被多次抽到、用于多次更新，提高了数据利用效率。</p>
+
+            <div class="note">
+                <p>经验回放还有一个不太显然的好处：由于缓冲区中保存了较早时期（可能来自不同策略）的数据，Q网络实际上是在<strong>多种行为策略</strong>产生的混合数据上训练的。这与Q-learning的<strong>离策略</strong>（off-policy）特性天然契合。如果用的是SARSA这样的在策略算法，经验回放就不太适用了，因为旧数据不是由当前策略产生的。</p>
+            </div>
+
+            <!-- ==================== 目标网络 ==================== -->
+            <h2>目标网络</h2>
+
+            <p><strong>目标网络</strong>（target network）解决的是<strong>目标不稳定</strong>问题。思路也很简单：用一个独立的网络来计算TD目标，使目标在一段时间内保持不变。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">目标网络（Target Network）</div>
+                <p>维护两个结构相同的网络：</p>
+                <ul style="margin: 0.3rem 0 0.3rem 1.5rem; line-height: 1.8;">
+                    <li><strong>在线网络</strong>（online network）$Q(s,a;\theta)$：用于选择动作，参数每步更新</li>
+                    <li><strong>目标网络</strong>（target network）$Q(s,a;\theta^-)$：用于计算TD目标，参数每隔 $C$ 步才从在线网络复制一次</li>
+                </ul>
+                <p style="margin-top:0.5rem;">损失函数变为：</p>
+                $$L(\theta) = \mathbb{E}_{(S,A,R,S') \sim \mathcal{D}}\left[\left(R + \gamma \max_{a'} Q(S', a'; \theta^-) - Q(S, A; \theta)\right)^2\right] \tag{3.1-5}$$
+                <p style="margin-top:0.3rem;">其中 $\theta^-$ 在两次同步之间保持不变，因此TD目标不会随每次梯度更新而变化。</p>
+            </div>
+
+            <p>具体做法是：每隔 $C$ 步（如 $C=1000$），执行一次 $\theta^- \leftarrow \theta$，将在线网络的参数完整复制给目标网络。在两次同步之间的1000步中，目标网络的参数 $\theta^-$ 保持冻结，TD目标也因此保持稳定。这就像把移动的靶子暂时固定住，让射手有足够的时间瞄准。当射手（在线网络）已经对准当前靶子位置，再把靶子移动到新位置（同步参数），如此循环。</p>
+
+            <!-- 目标网络同步示意图 SVG -->
+            <div style="text-align:center; margin: 1.5rem 0 0.5rem 0;">
+                <svg width="500" height="160" viewBox="0 0 500 160" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;">
+                    <!-- 时间轴 -->
+                    <line x1="30" y1="80" x2="470" y2="80" stroke="#cbd5e0" stroke-width="2"/>
+                    <polygon points="470,76 480,80 470,84" fill="#cbd5e0"/>
+
+                    <!-- 刻度 -->
+                    <line x1="60" y1="75" x2="60" y2="85" stroke="#2d3748" stroke-width="2"/>
+                    <text x="60" y="105" text-anchor="middle" font-size="12" fill="#4a5568">0</text>
+
+                    <line x1="160" y1="75" x2="160" y2="85" stroke="#d69e2e" stroke-width="3"/>
+                    <text x="160" y="105" text-anchor="middle" font-size="12" fill="#975a16" font-weight="600">$C$</text>
+                    <text x="160" y="55" text-anchor="middle" font-size="11" fill="#975a16">同步</text>
+                    <text x="160" y="42" text-anchor="middle" font-size="11" fill="#975a16">$\theta^- \!\leftarrow\! \theta$</text>
+
+                    <line x1="260" y1="75" x2="260" y2="85" stroke="#d69e2e" stroke-width="3"/>
+                    <text x="260" y="105" text-anchor="middle" font-size="12" fill="#975a16" font-weight="600">$2C$</text>
+                    <text x="260" y="55" text-anchor="middle" font-size="11" fill="#975a16">同步</text>
+
+                    <line x1="360" y1="75" x2="360" y2="85" stroke="#d69e2e" stroke-width="3"/>
+                    <text x="360" y="105" text-anchor="middle" font-size="12" fill="#975a16" font-weight="600">$3C$</text>
+                    <text x="360" y="55" text-anchor="middle" font-size="11" fill="#975a16">同步</text>
+
+                    <!-- 区间标注 -->
+                    <line x1="60" y1="130" x2="160" y2="130" stroke="#2b6cb0" stroke-width="1.5" stroke-dasharray="4,2"/>
+                    <text x="110" y="150" text-anchor="middle" font-size="11" fill="#2b6cb0">$\theta^-$ 冻结</text>
+
+                    <line x1="160" y1="130" x2="260" y2="130" stroke="#2b6cb0" stroke-width="1.5" stroke-dasharray="4,2"/>
+                    <text x="210" y="150" text-anchor="middle" font-size="11" fill="#2b6cb0">$\theta^-$ 冻结</text>
+
+                    <line x1="260" y1="130" x2="360" y2="130" stroke="#2b6cb0" stroke-width="1.5" stroke-dasharray="4,2"/>
+                    <text x="310" y="150" text-anchor="middle" font-size="11" fill="#2b6cb0">$\theta^-$ 冻结</text>
+
+                    <!-- 标签 -->
+                    <text x="490" y="84" text-anchor="start" font-size="12" fill="#4a5568">训练步数</text>
+                </svg>
+            </div>
+            <div class="fig-caption">图 3.1-3 &nbsp; 目标网络的参数同步机制。每隔 $C$ 步，将在线网络参数 $\theta$ 复制给目标网络 $\theta^-$，其余时间 $\theta^-$ 保持不变。</div>
+
+            <details class="optional-reading">
+                <summary>补充阅读：软更新（Soft Update）</summary>
+                <p style="margin-top:0.5rem;">除了每隔 $C$ 步硬复制参数，另一种常见做法是<strong>软更新</strong>（soft update），也称为 Polyak 平均：每一步都用一个很小的比例 $\tau$（如 $\tau=0.005$）将在线网络参数混入目标网络：</p>
+                $$\theta^- \leftarrow \tau\,\theta + (1-\tau)\,\theta^- \tag{3.1-6}$$
+                <p>软更新使目标网络参数平滑地跟随在线网络，避免了硬复制时的突变。这种方式在后续算法（如3.3节的SAC）中被广泛采用。</p>
+            </details>
+
+            <!-- ==================== DQN算法 ==================== -->
+            <h2>DQN算法</h2>
+
+            <p>将Q网络、经验回放和目标网络三者结合起来，就得到了完整的DQN算法。下面给出算法的伪代码：</p>
+
+            <div class="algo-box">
+                <div class="algo-title">算法：Deep Q-Network（DQN）</div>
+                <ol>
+                    <li>初始化在线网络参数 $\theta$（随机初始化），目标网络参数 $\theta^- \leftarrow \theta$</li>
+                    <li>初始化经验回放缓冲区 $\mathcal{D}$，容量为 $N$</li>
+                    <li>对每个回合 $e = 1, 2, \ldots$：
+                        <ol type="a">
+                            <li>初始化状态 $S_0$</li>
+                            <li>对每一步 $t = 0, 1, 2, \ldots$：
+                                <ol type="i">
+                                    <li>用 $\varepsilon$-greedy 选择动作：以 $\varepsilon$ 的概率随机选择，否则 $A_t = \arg\max_a Q(S_t, a; \theta)$</li>
+                                    <li>执行 $A_t$，观察奖励 $R_t$ 和下一状态 $S_{t+1}$</li>
+                                    <li>将转移 $(S_t, A_t, R_t, S_{t+1})$ 存入 $\mathcal{D}$</li>
+                                    <li>从 $\mathcal{D}$ 中随机抽取大小为 $B$ 的mini-batch $\{(s_j, a_j, r_j, s_j')\}_{j=1}^{B}$</li>
+                                    <li>计算TD目标：$y_j = r_j + \gamma \max_{a'} Q(s_j', a'; \theta^-)$</li>
+                                    <li>对损失 $\frac{1}{B}\sum_{j=1}^{B}(y_j - Q(s_j, a_j; \theta))^2$ 执行一步梯度下降，更新 $\theta$</li>
+                                    <li>每隔 $C$ 步：$\theta^- \leftarrow \theta$</li>
+                                </ol>
+                            </li>
+                        </ol>
+                    </li>
+                </ol>
+                <div class="algo-note">典型超参数：缓冲区容量 $N=10^5 \sim 10^6$，mini-batch大小 $B=32$，目标网络更新频率 $C=1000$，折扣因子 $\gamma=0.99$，探索率 $\varepsilon$ 从1.0线性衰减至0.01。</div>
+            </div>
+
+            <p>与表格Q-learning（1.5.2节）对比，DQN的核心结构可以简洁地概括为：</p>
+
+            <div class="result-box">
+                <strong>DQN = Q-learning + 神经网络 + 经验回放 + 目标网络</strong>
+            </div>
+
+            <!-- ==================== 例子：网约车调度的DQN ==================== -->
+            <h2>例子：网约车调度的DQN</h2>
+
+            <p>让我们将网约车司机的例子扩展到一个稍大的场景，来看DQN如何工作。</p>
+
+            <p>在第一章中，网约车司机只需考虑3个区域和1种时段。现在假设城市仍然分为3个区域（市中心 $c$、郊区 $b$、机场 $a$），但引入4个时段（早高峰、白天、晚高峰、夜间），用整数 $0,1,2,3$ 表示。状态定义为<strong>（区域, 时段）</strong>的组合，状态空间大小为 $|\mathcal{S}| = 3 \times 4 = 12$。动作仍为2个：接单或空驶到另一个区域。</p>
+
+            <p>不同时段下，接单奖励和转移概率都不同。例如：</p>
+
+            <ul style="margin: 0.5rem 0 1rem 2rem; line-height: 2;">
+                <li>早高峰（时段0）：市中心需求旺盛，接单奖励高（$r=12$）；机场需求一般（$r=8$）</li>
+                <li>夜间（时段3）：市中心接单奖励降至 $r=4$，但机场有红眼航班，奖励升至 $r=16$</li>
+            </ul>
+
+            <p>奖励公式可写为：</p>
+
+            $$R(s, a) = R\big((\text{zone}, \text{period}),\; a\big) \tag{3.1-7}$$
+
+            <p>其中具体的奖励值由区域和时段共同决定，详见下表中的部分示例：</p>
+
+            <table class="trans-table" style="width:100%;">
+                <thead>
+                    <tr><th>区域</th><th>时段</th><th>接单奖励</th><th>空驶奖励</th><th>接单后转移概率</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>市中心 $c$</td><td>0（早高峰）</td><td>$12$</td><td>$-4$</td><td>$c$: 0.5, $b$: 0.3, $a$: 0.2</td></tr>
+                    <tr><td>市中心 $c$</td><td>3（夜间）</td><td>$4$</td><td>$-4$</td><td>$c$: 0.3, $b$: 0.5, $a$: 0.2</td></tr>
+                    <tr><td>机场 $a$</td><td>0（早高峰）</td><td>$8$</td><td>$-5$</td><td>$c$: 0.6, $b$: 0.4</td></tr>
+                    <tr><td>机场 $a$</td><td>3（夜间）</td><td>$16$</td><td>$-5$</td><td>$c$: 0.7, $b$: 0.3</td></tr>
+                </tbody>
+            </table>
+
+            <p>虽然12个状态仍然可以用表格方法处理，但这个例子帮助我们理解DQN的工作方式。状态被表示为一个特征向量：例如用独热编码（one-hot encoding）表示区域（3维）和时段（4维），拼接后得到7维输入向量。Q网络接收这个7维向量，输出2个动作的Q值。</p>
+
+            <p>当状态维度进一步增加时（如100个区域 + 24个时段 + 需求水平），表格方法需要 $100 \times 24 \times 3 \times 2 = 14400$ 个Q值条目，而Q网络的参数量可以保持在合理范围，并且能够在相似状态之间泛化。</p>
+
+            <!-- ==================== 交互演示：DQN ==================== -->
+            <h2>交互演示</h2>
+
+            <p>下面的交互演示在网约车三区域环境中运行DQN训练过程。Q网络是一个包含两个隐藏层（各16个神经元）的全连接网络。你可以观察训练过程中损失的下降、Q值的收敛，以及回合奖励的提升。</p>
+
+            <div class="dqn-demo">
+                <div class="demo-title">交互演示：DQN 训练网约车调度策略</div>
+                <div class="rl-ctrl">
+                    <button id="dqn-btn-100" onclick="_dqnStep(100)">训练100步</button>
+                    <button id="dqn-btn-5000" onclick="_dqnStep(5000)">快进5000步</button>
+                    <button id="dqn-btn-reset" onclick="_dqnReset()">重置</button>
+                    <span style="margin-left:0.5rem; color:#718096; font-size:0.82rem;">
+                        $\varepsilon$-greedy 探索率随训练自动衰减
+                    </span>
+                </div>
+
+                <div class="dqn-grid">
+                    <!-- 左：Q值表 -->
+                    <div class="dqn-panel">
+                        <div class="dqn-panel-title">当前 Q 值估计</div>
+                        <table class="trans-table" style="width:100%; font-size:0.85rem;">
+                            <thead>
+                                <tr><th>状态</th><th>Q(s, 接单)</th><th>Q(s, 空驶)</th><th>最优动作</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>市中心 (c)</td><td id="dqn-q-c-0">0.0</td><td id="dqn-q-c-1">0.0</td><td id="dqn-p-c">-</td></tr>
+                                <tr><td>郊区 (b)</td><td id="dqn-q-b-0">0.0</td><td id="dqn-q-b-1">0.0</td><td id="dqn-p-b">-</td></tr>
+                                <tr><td>机场 (a)</td><td id="dqn-q-a-0">0.0</td><td id="dqn-q-a-1">0.0</td><td id="dqn-p-a">-</td></tr>
+                            </tbody>
+                        </table>
+                        <div style="font-size:0.8rem; color:#a0aec0; margin-top:0.3rem;">
+                            Q* 参考值：c 接单≈62.8, b 空驶≈53.5, a 接单≈67.2
+                        </div>
+                    </div>
+
+                    <!-- 右：训练曲线 -->
+                    <div class="dqn-panel">
+                        <div class="dqn-panel-title">训练曲线</div>
+                        <div class="chart-container">
+                            <canvas id="dqn-loss-canvas" height="100"></canvas>
+                            <div class="chart-label">平均TD损失（每100步）</div>
+                        </div>
+                        <div class="chart-container" style="margin-top:0.5rem;">
+                            <canvas id="dqn-reward-canvas" height="100"></canvas>
+                            <div class="chart-label">平均回合奖励（每100步）</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rl-info" id="dqn-info">已训练 <strong>0</strong> 步 &nbsp;|&nbsp; $\varepsilon$ = <strong>1.00</strong> &nbsp;|&nbsp; 缓冲区: <strong>0</strong> 条</div>
+            </div>
+            <div class="fig-caption">图 3.1-4 &nbsp; DQN训练网约车调度策略的交互演示。左侧显示当前Q值估计和最优动作，右侧显示训练损失和回合奖励曲线。</div>
+
+            <!-- ==================== 从DQN到Double DQN ==================== -->
+            <h2>从DQN到Double DQN</h2>
+
+            <p>DQN虽然效果显著，但存在一个系统性的问题：<strong>Q值过高估计</strong>（overestimation）。</p>
+
+            <p>问题出在TD目标中的 $\max$ 运算。考虑公式(3.1-5)中的TD目标：</p>
+
+            $$y = R + \gamma \max_{a'} Q(S', a'; \theta^-)$$
+
+            <p>$\max$ 运算符同时承担了两个角色：<strong>选择</strong>哪个动作最好，以及<strong>估计</strong>该动作的Q值。当Q值的估计存在噪声时（训练初期必然如此），$\max$ 倾向于选出那个被<strong>高估</strong>的动作。这就像从一组有误差的成绩中选最高分，选出来的往往比真实最高分偏高。这种偏差会在训练过程中不断积累，导致所有Q值被系统性地高估。</p>
+
+            <details class="derivation">
+                <summary>推导：为什么 max 会导致过高估计</summary>
+                <p style="margin-top:0.5rem;">假设真实Q值为 $Q^*(s',a_1) = Q^*(s',a_2) = V$，但估计值含有均值为零的噪声：$\hat{Q}(s',a_i) = V + \epsilon_i$，其中 $\epsilon_i$ 独立且 $\mathbb{E}[\epsilon_i]=0$。则：</p>
+                $$\mathbb{E}\left[\max(\hat{Q}(s',a_1), \hat{Q}(s',a_2))\right] = \mathbb{E}\left[\max(V+\epsilon_1, V+\epsilon_2)\right] = V + \mathbb{E}\left[\max(\epsilon_1, \epsilon_2)\right] \geq V$$
+                <p>最后一个不等式严格成立（只要 $\epsilon_i$ 不恒为零），因为两个均值为零的随机变量的最大值的期望严格大于零。动作越多，过高估计越严重。</p>
+            </details>
+
+            <p><strong>Double DQN</strong>（van Hasselt et al., 2016）的解决方案很巧妙：将动作选择和Q值估计分开，用两个不同的网络分别完成。具体地，用<strong>在线网络</strong> $\theta$ 来选择动作，用<strong>目标网络</strong> $\theta^-$ 来估计该动作的Q值：</p>
+
+            <div class="concept-card">
+                <div class="concept-name">Double DQN 的 TD 目标</div>
+                $$y^{\text{DDQN}} = R + \gamma\, Q\!\left(S',\; \underbrace{\arg\max_{a'} Q(S', a'; \theta)}_{\text{在线网络选动作}}\;;\; \underbrace{\theta^-}_{\text{目标网络估值}}\right) \tag{3.1-8}$$
+            </div>
+
+            <p>对比DQN的TD目标 $y = R + \gamma \max_{a'} Q(S', a'; \theta^-)$，Double DQN的改动很小（只需将动作选择从 $\theta^-$ 改为 $\theta$），但能显著减少过高估计。直觉上，即使在线网络由于噪声选择了一个被高估的动作，目标网络对该动作的估值通常不会同样偏高（因为两个网络的噪声不同），从而纠正了偏差。</p>
+
+            <p>在实现层面，Double DQN只需修改DQN算法第2(b)(v)步中计算TD目标的方式，其余完全相同。这种微小的修改带来了稳定的性能提升，因此在实践中，Double DQN已经基本取代了原始DQN。</p>
+
+            <!-- ==================== 小结 ==================== -->
+            <h2>小结</h2>
+
+            <p>本节从表格Q-learning出发，逐步引入了神经网络函数近似、经验回放和目标网络三个核心组件，构建了DQN算法。下面梳理它与第一章算法的对应关系：</p>
+
+            <table class="trans-table" style="width:100%;">
+                <thead>
+                    <tr><th>组件</th><th>第一章中的对应</th><th>DQN中的做法</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>值函数表示</td><td>Q表格（1.5.2节）</td><td>Q网络 $Q(s,a;\theta)$</td></tr>
+                    <tr><td>更新规则</td><td>Q-learning更新（公式1.5-9）</td><td>TD损失 + 梯度下降（公式3.1-5）</td></tr>
+                    <tr><td>贝尔曼方程</td><td>贝尔曼最优方程（1.4.2节）</td><td>TD目标 $r + \gamma\max_{a'} Q(s',a';\theta^-)$</td></tr>
+                    <tr><td>稳定训练</td><td>表格方法不需要（直接更新单元格）</td><td>经验回放 + 目标网络</td></tr>
+                    <tr><td>动作选择</td><td>$\varepsilon$-greedy（公式1.5-7）</td><td>同样使用 $\varepsilon$-greedy</td></tr>
+                </tbody>
+            </table>
+
+            <p>DQN的局限性也值得注意。首先，它只适用于<strong>离散动作空间</strong>，因为需要对所有动作取 $\max$。对于连续动作空间（如调整价格、分配资源比例），需要其他方法（见3.2节的策略梯度和3.3节的SAC）。其次，DQN在高维动作空间中效率较低，因为输出层需要为每个动作分配一个节点。</p>
+
+            <p>尽管如此，DQN作为深度强化学习的开创性工作，其核心思想（函数近似、经验回放、目标网络）已成为几乎所有后续算法的标准组件。理解了DQN，就掌握了深度强化学习的基本范式。</p>
 
             <div class="chapter-nav">
                 <a href="../ch02/2.4.html">&larr; 2.4 图神经网络</a>
@@ -70,5 +574,318 @@
             </div>
         </main>
     </div>
+
+    <!-- ==================== DQN 交互演示 JavaScript ==================== -->
+    <script>
+    (function(){
+        /* ============================================================
+           极简 DQN 演示：三区域网约车 MDP
+           网络结构：输入3维(one-hot区域) → 隐藏16 → 隐藏16 → 输出2(接单/空驶)
+           ============================================================ */
+
+        // --- 环境定义 ---
+        var ENV = {
+            c: { a0: {R:8,  nx:{c:.5, b:.3, a:.2}}, a1: {R:-4, nx:{a:1}} },
+            b: { a0: {R:1,  nx:{c:.1, b:.8, a:.1}}, a1: {R:-3, nx:{c:1}} },
+            a: { a0: {R:14, nx:{c:.6, b:.4}},        a1: {R:-5, nx:{c:1}} }
+        };
+        var ZONES = ['c','b','a'];
+        var ACT_LABELS = {c:['接单','空驶去机场'], b:['接单','空驶去市中心'], a:['接单','空驶去市中心']};
+        var GAMMA = 0.9;
+
+        // --- 极简神经网络（纯 JS，无依赖） ---
+        function randn() { var u=0,v=0; while(u===0)u=Math.random(); while(v===0)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+
+        function createNet() {
+            // 3 → 16 → 16 → 2
+            var sizes = [3, 16, 16, 2];
+            var layers = [];
+            for (var i = 0; i < sizes.length - 1; i++) {
+                var fan_in = sizes[i], fan_out = sizes[i+1];
+                var scale = Math.sqrt(2.0 / fan_in); // He init
+                var W = [], b = [];
+                for (var r = 0; r < fan_out; r++) {
+                    var row = [];
+                    for (var ci = 0; ci < fan_in; ci++) row.push(randn() * scale);
+                    W.push(row);
+                    b.push(0);
+                }
+                layers.push({W: W, b: b});
+            }
+            return layers;
+        }
+
+        function copyNet(src) {
+            var dst = [];
+            for (var l = 0; l < src.length; l++) {
+                var W = [], b = [];
+                for (var r = 0; r < src[l].W.length; r++) {
+                    W.push(src[l].W[r].slice());
+                    b.push(src[l].b[r]);
+                }
+                dst.push({W: W, b: b});
+            }
+            return dst;
+        }
+
+        function forward(net, x) {
+            // Returns {activations: [x, h1, h2, out], preacts: [z1, z2, z3]}
+            var acts = [x.slice()];
+            var preacts = [];
+            for (var l = 0; l < net.length; l++) {
+                var W = net[l].W, b = net[l].b;
+                var z = [];
+                for (var r = 0; r < W.length; r++) {
+                    var s = b[r];
+                    for (var c = 0; c < W[r].length; c++) s += W[r][c] * acts[l][c];
+                    z.push(s);
+                }
+                preacts.push(z);
+                var h = [];
+                if (l < net.length - 1) {
+                    // ReLU
+                    for (var j = 0; j < z.length; j++) h.push(z[j] > 0 ? z[j] : 0);
+                } else {
+                    // linear output
+                    h = z.slice();
+                }
+                acts.push(h);
+            }
+            return {acts: acts, preacts: preacts};
+        }
+
+        function predict(net, x) {
+            return forward(net, x).acts[net.length];
+        }
+
+        function backward(net, fwd, target_idx, target_val, lr) {
+            // Compute gradient for MSE loss on single output neuron target_idx
+            // loss = (out[target_idx] - target_val)^2
+            var acts = fwd.acts;
+            var preacts = fwd.preacts;
+            var nLayers = net.length;
+            var out = acts[nLayers];
+
+            // dL/d(out[target_idx]) = 2*(out[target_idx] - target_val)
+            var dOut = new Array(out.length).fill(0);
+            dOut[target_idx] = 2 * (out[target_idx] - target_val);
+            var loss = (out[target_idx] - target_val) * (out[target_idx] - target_val);
+
+            var delta = dOut;
+
+            for (var l = nLayers - 1; l >= 0; l--) {
+                var W = net[l].W, b = net[l].b;
+                var prevAct = acts[l];
+                var z = preacts[l];
+
+                // apply activation derivative (ReLU for hidden, linear for output)
+                var dz = [];
+                if (l < nLayers - 1) {
+                    for (var j = 0; j < delta.length; j++) dz.push(z[j] > 0 ? delta[j] : 0);
+                } else {
+                    dz = delta.slice();
+                }
+
+                // gradient for next layer
+                var dPrev = new Array(prevAct.length).fill(0);
+                for (var r = 0; r < W.length; r++) {
+                    for (var c = 0; c < W[r].length; c++) {
+                        dPrev[c] += W[r][c] * dz[r];
+                        // update weight
+                        W[r][c] -= lr * dz[r] * prevAct[c];
+                    }
+                    b[r] -= lr * dz[r];
+                }
+                delta = dPrev;
+            }
+            return loss;
+        }
+
+        // --- 状态编码 ---
+        function stateVec(zone) {
+            var v = [0, 0, 0];
+            v[ZONES.indexOf(zone)] = 1;
+            return v;
+        }
+
+        // --- 环境采样 ---
+        function sampleNext(nx) {
+            var r = Math.random(), cum = 0;
+            for (var s in nx) { cum += nx[s]; if (r < cum) return s; }
+            return s;
+        }
+
+        // --- DQN 状态变量 ---
+        var onlineNet, targetNet, replayBuf, totalSteps, curZone, epsilon;
+        var lossHistory, rewardHistory;
+        var BUF_SIZE = 2000, BATCH = 32, TARGET_FREQ = 200, LR = 0.001;
+        var EPS_START = 1.0, EPS_END = 0.05, EPS_DECAY = 3000;
+
+        function initDQN() {
+            onlineNet = createNet();
+            targetNet = copyNet(onlineNet);
+            replayBuf = [];
+            totalSteps = 0;
+            curZone = 'c';
+            epsilon = EPS_START;
+            lossHistory = [];
+            rewardHistory = [];
+        }
+
+        function epsGreedy(zone) {
+            if (Math.random() < epsilon) return Math.floor(Math.random() * 2);
+            var q = predict(onlineNet, stateVec(zone));
+            return q[0] >= q[1] ? 0 : 1;
+        }
+
+        function trainStep() {
+            // 1. interact
+            var ai = epsGreedy(curZone);
+            var actKey = 'a' + ai;
+            var tr = ENV[curZone][actKey];
+            var r = tr.R;
+            var nextZone = sampleNext(tr.nx);
+
+            // 2. store
+            replayBuf.push({s: curZone, a: ai, r: r, ns: nextZone});
+            if (replayBuf.length > BUF_SIZE) replayBuf.shift();
+
+            // 3. train if enough samples
+            var batchLoss = 0;
+            if (replayBuf.length >= BATCH) {
+                // sample mini-batch
+                var batchIndices = [];
+                for (var bi = 0; bi < BATCH; bi++) {
+                    batchIndices.push(Math.floor(Math.random() * replayBuf.length));
+                }
+                for (var bi = 0; bi < BATCH; bi++) {
+                    var sample = replayBuf[batchIndices[bi]];
+                    var sv = stateVec(sample.s);
+                    var nsv = stateVec(sample.ns);
+                    // TD target using target network
+                    var qNext = predict(targetNet, nsv);
+                    var target = sample.r + GAMMA * Math.max(qNext[0], qNext[1]);
+                    // backprop
+                    var fwd = forward(onlineNet, sv);
+                    batchLoss += backward(onlineNet, fwd, sample.a, target, LR / BATCH);
+                }
+                batchLoss /= BATCH;
+            }
+
+            // 4. update target network
+            totalSteps++;
+            if (totalSteps % TARGET_FREQ === 0) {
+                targetNet = copyNet(onlineNet);
+            }
+
+            // 5. decay epsilon
+            epsilon = EPS_END + (EPS_START - EPS_END) * Math.exp(-totalSteps / EPS_DECAY);
+
+            curZone = nextZone;
+            return {loss: batchLoss, reward: r};
+        }
+
+        function trainN(n) {
+            var sumLoss = 0, sumReward = 0, count = 0;
+            for (var i = 0; i < n; i++) {
+                var result = trainStep();
+                sumLoss += result.loss;
+                sumReward += result.reward;
+                count++;
+                if (count === 100) {
+                    lossHistory.push(sumLoss / count);
+                    rewardHistory.push(sumReward / count);
+                    sumLoss = 0; sumReward = 0; count = 0;
+                }
+            }
+            if (count > 0) {
+                lossHistory.push(sumLoss / count);
+                rewardHistory.push(sumReward / count);
+            }
+        }
+
+        // --- UI 更新 ---
+        function $(id) { return document.getElementById(id); }
+
+        function updateUI() {
+            ZONES.forEach(function(z) {
+                var q = predict(onlineNet, stateVec(z));
+                var zKey = z === 'b' ? 'b' : z;
+                $(('dqn-q-' + zKey + '-0')).textContent = q[0].toFixed(1);
+                $(('dqn-q-' + zKey + '-1')).textContent = q[1].toFixed(1);
+                var best = q[0] >= q[1] ? 0 : 1;
+                $(('dqn-q-' + zKey + '-0')).style.cssText = best === 0 ? 'font-weight:700;color:#276749' : '';
+                $(('dqn-q-' + zKey + '-1')).style.cssText = best === 1 ? 'font-weight:700;color:#276749' : '';
+                $(('dqn-p-' + zKey)).textContent = ACT_LABELS[z][best];
+            });
+
+            $('dqn-info').innerHTML = '已训练 <strong>' + totalSteps + '</strong> 步 &nbsp;|&nbsp; ε = <strong>' + epsilon.toFixed(2) + '</strong> &nbsp;|&nbsp; 缓冲区: <strong>' + replayBuf.length + '</strong> 条';
+
+            drawChart('dqn-loss-canvas', lossHistory, '#e53e3e', '损失');
+            drawChart('dqn-reward-canvas', rewardHistory, '#2b6cb0', '奖励');
+        }
+
+        function drawChart(canvasId, data, color, label) {
+            var canvas = $(canvasId);
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            var W = canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 1);
+            var H = canvas.height = 100 * (window.devicePixelRatio || 1);
+            canvas.style.height = '100px';
+            ctx.clearRect(0, 0, W, H);
+
+            if (data.length < 2) {
+                ctx.fillStyle = '#a0aec0';
+                ctx.font = (12 * (window.devicePixelRatio || 1)) + 'px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('等待训练数据...', W/2, H/2);
+                return;
+            }
+
+            var pad = 5 * (window.devicePixelRatio || 1);
+            var plotW = W - 2*pad, plotH = H - 2*pad;
+            var mn = Infinity, mx = -Infinity;
+            for (var i = 0; i < data.length; i++) {
+                if (data[i] < mn) mn = data[i];
+                if (data[i] > mx) mx = data[i];
+            }
+            if (mx - mn < 0.001) { mn -= 1; mx += 1; }
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1.5 * (window.devicePixelRatio || 1);
+            ctx.beginPath();
+            for (var i = 0; i < data.length; i++) {
+                var x = pad + (i / (data.length - 1)) * plotW;
+                var y = pad + (1 - (data[i] - mn) / (mx - mn)) * plotH;
+                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // axis labels
+            ctx.fillStyle = '#718096';
+            ctx.font = (10 * (window.devicePixelRatio || 1)) + 'px sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(mx.toFixed(1), pad, pad + 10);
+            ctx.fillText(mn.toFixed(1), pad, H - pad);
+        }
+
+        // --- 公开接口 ---
+        window._dqnStep = function(n) {
+            trainN(n);
+            updateUI();
+        };
+
+        window._dqnReset = function() {
+            initDQN();
+            updateUI();
+        };
+
+        // 初始化
+        initDQN();
+        // 延迟一帧更新UI，确保DOM和KaTeX已就绪
+        setTimeout(function() { updateUI(); }, 100);
+
+    })();
+    </script>
 </body>
 </html>

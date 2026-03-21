@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1.5.2 时序差分学习 - 运筹智能</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .trans-table { width: auto; border-collapse: collapse; margin: 1rem auto; font-size: 0.95rem; }
+        .trans-table th, .trans-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: center; }
+        .trans-table th { background: var(--primary-color); color: white; }
+        .trans-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .derivation { background: var(--sidebar-bg); padding: 1.2rem 1.5rem; border-radius: 6px; margin: 1.5rem 0; }
+        .derivation .step-label { font-weight: 600; color: var(--accent-color); margin-bottom: 0.3rem; }
+        .compare-box { display: flex; gap: 1.5rem; flex-wrap: wrap; margin: 1.5rem 0; }
+        .compare-box > div { flex: 1; min-width: 200px; background: var(--sidebar-bg); padding: 1rem 1.2rem; border-radius: 8px; border-top: 3px solid var(--accent-color); }
+        .compare-box > div h4 { margin: 0 0 0.5rem 0; color: var(--primary-color); }
+        .rl-ctrl { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; margin-bottom:0.8rem; font-size:0.88rem; }
+        .rl-ctrl select { padding:0.2rem 0.4rem; border:1px solid #cbd5e0; border-radius:4px; font-family:inherit; font-size:0.86rem; }
+        .rl-ctrl button { padding:0.3rem 0.7rem; border:1px solid #2b6cb0; background:white; color:#2b6cb0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.84rem; transition:all 0.15s; }
+        .rl-ctrl button:hover { background:#2b6cb0; color:white; }
+        .rl-info { background:#ebf4ff; border-radius:6px; padding:0.4rem 0.8rem; font-size:0.88rem; margin-top:0.6rem; }
+    </style>
+    <script defer src="../../js/code-copy.js"></script>
+</head>
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="book-title"><a href="../../index.html" style="text-decoration:none;color:inherit;">运筹智能</a></div>
+            <nav>
+                <ul>
+                <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
+                <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
+                <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
+                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
+                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html" class="active">1.5.2 时序差分学习</a></li>
+                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.6.1.html">1.6.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.6.2.html">1.6.2 Q-learning</a></li>
+                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.1.html">1.7.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.2.html">1.7.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.3.html">1.7.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第二章 深度学习基础</li>
+                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
+                <li><a href="../ch03/3.2.html">3.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
+                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch04/4.2.html">4.2 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch04/4.3.html">4.3 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch04/4.4.html">4.4 回合定义与时域建模</a></li>
+                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第五章 仿真器搭建</li>
+                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch05/5.4.html">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
+                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
+                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
+                <li><a href="../ch07/7.2.html">7.2 公交串车控制</a></li>
+                <li><a href="../ch07/7.3.html">7.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第八章 进阶话题</li>
+                <li><a href="../ch08/8.1.html">8.1 多智能体强化学习</a></li>
+                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>1.5.2 时序差分学习</h1>
+
+            <p>上一节的蒙特卡洛方法有一个明显的局限：必须等到整条轨迹结束，才能计算累计回报 $G_t$，然后才能更新值函数。对于持续运行的任务（如网约车24小时不停运营）或轨迹很长的问题，这带来了很大的延迟。我们能否在每走一步后就立即更新值函数？时序差分（Temporal Difference, TD）学习给出了肯定的答案。TD学习将蒙特卡洛方法的无模型学习能力与动态规划的递推更新思想结合在一起，是强化学习中最核心的算法思想之一。</p>
+
+            <!-- ===== TD(0) ===== -->
+            <h2>TD(0)：一步自举更新</h2>
+
+            <p>TD方法的思路来自贝尔曼方程。回忆1.3.3节的贝尔曼期望方程：</p>
+
+            $$V^\pi(s) = \mathbb{E}_\pi\!\left[\,R_t + \gamma\, V^\pi(S_{t+1}) \mid S_t = s\,\right]$$
+
+            <p>这个方程告诉我们：如果值函数是准确的，那么 $V^\pi(S_t)$ 应该等于 $R_t + \gamma\, V^\pi(S_{t+1})$ 的期望。蒙特卡洛方法用实际的完整回报 $G_t = R_t + \gamma R_{t+1} + \gamma^2 R_{t+2} + \cdots$ 来更新 $V(S_t)$，而TD方法只看一步：用当前的估计值 $V(S_{t+1})$ 来替代未来所有的回报，构造一个更新目标 $R_t + \gamma\,V(S_{t+1})$。</p>
+
+            <p>这个思路其实和1.4节的动态规划一脉相承：策略迭代和值迭代也是用下一状态的值函数估计 $V(s')$ 来更新当前状态的 $V(s)$，只不过DP需要对所有可能的 $s'$ 求加权平均（因为知道转移概率），而TD只使用实际采样到的那一个 $s'$。这种用已有估计值来更新估计值的做法，在强化学习中称为<strong>自举</strong>（bootstrapping），"自举"的字面意思是"拽着自己的鞋带把自己提起来"，形象地描述了"用估计更新估计"的递推过程。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">TD(0) 更新规则</div>
+                <p>在时刻 $t$，智能体执行动作后观察到奖励 $R_t$ 和下一状态 $S_{t+1}$，立即更新：</p>
+                $$V(S_t) \leftarrow V(S_t) + \alpha \left[\, \underbrace{R_t + \gamma \, V(S_{t+1})}_{\text{TD目标}} - V(S_t) \,\right] \tag{1.5-5}$$
+                <p style="margin-top:0.5rem;">其中 $\alpha$ 是学习率。与MC更新（式1.5-2）的关键区别在于：MC用<strong>实际回报</strong> $G_t$ 作为更新目标，TD用<strong>一步估计</strong> $R_t + \gamma\,V(S_{t+1})$ 作为更新目标。TD只需要走一步就能更新，无需等到轨迹结束。</p>
+            </div>
+
+            <!-- ===== 直觉 ===== -->
+            <h3>直觉：用网约车例子理解TD</h3>
+
+            <p>假设司机目前在市中心，算法对市中心的价值估计为 $V(c) = 40$（还不准确，真实值约为52.3）。司机按策略 $\pi_1$ 接了一单，乘客去郊区，车费8元。到达郊区后，算法对郊区的价值估计为 $V(b) = 35$。</p>
+
+            <div style="text-align:center; margin:1.5rem 0;">
+            <svg width="520" height="170" viewBox="0 0 520 170" style="max-width:100%;">
+                <!-- 当前估计 V(c) 跨顶 -->
+                <line x1="60" y1="28" x2="60" y2="42" stroke="#805ad5" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="460" y1="28" x2="460" y2="42" stroke="#805ad5" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="60" y1="28" x2="460" y2="28" stroke="#805ad5" stroke-width="1.5" stroke-linecap="round"/>
+                <foreignObject x="170" y="6" width="180" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px;color:#805ad5;text-align:center;">当前估计 $V(c) = 40$</div></foreignObject>
+
+                <!-- 状态节点 -->
+                <circle cx="60" cy="75" r="30" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2.5"/>
+                <foreignObject x="30" y="62" width="60" height="28"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px;color:#1e40af;text-align:center;font-weight:700;">市中心</div></foreignObject>
+                <foreignObject x="42" y="82" width="36" height="20"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:16px;color:#2b6cb0;text-align:center;font-style:italic;">$c$</div></foreignObject>
+
+                <circle cx="260" cy="75" r="30" fill="#fefcbf" stroke="#d69e2e" stroke-width="2.5"/>
+                <foreignObject x="237" y="62" width="48" height="28"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px;color:#975a16;text-align:center;font-weight:700;">郊区</div></foreignObject>
+                <foreignObject x="243" y="82" width="36" height="20"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:16px;color:#d69e2e;text-align:center;font-style:italic;">$b$</div></foreignObject>
+
+                <!-- c→b 连线 -->
+                <line x1="92" y1="75" x2="228" y2="75" stroke="#2b6cb0" stroke-width="2.5" stroke-linecap="round"/>
+                <foreignObject x="115" y="50" width="100" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#2b6cb0;text-align:center;font-weight:600;">实际车费 $R\!=\!8$</div></foreignObject>
+
+                <!-- b→... 继续运营 -->
+                <line x1="292" y1="75" x2="460" y2="75" stroke="#d69e2e" stroke-width="2" stroke-dasharray="6,4" stroke-linecap="round"/>
+                <foreignObject x="330" y="50" width="130" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#d69e2e;text-align:center;">当前估计 $V(b)\!=\!35$</div></foreignObject>
+                <text x="470" y="80" font-size="18" fill="#a0aec0">...</text>
+
+                <!-- TD目标计算 -->
+                <rect x="60" y="120" width="400" height="36" rx="6" fill="#f0fff4" stroke="#48bb78" stroke-width="1.5"/>
+                <foreignObject x="62" y="124" width="396" height="28"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px;color:#276749;text-align:center;">TD目标 $= R + \gamma\,V(b) = 8 + 0.9 \times 35 = 39.5$</div></foreignObject>
+            </svg>
+            <p style="text-align:center; font-size:0.9rem; color:#718096; margin-top:0.3rem;">图 1.5-3 &nbsp; TD更新的直觉。蓝色实线段是已经观测到的真实车费，黄色虚线段是算法对未来收入的估计。TD目标结合了真实观测和已有估计。</p>
+            </div>
+
+            <p>两种更新方式的区别如下：</p>
+
+            <ul style="margin:0.5rem 0 1rem 2rem; line-height:2;">
+                <li><strong>MC做法</strong>：必须让司机继续运营完整个截断窗口（200步），记录从市中心出发的实际累计折扣收入 $G_t$（比如这次跑出来是53.2元），才能用 $G_t$ 更新 $V(c)$</li>
+                <li><strong>TD做法</strong>：到达郊区的那一刻就可以更新。TD目标 $= 8 + 0.9 \times 35 = 39.5$，立即更新 $V(c) \leftarrow 40 + \alpha\,(39.5 - 40)$</li>
+            </ul>
+
+            <p>TD目标39.5中仍包含对 $V(b)$ 的估计（可能不准确），但它比纯粹的旧估计40更可靠，因为其中的8元是司机真实赚到的车费。这正是自举的精髓：用一部分真实观测加一部分已有估计，构造一个比纯估计更好的更新目标。</p>
+
+            <!-- ===== TD误差 ===== -->
+            <h2>TD误差</h2>
+
+            <p>TD更新的核心量是 TD误差（TD Error），它衡量了一步转移之后的发现与之前的预期之间的差异：</p>
+
+            <div class="derivation">
+                <div class="step-label">TD误差的定义</div>
+                $$\delta_t = R_t + \gamma \, V(S_{t+1}) - V(S_t) \tag{1.5-6}$$
+                <p style="margin-top:0.5rem;">TD更新可以简写为 $V(S_t) \leftarrow V(S_t) + \alpha\,\delta_t$。</p>
+            </div>
+
+            <p>TD误差的直觉含义是一种<strong>惊喜信号</strong>。如果 $\delta_t > 0$，说明这一步获得的奖励加上对未来的估计比之前预期的更好，应该上调 $V(S_t)$；如果 $\delta_t < 0$，则这一步的结果不如预期，应该下调 $V(S_t)$。这种"预测误差驱动学习"的机制与行为科学和神经经济学中的发现高度一致：多巴胺神经元的放电模式与TD误差的正负号表现出惊人的相似性（Schultz et al., 1997）。</p>
+
+            <!-- ===== MC vs TD ===== -->
+            <h2>MC vs TD：偏差与方差的权衡</h2>
+
+            <p>MC和TD都能从交互经验中估计 $V^\pi$，但它们使用不同的更新目标，因此在统计性质上存在根本性的差异。</p>
+
+            <table class="trans-table" style="width:100%;">
+                <thead>
+                    <tr><th>比较维度</th><th>蒙特卡洛（MC）</th><th>时序差分（TD）</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>更新目标</td><td>实际回报 $G_t$</td><td>一步估计 $R_t + \gamma\,V(S_{t+1})$</td></tr>
+                    <tr><td>何时更新</td><td>必须等轨迹结束</td><td>每走一步立即更新</td></tr>
+                    <tr><td>偏差</td><td><strong>无偏</strong>：$G_t$ 是 $V^\pi(S_t)$ 的无偏估计</td><td><strong>有偏</strong>：依赖当前 $V(S_{t+1})$ 的准确性</td></tr>
+                    <tr><td>方差</td><td><strong>高方差</strong>：$G_t$ 受整条轨迹所有随机性影响</td><td><strong>低方差</strong>：只涉及一步转移的随机性</td></tr>
+                    <tr><td>适用场景</td><td>轨迹较短、有明确终止；无限期任务可通过截断+冗余段处理（见1.5.1节），但仍需等截断完成</td><td>轨迹长或持续任务、需要在线学习</td></tr>
+                </tbody>
+            </table>
+
+            <p>MC的更新目标 $G_t$ 是 $V^\pi(S_t)$ 的无偏估计，但它依赖于从时刻 $t$ 到轨迹结束的所有随机转移和奖励，因此方差很大。TD的更新目标 $R_t + \gamma\,V(S_{t+1})$ 只涉及一步转移的随机性，方差较低，但由于 $V(S_{t+1})$ 本身是一个估计值（可能不准确），TD目标存在偏差。这是统计学习中经典的<strong>偏差-方差权衡</strong>（bias-variance tradeoff）。</p>
+
+            <h3>用网约车例子感受偏差与方差</h3>
+
+            <p>让我们用具体数字来感受这个权衡。从状态 $c$（市中心）出发，按策略 $\pi_1$ 接单：</p>
+
+            <p><strong>MC的更新目标 $G_t$</strong>：跑完200步截断窗口后的累计折扣收入。每次运行的结果都不同，因为200步中涉及大量随机转移。五次独立运行可能得到：</p>
+
+            $$G_t = 67.1,\; 38.4,\; 52.8,\; 71.3,\; 29.6,\; \ldots$$
+
+            <p>平均值收敛到 $V^{\pi_1}(c) = 52.3$（无偏），但单次结果的波动范围很大。</p>
+
+            <p><strong>TD的更新目标 $R_t + \gamma\,V(S_{t+1})$</strong>：只涉及一步转移，从 $c$ 接单只有三种可能结果：</p>
+
+            <table class="trans-table" style="width:auto;">
+                <thead><tr><th>乘客目的地</th><th>概率</th><th>TD目标</th></tr></thead>
+                <tbody>
+                    <tr><td>$c$（短途）</td><td>0.5</td><td>$5 + 0.9 \times V(c)$</td></tr>
+                    <tr><td>$b$（中途）</td><td>0.3</td><td>$8 + 0.9 \times V(b)$</td></tr>
+                    <tr><td>$a$（长途）</td><td>0.2</td><td>$12 + 0.9 \times V(a)$</td></tr>
+                </tbody>
+            </table>
+
+            <p>如果当前 $V$ 值接近真实值（$V(c) \approx 52.3$，$V(b) \approx 42.3$，$V(a) \approx 55.9$），三种TD目标分别为52.1、46.1、62.3，取值范围仅16元，远小于MC。但如果学习初期 $V(c) = V(b) = V(a) = 0$，三种TD目标分别为5、8、12，期望值仅7.3，远偏离真实值52.3。这就是偏差的代价。</p>
+
+            <div class="rl-ctrl">
+                <label>当前V值：</label>
+                <select id="bv-vmode" onchange="_bvSample()">
+                    <option value="true">接近收敛（V ≈ 真实值）</option>
+                    <option value="mid">学习中期（V ≈ 真实值一半）</option>
+                    <option value="zero">学习初期（V = 0）</option>
+                </select>
+                <button onclick="_bvSample()">重新采样（500次）</button>
+            </div>
+
+            <div style="text-align:center; margin:1rem 0;">
+            <svg width="500" height="210" viewBox="0 0 500 210" style="max-width:100%;">
+                <!-- 数值轴 -->
+                <line x1="50" y1="190" x2="450" y2="190" stroke="#cbd5e0" stroke-width="1"/>
+                <line x1="50" y1="187" x2="50" y2="193" stroke="#cbd5e0" stroke-width="1"/>
+                <line x1="130" y1="187" x2="130" y2="193" stroke="#cbd5e0" stroke-width="1"/>
+                <line x1="210" y1="187" x2="210" y2="193" stroke="#cbd5e0" stroke-width="1"/>
+                <line x1="290" y1="187" x2="290" y2="193" stroke="#cbd5e0" stroke-width="1"/>
+                <line x1="370" y1="187" x2="370" y2="193" stroke="#cbd5e0" stroke-width="1"/>
+                <line x1="450" y1="187" x2="450" y2="193" stroke="#cbd5e0" stroke-width="1"/>
+                <text x="50"  y="206" text-anchor="middle" font-size="11" fill="#a0aec0">0</text>
+                <text x="130" y="206" text-anchor="middle" font-size="11" fill="#a0aec0">20</text>
+                <text x="210" y="206" text-anchor="middle" font-size="11" fill="#a0aec0">40</text>
+                <text x="290" y="206" text-anchor="middle" font-size="11" fill="#a0aec0">60</text>
+                <text x="370" y="206" text-anchor="middle" font-size="11" fill="#a0aec0">80</text>
+                <text x="450" y="206" text-anchor="middle" font-size="11" fill="#a0aec0">100</text>
+
+                <!-- V^π 参考线: 52.3 → 50 + 52.3×4 = 259 -->
+                <line x1="259" y1="10" x2="259" y2="185" stroke="#805ad5" stroke-width="1.5" stroke-dasharray="6,3"/>
+                <foreignObject x="264" y="2" width="130" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#805ad5;">$V^{\pi}(c) = 52.3$</div></foreignObject>
+
+                <!-- 行标签 -->
+                <foreignObject x="455" y="53" width="44" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#c53030;font-weight:700;">TD</div></foreignObject>
+                <foreignObject x="455" y="133" width="44" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#2b6cb0;font-weight:700;">MC</div></foreignObject>
+
+                <!-- TD 箱型图 (红色, y中心=65) -->
+                <line id="bv-td-wl"  y1="57" y2="73" stroke="#c53030" stroke-width="1.5" stroke-linecap="round"/>
+                <line id="bv-td-wlh" y1="65" y2="65" stroke="#c53030" stroke-width="1.5" stroke-linecap="round"/>
+                <rect id="bv-td-box" y="47" height="36" rx="3" fill="#fed7d7" stroke="#c53030" stroke-width="2"/>
+                <line id="bv-td-med" y1="47" y2="83" stroke="#c53030" stroke-width="2.5" stroke-linecap="round"/>
+                <circle id="bv-td-mean" cy="65" r="4" fill="#9b2c2c"/>
+                <line id="bv-td-wrh" y1="65" y2="65" stroke="#c53030" stroke-width="1.5" stroke-linecap="round"/>
+                <line id="bv-td-wr"  y1="57" y2="73" stroke="#c53030" stroke-width="1.5" stroke-linecap="round"/>
+
+                <!-- MC 箱型图 (蓝色, y中心=145) -->
+                <line id="bv-mc-wl"  y1="137" y2="153" stroke="#2b6cb0" stroke-width="1.5" stroke-linecap="round"/>
+                <line id="bv-mc-wlh" y1="145" y2="145" stroke="#2b6cb0" stroke-width="1.5" stroke-linecap="round"/>
+                <rect id="bv-mc-box" y="127" height="36" rx="3" fill="#dbeafe" stroke="#2b6cb0" stroke-width="2"/>
+                <line id="bv-mc-med" y1="127" y2="163" stroke="#2b6cb0" stroke-width="2.5" stroke-linecap="round"/>
+                <circle id="bv-mc-mean" cy="145" r="4" fill="#1e40af"/>
+                <line id="bv-mc-wrh" y1="145" y2="145" stroke="#2b6cb0" stroke-width="1.5" stroke-linecap="round"/>
+                <line id="bv-mc-wr"  y1="137" y2="153" stroke="#2b6cb0" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            </div>
+
+            <div class="rl-info" id="bv-stats"></div>
+
+            <p style="text-align:center; font-size:0.9rem; color:#718096; margin-top:0.3rem;">图 1.5-4 &nbsp; MC更新目标 $G_t$（蓝色）与TD更新目标 $R_t + \gamma V(S_{t+1})$（红色）的分布对比（基于500次仿真采样的箱型图）。紫色虚线为真实值 $V^\pi(c)$。切换V值设定，观察TD的偏差如何随 $V$ 的准确性变化。</p>
+
+            <script>
+(function(){
+    var GM=0.9;
+    var TR={c:{c:[.5,5],b:[.3,8],a:[.2,12]},b:{c:[.1,5],b:[.8,1],a:[.1,8]},a:{c:[.6,14],b:[.4,10]}};
+    var VMODES={
+        'true':{c:52.3,b:42.3,a:55.9},
+        'mid':{c:26,b:21,a:28},
+        'zero':{c:0,b:0,a:0}
+    };
+
+    function sampleStep(s){
+        var t=TR[s],r=Math.random(),cum=0,ns,rw;
+        for(var k in t){cum+=t[k][0];if(r<cum){ns=k;rw=t[k][1];break;}ns=k;rw=t[k][1];}
+        return{ns:ns,rw:rw};
+    }
+
+    /* MC: 从状态c出发，按π₁运行200步，计算G_0 */
+    function mcOneSample(){
+        var s='c',rews=[];
+        for(var i=0;i<200;i++){var res=sampleStep(s);rews.push(res.rw);s=res.ns;}
+        var G=0;
+        for(var i=199;i>=0;i--) G=rews[i]+GM*G;
+        return G;
+    }
+
+    /* TD: 从状态c走一步，返回 R + γV(S') */
+    function tdOneSample(V){
+        var res=sampleStep('c');
+        return res.rw+GM*V[res.ns];
+    }
+
+    function computeStats(arr){
+        arr.sort(function(a,b){return a-b;});
+        var n=arr.length,s=0,s2=0;
+        for(var i=0;i<n;i++){s+=arr[i];s2+=arr[i]*arr[i];}
+        var mean=s/n;
+        return{min:arr[0],q1:arr[Math.floor(n*.25)],med:arr[Math.floor(n*.5)],
+               q3:arr[Math.floor(n*.75)],max:arr[n-1],
+               mean:mean,std:Math.sqrt(Math.max(0,s2/n-mean*mean))};
+    }
+
+    /* 数值 → SVG x坐标: 0→50, 100→450 */
+    function vx(v){return Math.max(50,Math.min(450,50+v*4));}
+
+    function drawBox(pre,st){
+        var $=function(id){return document.getElementById(id);};
+        $(pre+'-wl').setAttribute('x1',vx(st.min));  $(pre+'-wl').setAttribute('x2',vx(st.min));
+        $(pre+'-wlh').setAttribute('x1',vx(st.min)); $(pre+'-wlh').setAttribute('x2',vx(st.q1));
+        $(pre+'-box').setAttribute('x',vx(st.q1));
+        $(pre+'-box').setAttribute('width',Math.max(2,vx(st.q3)-vx(st.q1)));
+        $(pre+'-med').setAttribute('x1',vx(st.med)); $(pre+'-med').setAttribute('x2',vx(st.med));
+        $(pre+'-mean').setAttribute('cx',vx(st.mean));
+        $(pre+'-wrh').setAttribute('x1',vx(st.q3));  $(pre+'-wrh').setAttribute('x2',vx(st.max));
+        $(pre+'-wr').setAttribute('x1',vx(st.max));  $(pre+'-wr').setAttribute('x2',vx(st.max));
+    }
+
+    window._bvSample=function(){
+        var vm=document.getElementById('bv-vmode').value;
+        var V=VMODES[vm],N=500;
+        var mcArr=[],tdArr=[];
+        for(var i=0;i<N;i++){mcArr.push(mcOneSample());tdArr.push(tdOneSample(V));}
+        var ms=computeStats(mcArr),ts=computeStats(tdArr);
+        drawBox('bv-mc',ms);
+        drawBox('bv-td',ts);
+        var bias=ts.mean-52.3;
+        document.getElementById('bv-stats').innerHTML=
+            '<strong style="color:#2b6cb0">MC</strong>：均值 = '+ms.mean.toFixed(1)+
+            '，标准差 = '+ms.std.toFixed(1)+
+            '，范围 ['+ms.min.toFixed(1)+', '+ms.max.toFixed(1)+']'+
+            '<br><strong style="color:#c53030">TD</strong>：均值 = '+ts.mean.toFixed(1)+
+            '，标准差 = '+ts.std.toFixed(1)+
+            '，范围 ['+ts.min.toFixed(1)+', '+ts.max.toFixed(1)+']'+
+            '&emsp;<strong>偏差</strong> = '+(bias>=0?'+':'')+bias.toFixed(1);
+    };
+    _bvSample();
+})();
+            </script>
+
+            <p>切换到"学习初期"可以看到：TD箱型图虽然很窄（低方差），但整体偏移到了左侧，远离真实值（高偏差）。切换回"接近收敛"，两个箱型图都以真实值为中心，但MC的宽度远大于TD。随着学习的推进，$V$ 越来越准确，TD的偏差逐渐消失，而方差优势始终存在。这就是TD方法在实践中通常收敛更快的原因。</p>
+
+            <p>实际上，MC和TD可以统一为更一般的 $n$ 步回报框架：MC对应 $n = \infty$（使用完整回报），TD(0)对应 $n = 1$（使用一步估计），中间的 $n$ 步TD使用部分实际回报加自举，可以在偏差和方差之间取得更灵活的平衡。</p>
+
+            <!-- ===== DP MC TD 三者关系 ===== -->
+            <h2>DP、MC、TD三者的关系</h2>
+
+            <p>现在让我们把动态规划（DP）、蒙特卡洛（MC）和时序差分（TD）放在一起比较。这三种方法可以从两个维度来理解：是否需要环境模型，以及是否使用自举。</p>
+
+            <div class="compare-box">
+                <div>
+                    <h4>动态规划（DP）</h4>
+                    <p><strong>需要模型：</strong>是</p>
+                    <p><strong>更新方式：</strong>全宽度备份，对所有可能的下一状态求期望</p>
+                    <p><strong>自举：</strong>是</p>
+                    <p><strong>代表算法：</strong>策略迭代、值迭代</p>
+                </div>
+                <div>
+                    <h4>蒙特卡洛（MC）</h4>
+                    <p><strong>需要模型：</strong>否</p>
+                    <p><strong>更新方式：</strong>基于采样，用完整轨迹的实际回报 $G_t$ 更新</p>
+                    <p><strong>自举：</strong>否</p>
+                    <p><strong>代表算法：</strong>首次访问MC、每次访问MC</p>
+                </div>
+                <div>
+                    <h4>时序差分（TD）</h4>
+                    <p><strong>需要模型：</strong>否</p>
+                    <p><strong>更新方式：</strong>基于采样，用一步转移 $R_t + \gamma\,V(S_{t+1})$ 更新</p>
+                    <p><strong>自举：</strong>是</p>
+                    <p><strong>代表算法：</strong>TD(0)、SARSA、Q-learning</p>
+                </div>
+            </div>
+
+            <p>三者的区别可以用<strong>备份图</strong>（backup diagram）直观地展示。备份图描绘了一棵决策树，红色阴影标出了每种方法实际用来更新 $V(S_t)$ 的信息范围。</p>
+
+            <div style="display:flex; gap:0.8rem; flex-wrap:wrap; justify-content:center; margin:1.5rem 0;">
+
+            <!-- ===== DP 备份图 ===== -->
+            <div style="text-align:center; flex:0 1 270px;">
+                <p style="font-weight:700; color:#1a365d; font-size:0.95rem; margin:0 0 0.1rem 0;">DP备份</p>
+                <p style="font-size:0.82rem; color:#4a5568; margin:0 0 0.4rem 0;">$V(s) \leftarrow \mathbb{E}_\pi[R_t + \gamma\,V(S_{t+1})]$</p>
+                <svg width="260" height="260" viewBox="0 0 260 260" style="max-width:100%;">
+                    <!-- 红色高亮区域：覆盖根→所有动作→所有下一状态（全宽度） -->
+                    <path d="M 130,14 Q 10,65 8,136 Q 8,145 20,143 L 240,143 Q 252,145 252,136 Q 250,65 130,14 Z" fill="#fc8181" fill-opacity="0.32"/>
+                    <g stroke="#b0b8c4" stroke-width="1.2" stroke-linecap="round" fill="none">
+                        <line x1="130" y1="28" x2="55" y2="75"/><line x1="130" y1="28" x2="130" y2="75"/><line x1="130" y1="28" x2="205" y2="75"/>
+                        <line x1="55" y1="75" x2="22" y2="128"/><line x1="55" y1="75" x2="72" y2="128"/><line x1="130" y1="75" x2="108" y2="128"/><line x1="130" y1="75" x2="152" y2="128"/><line x1="205" y1="75" x2="188" y2="128"/><line x1="205" y1="75" x2="238" y2="128"/>
+                        <line x1="22" y1="128" x2="10" y2="175"/><line x1="22" y1="128" x2="34" y2="175"/><line x1="72" y1="128" x2="60" y2="175"/><line x1="72" y1="128" x2="84" y2="175"/><line x1="108" y1="128" x2="96" y2="175"/><line x1="108" y1="128" x2="120" y2="175"/><line x1="152" y1="128" x2="140" y2="175"/><line x1="152" y1="128" x2="164" y2="175"/><line x1="188" y1="128" x2="176" y2="175"/><line x1="188" y1="128" x2="200" y2="175"/><line x1="238" y1="128" x2="226" y2="175"/><line x1="238" y1="128" x2="250" y2="175"/>
+                        <line x1="10" y1="175" x2="10" y2="215"/><line x1="34" y1="175" x2="34" y2="215"/><line x1="60" y1="175" x2="60" y2="215"/><line x1="84" y1="175" x2="84" y2="215"/><line x1="96" y1="175" x2="96" y2="215"/><line x1="120" y1="175" x2="120" y2="215"/><line x1="140" y1="175" x2="140" y2="215"/><line x1="164" y1="175" x2="164" y2="215"/><line x1="176" y1="175" x2="176" y2="215"/><line x1="200" y1="175" x2="200" y2="215"/><line x1="226" y1="175" x2="226" y2="215"/><line x1="250" y1="175" x2="250" y2="215"/>
+                        <line x1="10" y1="215" x2="10" y2="245" stroke-dasharray="3,3"/><line x1="34" y1="215" x2="34" y2="245" stroke-dasharray="3,3"/><line x1="60" y1="215" x2="60" y2="245" stroke-dasharray="3,3"/><line x1="84" y1="215" x2="84" y2="245" stroke-dasharray="3,3"/><line x1="96" y1="215" x2="96" y2="245" stroke-dasharray="3,3"/><line x1="120" y1="215" x2="120" y2="245" stroke-dasharray="3,3"/><line x1="140" y1="215" x2="140" y2="245" stroke-dasharray="3,3"/><line x1="164" y1="215" x2="164" y2="245" stroke-dasharray="3,3"/><line x1="176" y1="215" x2="176" y2="245" stroke-dasharray="3,3"/><line x1="200" y1="215" x2="200" y2="245" stroke-dasharray="3,3"/><line x1="226" y1="215" x2="226" y2="245" stroke-dasharray="3,3"/><line x1="250" y1="215" x2="250" y2="245" stroke-dasharray="3,3"/>
+                    </g>
+                    <circle cx="130" cy="28" r="14" fill="white" stroke="#2d3748" stroke-width="2"/>
+                    <circle cx="55" cy="75" r="5" fill="#4a5568"/><circle cx="130" cy="75" r="5" fill="#4a5568"/><circle cx="205" cy="75" r="5" fill="#4a5568"/>
+                    <g fill="white" stroke="#4a5568" stroke-width="1.5"><circle cx="22" cy="128" r="8"/><circle cx="72" cy="128" r="8"/><circle cx="108" cy="128" r="8"/><circle cx="152" cy="128" r="8"/><circle cx="188" cy="128" r="8"/><circle cx="238" cy="128" r="8"/></g>
+                    <g fill="#4a5568"><circle cx="10" cy="175" r="3"/><circle cx="34" cy="175" r="3"/><circle cx="60" cy="175" r="3"/><circle cx="84" cy="175" r="3"/><circle cx="96" cy="175" r="3"/><circle cx="120" cy="175" r="3"/><circle cx="140" cy="175" r="3"/><circle cx="164" cy="175" r="3"/><circle cx="176" cy="175" r="3"/><circle cx="200" cy="175" r="3"/><circle cx="226" cy="175" r="3"/><circle cx="250" cy="175" r="3"/></g>
+                    <g fill="white" stroke="#4a5568" stroke-width="1"><circle cx="10" cy="215" r="5"/><circle cx="34" cy="215" r="5"/><circle cx="60" cy="215" r="5"/><circle cx="84" cy="215" r="5"/><circle cx="96" cy="215" r="5"/><circle cx="120" cy="215" r="5"/><circle cx="140" cy="215" r="5"/><circle cx="164" cy="215" r="5"/><circle cx="176" cy="215" r="5"/><circle cx="200" cy="215" r="5"/><circle cx="226" cy="215" r="5"/><circle cx="250" cy="215" r="5"/></g>
+                    <foreignObject x="108" y="16" width="44" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px;color:#1a365d;text-align:center;">$S_t$</div></foreignObject>
+                    <foreignObject x="80" y="138" width="100" height="20"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#718096;text-align:center;">所有 $S_{t+1}$</div></foreignObject>
+                </svg>
+                <p style="font-size:0.8rem; color:#718096; margin:0.2rem 0 0 0;">需要模型，全宽度展开</p>
+            </div>
+
+            <!-- ===== MC 备份图 ===== -->
+            <div style="text-align:center; flex:0 1 270px;">
+                <p style="font-weight:700; color:#1a365d; font-size:0.95rem; margin:0 0 0.1rem 0;">MC备份</p>
+                <p style="font-size:0.82rem; color:#4a5568; margin:0 0 0.4rem 0;">$V(S_t) \leftarrow V(S_t) + \alpha[G_t - V(S_t)]$</p>
+                <svg width="260" height="260" viewBox="0 0 260 260" style="max-width:100%;">
+                    <path d="M 130,28 L 205,75 L 188,128 L 200,175 L 200,215 L 200,248" fill="none" stroke="#fc8181" stroke-width="24" stroke-opacity="0.38" stroke-linecap="round" stroke-linejoin="round"/>
+                    <g stroke="#b0b8c4" stroke-width="1.2" stroke-linecap="round" fill="none">
+                        <line x1="130" y1="28" x2="55" y2="75"/><line x1="130" y1="28" x2="130" y2="75"/><line x1="130" y1="28" x2="205" y2="75"/>
+                        <line x1="55" y1="75" x2="22" y2="128"/><line x1="55" y1="75" x2="72" y2="128"/><line x1="130" y1="75" x2="108" y2="128"/><line x1="130" y1="75" x2="152" y2="128"/><line x1="205" y1="75" x2="188" y2="128"/><line x1="205" y1="75" x2="238" y2="128"/>
+                        <line x1="22" y1="128" x2="10" y2="175"/><line x1="22" y1="128" x2="34" y2="175"/><line x1="72" y1="128" x2="60" y2="175"/><line x1="72" y1="128" x2="84" y2="175"/><line x1="108" y1="128" x2="96" y2="175"/><line x1="108" y1="128" x2="120" y2="175"/><line x1="152" y1="128" x2="140" y2="175"/><line x1="152" y1="128" x2="164" y2="175"/><line x1="188" y1="128" x2="176" y2="175"/><line x1="188" y1="128" x2="200" y2="175"/><line x1="238" y1="128" x2="226" y2="175"/><line x1="238" y1="128" x2="250" y2="175"/>
+                        <line x1="10" y1="175" x2="10" y2="215"/><line x1="34" y1="175" x2="34" y2="215"/><line x1="60" y1="175" x2="60" y2="215"/><line x1="84" y1="175" x2="84" y2="215"/><line x1="96" y1="175" x2="96" y2="215"/><line x1="120" y1="175" x2="120" y2="215"/><line x1="140" y1="175" x2="140" y2="215"/><line x1="164" y1="175" x2="164" y2="215"/><line x1="176" y1="175" x2="176" y2="215"/><line x1="200" y1="175" x2="200" y2="215"/><line x1="226" y1="175" x2="226" y2="215"/><line x1="250" y1="175" x2="250" y2="215"/>
+                        <line x1="10" y1="215" x2="10" y2="245" stroke-dasharray="3,3"/><line x1="34" y1="215" x2="34" y2="245" stroke-dasharray="3,3"/><line x1="60" y1="215" x2="60" y2="245" stroke-dasharray="3,3"/><line x1="84" y1="215" x2="84" y2="245" stroke-dasharray="3,3"/><line x1="96" y1="215" x2="96" y2="245" stroke-dasharray="3,3"/><line x1="120" y1="215" x2="120" y2="245" stroke-dasharray="3,3"/><line x1="140" y1="215" x2="140" y2="245" stroke-dasharray="3,3"/><line x1="164" y1="215" x2="164" y2="245" stroke-dasharray="3,3"/><line x1="176" y1="215" x2="176" y2="245" stroke-dasharray="3,3"/><line x1="200" y1="215" x2="200" y2="245" stroke-dasharray="3,3"/><line x1="226" y1="215" x2="226" y2="245" stroke-dasharray="3,3"/><line x1="250" y1="215" x2="250" y2="245" stroke-dasharray="3,3"/>
+                    </g>
+                    <g stroke="#c53030" stroke-width="2.2" stroke-linecap="round" fill="none">
+                        <line x1="130" y1="28" x2="205" y2="75"/><line x1="205" y1="75" x2="188" y2="128"/><line x1="188" y1="128" x2="200" y2="175"/><line x1="200" y1="175" x2="200" y2="215"/>
+                        <line x1="200" y1="215" x2="200" y2="248" stroke-dasharray="3,3"/>
+                    </g>
+                    <circle cx="130" cy="28" r="14" fill="white" stroke="#2d3748" stroke-width="2"/>
+                    <circle cx="55" cy="75" r="5" fill="#4a5568"/><circle cx="130" cy="75" r="5" fill="#4a5568"/><circle cx="205" cy="75" r="5" fill="#c53030"/>
+                    <g fill="white" stroke="#4a5568" stroke-width="1.5"><circle cx="22" cy="128" r="8"/><circle cx="72" cy="128" r="8"/><circle cx="108" cy="128" r="8"/><circle cx="152" cy="128" r="8"/><circle cx="188" cy="128" r="8"/><circle cx="238" cy="128" r="8"/></g>
+                    <circle cx="188" cy="128" r="8" fill="white" stroke="#c53030" stroke-width="2"/>
+                    <g fill="#4a5568"><circle cx="10" cy="175" r="3"/><circle cx="34" cy="175" r="3"/><circle cx="60" cy="175" r="3"/><circle cx="84" cy="175" r="3"/><circle cx="96" cy="175" r="3"/><circle cx="120" cy="175" r="3"/><circle cx="140" cy="175" r="3"/><circle cx="164" cy="175" r="3"/><circle cx="176" cy="175" r="3"/><circle cx="200" cy="175" r="3"/><circle cx="226" cy="175" r="3"/><circle cx="250" cy="175" r="3"/></g>
+                    <circle cx="200" cy="175" r="3" fill="#c53030"/>
+                    <g fill="white" stroke="#4a5568" stroke-width="1"><circle cx="10" cy="215" r="5"/><circle cx="34" cy="215" r="5"/><circle cx="60" cy="215" r="5"/><circle cx="84" cy="215" r="5"/><circle cx="96" cy="215" r="5"/><circle cx="120" cy="215" r="5"/><circle cx="140" cy="215" r="5"/><circle cx="164" cy="215" r="5"/><circle cx="176" cy="215" r="5"/><circle cx="200" cy="215" r="5"/><circle cx="226" cy="215" r="5"/><circle cx="250" cy="215" r="5"/></g>
+                    <circle cx="200" cy="215" r="5" fill="white" stroke="#c53030" stroke-width="1.5"/>
+                    <foreignObject x="108" y="16" width="44" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px;color:#1a365d;text-align:center;">$S_t$</div></foreignObject>
+                    <foreignObject x="140" y="118" width="48" height="20"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#c53030;text-align:right;">$S_{t+1}$</div></foreignObject>
+                </svg>
+                <p style="font-size:0.8rem; color:#718096; margin:0.2rem 0 0 0;">无需模型，沿一条轨迹采样到底</p>
+            </div>
+
+            <!-- ===== TD 备份图 ===== -->
+            <div style="text-align:center; flex:0 1 270px;">
+                <p style="font-weight:700; color:#1a365d; font-size:0.95rem; margin:0 0 0.1rem 0;">TD备份</p>
+                <p style="font-size:0.82rem; color:#4a5568; margin:0 0 0.4rem 0;">$V(S_t) \leftarrow V(S_t) + \alpha[R_t + \gamma\,V(S_{t+1}) - V(S_t)]$</p>
+                <svg width="260" height="260" viewBox="0 0 260 260" style="max-width:100%;">
+                    <path d="M 130,28 L 205,75 L 188,128" fill="none" stroke="#fc8181" stroke-width="26" stroke-opacity="0.38" stroke-linecap="round" stroke-linejoin="round"/>
+                    <g stroke="#b0b8c4" stroke-width="1.2" stroke-linecap="round" fill="none">
+                        <line x1="130" y1="28" x2="55" y2="75"/><line x1="130" y1="28" x2="130" y2="75"/><line x1="130" y1="28" x2="205" y2="75"/>
+                        <line x1="55" y1="75" x2="22" y2="128"/><line x1="55" y1="75" x2="72" y2="128"/><line x1="130" y1="75" x2="108" y2="128"/><line x1="130" y1="75" x2="152" y2="128"/><line x1="205" y1="75" x2="188" y2="128"/><line x1="205" y1="75" x2="238" y2="128"/>
+                        <line x1="22" y1="128" x2="10" y2="175"/><line x1="22" y1="128" x2="34" y2="175"/><line x1="72" y1="128" x2="60" y2="175"/><line x1="72" y1="128" x2="84" y2="175"/><line x1="108" y1="128" x2="96" y2="175"/><line x1="108" y1="128" x2="120" y2="175"/><line x1="152" y1="128" x2="140" y2="175"/><line x1="152" y1="128" x2="164" y2="175"/><line x1="188" y1="128" x2="176" y2="175"/><line x1="188" y1="128" x2="200" y2="175"/><line x1="238" y1="128" x2="226" y2="175"/><line x1="238" y1="128" x2="250" y2="175"/>
+                        <line x1="10" y1="175" x2="10" y2="215"/><line x1="34" y1="175" x2="34" y2="215"/><line x1="60" y1="175" x2="60" y2="215"/><line x1="84" y1="175" x2="84" y2="215"/><line x1="96" y1="175" x2="96" y2="215"/><line x1="120" y1="175" x2="120" y2="215"/><line x1="140" y1="175" x2="140" y2="215"/><line x1="164" y1="175" x2="164" y2="215"/><line x1="176" y1="175" x2="176" y2="215"/><line x1="200" y1="175" x2="200" y2="215"/><line x1="226" y1="175" x2="226" y2="215"/><line x1="250" y1="175" x2="250" y2="215"/>
+                        <line x1="10" y1="215" x2="10" y2="245" stroke-dasharray="3,3"/><line x1="34" y1="215" x2="34" y2="245" stroke-dasharray="3,3"/><line x1="60" y1="215" x2="60" y2="245" stroke-dasharray="3,3"/><line x1="84" y1="215" x2="84" y2="245" stroke-dasharray="3,3"/><line x1="96" y1="215" x2="96" y2="245" stroke-dasharray="3,3"/><line x1="120" y1="215" x2="120" y2="245" stroke-dasharray="3,3"/><line x1="140" y1="215" x2="140" y2="245" stroke-dasharray="3,3"/><line x1="164" y1="215" x2="164" y2="245" stroke-dasharray="3,3"/><line x1="176" y1="215" x2="176" y2="245" stroke-dasharray="3,3"/><line x1="200" y1="215" x2="200" y2="245" stroke-dasharray="3,3"/><line x1="226" y1="215" x2="226" y2="245" stroke-dasharray="3,3"/><line x1="250" y1="215" x2="250" y2="245" stroke-dasharray="3,3"/>
+                    </g>
+                    <g stroke="#c53030" stroke-width="2.2" stroke-linecap="round" fill="none">
+                        <line x1="130" y1="28" x2="205" y2="75"/><line x1="205" y1="75" x2="188" y2="128"/>
+                    </g>
+                    <circle cx="130" cy="28" r="14" fill="white" stroke="#2d3748" stroke-width="2"/>
+                    <circle cx="55" cy="75" r="5" fill="#4a5568"/><circle cx="130" cy="75" r="5" fill="#4a5568"/><circle cx="205" cy="75" r="5" fill="#c53030"/>
+                    <g fill="white" stroke="#4a5568" stroke-width="1.5"><circle cx="22" cy="128" r="8"/><circle cx="72" cy="128" r="8"/><circle cx="108" cy="128" r="8"/><circle cx="152" cy="128" r="8"/><circle cx="188" cy="128" r="8"/><circle cx="238" cy="128" r="8"/></g>
+                    <circle cx="188" cy="128" r="8" fill="white" stroke="#c53030" stroke-width="2"/>
+                    <g fill="#4a5568"><circle cx="10" cy="175" r="3"/><circle cx="34" cy="175" r="3"/><circle cx="60" cy="175" r="3"/><circle cx="84" cy="175" r="3"/><circle cx="96" cy="175" r="3"/><circle cx="120" cy="175" r="3"/><circle cx="140" cy="175" r="3"/><circle cx="164" cy="175" r="3"/><circle cx="176" cy="175" r="3"/><circle cx="200" cy="175" r="3"/><circle cx="226" cy="175" r="3"/><circle cx="250" cy="175" r="3"/></g>
+                    <g fill="white" stroke="#4a5568" stroke-width="1"><circle cx="10" cy="215" r="5"/><circle cx="34" cy="215" r="5"/><circle cx="60" cy="215" r="5"/><circle cx="84" cy="215" r="5"/><circle cx="96" cy="215" r="5"/><circle cx="120" cy="215" r="5"/><circle cx="140" cy="215" r="5"/><circle cx="164" cy="215" r="5"/><circle cx="176" cy="215" r="5"/><circle cx="200" cy="215" r="5"/><circle cx="226" cy="215" r="5"/><circle cx="250" cy="215" r="5"/></g>
+                    <foreignObject x="108" y="16" width="44" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px;color:#1a365d;text-align:center;">$S_t$</div></foreignObject>
+                    <foreignObject x="210" y="42" width="48" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#c53030;font-style:italic;">$R_t$</div></foreignObject>
+                    <foreignObject x="140" y="118" width="48" height="20"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#c53030;text-align:right;">$S_{t+1}$</div></foreignObject>
+                </svg>
+                <p style="font-size:0.8rem; color:#718096; margin:0.2rem 0 0 0;">无需模型，只看一步就更新</p>
+            </div>
+
+            </div>
+
+            <p style="text-align:center; font-size:0.85rem; color:#718096; margin:0.6rem 0 0.3rem 0;">
+                <svg width="14" height="14" viewBox="0 0 14 14" style="vertical-align:middle;"><circle cx="7" cy="7" r="6" fill="white" stroke="#4a5568" stroke-width="1.5"/></svg> 状态节点 &emsp;
+                <svg width="10" height="10" viewBox="0 0 10 10" style="vertical-align:middle;"><circle cx="5" cy="5" r="4" fill="#4a5568"/></svg> 动作节点 &emsp;
+                <span style="display:inline-block;width:20px;height:3px;background:#b0b8c4;vertical-align:middle;border-radius:2px;"></span> 可能的转移 &emsp;
+                <span style="display:inline-block;width:20px;height:10px;background:#fc8181;opacity:0.4;vertical-align:middle;border-radius:2px;"></span> 用于更新的信息
+            </p>
+
+            <p style="text-align:center; font-size:0.9rem; color:#718096; margin-top:0.3rem;">图 1.5-5 &nbsp; DP、MC、TD 三种方法的备份图对比。红色阴影标出了每种方法用于更新 $V(S_t)$ 的信息范围：DP展开所有分支（需要模型），MC沿一条轨迹采样到底（无需模型，不自举），TD只采样一步（无需模型，自举）。</p>
+
+            <p>TD方法兼取了MC和DP各自的优势：它像MC一样不需要环境模型，直接从交互经验中学习；又像DP一样利用贝尔曼方程的递推结构进行自举更新，不需要等到轨迹结束。这种融合使TD成为现代强化学习中最广泛使用的算法基础。</p>
+
+            <!-- ===== 例子 ===== -->
+            <h2>例子：用TD(0)评估网约车策略</h2>
+
+            <p>继续使用网约车MDP（3个状态：市中心 $c$、郊区 $b$、机场 $a$，折扣因子 $\gamma = 0.9$）。用TD(0)来评估策略 $\pi_1$（所有状态都选择"接单"）。与MC不同的是，TD(0)在每一步转移之后就立即更新值函数，无需等到轨迹结束。Python代码如下：</p>
+
+<pre><code class="language-python">import numpy as np
+gamma, alpha = 0.9, 0.01
+
+# 网约车MDP转移模型
+T = {
+    'c': {'接单': {'c':(.5,5),'b':(.3,8),'a':(.2,12)}, '空驶去机场': {'a':(1,-4)}},
+    'b': {'接单': {'c':(.1,5),'b':(.8,1),'a':(.1,8)}, '空驶去市中心': {'c':(1,-3)}},
+    'a': {'接单': {'c':(.6,14),'b':(.4,10)}, '空驶去市中心': {'c':(1,-5)}}
+}
+
+def step(s, action):
+    """根据目的地概率采样下一状态，并返回对应车费"""
+    trans = T[s][action]
+    r, cum = np.random.random(), 0
+    for s_next, (p, reward) in trans.items():
+        cum += p
+        if r &lt; cum:
+            return s_next, reward
+    return s_next, reward
+
+policy = {'c': '接单', 'b': '接单', 'a': '接单'}   # π₁
+V = {'c': 0.0, 'b': 0.0, 'a': 0.0}
+
+for ep in range(5000):
+    s = np.random.choice(['c', 'b', 'a'])       # 随机选择起始状态
+    for _ in range(200):                          # 每条轨迹最多200步
+        s_next, R = step(s, policy[s])
+        V[s] += alpha * (R + gamma * V[s_next] - V[s])   # TD(0)更新
+        s = s_next
+
+for s in ['c', 'b', 'a']:
+    print(f'V({s}) = {V[s]:.1f}')
+# 期望输出: V(c)≈52.3, V(b)≈42.3, V(a)≈55.9
+</code></pre>
+
+            <p>注意代码中的关键区别：MC需要先运行完整轨迹、记录所有回报，然后回头逐状态更新；而TD(0)在每一步转移 $(s, a, R, s')$ 发生后就立即执行 <code>V[s] += alpha * (R + gamma * V[s_next] - V[s])</code>，无需等待。</p>
+
+            <!-- ===== 交互演示：MC vs TD 收敛曲线 ===== -->
+            <h2>交互演示：MC与TD的收敛速度对比</h2>
+
+            <p>下面的图表在网约车例子上同时运行MC和TD来评估策略 $\pi_1$，以相同的环境交互步数为横轴，展示两种方法在这个例子中的收敛速度差异。两种方法使用相同的固定学习率 $\alpha = 0.05$。每200步（即MC完成一条轨迹）记录一次值函数估计。</p>
+
+            <div class="rl-ctrl">
+                <label>观察状态：</label>
+                <select id="conv-state" onchange="_convDraw()">
+                    <option value="c">市中心 c（真实值 52.3）</option>
+                    <option value="b">郊区 b（真实值 42.3）</option>
+                    <option value="a">机场 a（真实值 55.9）</option>
+                </select>
+                <button onclick="_convRun()">运行仿真</button>
+                <button onclick="_convReset()">重置</button>
+            </div>
+
+            <div style="text-align:center; margin:1rem 0;">
+            <svg id="conv-svg" width="540" height="320" viewBox="0 0 540 320" style="max-width:100%;">
+                <!-- 网格参考线 -->
+                <line x1="65" y1="250" x2="510" y2="250" stroke="#edf2f7" stroke-width="0.5"/>
+                <line x1="65" y1="200" x2="510" y2="200" stroke="#edf2f7" stroke-width="0.5"/>
+                <line x1="65" y1="150" x2="510" y2="150" stroke="#edf2f7" stroke-width="0.5"/>
+                <line x1="65" y1="100" x2="510" y2="100" stroke="#edf2f7" stroke-width="0.5"/>
+                <line x1="65" y1="50" x2="510" y2="50" stroke="#edf2f7" stroke-width="0.5"/>
+
+                <!-- Y轴 -->
+                <line x1="65" y1="25" x2="65" y2="255" stroke="#cbd5e0" stroke-width="1"/>
+                <!-- X轴 -->
+                <line x1="65" y1="250" x2="510" y2="250" stroke="#cbd5e0" stroke-width="1"/>
+
+                <!-- Y轴刻度 0,10,...,60 -->
+                <line x1="61" y1="250" x2="68" y2="250" stroke="#cbd5e0"/><text x="56" y="254" text-anchor="end" font-size="12" fill="#718096">0</text>
+                <line x1="61" y1="200" x2="68" y2="200" stroke="#cbd5e0"/><text x="56" y="204" text-anchor="end" font-size="12" fill="#718096">10</text>
+                <line x1="61" y1="150" x2="68" y2="150" stroke="#cbd5e0"/><text x="56" y="154" text-anchor="end" font-size="12" fill="#718096">20</text>
+                <line x1="61" y1="100" x2="68" y2="100" stroke="#cbd5e0"/><text x="56" y="104" text-anchor="end" font-size="12" fill="#718096">30</text>
+                <line x1="61" y1="50" x2="68" y2="50" stroke="#cbd5e0"/><text x="56" y="54" text-anchor="end" font-size="12" fill="#718096">50</text>
+
+                <!-- X轴刻度: 0, 5000, 10000, 15000, 20000 -->
+                <text x="65" y="272" text-anchor="middle" font-size="12" fill="#718096">0</text>
+                <text x="176" y="272" text-anchor="middle" font-size="12" fill="#718096">5000</text>
+                <text x="288" y="272" text-anchor="middle" font-size="12" fill="#718096">10000</text>
+                <text x="399" y="272" text-anchor="middle" font-size="12" fill="#718096">15000</text>
+                <text x="510" y="272" text-anchor="middle" font-size="12" fill="#718096">20000</text>
+
+                <!-- 轴标签 -->
+                <foreignObject x="220" y="282" width="130" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#718096;text-align:center;">交互步数</div></foreignObject>
+
+                <!-- 真实值参考线（由JS设置y位置） -->
+                <line id="conv-ref" x1="65" y1="0" x2="510" y2="0" stroke="#805ad5" stroke-width="1" stroke-dasharray="6,3" stroke-opacity="0.6"/>
+                <foreignObject id="conv-ref-label" x="512" y="0" width="30" height="20"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#805ad5;"></div></foreignObject>
+
+                <!-- 收敛曲线 -->
+                <polyline id="conv-td" points="" fill="none" stroke="#2b6cb0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline id="conv-mc" points="" fill="none" stroke="#c53030" stroke-width="2" stroke-dasharray="8,4" stroke-linecap="round" stroke-linejoin="round"/>
+
+                <!-- 图例（右下角） -->
+                <rect x="390" y="192" width="115" height="46" rx="5" fill="white" fill-opacity="0.9" stroke="#e2e8f0" stroke-width="1"/>
+                <line x1="400" y1="208" x2="427" y2="208" stroke="#2b6cb0" stroke-width="2.5" stroke-linecap="round"/>
+                <text x="433" y="212" font-size="13" fill="#2b6cb0" font-weight="600">TD</text>
+                <line x1="400" y1="226" x2="427" y2="226" stroke="#c53030" stroke-width="2" stroke-dasharray="8,4" stroke-linecap="round"/>
+                <text x="433" y="230" font-size="13" fill="#c53030" font-weight="600">MC</text>
+            </svg>
+            </div>
+
+            <div class="rl-info" id="conv-info">点击"运行仿真"开始</div>
+
+            <p style="text-align:center; font-size:0.9rem; color:#718096; margin-top:0.3rem;">图 1.5-6 &nbsp; 网约车例子中MC（虚线）与TD（实线）的收敛速度对比（$\alpha = 0.05$）。横轴为与环境的交互步数，纵轴为所选状态的值函数估计。</p>
+
+            <script>
+(function(){
+    var GM=0.9, AL=0.05, H=200, N_EP=100;
+    var TR={c:{c:[.5,5],b:[.3,8],a:[.2,12]},b:{c:[.1,5],b:[.8,1],a:[.1,8]},a:{c:[.6,14],b:[.4,10]}};
+    var TV={c:52.3,b:42.3,a:55.9};
+    var mcHist=null, tdHist=null;
+
+    function sStep(s){
+        var t=TR[s],r=Math.random(),cum=0,ns,rw;
+        for(var k in t){cum+=t[k][0];if(r<cum){ns=k;rw=t[k][1];break;}ns=k;rw=t[k][1];}
+        return{ns:ns,rw:rw};
+    }
+
+    function px(i){return 65+(i/(N_EP-1))*445;}
+    function py(v){return 250-Math.min(60,Math.max(0,v))*(200/50);}
+
+    function buildPoints(arr){
+        var pts=[];
+        for(var i=0;i<arr.length;i++) pts.push(px(i).toFixed(1)+','+py(arr[i]).toFixed(1));
+        return pts.join(' ');
+    }
+
+    window._convDraw=function(){
+        if(!mcHist) return;
+        var st=document.getElementById('conv-state').value;
+        document.getElementById('conv-td').setAttribute('points',buildPoints(tdHist[st]));
+        document.getElementById('conv-mc').setAttribute('points',buildPoints(mcHist[st]));
+        var ry=py(TV[st]);
+        document.getElementById('conv-ref').setAttribute('y1',ry);
+        document.getElementById('conv-ref').setAttribute('y2',ry);
+        var lbl=document.getElementById('conv-ref-label');
+        lbl.setAttribute('y',ry-10);
+        lbl.querySelector('div').textContent=TV[st].toFixed(1);
+    };
+
+    window._convRun=function(){
+        var Vmc={c:0,b:0,a:0};
+        var Vtd={c:0,b:0,a:0}, tdCur=['c','b','a'][Math.floor(Math.random()*3)];
+        mcHist={c:[],b:[],a:[]}; tdHist={c:[],b:[],a:[]};
+
+        for(var ep=0;ep<N_EP;ep++){
+            /* --- MC: 跑一条200步轨迹，首次访问更新（固定步长α） --- */
+            var start=['c','b','a'][Math.floor(Math.random()*3)];
+            var traj=[],s=start;
+            for(var i=0;i<H;i++){var res=sStep(s);traj.push({s:s,r:res.rw});s=res.ns;}
+            var G=0,rets=new Array(H);
+            for(var i=H-1;i>=0;i--){G=traj[i].r+GM*G;rets[i]=G;}
+            var vis={};
+            for(var i=0;i<100;i++){
+                var st=traj[i].s;
+                if(!vis[st]){vis[st]=true;Vmc[st]+=AL*(rets[i]-Vmc[st]);}
+            }
+            /* --- TD: 同样走200步，但每步都更新 --- */
+            for(var i=0;i<H;i++){
+                var res=sStep(tdCur);
+                Vtd[tdCur]+=AL*(res.rw+GM*Vtd[res.ns]-Vtd[tdCur]);
+                tdCur=res.ns;
+            }
+            ['c','b','a'].forEach(function(st){mcHist[st].push(Vmc[st]);tdHist[st].push(Vtd[st]);});
+        }
+
+        _convDraw();
+        document.getElementById('conv-info').innerHTML='仿真完成：共 <strong>'+N_EP+'</strong> 条轨迹（<strong>'+(N_EP*H/10000).toFixed(0)+'万</strong>步交互）。可切换状态查看不同收敛情况。';
+    };
+
+    window._convReset=function(){
+        mcHist=null; tdHist=null;
+        document.getElementById('conv-td').setAttribute('points','');
+        document.getElementById('conv-mc').setAttribute('points','');
+        document.getElementById('conv-ref').setAttribute('y1',0);document.getElementById('conv-ref').setAttribute('y2',0);
+        document.getElementById('conv-ref-label').querySelector('div').textContent='';
+        document.getElementById('conv-info').innerHTML='点击"运行仿真"开始';
+    };
+})();
+            </script>
+
+            <!-- ===== 从预测到控制 ===== -->
+            <h2>从预测到控制</h2>
+
+            <p>蒙特卡洛方法和时序差分学习都解决了<strong>策略评估</strong>（预测）问题：在不知道环境模型的情况下，估计给定策略 $\pi$ 的状态值函数 $V^\pi$。但我们的最终目标是找到<strong>最优策略</strong>（控制问题）。要实现控制，需要从学习 $V$ 值转向学习 $Q$ 值，因为 $Q(s,a)$ 直接给出了在状态 $s$ 选择动作 $a$ 的好坏，智能体无需知道转移概率就能据此选择动作。1.6节将介绍两种基于TD思想的控制算法：在策略的SARSA和离策略的Q-learning。</p>
+
+            <div class="chapter-nav">
+                <a href="../ch01/1.5.1.html">&larr; 1.5.1 蒙特卡洛方法</a>
+                <a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法 &rarr;</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

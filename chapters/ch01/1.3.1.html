@@ -106,6 +106,7 @@
         .path-log { font-size: 0.88rem; color: #4a5568; margin-top: 0.5rem; }
         .path-log span { font-weight: 600; color: var(--accent-color); }
     </style>
+    <script defer src="../../js/code-copy.js"></script>
 </head>
 <body>
     <div class="page-wrapper">
@@ -117,13 +118,22 @@
                 <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
                 <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
                 <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
-                <li><a href="../ch01/1.3.1.html" class="active">1.3.1 基本概念与定义</a></li>
-                <li><a href="../ch01/1.3.2.html">1.3.2 值函数与贝尔曼期望方程</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html" class="active">1.3.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
                 <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
-                <li><a href="../ch01/1.5.html">1.5 不依赖模型的学习算法</a></li>
-                <li><a href="../ch01/1.6.html">1.6 策略梯度方法</a></li>
-                <li><a href="../ch01/1.7.html">1.7 例子：等红绿灯问题</a></li>
-                <li><a href="../ch01/1.8.html">1.8 例子：动态库存补货策略</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
+                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
+                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.6.1.html">1.6.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.6.2.html">1.6.2 Q-learning</a></li>
+                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.1.html">1.7.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.2.html">1.7.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.7.3.html">1.7.3 Actor-Critic框架</a></li>
                 <li class="sidebar-chapter">第二章 深度学习基础</li>
                 <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
                 <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
@@ -138,7 +148,8 @@
                 <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
                 <li><a href="../ch04/4.2.html">4.2 状态空间、动作空间与奖励函数的设计</a></li>
                 <li><a href="../ch04/4.3.html">4.3 决策时机与决策频率的建模</a></li>
-                <li><a href="../ch04/4.4.html">4.4 从问题特征到网络架构的选择</a></li>
+                <li><a href="../ch04/4.4.html">4.4 回合定义与时域建模</a></li>
+                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
                 <li class="sidebar-chapter">第五章 仿真器搭建</li>
                 <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
                 <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
@@ -227,13 +238,19 @@
             </div>
 
             <div class="concept-card">
-                <div class="concept-name">折扣因子（Discount Factor）—— 未来的奖励值多少？</div>
-                <p><strong>折扣因子</strong> $\gamma \in [0, 1]$ 衡量未来奖励相对于当前奖励的重要程度。智能体的目标是最大化<strong>累计折扣奖励</strong>：</p>
+                <div class="concept-name">智能体的目标 —— 最大化什么？</div>
+                <p>有了奖励的概念，智能体的目标就可以精确表述了：使获得的<strong>累计奖励</strong>尽可能大。但"累计"的方式取决于问题的时间结构，由此产生两类不同的MDP。</p>
+                <p><strong>有限时域MDP。</strong>旅行者问题有明确的终点 $g$，经过恰好6步就结束。这类有明确终止条件的问题称为有限时域（finite-horizon）MDP，智能体的目标是最大化从起点到终点的奖励总和：</p>
                 <div class="formula-block">
-                    $$G_t = R_{t} + \gamma R_{t+1} + \gamma^2 R_{t+2} + \cdots = \sum_{k=0}^{\infty} \gamma^k R_{t+k}$$
+                    $$G = \sum_{t=0}^{T-1} R_t$$
                 </div>
-                <p>当 $\gamma = 1$ 时，未来奖励与当前一样重要——旅行者问题就是这种情形，每段路程同等重要。当 $\gamma < 1$ 时，越远的未来越不重要。</p>
-                <p>这在管理学中有天然的类比：金融中的<strong>贴现</strong>（Discounting）。一元钱今天的价值高于一年后的一元钱，因此未来的现金流需要按贴现率折算为现值。折扣因子 $\gamma$ 扮演的正是贴现因子的角色：$\gamma = 0.99$ 意味着下一期的一元奖励，折算到当前只值0.99元。在无限时间步的问题中，$\gamma < 1$ 还保证了累计奖励的有界性。</p>
+                <p>旅行者问题中 $T = 6$，奖励是路程的负值，因此最大化 $G$ 等价于最小化总路程。在这个问题里，每段路程同等重要，不需要引入折扣。</p>
+                <p><strong>无限时域MDP。</strong>很多管理决策问题没有天然的终点：仓库需要持续补货，派单系统每天运行，生产线需要无限期排产。如果对无限步的奖励简单求和，总和可能趋向无穷，无法比较不同策略的优劣。这时就需要引入<strong>折扣因子</strong> $\gamma \in [0, 1)$，让未来的奖励逐步衰减：</p>
+                <div class="formula-block">
+                    $$G_t = \sum_{k=0}^{\infty} \gamma^k R_{t+k} = R_t + \gamma R_{t+1} + \gamma^2 R_{t+2} + \cdots$$
+                </div>
+                <p>只要 $\gamma < 1$ 且单步奖励有界，这个无穷级数就收敛。折扣因子在管理学中有天然的类比：金融中的<strong>贴现</strong>。一元钱今天的价值高于一年后的一元钱，未来的现金流需要按贴现率折算为现值。$\gamma = 0.99$ 意味着下一期的一元奖励，折算到当前只值0.99元。</p>
+                <p><strong>有限时域与无限时域的统一。</strong>管理科学中的实际问题几乎都是有限时域的（一个早高峰、一天的库存周转、一个航季的定价）。但有限时域MDP可以通过设置一个<strong>吸收状态</strong>（absorbing state）纳入无限时域的框架：在有限时域结束时，系统进入一个奖励恒为零、只能转移到自身的终止状态，后续的无穷求和自然退化为有限求和。由于无限时域折扣MDP的数学处理更统一，本书后续章节将默认采用这一形式。关于有限时域与无限时域的关系、回合（episode）的定义选择、折扣因子 $\gamma$ 在两种设定下的不同角色等实践中常见的困惑，将在4.4节展开详细讨论。</p>
             </div>
 
             <!-- ==================== 策略与值函数 ==================== -->
@@ -246,6 +263,7 @@
                 <p><strong>策略</strong> $\pi$ 是一个从状态到动作的映射，它规定了在每个状态下应该选择什么动作。</p>
                 <p>策略可以是<strong>确定性</strong>的，即一个函数 $\pi: \mathcal{S} \to \mathcal{A}$，对每个状态 $s$ 指定唯一的动作 $a = \pi(s)$。例如一个旅行者的策略可以是：</p>
                 <p style="text-align:center; color:var(--accent-color); font-weight:600;">$\pi(a) = b_1, \; \pi(b_1) = c_2, \; \pi(c_2) = d_1, \; \pi(d_1) = e_2, \; \pi(e_2) = f_2, \; \pi(f_2) = g$</p>
+                <p>在旅行者问题中，由于转移是确定性的，一个确定性策略就唯一确定了一条从 $a$ 到 $g$ 的完整路径——上面的策略恰好对应路径 $a \to b_1 \to c_2 \to d_1 \to e_2 \to f_2 \to g$。反过来，每条可行路径也唯一对应一个策略。因此，<strong>寻找最优策略就等价于寻找最短路径</strong>。MDP框架在这里看似大材小用，但正是这套通用语言让我们能用统一的方法处理远比最短路复杂的问题——比如带随机需求的库存管理，或者没有明确终点的持续运营决策。</p>
                 <p>策略也可以是<strong>随机性</strong>的，此时 $\pi(a \mid s)$ 表示在状态 $s$ 下选择动作 $a$ 的概率，满足 $\sum_{a \in \mathcal{A}(s)} \pi(a \mid s) = 1$。例如在 $b_1$ 时，以60%概率去 $c_2$、以40%概率去 $c_1$。</p>
                 <p>我们的目标是找到<strong>最优策略</strong> $\pi^*$——使累计折扣奖励期望最大化的策略。</p>
             </div>
@@ -352,16 +370,22 @@
                     <tr>
                         <td>$\gamma$</td>
                         <td>折扣因子</td>
-                        <td>$\gamma \in [0,1]$，未来奖励的衰减率</td>
-                        <td>$\gamma = 1$（每段路程同等重要）</td>
+                        <td>$\gamma \in [0,1]$；有限时域取 $\gamma = 1$，无限时域取 $\gamma < 1$</td>
+                        <td>有限时域，$\gamma = 1$</td>
                     </tr>
                 </tbody>
             </table>
 
-            <p>智能体的目标是找到一个策略 $\pi^*$，使得从任意状态出发的累计折扣奖励期望最大化：</p>
+            <p>智能体的目标是找到一个最优策略 $\pi^*$，使得累计奖励期望最大化。对于有限时域MDP：</p>
 
             <div class="formula-block">
-                $$\pi^* = \arg\max_\pi \; \mathbb{E}_\pi \left[ \sum_{t=0}^{\infty} \gamma^t \, R(s_t, a_t) \right]$$
+                $$\pi^* = \arg\max_\pi \; \mathbb{E}_\pi \left[ \sum_{t=0}^{T-1} R(S_t, A_t) \right]$$
+            </div>
+
+            <p>对于无限时域折扣MDP：</p>
+
+            <div class="formula-block">
+                $$\pi^* = \arg\max_\pi \; \mathbb{E}_\pi \left[ \sum_{t=0}^{\infty} \gamma^t \, R(S_t, A_t) \right]$$
             </div>
 
             <!-- ==================== 马尔可夫性质 ==================== -->
@@ -390,7 +414,7 @@
 
             <div class="chapter-nav">
                 <a href="../ch01/1.2.html">&larr; 1.2 管理科学中的典型序贯决策场景</a>
-                <a href="../ch01/1.3.2.html">1.3.2 值函数与贝尔曼期望方程 &rarr;</a>
+                <a href="../ch01/1.3.2.html">1.3.2 值函数 &rarr;</a>
             </div>
         </main>
     </div>
