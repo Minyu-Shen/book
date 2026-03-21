@@ -377,54 +377,37 @@ print(f"累计奖励: {total_reward:.1f}")
                 <strong>实践建议</strong> &nbsp; 可以先用较小的 $\Delta t$ 建立一个高精度的参考仿真，然后逐步增大 $\Delta t$，观察关键指标（如平均等待时间、车辆利用率）的变化。当指标的偏差在可接受范围内时，就找到了合适的 $\Delta t$。
             </div>
 
-            <!-- ==================== 封装为 Gymnasium 环境 ==================== -->
+            <!-- ==================== 仿真时间步与决策时间步 ==================== -->
 
-            <h2>封装为 Gymnasium 环境</h2>
+            <h2>仿真时间步与决策时间步</h2>
 
-            <p>仿真引擎实现了环境的全部动力学，但 RL 算法通常通过 Gymnasium（原 OpenAI Gym）接口与环境交互。因此需要编写一个 Gymnasium 环境类作为仿真引擎的<strong>包装层</strong>，将引擎的内部时间步映射到 RL 算法期望的 <code>reset</code> / <code>step</code> 接口。</p>
+            <p>在复杂仿真中，RL 智能体不需要在每个仿真时间步都做决策。仿真引擎的 <code>step</code> 方法可以在内部推进多个仿真时间步，直到遇到一个需要决策的时刻才返回。</p>
 
-<pre><code class="language-python">import gymnasium as gym
-from gymnasium import spaces
-import numpy as np
-
-class FleetDispatchEnv(gym.Env):
-    def __init__(self, config):
-        super().__init__()
-        self.engine = SimulationEngine(config)
-        # 定义状态和动作空间
-        self.observation_space = spaces.Box(
-            low=0, high=1, shape=(64,), dtype=np.float32
-        )
-        self.action_space = spaces.Discrete(100)
-
-    def reset(self, seed=None):
-        super().reset(seed=seed)
-        self.engine.reset()
-        return self._get_obs(), {}
-
+<pre><code class="language-python">class FleetSimulator:
     def step(self, action):
-        # 将 RL 动作传入引擎
-        self.engine.set_agent_action(action)
+        # 将 RL 动作传入调度控制器
+        self.dispatch_controller.set_action(action)
 
         # 推进仿真到下一个决策时刻
         reward = 0.0
-        while not self.engine.needs_decision():
-            self.engine._tick()
-            self.engine.time += self.engine.delta_t
-            reward += self.engine.get_step_reward()
-            if self.engine.is_done():
+        while not self._needs_decision():
+            self._tick()
+            self.time += self.delta_t
+            reward += self._get_step_reward()
+            if self._is_done():
                 break
 
-        obs = self._get_obs()
-        terminated = self.engine.is_done()
-        return obs, reward, terminated, False, {}
+        state = self._get_state()
+        done = self._is_done()
+        return state, reward, done
 
-    def _get_obs(self):
-        """将引擎内部状态转换为 RL 算法使用的观测向量。"""
-        return self.engine.get_observation_vector()
+    def _needs_decision(self):
+        """判断当前是否需要 RL 智能体介入决策。"""
+        return (self.dispatch_controller.has_pending_orders()
+                or self._is_done())
 </code></pre>
 
-            <p>这段代码中有一个值得特别关注的设计：Gymnasium 的 <code>step</code> 方法并不只推进一个仿真时间步。它在内部循环中反复调用引擎的 <code>_tick</code>，直到引擎标记出一个新的<strong>决策时刻</strong>。这意味着 RL 算法的一步动作可能跨越多个仿真时间步，奖励在此期间累加。这种设计符合第 4.3 节讨论的事件触发型决策：RL 智能体不必在每个仿真时间步都做决策，只需要在有意义的时刻（例如有新订单到达或有车辆变为空闲时）介入。</p>
+            <p>这种设计的关键在于：RL 智能体的一次动作可能跨越多个仿真时间步，奖励在此期间累加。这符合第 4.3 节讨论的事件触发型决策：智能体不必在每个时间步都介入，只需要在有意义的时刻（例如有新订单到达或有车辆变为空闲时）做决策。</p>
 
             <div class="concept-card">
                 <div class="concept-name">仿真时间步与决策时间步的区别</div>
@@ -471,7 +454,7 @@ class FleetDispatchEnv(gym.Env):
                 <li>仿真循环是 MDP 转移函数 $P(s' \mid s, a)$ 的计算实现。每个时间步依次执行物理更新、逻辑更新、决策请求和动作执行四个阶段。</li>
                 <li>各阶段的执行顺序必须固定且合理（先物理、再逻辑、后决策），颠倒顺序会引入时序偏差。</li>
                 <li>时间步长 $\Delta t$ 需要在仿真精度和计算速度之间做权衡，应小于系统中最快动态过程的特征时间。</li>
-                <li>Gymnasium 的 <code>step</code> 方法可以跨越多个仿真时间步，在下一个决策时刻才返回，从而支持事件触发型决策。</li>
+                <li>仿真器的 <code>step</code> 方法可以跨越多个仿真时间步，在下一个决策时刻才返回，从而支持事件触发型决策。</li>
                 <li>通过统一管理随机种子，仿真器可以实现确定性重放，这对调试和实验复现至关重要。</li>
             </ul>
 
