@@ -300,48 +300,45 @@
 
             <p>从这张表可以看出，仿真器的核心工作就是把第四章建立的 MDP 模型用程序代码忠实地实现出来。状态空间和动作空间的定义确定了仿真器的输入输出格式；转移概率的实现是仿真器最复杂的部分，需要编写业务逻辑来模拟系统的动态行为；奖励函数的计算则直接影响智能体的学习目标。</p>
 
-            <!-- 6. The Standard Interface: Gymnasium -->
-            <h2>标准接口：Gymnasium</h2>
+            <!-- 6. 仿真器的基本接口 -->
+            <h2>仿真器的基本接口</h2>
 
-            <p>为了让 RL 算法与各种仿真器无缝对接，社区建立了统一的环境接口标准。目前最广泛使用的标准是 <strong>Gymnasium</strong>（由 OpenAI Gym 演化而来，现由 Farama Foundation 维护）。Gymnasium 将仿真器的功能抽象为两个核心方法：</p>
+            <p>根据上面的分析，一个仿真器至少需要两个核心方法：</p>
 
-            <p><strong><code>reset()</code></strong> 方法将环境重置到初始状态，返回初始观测（observation）和一个信息字典（info）。每个新回合开始时调用一次。</p>
+            <p><strong><code>reset()</code></strong> 将仿真器重置到初始状态，返回初始观测。每个新回合开始时调用一次。</p>
 
-            <p><strong><code>step(action)</code></strong> 方法接收智能体的动作，执行一步状态转移，返回五个值：</p>
+            <p><strong><code>step(action)</code></strong> 接收智能体的动作，执行一步状态转移，返回三个值：</p>
             <ul style="margin: 0.5rem 0 1rem 2rem;">
-                <li><code>observation</code>：下一状态的观测</li>
+                <li><code>state</code>：下一状态的观测</li>
                 <li><code>reward</code>：即时奖励 $r_{t+1}$</li>
-                <li><code>terminated</code>：回合是否因达到终止条件而结束（如库存管理到达最后一天）</li>
-                <li><code>truncated</code>：回合是否因达到截断条件而结束（如超过最大步数限制）</li>
-                <li><code>info</code>：附加调试信息的字典</li>
+                <li><code>done</code>：回合是否结束</li>
             </ul>
 
-            <p>基于这两个方法，RL 训练循环的标准写法如下：</p>
+            <p>基于这两个方法，RL 训练循环的基本写法如下：</p>
 
-<pre><code class="language-python">env = SomeEnv()
-obs, info = env.reset(seed=42)
+<pre><code class="language-python">sim = Simulator()
 
-for _ in range(1000):
-    action = agent.select_action(obs)
-    obs, reward, terminated, truncated, info = env.step(action)
-    if terminated or truncated:
-        obs, info = env.reset()
+for episode in range(num_episodes):
+    state = sim.reset()
+    done = False
+    while not done:
+        action = agent.select_action(state)
+        state, reward, done = sim.step(action)
+        agent.learn(state, reward, done)
 </code></pre>
 
-            <p>这段代码体现了图 5.1-1 所示的训练循环：智能体根据观测选择动作，环境执行动作并返回结果，如果回合结束则重置。无论底层仿真的是库存系统、网约车平台还是公交网络，上层的训练代码结构都是一样的。这种接口统一性是 Gymnasium 被广泛采用的关键原因。</p>
+            <p>这段代码体现了图 5.1-1 所示的训练循环：智能体根据状态选择动作，仿真器执行动作并返回结果，如果回合结束则重置。无论底层仿真的是库存系统、网约车平台还是公交网络，训练代码的结构都是一样的。</p>
 
             <!-- 7. Code Example -->
             <h2>代码实例：库存管理仿真器</h2>
 
-            <p>下面我们用一个完整的代码实例来展示如何将 MDP 模型实现为 Gymnasium 环境。以第一章便利店库存管理和第四章库存 MDP 建模中讨论过的库存问题为例：店长每天观察库存水平，决定补货数量；顾客需求随机到来，满足需求获得收入，库存过多产生持有成本，缺货则受到惩罚。</p>
+            <p>下面我们用一个完整的代码实例来展示如何将 MDP 模型实现为仿真器。以第一章便利店库存管理和第四章库存 MDP 建模中讨论过的库存问题为例：店长每天观察库存水平，决定补货数量；顾客需求随机到来，满足需求获得收入，库存过多产生持有成本，缺货则受到惩罚。</p>
 
-<pre><code class="language-python">import gymnasium as gym
-from gymnasium import spaces
-import numpy as np
+<pre><code class="language-python">import numpy as np
 
 
-class InventoryEnv(gym.Env):
-    """简易库存管理仿真环境
+class InventorySimulator:
+    """简易库存管理仿真器
 
     状态: 当前库存量 (整数)
     动作: 补货量 (0 ~ max_order)
@@ -350,7 +347,6 @@ class InventoryEnv(gym.Env):
     """
 
     def __init__(self, max_inventory=20, max_order=10, horizon=30):
-        super().__init__()
         self.max_inventory = max_inventory
         self.max_order = max_order
         self.horizon = horizon
@@ -361,23 +357,19 @@ class InventoryEnv(gym.Env):
         self.shortage_penalty = 5.0  # 每单位缺货惩罚
         self.order_cost = 2.0        # 每单位补货成本
 
-        self.action_space = spaces.Discrete(max_order + 1)
-        self.observation_space = spaces.Box(
-            low=0, high=max_inventory, shape=(1,), dtype=np.float32
-        )
-
-    def reset(self, seed=None, options=None):
-        super().reset(seed=seed)
+    def reset(self, seed=None):
+        self.rng = np.random.default_rng(seed)
         self.inventory = 10
         self.day = 0
-        return np.array([self.inventory], dtype=np.float32), {}
+        return self._get_state()
 
     def step(self, action):
         # 补货到达
+        action = min(action, self.max_order)
         self.inventory = min(self.inventory + action, self.max_inventory)
 
         # 随机需求 ~ Poisson(5)
-        demand = self.np_random.poisson(lam=5)
+        demand = self.rng.poisson(lam=5)
 
         # 计算奖励
         sold = min(self.inventory, demand)
@@ -392,19 +384,19 @@ class InventoryEnv(gym.Env):
         # 状态转移
         self.inventory = max(self.inventory - demand, 0)
         self.day += 1
-        terminated = (self.day &gt;= self.horizon)
+        done = (self.day &gt;= self.horizon)
 
-        return (
-            np.array([self.inventory], dtype=np.float32),
-            reward, terminated, False, {}
-        )
+        return self._get_state(), reward, done
+
+    def _get_state(self):
+        return {"inventory": self.inventory, "day": self.day}
 </code></pre>
 
             <div class="code-explanation">
                 <p><strong>代码与 MDP 的对应关系</strong></p>
                 <ul>
-                    <li><strong>状态空间</strong> $\mathcal{S}$：<code>observation_space</code> 定义为 $[0, 20]$ 上的连续空间，状态变量是当前库存量。</li>
-                    <li><strong>动作空间</strong> $\mathcal{A}$：<code>action_space</code> 定义为离散集合 $\{0, 1, \ldots, 10\}$，表示补货数量。仓容上限 <code>max_inventory</code> 隐含地约束了有效补货量。</li>
+                    <li><strong>状态空间</strong> $\mathcal{S}$：状态变量是当前库存量，取值范围 $\{0, 1, \ldots, 20\}$。</li>
+                    <li><strong>动作空间</strong> $\mathcal{A}$：离散集合 $\{0, 1, \ldots, 10\}$，表示补货数量。仓容上限 <code>max_inventory</code> 隐含地约束了有效补货量。</li>
                     <li><strong>转移</strong> $P(s' \mid s, a)$：<code>step</code> 方法中，库存先加上补货量（受仓容限制），再减去随机需求 $D_t \sim \text{Poisson}(5)$，库存不低于零。需求的随机性使得转移具有概率性。</li>
                     <li><strong>奖励</strong> $R(s, a, s')$：奖励由四项组成，用公式表示为
 
@@ -412,7 +404,7 @@ class InventoryEnv(gym.Env):
 
                     其中 $I_t$ 为补货后的库存量，$D_t$ 为当日需求，$p=10$ 为售价，$h=1$ 为持有成本，$b=5$ 为缺货惩罚，$c=2$ 为补货成本。</li>
                     <li><strong>初始状态</strong>：<code>reset</code> 方法将库存设为 $10$，天数归零，对应一个确定性的初始状态。</li>
-                    <li><strong>终止条件</strong>：运营 $30$ 天后回合终止（<code>terminated = True</code>）。</li>
+                    <li><strong>终止条件</strong>：运营 $30$ 天后回合终止（<code>done = True</code>）。</li>
                 </ul>
             </div>
 
