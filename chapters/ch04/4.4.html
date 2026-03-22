@@ -118,50 +118,53 @@
 
             <!-- SVG: MDP 转移图 -->
             <div style="text-align:center; margin:1.5rem 0 0.5rem 0;">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 220" width="520" height="220" style="max-width:100%;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 240" width="540" height="240" style="max-width:100%;">
+                    <defs>
+                        <marker id="ah-red" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#c53030"/></marker>
+                        <marker id="ah-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#48bb78"/></marker>
+                        <marker id="ah-blue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2b6cb0"/></marker>
+                        <marker id="ah-yellow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#d69e2e"/></marker>
+                    </defs>
+
                     <!-- 状态 N -->
-                    <circle cx="140" cy="110" r="44" fill="#f0fff4" stroke="#48bb78" stroke-width="2.5"/>
-                    <foreignObject x="100" y="90" width="80" height="40">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:40px;font-size:18px;color:#2d3748;font-weight:700;">正常 $N$</div>
+                    <circle cx="145" cy="120" r="48" fill="#f0fff4" stroke="#48bb78" stroke-width="2.5"/>
+                    <foreignObject x="105" y="105" width="80" height="30">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:30px;font-size:17px;color:#2d3748;font-weight:700;">正常 $N$</div>
                     </foreignObject>
 
                     <!-- 状态 W -->
-                    <circle cx="380" cy="110" r="44" fill="#fffbeb" stroke="#d69e2e" stroke-width="2.5"/>
-                    <foreignObject x="340" y="90" width="80" height="40">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:40px;font-size:18px;color:#2d3748;font-weight:700;">磨损 $W$</div>
+                    <circle cx="395" cy="120" r="48" fill="#fffbeb" stroke="#d69e2e" stroke-width="2.5"/>
+                    <foreignObject x="355" y="105" width="80" height="30">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:30px;font-size:17px;color:#2d3748;font-weight:700;">磨损 $W$</div>
                     </foreignObject>
 
                     <!-- N → W: 退化 -->
-                    <line x1="184" y1="105" x2="336" y2="105" stroke="#c53030" stroke-width="2" stroke-linecap="round"/>
-                    <circle cx="336" cy="105" r="3" fill="#c53030"/>
-                    <foreignObject x="215" y="72" width="90" height="30">
+                    <line x1="193" y1="108" x2="345" y2="108" stroke="#c53030" stroke-width="2" marker-end="url(#ah-red)"/>
+                    <foreignObject x="220" y="78" width="100" height="28">
                         <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#c53030;">退化 (0.5)</div>
                     </foreignObject>
 
-                    <!-- N 自环: 保持 -->
-                    <path d="M 120 68 Q 80 20 160 68" fill="none" stroke="#48bb78" stroke-width="2" stroke-linecap="round"/>
-                    <circle cx="160" cy="68" r="3" fill="#48bb78"/>
-                    <foreignObject x="88" y="16" width="100" height="30">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#2f855a;">保持 (0.5)</div>
+                    <!-- N 自环: 保持正常 -->
+                    <path d="M 122 74 Q 80 18 168 74" fill="none" stroke="#48bb78" stroke-width="2" marker-end="url(#ah-green)"/>
+                    <foreignObject x="72" y="18" width="130" height="28">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#2f855a;">保持正常 (0.5)</div>
                     </foreignObject>
 
                     <!-- W → N: 维护 -->
-                    <line x1="336" y1="118" x2="184" y2="118" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
-                    <circle cx="184" cy="118" r="3" fill="#2b6cb0"/>
-                    <foreignObject x="210" y="123" width="110" height="30">
+                    <line x1="347" y1="132" x2="195" y2="132" stroke="#2b6cb0" stroke-width="2" marker-end="url(#ah-blue)"/>
+                    <foreignObject x="220" y="137" width="110" height="28">
                         <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#2b6cb0;">维护 ($r = -7$)</div>
                     </foreignObject>
 
                     <!-- W 自环: 继续生产 -->
-                    <path d="M 360 152 Q 320 204 400 152" fill="none" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
-                    <circle cx="400" cy="152" r="3" fill="#d69e2e"/>
-                    <foreignObject x="310" y="180" width="140" height="30">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#975a16;">继续生产 ($r = 3$)</div>
+                    <path d="M 372 166 Q 340 224 418 166" fill="none" stroke="#d69e2e" stroke-width="2" marker-end="url(#ah-yellow)"/>
+                    <foreignObject x="320" y="198" width="150" height="28">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#975a16;">继续生产 ($r = +3$)</div>
                     </foreignObject>
 
-                    <!-- 收益标注 -->
-                    <foreignObject x="85" y="140" width="110" height="25">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#2f855a;">产出 $r = 10$</div>
+                    <!-- N 收益标注（圆内下方） -->
+                    <foreignObject x="105" y="128" width="80" height="24">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:12px;color:#2f855a;">$r = +10$</div>
                     </foreignObject>
                 </svg>
             </div>
@@ -342,27 +345,30 @@ print(f"V*(N) = {V['N']:.2f}, V*(W) = {V['W']:.2f}")
 
             <p>这就是本书选择无限时域作为统一框架的原因：不是假设现实问题是无限期的，而是因为这个框架<strong>足够一般</strong>，有限时域作为特例被自然包含。贝尔曼方程、策略梯度定理、所有算法都无需修改即可直接应用。</p>
 
-            <!-- ==================== 具体验证 ==================== -->
-            <h3>将场景 A 纳入无限时域框架的具体验证</h3>
+            <!-- ==================== 场景 C ==================== -->
+            <h2>场景 C：在场景 B 的基础上引入吸收状态</h2>
 
-            <p>将吸收状态构造具体应用到设备维护的场景 A。做法是将<strong>剩余期数 $k$ 纳入状态</strong>，构建增广状态空间：</p>
+            <p>场景 A 用了反向归纳，场景 B 用了值迭代。它们看似是两套不同的求解方法。但吸收状态构造告诉我们：<strong>场景 A 的有限时域问题可以在场景 B 的无限时域框架内精确表达</strong>。具体做法是：以场景 B 的 MDP 为基础，将剩余期数 $k$ 纳入状态，在 $k = 0$ 时转移到吸收状态。</p>
 
-            $$\mathcal{S}' = \{(N, 20),\, (N, 19),\, \ldots,\, (N, 1),\, (W, 20),\, \ldots,\, (W, 1),\, s_{\text{abs}}\}$$
+            <div class="scenario-box">
+                <div class="scenario-title">构造过程</div>
+                <p style="margin:0 0 0.5rem 0;">在场景 B 的状态空间 $\{N, W\}$ 上增加时间维度，得到增广状态空间：</p>
+                <p style="margin:0;text-align:center;">$\mathcal{S}' = \big\{(N, 20),\, (N, 19),\, \ldots,\, (N, 1),\; (W, 20),\, \ldots,\, (W, 1),\; s_{\text{abs}}\big\}$</p>
+                <p style="margin:0.5rem 0 0 0;">共 $41$ 个状态。转移规则与场景 B 相同，只是每经过一步 $k$ 减一；$k = 1$ 的下一步转移到 $s_{\text{abs}}$（吸收状态，$V^* = 0$）。</p>
+            </div>
 
-            <p>共 $41$ 个状态。转移规则不变，只是每经过一步 $k$ 减一；当 $k = 1$ 时下一步转移到 $s_{\text{abs}}$。在这个增广 MDP 上对所有状态写出贝尔曼最优方程：</p>
+            <p>在这个增广 MDP 上，用场景 B 完全相同的值迭代算法求解。贝尔曼最优方程为：</p>
 
             $$V^*\big((N, k)\big) = 10 + \gamma\big[0.5\, V^*\big((N, k{-}1)\big) + 0.5\, V^*\big((W, k{-}1)\big)\big] \tag{4.4-7}$$
 
             $$V^*\big((W, k)\big) = \max\big\{3 + \gamma\, V^*\big((W, k{-}1)\big),\;\; {-7} + \gamma\, V^*\big((N, k{-}1)\big)\big\} \tag{4.4-8}$$
 
-            <p>其中 $V^*\big((N, 0)\big) = V^*\big((W, 0)\big) = V^*(s_{\text{abs}}) = 0$。</p>
+            <p>边界条件 $V^*\big((N, 0)\big) = V^*\big((W, 0)\big) = V^*(s_{\text{abs}}) = 0$。对比场景 A 的反向归纳公式 (4.4-1)(4.4-2)，它们<strong>在形式上完全一致</strong>。用代码验证：</p>
 
-            <p>对比公式 (4.4-1)(4.4-2) 和公式 (4.4-7)(4.4-8)：它们<strong>在形式上完全一致</strong>。用场景 B 的标准值迭代算法（1.4.2 节）对这 41 个状态反复迭代，收敛后得到的 $V^*\big((W, k)\big)$ 和 $\pi^*\big((W, k)\big)$ 与反向归纳的结果逐值相等。可以用代码验证：</p>
-
-<pre><code class="language-python"># 增广状态上的标准值迭代（与场景 B 完全相同的算法）
+<pre><code class="language-python"># 场景 C: 在场景 B 的 MDP 上增加吸收状态, 用值迭代求解
 V = {}
 for s in ['N', 'W']:
-    for k in range(T + 1):  # k=0 对应吸收状态
+    for k in range(T + 1):   # k=0 对应吸收状态
         V[(s, k)] = 0.0
 
 for iteration in range(1000):
@@ -375,7 +381,7 @@ for iteration in range(1000):
         V_new[('W', k)] = max(q_op, q_mt)
     V = V_new
 
-# 验证: V[(W, 4)] 处策略切换, 与反向归纳一致
+# 输出与场景 A 的反向归纳完全一致
 for k in [1, 2, 3, 4, 5, 20]:
     q_op = 3  + gamma * V[('W', k-1)]
     q_mt = -7 + gamma * V[('N', k-1)]
@@ -383,9 +389,9 @@ for k in [1, 2, 3, 4, 5, 20]:
     print(f'k={k:2d}: {action}  Q(继续)={q_op:.2f} Q(维护)={q_mt:.2f}')
 </code></pre>
 
-            <p>输出与反向归纳完全吻合。场景 A 和场景 B 用的是<strong>同一个值迭代算法</strong>，区别仅在于状态空间的定义：场景 A 的状态是 $(s, k)$，场景 B 的状态是 $s$。</p>
+            <p>运行结果与场景 A 的反向归纳逐值相等：$k \leq 3$ 继续生产，$k \geq 4$ 停机维护。这验证了吸收状态构造的核心主张：<strong>场景 B 的无限时域框架 + 吸收状态 = 场景 A 的有限时域结果</strong>。两种求解方法不同（反向归纳 vs 值迭代），但解完全一致。</p>
 
-            <p>更重要的是，增广后的策略 $\pi^*\big((W, k)\big)$ 是一个<strong>平稳策略</strong>：它是从增广状态 $(s, k)$ 到动作的固定映射，不随时间变化。原来看起来"非平稳"的策略（第 17 期和第 4 期的动作不同），其实是因为状态不同：$(W, 3)$ 和 $(W, 16)$ 是两个不同的状态，对应不同的最优动作，就像场景 B 中 $N$ 和 $W$ 对应不同的最优动作一样。</p>
+            <p>而且，场景 C 中的策略 $\pi^*\big((W, k)\big)$ 是一个<strong>平稳策略</strong>：它是从增广状态 $(s, k)$ 到动作的固定映射，不随时间变化。场景 A 中看似"非平稳"的行为（第 17 期和第 4 期的最优动作不同），在场景 C 中变成了不同状态上的不同动作：$(W, 3)$ 和 $(W, 16)$ 是两个不同的状态，对应不同的最优动作，就像场景 B 中 $N$ 和 $W$ 对应不同的最优动作一样。</p>
 
             <!-- ==================== 时间作为状态 ==================== -->
             <h2>什么时候应该把时间放进状态</h2>
@@ -489,7 +495,7 @@ for k in [1, 2, 3, 4, 5, 20]:
 
             <ol style="margin: 0.5rem 0 1rem 2rem;">
                 <li>有限时域与无限时域的区别不在于算法（TD 两者都能用），而在于<strong>管理者面对的时间约束</strong>。同一个 MDP，不同的时域假设给出不同的最优策略。</li>
-                <li>有限时域通过吸收状态构造纳入无限时域框架。将剩余时间 $k$ 编码为状态的一部分后，策略在增广状态空间 $(s, k)$ 上是<strong>平稳的</strong>，与无限时域用同一套值迭代算法求解。</li>
+                <li>场景 C 验证了有限时域可以精确纳入无限时域框架：在场景 B 的 MDP 上引入吸收状态，用同一套值迭代算法求解，结果与场景 A 的反向归纳完全一致。增广状态 $(s, k)$ 上的策略是<strong>平稳的</strong>。</li>
                 <li>是否把时间放进状态，取决于最优动作是否应该随时间变化。有限期问题（如租赁设备）需要放进；持续运营问题不需要；周期性问题放时段特征而非剩余步数。</li>
                 <li>截断陷阱的根源是模型与现实的不匹配。对持续运营问题，必须在截断处自举或使用缓冲段。</li>
             </ol>
