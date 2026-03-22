@@ -6,6 +6,9 @@
     <title>4.4 回合定义与时域建模 - 运筹智能</title>
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
@@ -14,6 +17,16 @@
         .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
         .example-box { background: #fffbeb; border-left: 3px solid #d69e2e; padding: 0.8rem 1.2rem; margin: 1rem 0; border-radius: 0 6px 6px 0; }
         .example-box .example-title { font-weight: 600; color: #975a16; margin-bottom: 0.3rem; }
+        .fig-caption { text-align:center; font-size:0.9rem; color:#718096; margin-top:0.5rem; margin-bottom:1.5rem; }
+        .note { background: var(--highlight-color); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .warning { background: #fffbeb; border-left: 4px solid #d69e2e; padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .result-table { width: auto; margin: 1rem auto; border-collapse: collapse; font-size: 0.95rem; }
+        .result-table th, .result-table td { border: 1px solid var(--border-color); padding: 0.4rem 0.8rem; text-align: center; }
+        .result-table th { background: var(--sidebar-bg); font-weight: 700; color: var(--primary-color); }
+        .result-table .highlight { background: #fed7d7; }
+        .result-table .good { background: #f0fff4; }
+        .scenario-box { background: var(--sidebar-bg); border: 2px solid var(--border-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .scenario-box .scenario-title { font-weight: 700; color: var(--primary-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
     </style>
     <script defer src="../../js/code-copy.js"></script>
 </head>
@@ -27,8 +40,16 @@
                 <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
                 <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
                 <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
                 <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
                 <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch01/1.5.3.html">1.5.3 SARSA与Q-learning</a></li>
                 <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
                 <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
                 <li class="sidebar-chapter">第二章 深度学习基础</li>
@@ -67,24 +88,224 @@
         <main class="main-content">
             <h1>4.4 回合定义与时域建模</h1>
 
-            <p>上一节讨论了一个回合内部的时间结构——智能体何时做出决策。本节讨论一个更基本的问题：<strong>一个回合有多长</strong>？如何定义回合的起点和终点？有限时域的管科问题与本书一直使用的无限时域折扣 MDP 之间是什么关系？</p>
+            <p>上一节讨论了一个回合内部的时间结构。本节讨论一个更基本的问题：<strong>一个回合有多长</strong>？管理者的规划时域是有限的还是无限的？这个建模选择会如何影响最优策略？</p>
 
-            <p>这些问题看似基础，却几乎困扰过每一个初次将 RL 应用于管理科学问题的研究者。本节将逐一厘清。</p>
+            <p>这些问题看似基础，却几乎困扰过每一个初次将 RL 应用于管理科学问题的研究者。我们通过一个精确可解的小例子来把这件事彻底说清楚。</p>
 
-            <!-- ==================== 管科问题的时间结构 ==================== -->
-            <h2>管理科学问题几乎都是有限时域的</h2>
+            <!-- ==================== 管理者的目标决定时域 ==================== -->
+            <h2>管理者的目标决定时域建模</h2>
 
-            <p>与 RL 教材中常见的游戏环境不同，管理科学中的决策问题几乎总有一个明确的时间范围：</p>
-            <ul style="margin: 0.5rem 0 1rem 2rem;">
-                <li>网约车派单系统关心的是<strong>一个早高峰</strong>（8:00—10:00）的派单效率</li>
-                <li>便利店库存管理关心的是<strong>一天</strong>的补货与销售周转</li>
-                <li>航空公司收益管理关心的是<strong>一个航季</strong>（约3个月）的座位定价</li>
-                <li>公交调度关心的是<strong>一条线路的一个运营周期</strong>（如早班 6:00—9:00）</li>
+            <p>建模的第一步不是写状态空间和动作空间，而是搞清楚一个问题：<strong>管理者真正关心的是什么，约束是什么</strong>。同一套设备、同样的状态转移，管理者面对不同的约束条件，最优策略可以截然不同。</p>
+
+            <p>下面用一个设备维护的例子来展示这一点。</p>
+
+            <!-- ==================== 例子：设备预防性维护 ==================== -->
+            <h2>例子：设备预防性维护</h2>
+
+            <p>一台生产设备有两个状态。</p>
+            <ul style="margin:0.5rem 0 1rem 2rem;">
+                <li><strong>正常</strong>（$N$）：每期产出收益 $+10$。但设备会自然退化，每期有 $50\%$ 的概率变为磨损。</li>
+                <li><strong>磨损</strong>（$W$）：产出效率下降，每期收益仅 $+3$。设备不会自行恢复。</li>
             </ul>
 
-            <p>没有哪个系统是真正无限期运营的。即使是全天候在线的平台，其运营策略也会按天、按周、按季度进行评估和调整。那么，本书从1.3节开始就采用的无限时域折扣 MDP，回报定义为 $G_t = \sum_{k=0}^{\infty} \gamma^k R_{t+k}$，是不是脱离了管科实践？</p>
+            <p>在磨损状态下，管理者面临选择：</p>
+            <ul style="margin:0.5rem 0 1rem 2rem;">
+                <li><strong>继续生产</strong>：当期收益 $+3$，设备保持磨损。</li>
+                <li><strong>停机维护</strong>：当期净收益 $-7$（停产损失加维修费用），但设备恢复正常。</li>
+            </ul>
 
-            <p>答案是否定的。无限时域框架不是一个关于现实世界的假设，而是一个<strong>足够一般的数学语言</strong>，有限时域问题可以作为它的特例被精确表达。理解这种转化关系，是正确使用 RL 解决管科问题的关键。</p>
+            <p>折扣因子 $\gamma = 0.9$。用 MDP 的语言，这个问题的转移结构如下图所示：</p>
+
+            <!-- SVG: MDP 转移图 -->
+            <div style="text-align:center; margin:1.5rem 0 0.5rem 0;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 220" width="520" height="220" style="max-width:100%;">
+                    <!-- 状态 N -->
+                    <circle cx="140" cy="110" r="44" fill="#f0fff4" stroke="#48bb78" stroke-width="2.5"/>
+                    <foreignObject x="100" y="90" width="80" height="40">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:40px;font-size:18px;color:#2d3748;font-weight:700;">正常 $N$</div>
+                    </foreignObject>
+
+                    <!-- 状态 W -->
+                    <circle cx="380" cy="110" r="44" fill="#fffbeb" stroke="#d69e2e" stroke-width="2.5"/>
+                    <foreignObject x="340" y="90" width="80" height="40">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:40px;font-size:18px;color:#2d3748;font-weight:700;">磨损 $W$</div>
+                    </foreignObject>
+
+                    <!-- N → W: 退化 -->
+                    <line x1="184" y1="105" x2="336" y2="105" stroke="#c53030" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="336" cy="105" r="3" fill="#c53030"/>
+                    <foreignObject x="215" y="72" width="90" height="30">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#c53030;">退化 (0.5)</div>
+                    </foreignObject>
+
+                    <!-- N 自环: 保持 -->
+                    <path d="M 120 68 Q 80 20 160 68" fill="none" stroke="#48bb78" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="160" cy="68" r="3" fill="#48bb78"/>
+                    <foreignObject x="88" y="16" width="100" height="30">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#2f855a;">保持 (0.5)</div>
+                    </foreignObject>
+
+                    <!-- W → N: 维护 -->
+                    <line x1="336" y1="118" x2="184" y2="118" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="184" cy="118" r="3" fill="#2b6cb0"/>
+                    <foreignObject x="210" y="123" width="110" height="30">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#2b6cb0;">维护 ($r = -7$)</div>
+                    </foreignObject>
+
+                    <!-- W 自环: 继续生产 -->
+                    <path d="M 360 152 Q 320 204 400 152" fill="none" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="400" cy="152" r="3" fill="#d69e2e"/>
+                    <foreignObject x="310" y="180" width="140" height="30">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#975a16;">继续生产 ($r = 3$)</div>
+                    </foreignObject>
+
+                    <!-- 收益标注 -->
+                    <foreignObject x="85" y="140" width="110" height="25">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#2f855a;">产出 $r = 10$</div>
+                    </foreignObject>
+                </svg>
+            </div>
+            <div class="fig-caption">图 4.4-1　设备维护 MDP 的状态转移图。正常状态每期以 50% 概率退化为磨损；磨损状态下，管理者选择继续生产（低收益但零成本）或停机维护（付出成本但恢复正常）。</div>
+
+            <p>维护本质上是一项<strong>先投资、后收益</strong>的决策：当期付出 $7$（收益从 $+3$ 降为 $-7$，落差为 $10$），换取后续若干期产出从 $3$ 提升到 $10$（每期多赚 $7$）。直觉上大约需要 $10 \div 7 \approx 1.4$ 期才能回本。那么，管理者应该维护吗？</p>
+
+            <p>答案取决于<strong>管理者面对的时间约束</strong>。</p>
+
+            <!-- ==================== 场景 A：有限时域 ==================== -->
+            <h2>场景 A：设备租赁 20 期后归还</h2>
+
+            <div class="scenario-box">
+                <div class="scenario-title">管理者的处境</div>
+                <p style="margin:0;">管理者签订了 20 期的设备租赁合同。第 20 期结束后，设备归还出租方，设备此后的状态与自己无关。管理者的目标是最大化这 20 期内的折扣总收益。</p>
+            </div>
+
+            <p>这是一个<strong>有限时域 MDP</strong>，$T = 20$。用反向归纳（backward induction，即有限时域的值迭代）求解。从最后一期倒推：设 $V_k(s)$ 表示还剩 $k$ 期时处于状态 $s$ 的最优值。边界条件 $V_0(N) = V_0(W) = 0$（租约到期，无剩余价值）。</p>
+
+            <p>递推关系为：</p>
+
+            $$V_k(N) = 10 + \gamma\big[0.5\, V_{k-1}(N) + 0.5\, V_{k-1}(W)\big] \tag{4.4-1}$$
+
+            $$V_k(W) = \max\Big\{\underbrace{3 + \gamma\, V_{k-1}(W)}_{\text{继续生产}},\;\; \underbrace{-7 + \gamma\, V_{k-1}(N)}_{\text{停机维护}}\Big\} \tag{4.4-2}$$
+
+            <p>手动计算前几步（验证直觉）：</p>
+
+            <p><strong>$k=1$</strong>（最后 1 期）：$Q(W, \text{继续}) = 3$，$Q(W, \text{维护}) = -7$。选择继续生产。还剩 1 期根本来不及回本。</p>
+
+            <p><strong>$k=2$</strong>：$Q(W, \text{继续}) = 3 + 0.9 \times 3 = 5.70$，$Q(W, \text{维护}) = -7 + 0.9 \times 10 = 2.00$。选择继续生产。</p>
+
+            <p><strong>$k=3$</strong>：$Q(W, \text{继续}) = 3 + 0.9 \times 5.70 = 8.13$，$Q(W, \text{维护}) = -7 + 0.9 \times 15.85 = 7.27$。继续生产仍然更好，但差距已经收窄到 $0.86$。</p>
+
+            <p><strong>$k=4$</strong>：$Q(W, \text{继续}) = 10.32$，$Q(W, \text{维护}) = 10.73$。维护首次胜出！</p>
+
+            <p>用代码完成全部 20 期的反向归纳：</p>
+
+<pre><code class="language-python">import numpy as np
+
+gamma = 0.9
+T = 20
+
+# V[k] = 还剩 k 期时的值函数，V[0] = 终止值 = 0
+V = [{'N': 0.0, 'W': 0.0} for _ in range(T + 1)]
+
+for k in range(1, T + 1):
+    V[k]['N'] = 10 + gamma * (0.5 * V[k-1]['N'] + 0.5 * V[k-1]['W'])
+    q_operate  = 3  + gamma * V[k-1]['W']
+    q_maintain = -7 + gamma * V[k-1]['N']
+    V[k]['W'] = max(q_operate, q_maintain)
+    action = '维护' if q_maintain &gt;= q_operate else '生产'
+    print(f'k={k:2d}  Q(继续)={q_operate:6.2f}  '
+          f'Q(维护)={q_maintain:6.2f}  → {action}')
+</code></pre>
+
+            <p>完整结果汇总如下：</p>
+
+            <table class="result-table">
+                <thead>
+                    <tr>
+                        <th>剩余期数 $k$</th>
+                        <th>$Q(W, \text{继续})$</th>
+                        <th>$Q(W, \text{维护})$</th>
+                        <th>磨损状态最优动作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="highlight"><td>1</td><td>3.00</td><td>$-$7.00</td><td>继续生产</td></tr>
+                    <tr class="highlight"><td>2</td><td>5.70</td><td>2.00</td><td>继续生产</td></tr>
+                    <tr class="highlight"><td>3</td><td>8.13</td><td>7.27</td><td>继续生产</td></tr>
+                    <tr class="good"><td>4</td><td>10.32</td><td>10.73</td><td>停机维护</td></tr>
+                    <tr class="good"><td>5</td><td>12.65</td><td>13.27</td><td>停机维护</td></tr>
+                    <tr class="good"><td>$\vdots$</td><td>$\vdots$</td><td>$\vdots$</td><td>停机维护</td></tr>
+                    <tr class="good"><td>20</td><td>30.38</td><td>30.93</td><td>停机维护</td></tr>
+                </tbody>
+            </table>
+
+            <p>有限时域的最优策略是<strong>非平稳的</strong>：剩余期数 $k \geq 4$ 时维护，$k \leq 3$ 时继续生产。最后 3 期不维护是完全合理的决策。何必花 7 万给即将归还的设备做保养？</p>
+
+            <!-- ==================== 场景 B：无限时域 ==================== -->
+            <h2>场景 B：自有设备持续运营</h2>
+
+            <div class="scenario-box">
+                <div class="scenario-title">管理者的处境</div>
+                <p style="margin:0;">管理者拥有这台设备，计划长期使用，没有确定的退出时间。管理者的目标是最大化长期折扣总收益。</p>
+            </div>
+
+            <p>这是一个<strong>无限时域 MDP</strong>。用值迭代（1.4.2节）求解。贝尔曼最优方程为：</p>
+
+            $$V^*(N) = 10 + \gamma\big[0.5\, V^*(N) + 0.5\, V^*(W)\big] \tag{4.4-3}$$
+            $$V^*(W) = \max\big\{3 + \gamma\, V^*(W),\;\; {-7} + \gamma\, V^*(N)\big\} \tag{4.4-4}$$
+
+            <p>假设维护是最优的，则 $V^*(W) = -7 + \gamma\, V^*(N)$，代入式(4.4-3)：</p>
+
+            $$V^*(N) = 10 + \gamma\big[0.5\, V^*(N) + 0.5\,({-7} + \gamma\, V^*(N))\big] = 6.85 + 0.855\, V^*(N)$$
+
+            <p>解得 $V^*(N) = 6.85 \,/\, 0.145 = 47.24$，进而 $V^*(W) = -7 + 0.9 \times 47.24 = 35.52$。验证：</p>
+
+            $$Q^*(W, \text{继续}) = 3 + 0.9 \times 35.52 = 34.97,\quad Q^*(W, \text{维护}) = 35.52$$
+
+            <p>维护确实是最优的（$35.52 > 34.97$），假设成立。</p>
+
+<pre><code class="language-python"># 无限时域值迭代
+V = {'N': 0.0, 'W': 0.0}
+for _ in range(1000):
+    V = {
+        'N': 10 + gamma * (0.5 * V['N'] + 0.5 * V['W']),
+        'W': max(3 + gamma * V['W'],       # 继续生产
+                 -7 + gamma * V['N'])       # 停机维护
+    }
+print(f"V*(N) = {V['N']:.2f}, V*(W) = {V['W']:.2f}")
+# 输出: V*(N) = 47.24, V*(W) = 35.52
+</code></pre>
+
+            <p>无限时域的最优策略是<strong>平稳的</strong>：无论处于第 1 期还是第 1000 期，只要设备磨损就应该维护。管理者永远有足够的未来来回收维护投资。</p>
+
+            <!-- ==================== 对比 ==================== -->
+            <h2>对比：时域假设如何改变最优策略</h2>
+
+            <p>将两个场景的结果并列对比：</p>
+
+            <table class="result-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>场景 A：租赁 20 期</th>
+                        <th>场景 B：自有设备</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td style="text-align:left;">时域</td><td>有限（$T = 20$）</td><td>无限</td></tr>
+                    <tr><td style="text-align:left;">MDP 类型</td><td>有限时域 MDP</td><td>无限时域折扣 MDP</td></tr>
+                    <tr><td style="text-align:left;">求解方法</td><td>反向归纳</td><td>值迭代</td></tr>
+                    <tr><td style="text-align:left;">$V^*(N)$</td><td>$30.93$（$k=20$时）</td><td>$47.24$</td></tr>
+                    <tr><td style="text-align:left;">$V^*(W)$</td><td>$30.93$（$k=20$时）</td><td>$35.52$</td></tr>
+                    <tr><td style="text-align:left;">策略类型</td><td>非平稳（随时间变化）</td><td>平稳</td></tr>
+                    <tr><td style="text-align:left;">磨损时动作</td><td>$k \geq 4$ 维护，$k \leq 3$ 生产</td><td>始终维护</td></tr>
+                </tbody>
+            </table>
+
+            <div class="concept-card">
+                <div class="concept-name">核心洞察</div>
+                <p style="margin:0;line-height:1.7;">两个场景的状态空间、动作空间和转移概率完全相同，唯一的区别是<strong>管理者面对的时间约束</strong>。同一个 MDP，不同的时域假设，给出截然不同的最优策略。这不是算法问题，而是建模问题：你的模型有没有忠实反映管理者的真实处境。</p>
+            </div>
 
             <!-- ==================== 回合是一个建模选择 ==================== -->
             <h2>回合是一个建模选择</h2>
@@ -92,106 +313,124 @@
             <p>在 Atari 游戏或棋类博弈中，一个回合有天然的边界：游戏结束就是回合终止。但在管理科学中，回合的边界往往不是问题天然给定的，而是<strong>建模者的选择</strong>。</p>
 
             <div class="example-box">
-                <div class="example-title">例子：网约车派单的回合定义</div>
+                <div class="example-title">例：同一个系统的不同回合定义</div>
                 <p>考虑一个城市的网约车派单系统。以下回合定义都是合理的：</p>
                 <ul style="margin:0.3rem 0 0 1.5rem;">
-                    <li><strong>方案 A</strong>：一个回合 $=$ 早高峰 8:00—10:00（2小时，约120个决策步）</li>
-                    <li><strong>方案 B</strong>：一个回合 $=$ 一整天 0:00—24:00（24小时，约1440个决策步）</li>
-                    <li><strong>方案 C</strong>：一个回合 $=$ 一周的连续运营（168小时）</li>
+                    <li><strong>方案 A</strong>：一个回合 = 早高峰 8:00—10:00（2小时，约120个决策步）</li>
+                    <li><strong>方案 B</strong>：一个回合 = 一整天 0:00—24:00（24小时，约1440个决策步）</li>
+                    <li><strong>方案 C</strong>：一个回合 = 一周的连续运营（168小时）</li>
                 </ul>
             </div>
 
-            <p>不同的选择有不同的权衡：</p>
-            <ul style="margin: 0.5rem 0 1rem 2rem;">
-                <li><strong>回合过短</strong>：智能体看不到长期效应。例如，早高峰结束前的派单决策可能影响高峰后车辆的空间分布，但如果回合只覆盖高峰时段，这种跨时段的影响就被截断了。</li>
-                <li><strong>回合过长</strong>：轨迹中的随机性逐步累积，蒙特卡洛回报 $G_t$ 的方差极大，策略梯度的估计噪声高，训练收敛缓慢。</li>
-            </ul>
+            <p>选择回合边界的一般原则：找到系统中<strong>自然的重置点</strong>。如果系统状态在某些时刻会回到（或接近）某个初始条件，那里就是回合的自然分界线。深夜时段车辆和需求都回到低水平，是一天回合的自然终点；回合过短则智能体看不到长期效应，过长则蒙特卡洛回报 $G_t$ 方差过大。</p>
 
-            <p>选择回合边界的一般原则是：找到系统中<strong>自然的重置点</strong>。如果系统状态在某些时刻会回到（或接近）某个初始条件，那里就是回合的自然分界线。例如，深夜时段车辆和需求都回到低水平，是一天回合的自然终点；开学季结束、需求模式改变，是一个运营周期的自然终点。</p>
+            <p>RL 的训练范式是<strong>有限回合 + 重复采样</strong>：用仿真器模拟一个回合，计算回报并更新参数，然后重复成百上千次。我们优化的不是某一个特定回合的表现，而是<strong>跨回合的平均表现</strong>。</p>
 
-            <!-- ==================== 有限回合 + 重复采样 ==================== -->
-            <h2>有限回合 + 重复采样 = 训练范式</h2>
-
-            <p>理解了回合的定义后，RL 的训练过程就很清楚了：</p>
-            <ol style="margin: 0.5rem 0 1rem 2rem;">
-                <li>用仿真器模拟<strong>一个回合</strong>（例如一个早高峰），产生一条有限长度的轨迹</li>
-                <li>在这条轨迹上计算回报、估计梯度、更新策略参数</li>
-                <li><strong>重复</strong>第1—2步，模拟成百上千个回合</li>
-            </ol>
-
-            <p>这里有一个关键的认识：<strong>我们优化的不是某一个特定回合的表现，而是跨回合的平均表现</strong>。一千个早高峰有着不同的随机需求、不同的车辆初始分布、不同的天气和路况。好的策略不是在某一次模拟中碰巧表现出色，而是在所有这些随机变化下都稳定地做出好的决策。</p>
-
-            <p>这正是1.7.1节目标函数 $J(\theta) = \sum_s d^{\pi_\theta}(s)\, V^{\pi_\theta}(s)$ 的含义：$d^{\pi_\theta}(s)$ 是稳态分布，反映的是策略 $\pi_\theta$ 长期运行后处于各状态的平均频率；$V^{\pi_\theta}(s)$ 是从状态 $s$ 出发的期望回报。$J(\theta)$ 衡量的正是这种<strong>跨回合的平均期望性能</strong>。</p>
-
-            <!-- ==================== 有限与无限的数学统一 ==================== -->
+            <!-- ==================== 数学统一 ==================== -->
             <h2>有限时域如何纳入无限时域框架</h2>
 
-            <p>本书从1.3节起就统一采用无限时域折扣 MDP 作为数学框架。所有核心结论——贝尔曼期望方程(1.3-8)、贝尔曼最优方程、策略梯度定理(1.7-3)——都在这个框架下推导。有限时域问题通过一个简单的构造被纳入这一框架。</p>
+            <p>本书从1.3节起统一采用无限时域折扣 MDP 作为数学框架。有限时域问题通过一个简单的构造被纳入。</p>
 
             <div class="concept-card">
                 <div class="concept-name">吸收状态构造（absorbing state）</div>
-                <p>给定一个 $T$ 步的有限时域 MDP，在状态空间中增加一个<strong>吸收状态</strong> $s_{\text{abs}}$。在原 MDP 的最后一步 $t = T-1$，无论选择什么动作，下一状态都转移到 $s_{\text{abs}}$。吸收状态满足：</p>
-                <ul style="margin:0.3rem 0 0.3rem 1.5rem;">
-                    <li>$R(s_{\text{abs}}, a) = 0$，对所有动作 $a$</li>
-                    <li>$P(s_{\text{abs}} \mid s_{\text{abs}}, a) = 1$，对所有动作 $a$（只能转移到自身）</li>
-                </ul>
-                <p>一旦进入 $s_{\text{abs}}$，智能体永远待在那里，且不再获得任何奖励。</p>
+                <p>给定一个 $T$ 步的有限时域 MDP，在状态空间中增加一个<strong>吸收状态</strong> $s_{\text{abs}}$。在原 MDP 的最后一步 $t = T-1$，下一状态转移到 $s_{\text{abs}}$。吸收状态满足 $R(s_{\text{abs}}, a) = 0$ 且 $P(s_{\text{abs}} \mid s_{\text{abs}}, a) = 1$。</p>
             </div>
 
-            <p>在加入吸收状态后，无限时域的回报变为</p>
+            <p>加入吸收状态后，无限时域的回报自动退化为有限求和：</p>
 
-            $$G_t = \underbrace{\sum_{k=0}^{T-1-t} \gamma^k R_{t+k}}_{\text{原 MDP 的有限回报}} + \underbrace{\sum_{k=T-t}^{\infty} \gamma^k \cdot 0}_{\text{吸收状态后全部为零}} = \sum_{k=0}^{T-1-t} \gamma^k R_{t+k}$$
+            $$G_t = \underbrace{\sum_{k=0}^{T-1-t} \gamma^k R_{t+k}}_{\text{有限回报}} + \underbrace{\sum_{k=T-t}^{\infty} \gamma^k \cdot 0}_{\text{全部为零}} = \sum_{k=0}^{T-1-t} \gamma^k R_{t+k} \tag{4.4-5}$$
 
-            <p>无穷求和自动退化为有限求和，与有限时域的定义完全一致。在这个转化下：</p>
+            <p>这就是本书选择无限时域作为统一框架的原因：不是假设现实问题是无限期的，而是因为这个框架<strong>足够一般</strong>，有限时域作为特例被自然包含。贝尔曼方程、策略梯度定理、所有算法都无需修改即可直接应用。</p>
 
-            <ul style="margin: 0.5rem 0 1rem 2rem;">
-                <li><strong>贝尔曼方程</strong>自动成立：$V^\pi(s_{\text{abs}}) = 0$；对其他状态，公式(1.3-8)照常适用</li>
-                <li><strong>策略梯度定理</strong>自动成立：$Q^{\pi_\theta}(s_{\text{abs}}, a) = 0$，1.7.1节选读证明中引理 2 的无穷级数在 $T$ 步后截断，系数变为 $\frac{1-\gamma^T}{1-\gamma}$</li>
-                <li><strong>所有算法</strong>（REINFORCE、Actor-Critic、DQN、PPO 等）无需修改即可直接应用</li>
-            </ul>
-
-            <p>这就是本书选择无限时域作为统一框架的原因：不是因为现实问题是无限期的，而是因为这个框架<strong>足够一般</strong>，有限时域作为特例被自然包含。只需推导一次，所有结论自动覆盖两种情形。</p>
-
-            <!-- ==================== gamma 的双重角色 ==================== -->
+            <!-- ==================== gamma ==================== -->
             <h2>折扣因子 $\gamma$ 的双重角色</h2>
 
-            <p>在无限时域设定中，$\gamma < 1$ 是数学上的必要条件：没有折扣，无穷级数 $\sum_{k=0}^{\infty} R_{t+k}$ 可能发散。但在有限时域设定中，$\sum_{k=0}^{T-1} \gamma^k R_{t+k}$ 是有限项求和，$\gamma = 1$ 也完全合法。那么，有限时域问题还需要折扣吗？</p>
-
-            <p>实践中通常仍然使用 $\gamma < 1$，但原因从数学必要性变为了<strong>建模选择</strong>：</p>
+            <p>在无限时域设定中，$\gamma < 1$ 是保证 $\sum_{k=0}^{\infty} \gamma^k R_{t+k}$ 收敛的数学必要条件。在有限时域中，$\gamma = 1$ 也完全合法。实践中通常仍然使用 $\gamma < 1$，但原因从数学必要性变为<strong>建模选择</strong>：</p>
 
             <ul style="margin: 0.5rem 0 1rem 2rem;">
-                <li><strong>时间偏好</strong>：管理科学中，未来的收益天然不如当前的收益有价值。$\gamma$ 直接对应金融中的<strong>贴现率</strong>：$\gamma = 0.99$ 意味着一期后的一元钱在当前只值 $0.99$ 元，与净现值（NPV）分析中的折现完全一致。</li>
-                <li><strong>降低方差</strong>：$\gamma < 1$ 让远期奖励的权重指数衰减，使回报 $G_t$ 的方差更小，梯度估计更稳定。$\gamma$ 越小，智能体越短视，但训练越容易收敛。</li>
-                <li><strong>隐含的有效视野</strong>：$\gamma$ 隐式定义了智能体的规划范围。权重 $\gamma^k$ 在 $k \approx \frac{1}{1-\gamma}$ 步后衰减到可忽略的水平。$\gamma = 0.99$ 对应约 $100$ 步的有效视野，$\gamma = 0.999$ 对应约 $1000$ 步。</li>
+                <li><strong>时间偏好</strong>：$\gamma$ 直接对应金融中的贴现率。$\gamma = 0.99$ 意味着一期后的一元钱在当前只值 $0.99$ 元，与净现值分析中的折现完全一致。</li>
+                <li><strong>降低方差</strong>：$\gamma < 1$ 让远期奖励的权重指数衰减，使回报 $G_t$ 方差更小，梯度估计更稳定。</li>
+                <li><strong>隐含的有效视野</strong>：$\gamma$ 隐式定义了规划范围。$\gamma^k$ 在 $k \approx 1/(1-\gamma)$ 步后衰减到可忽略的水平。$\gamma = 0.99$ 对应约 $100$ 步的有效视野。</li>
             </ul>
 
-            <p>因此，即使在有限时域问题中，$\gamma$ 也是一个有用的建模工具。它不再是为了保证收敛而被迫引入的，而是建模者用来表达时间偏好和控制训练稳定性的旋钮。</p>
+            <!-- ==================== TD 学习的角度 ==================== -->
+            <h2>TD 学习为什么让这个区别变得不那么显眼</h2>
 
-            <!-- ==================== 没有自然终点的处理 ==================== -->
+            <p>读到这里，有一个自然的疑问：既然实践中几乎都用 TD 学习（如 Q-learning、PPO），而 TD 更新只需要一步转移 $(s_t, a_t, r_{t+1}, s_{t+1})$，不像蒙特卡洛方法那样需要等到回合结束计算完整回报 $G_t$，那么有限与无限的区别在哪里？</p>
+
+            <p>这个疑问揭示了 TD 方法的一个重要性质：<strong>在算法运行的层面，TD 确实不受回合长度的限制</strong>。蒙特卡洛方法需要完整轨迹来计算 $G_t = \sum_{k=0}^{\infty} \gamma^k r_{t+k+1}$，无限时域意味着这个级数永远算不完，MC 因此无法用于真正的无限时域问题。TD 通过自举（用 $V(s_{t+1})$ 替代未来回报的精确值）绕过了这个限制。不管回合有 20 步还是无限步，TD 的更新公式都一样：</p>
+
+            $$V(s_t) \leftarrow V(s_t) + \alpha \big[r_{t+1} + \gamma\, V(s_{t+1}) - V(s_t)\big] \tag{4.4-6}$$
+
+            <p>但有限与无限的区别并没有消失，它只是从算法层面转移到了<strong>建模层面</strong>。上面的设备维护例子已经清楚地表明：</p>
+
+            <ul style="margin:0.5rem 0 1rem 2rem;">
+                <li><strong>有限时域</strong>的最优策略随时间变化（非平稳）：第 1 期和第 18 期的最优维护决策不同。</li>
+                <li><strong>无限时域</strong>的最优策略不随时间变化（平稳）：任何时候磨损了都应该维护。</li>
+            </ul>
+
+            <p>用 TD 还是 MC 都不会改变这个建模层面的区别。建模者必须先回答"管理者面对的是什么样的时间约束"，再选择对应的 MDP 类型。选对了模型，TD 和 MC 都会给出正确答案；选错了模型，用什么算法都会学到有偏的策略。</p>
+
+            <!-- ==================== 截断陷阱 ==================== -->
+            <h2>截断陷阱：当模型与现实不匹配时</h2>
+
+            <p>理解了上述区别后，一种常见的实践错误就很容易理解了。</p>
+
+            <p>假设管理者拥有设备并计划长期使用（场景 B），但研究者在训练时为了方便，把仿真切成 20 步一段，并在回合末尾设置 $V(s_T) = 0$。这等于告诉智能体"第 20 期后设备消失了"。智能体会"理性地"在最后 3 期放弃维护，学到的策略如下表所示：</p>
+
+            <table class="result-table">
+                <thead>
+                    <tr>
+                        <th>时间步 $t$</th>
+                        <th>0—16</th>
+                        <th>17</th>
+                        <th>18</th>
+                        <th>19</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align:left;">磨损时动作</td>
+                        <td class="good">停机维护 ✓</td>
+                        <td class="highlight">继续生产 ✗</td>
+                        <td class="highlight">继续生产 ✗</td>
+                        <td class="highlight">继续生产 ✗</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p>这个策略对于"20 期后设备消失"的假想世界是正确的。但管理者的设备并不会在第 20 期消失。在真实的持续运营中，第 17—19 期放弃维护意味着设备带着磨损进入下一段运营，性能白白损失。</p>
+
+            <div class="warning">
+                <strong>截断陷阱</strong>的根源不是 TD 或 MC 的算法选择，而是<strong>MDP 模型与现实之间的不匹配</strong>。研究者为了训练方便引入的回合边界，被智能体当成了真实的终止条件。问题不在于截断本身，而在于截断时把 $V(s_T) = 0$。
+            </div>
+
+            <!-- ==================== 没有自然终点 ==================== -->
             <h2>没有自然终点时怎么办</h2>
 
-            <p>有些管理科学问题确实没有明显的回合边界：在线定价系统持续运行，生产排程周而复始，仓库不间断地补货出货。这类持续运营问题需要人为地将连续的运营流截断为回合。</p>
+            <p>有些管理科学问题确实没有明显的回合边界：在线定价系统持续运行，生产排程周而复始，仓库不间断地补货出货。这类持续运营问题需要人为截断为回合来训练，但必须正确处理边界。常用的方法有两种。</p>
 
-            <p>常见的做法是：设定一个固定的模拟长度 $H_{\text{total}}$，每次从某个初始状态出发运行 $H_{\text{total}}$ 步。但这引入了一个新问题：<strong>边界效应</strong>。智能体可能学到一种在回合末尾"放弃长远考虑"的策略，因为它知道回合即将结束，不再需要为未来负责。</p>
+            <h3>方法一：在截断处自举</h3>
 
-            <p>一种有效的应对方法是<strong>冗余缓冲段</strong>：实际模拟 $H_{\text{total}}$ 步，但只对前 $H_{\text{eval}}$ 步计算回报和更新参数。后面的 $H_{\text{total}} - H_{\text{eval}}$ 步仅用于提供未来奖励的估计，不参与梯度计算。在 $H_{\text{eval}}$ 时刻，智能体并不知道自己处于回合的哪个位置，边界效应就被消除了。</p>
+            <p>回合结束时不置 $V(s_T) = 0$，而是用当前值函数的估计 $\hat{V}(s_T)$ 作为最后一步的自举目标。这告诉智能体：回合结束后世界并没有消失，$s_T$ 之后仍有价值。在设备维护的例子中，我们已经验证过：用 $V^*$ 自举后，反向归纳在所有 20 个时间步都给出与无限时域一致的"始终维护"策略。</p>
 
-            <div class="example-box">
-                <div class="example-title">回顾：网约车 REINFORCE 例子中的缓冲段设计</div>
-                <p>在1.7.2节的网约车 REINFORCE 实现中，每条轨迹模拟 $H_{\text{total}} = 200$ 步，但只对前 $H_{\text{eval}} = 100$ 步进行参数更新。后 $100$ 步的奖励用于计算前 $100$ 步的折扣回报 $G_t$，但不会直接参与梯度更新。这保证了前 $100$ 步中的每一步都能看到足够长的未来，而不受截断边界的影响。</p>
+            <h3>方法二：冗余缓冲段</h3>
+
+            <p>实际模拟 $H_{\text{total}}$ 步，但只对前 $H_{\text{eval}}$ 步计算回报和更新参数。后面的 $H_{\text{total}} - H_{\text{eval}}$ 步仅用于提供未来奖励的估计，不参与梯度计算。在 $H_{\text{eval}}$ 时刻，智能体并不知道自己处于回合的哪个位置，边界效应就被消除了。</p>
+
+            <div class="note">
+                <strong>判断标准</strong> &nbsp; 面对一个管理科学问题，先问自己：回合结束时，系统状态对管理者还有价值吗？如果有（如自有设备仍在运行），就必须自举或使用缓冲段；如果没有（如租约到期设备归还），终止处理 $V = 0$ 就是正确的。
             </div>
 
             <!-- ==================== 小结 ==================== -->
             <h2>小结</h2>
 
-            <p>本节的要点可以浓缩为一句话：<strong>管科问题是有限的，数学框架是无限的，但两者通过吸收状态完美统一</strong>。</p>
-
             <ol style="margin: 0.5rem 0 1rem 2rem;">
-                <li>管理科学问题几乎都是有限时域的，回合的定义是建模者的选择</li>
-                <li>训练时我们重复采样大量回合，追求的是跨回合的平均表现</li>
-                <li>有限时域通过吸收状态转化为无限时域 MDP 的特例，所有理论结论自动适用</li>
-                <li>折扣因子 $\gamma$ 在有限时域中从数学必需变为建模工具，表达时间偏好和控制训练稳定性</li>
-                <li>没有自然终点的持续运营问题，通过人为截断加冗余缓冲段处理</li>
+                <li>有限时域与无限时域的区别不在于算法（TD 两者都能用），而在于<strong>管理者面对的时间约束</strong>。同一个 MDP，不同的时域假设给出不同的最优策略。</li>
+                <li>有限时域的最优策略是<strong>非平稳的</strong>（随剩余时间变化），无限时域的最优策略是<strong>平稳的</strong>。</li>
+                <li>回合的定义是建模者的选择。训练时用有限回合 + 重复采样。</li>
+                <li>有限时域通过吸收状态纳入无限时域框架，所有理论结论自动适用。</li>
+                <li>截断陷阱的根源是模型与现实的不匹配。对持续运营问题，必须在截断处自举或使用缓冲段。</li>
             </ol>
 
             <div class="chapter-nav">
