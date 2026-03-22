@@ -3,30 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>4.4 回合定义与时域建模 - 运筹智能</title>
+    <title>4.4 决策时机与决策频率的建模 - 运筹智能</title>
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
     <style>
-        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
-        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
-        .example-box { background: #fffbeb; border-left: 3px solid #d69e2e; padding: 0.8rem 1.2rem; margin: 1rem 0; border-radius: 0 6px 6px 0; }
-        .example-box .example-title { font-weight: 600; color: #975a16; margin-bottom: 0.3rem; }
-        .fig-caption { text-align:center; font-size:0.9rem; color:#718096; margin-top:0.5rem; margin-bottom:1.5rem; }
-        .note { background: var(--highlight-color); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
-        .warning { background: #fffbeb; border-left: 4px solid #d69e2e; padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
-        .result-table { width: auto; margin: 1rem auto; border-collapse: collapse; font-size: 0.95rem; }
-        .result-table th, .result-table td { border: 1px solid var(--border-color); padding: 0.4rem 0.8rem; text-align: center; }
-        .result-table th { background: var(--sidebar-bg); font-weight: 700; color: var(--primary-color); }
-        .result-table .highlight { background: #fed7d7; }
-        .result-table .good { background: #f0fff4; }
-        .scenario-box { background: var(--sidebar-bg); border: 2px solid var(--border-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
-        .scenario-box .scenario-title { font-weight: 700; color: var(--primary-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .concept-card {
+            background: var(--sidebar-bg);
+            border-left: 4px solid var(--accent-color);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 6px 6px 0;
+        }
+        .concept-card .concept-name {
+            font-weight: 700;
+            color: var(--accent-color);
+            font-size: 1.05rem;
+            margin-bottom: 0.5rem;
+        }
+        .compare-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+        .compare-table th {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.7rem 1rem;
+            text-align: center;
+        }
+        .compare-table td {
+            padding: 0.6rem 1rem;
+            border: 1px solid var(--border-color);
+            vertical-align: top;
+        }
+        .compare-table tr:nth-child(even) {
+            background: var(--sidebar-bg);
+        }
+        .fig-caption {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #718096;
+            margin-top: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .optional-reading {
+            background: #fafafa;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid #a0aec0;
+            border-radius: 0 8px 8px 0;
+            margin: 2.5rem 0;
+        }
+        .optional-reading summary {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            font-weight: 700;
+            color: #4a5568;
+            font-size: 1.1rem;
+            list-style: none;
+        }
+        .optional-reading summary::-webkit-details-marker { display: none; }
+        .optional-reading summary::before { content: '▶ '; font-size: 0.8em; margin-right: 0.3rem; }
+        .optional-reading[open] summary::before { content: '▼ '; }
+        .optional-reading[open] summary { border-bottom: 1px solid #e2e8f0; }
+        .optional-reading .opt-body { padding: 1.2rem 1.5rem; }
     </style>
     <script defer src="../../js/code-copy.js"></script>
 </head>
@@ -64,9 +106,9 @@
                 <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
                 <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
                 <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
-                <li><a href="../ch04/4.2.html">4.2 状态空间、动作空间与奖励函数的设计</a></li>
-                <li><a href="../ch04/4.3.html">4.3 决策时机与决策频率的建模</a></li>
-                <li><a href="../ch04/4.4.html" class="active">4.4 回合定义与时域建模</a></li>
+                <li><a href="../ch04/4.2.html">4.2 时域建模与回合定义</a></li>
+                <li><a href="../ch04/4.3.html">4.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch04/4.4.html" class="active">4.4 决策时机与决策频率的建模</a></li>
                 <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
                 <li class="sidebar-chapter">第五章 仿真器搭建</li>
                 <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
@@ -86,435 +128,358 @@
         </aside>
 
         <main class="main-content">
-            <h1>4.4 回合定义与时域建模</h1>
+            <h1>4.4 决策时机与决策频率的建模</h1>
 
-            <p>上一节讨论了一个回合内部的时间结构。本节讨论一个更基本的问题：<strong>一个回合有多长</strong>？管理者的规划时域是有限的还是无限的？这个建模选择会如何影响最优策略？</p>
+            <!-- ===== 1. 引言 ===== -->
 
-            <p>这些问题看似基础，却几乎困扰过每一个初次将 RL 应用于管理科学问题的研究者。我们通过一个精确可解的小例子来把这件事彻底说清楚。</p>
+            <p>4.3 节讨论了状态空间、动作空间和奖励函数的设计，回答了智能体<strong>观测什么、做什么、优化什么</strong>的问题。然而，还有一个同样重要的建模选择尚未涉及：智能体<strong>何时做出决策</strong>？</p>
 
-            <!-- ==================== 管理者的目标决定时域 ==================== -->
-            <h2>管理者的目标决定时域建模</h2>
+            <p>在教科书的 MDP 形式中，智能体在每个时间步 $t = 0, 1, 2, \ldots$ 都要选择一个动作，时间步之间的间隔是均匀且抽象的。但在管理科学的实际问题中，时间有具体的物理含义。一个网约车派单系统中，乘客请求可能每秒钟都在到达；一个库存管理系统中，补货决策可能只在每天下班前做一次。如何将这些具体的时间结构映射到 MDP 的抽象时间步，直接影响模型的可行性和求解效率。</p>
 
-            <p>建模的第一步不是写状态空间和动作空间，而是搞清楚一个问题：<strong>管理者真正关心的是什么，约束是什么</strong>。同一套设备、同样的状态转移，管理者面对不同的约束条件，最优策略可以截然不同。</p>
+            <p>本节将依次讨论三个问题：决策由什么触发（事件驱动还是时间驱动），决策频率如何选择，以及如何处理两次决策之间累积的多个事件。</p>
 
-            <p>下面用一个设备维护的例子来展示这一点。</p>
+            <!-- ===== 2. 事件驱动 vs 时间驱动 ===== -->
 
-            <!-- ==================== 例子：设备预防性维护 ==================== -->
-            <h2>例子：设备预防性维护</h2>
+            <h2>事件驱动与时间驱动</h2>
 
-            <p>一台生产设备有两个状态。</p>
-            <ul style="margin:0.5rem 0 1rem 2rem;">
-                <li><strong>正常</strong>（$N$）：每期产出收益 $+10$。但设备会自然退化，每期有 $50\%$ 的概率变为磨损。</li>
-                <li><strong>磨损</strong>（$W$）：产出效率下降，每期收益仅 $+3$。设备不会自行恢复。</li>
-            </ul>
+            <p>根据决策被触发的机制，可以将决策模式分为两大类。</p>
 
-            <p>在磨损状态下，管理者面临选择：</p>
-            <ul style="margin:0.5rem 0 1rem 2rem;">
-                <li><strong>继续生产</strong>：当期收益 $+3$，设备保持磨损。</li>
-                <li><strong>停机维护</strong>：当期净收益 $-7$（停产损失加维修费用），但设备恢复正常。</li>
-            </ul>
+            <h3>事件驱动决策</h3>
 
-            <p>折扣因子 $\gamma = 0.9$。用 MDP 的语言，这个问题的转移结构如下图所示：</p>
+            <p><strong>事件驱动</strong>（event-driven）是指每当某个特定事件发生时，智能体立即做出一次决策。以网约车派单为例，每当一个新的乘客请求到达，系统就为这个请求分配一辆车辆。在这种模式下，MDP 的一个时间步对应一个事件的到达，状态中自然包含了触发决策的事件信息（例如新请求的出发地和目的地）。</p>
 
-            <!-- SVG: MDP 转移图 -->
-            <div style="text-align:center; margin:1.5rem 0 0.5rem 0;">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 240" width="540" height="240" style="max-width:100%;">
-                    <defs>
-                        <marker id="ah-red" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#c53030"/></marker>
-                        <marker id="ah-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#48bb78"/></marker>
-                        <marker id="ah-blue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2b6cb0"/></marker>
-                        <marker id="ah-yellow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#d69e2e"/></marker>
-                    </defs>
+            <p>事件驱动的优势在于响应及时，每个事件都能得到即时处理。但它有一个显著的问题：决策的频率完全由事件的到达过程决定，不受建模者控制。在早高峰时段，请求可能每秒到达数十个，智能体需要高频决策；在深夜时段，可能几分钟才有一个请求。这种不均匀的决策频率给算法训练带来了困难，因为不同时间步的间隔差异悬殊，而标准的折扣回报公式 $G_t = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1}$ 假设时间步是等间距的。</p>
 
-                    <!-- 状态 N -->
-                    <circle cx="145" cy="120" r="48" fill="#f0fff4" stroke="#48bb78" stroke-width="2.5"/>
-                    <foreignObject x="105" y="105" width="80" height="30">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:30px;font-size:17px;color:#2d3748;font-weight:700;">正常 $N$</div>
-                    </foreignObject>
+            <h3>时间驱动决策</h3>
 
-                    <!-- 状态 W -->
-                    <circle cx="395" cy="120" r="48" fill="#fffbeb" stroke="#d69e2e" stroke-width="2.5"/>
-                    <foreignObject x="355" y="105" width="80" height="30">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:30px;font-size:17px;color:#2d3748;font-weight:700;">磨损 $W$</div>
-                    </foreignObject>
+            <p><strong>时间驱动</strong>（time-driven）是指按照固定的时间间隔 $\Delta t$ 进行决策。每隔 $\Delta t$ 秒（或分钟、小时），智能体观测当前系统状态，做出一次决策。例如，每隔 10 秒钟，派单系统审视所有待处理的乘客请求，统一进行车辆分配。</p>
 
-                    <!-- N → W: 退化 -->
-                    <line x1="193" y1="108" x2="345" y2="108" stroke="#c53030" stroke-width="2" marker-end="url(#ah-red)"/>
-                    <foreignObject x="220" y="78" width="100" height="28">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#c53030;">退化 (0.5)</div>
-                    </foreignObject>
+            <p>时间驱动的好处是决策频率可控，计算负载可预测，并且天然适配标准 MDP 的等间距时间步。代价是响应可能不够及时：如果 $\Delta t = 10$ 秒，那么一个在第 1 秒到达的请求最多要等 9 秒才能被处理。</p>
 
-                    <!-- N 自环: 保持正常 -->
-                    <path d="M 122 74 Q 80 18 168 74" fill="none" stroke="#48bb78" stroke-width="2" marker-end="url(#ah-green)"/>
-                    <foreignObject x="72" y="18" width="130" height="28">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#2f855a;">保持正常 (0.5)</div>
-                    </foreignObject>
+            <h3>混合模式</h3>
 
-                    <!-- W → N: 维护 -->
-                    <line x1="347" y1="132" x2="195" y2="132" stroke="#2b6cb0" stroke-width="2" marker-end="url(#ah-blue)"/>
-                    <foreignObject x="220" y="137" width="110" height="28">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#2b6cb0;">维护 ($r = -7$)</div>
-                    </foreignObject>
+            <p>实践中，很多系统采用<strong>混合模式</strong>：以固定间隔 $\Delta t$ 做常规决策，同时对特定的高优先级事件立即响应。例如，派单系统每 30 秒做一次批量派单，但当 VIP 乘客发出请求时，立即触发一次额外的决策。混合模式结合了两者的优点，但在 MDP 建模中需要额外的设计来处理非等间距的时间步。</p>
 
-                    <!-- W 自环: 继续生产 -->
-                    <path d="M 372 166 Q 340 224 418 166" fill="none" stroke="#d69e2e" stroke-width="2" marker-end="url(#ah-yellow)"/>
-                    <foreignObject x="320" y="198" width="150" height="28">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#975a16;">继续生产 ($r = +3$)</div>
-                    </foreignObject>
+            <p>下表总结了两种基本模式的对比。</p>
 
-                    <!-- N 收益标注（圆内下方） -->
-                    <foreignObject x="105" y="128" width="80" height="24">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:12px;color:#2f855a;">$r = +10$</div>
-                    </foreignObject>
-                </svg>
-            </div>
-            <div class="fig-caption">图 4.4-1　设备维护 MDP 的状态转移图。正常状态每期以 50% 概率退化为磨损；磨损状态下，管理者选择继续生产（低收益但零成本）或停机维护（付出成本但恢复正常）。</div>
-
-            <p>维护本质上是一项<strong>先投资、后收益</strong>的决策：当期付出 $7$（收益从 $+3$ 降为 $-7$，落差为 $10$），换取后续若干期产出从 $3$ 提升到 $10$（每期多赚 $7$）。直觉上大约需要 $10 \div 7 \approx 1.4$ 期才能回本。那么，管理者应该维护吗？</p>
-
-            <p>答案取决于<strong>管理者面对的时间约束</strong>。</p>
-
-            <!-- ==================== 场景 A：有限时域 ==================== -->
-            <h2>场景 A：设备租赁 20 期后归还</h2>
-
-            <div class="scenario-box">
-                <div class="scenario-title">管理者的处境</div>
-                <p style="margin:0;">管理者签订了 20 期的设备租赁合同。第 20 期结束后，设备归还出租方，设备此后的状态与自己无关。管理者的目标是最大化这 20 期内的折扣总收益。</p>
-            </div>
-
-            <p>这是一个<strong>有限时域 MDP</strong>，$T = 20$。用反向归纳（backward induction，即有限时域的值迭代）求解。从最后一期倒推：设 $V_k(s)$ 表示还剩 $k$ 期时处于状态 $s$ 的最优值。边界条件 $V_0(N) = V_0(W) = 0$（租约到期，无剩余价值）。</p>
-
-            <p>递推关系为：</p>
-
-            $$V_k(N) = 10 + \gamma\big[0.5\, V_{k-1}(N) + 0.5\, V_{k-1}(W)\big] \tag{4.4-1}$$
-
-            $$V_k(W) = \max\Big\{\underbrace{3 + \gamma\, V_{k-1}(W)}_{\text{继续生产}},\;\; \underbrace{-7 + \gamma\, V_{k-1}(N)}_{\text{停机维护}}\Big\} \tag{4.4-2}$$
-
-            <p>手动计算前几步（验证直觉）：</p>
-
-            <p><strong>$k=1$</strong>（最后 1 期）：$Q(W, \text{继续}) = 3$，$Q(W, \text{维护}) = -7$。选择继续生产。还剩 1 期根本来不及回本。</p>
-
-            <p><strong>$k=2$</strong>：$Q(W, \text{继续}) = 3 + 0.9 \times 3 = 5.70$，$Q(W, \text{维护}) = -7 + 0.9 \times 10 = 2.00$。选择继续生产。</p>
-
-            <p><strong>$k=3$</strong>：$Q(W, \text{继续}) = 3 + 0.9 \times 5.70 = 8.13$，$Q(W, \text{维护}) = -7 + 0.9 \times 15.85 = 7.27$。继续生产仍然更好，但差距已经收窄到 $0.86$。</p>
-
-            <p><strong>$k=4$</strong>：$Q(W, \text{继续}) = 10.32$，$Q(W, \text{维护}) = 10.73$。维护首次胜出！</p>
-
-            <p>用代码完成全部 20 期的反向归纳：</p>
-
-<pre><code class="language-python">import numpy as np
-
-gamma = 0.9
-T = 20
-
-# V[k] = 还剩 k 期时的值函数，V[0] = 终止值 = 0
-V = [{'N': 0.0, 'W': 0.0} for _ in range(T + 1)]
-
-for k in range(1, T + 1):
-    V[k]['N'] = 10 + gamma * (0.5 * V[k-1]['N'] + 0.5 * V[k-1]['W'])
-    q_operate  = 3  + gamma * V[k-1]['W']
-    q_maintain = -7 + gamma * V[k-1]['N']
-    V[k]['W'] = max(q_operate, q_maintain)
-    action = '维护' if q_maintain &gt;= q_operate else '生产'
-    print(f'k={k:2d}  Q(继续)={q_operate:6.2f}  '
-          f'Q(维护)={q_maintain:6.2f}  → {action}')
-</code></pre>
-
-            <p>完整结果汇总如下：</p>
-
-            <table class="result-table">
+            <table class="compare-table">
                 <thead>
                     <tr>
-                        <th>剩余期数 $k$</th>
-                        <th>$Q(W, \text{继续})$</th>
-                        <th>$Q(W, \text{维护})$</th>
-                        <th>磨损状态最优动作</th>
+                        <th style="width:18%;">对比维度</th>
+                        <th style="width:41%;">事件驱动</th>
+                        <th style="width:41%;">时间驱动</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr class="highlight"><td>1</td><td>3.00</td><td>$-$7.00</td><td>继续生产</td></tr>
-                    <tr class="highlight"><td>2</td><td>5.70</td><td>2.00</td><td>继续生产</td></tr>
-                    <tr class="highlight"><td>3</td><td>8.13</td><td>7.27</td><td>继续生产</td></tr>
-                    <tr class="good"><td>4</td><td>10.32</td><td>10.73</td><td>停机维护</td></tr>
-                    <tr class="good"><td>5</td><td>12.65</td><td>13.27</td><td>停机维护</td></tr>
-                    <tr class="good"><td>$\vdots$</td><td>$\vdots$</td><td>$\vdots$</td><td>停机维护</td></tr>
-                    <tr class="good"><td>20</td><td>30.38</td><td>30.93</td><td>停机维护</td></tr>
-                </tbody>
-            </table>
-
-            <p>有限时域的最优策略是<strong>非平稳的</strong>：剩余期数 $k \geq 4$ 时维护，$k \leq 3$ 时继续生产。最后 3 期不维护是完全合理的决策。何必花 7 万给即将归还的设备做保养？</p>
-
-            <!-- ==================== 场景 B：无限时域 ==================== -->
-            <h2>场景 B：自有设备持续运营</h2>
-
-            <div class="scenario-box">
-                <div class="scenario-title">管理者的处境</div>
-                <p style="margin:0;">管理者拥有这台设备，计划长期使用，没有确定的退出时间。管理者的目标是最大化长期折扣总收益。</p>
-            </div>
-
-            <p>这是一个<strong>无限时域 MDP</strong>。用值迭代（1.4.2节）求解。贝尔曼最优方程为：</p>
-
-            $$V^*(N) = 10 + \gamma\big[0.5\, V^*(N) + 0.5\, V^*(W)\big] \tag{4.4-3}$$
-            $$V^*(W) = \max\big\{3 + \gamma\, V^*(W),\;\; {-7} + \gamma\, V^*(N)\big\} \tag{4.4-4}$$
-
-            <p>假设维护是最优的，则 $V^*(W) = -7 + \gamma\, V^*(N)$，代入式(4.4-3)：</p>
-
-            $$V^*(N) = 10 + \gamma\big[0.5\, V^*(N) + 0.5\,({-7} + \gamma\, V^*(N))\big] = 6.85 + 0.855\, V^*(N)$$
-
-            <p>解得 $V^*(N) = 6.85 \,/\, 0.145 = 47.24$，进而 $V^*(W) = -7 + 0.9 \times 47.24 = 35.52$。验证：</p>
-
-            $$Q^*(W, \text{继续}) = 3 + 0.9 \times 35.52 = 34.97,\quad Q^*(W, \text{维护}) = 35.52$$
-
-            <p>维护确实是最优的（$35.52 > 34.97$），假设成立。</p>
-
-<pre><code class="language-python"># 无限时域值迭代
-V = {'N': 0.0, 'W': 0.0}
-for _ in range(1000):
-    V = {
-        'N': 10 + gamma * (0.5 * V['N'] + 0.5 * V['W']),
-        'W': max(3 + gamma * V['W'],       # 继续生产
-                 -7 + gamma * V['N'])       # 停机维护
-    }
-print(f"V*(N) = {V['N']:.2f}, V*(W) = {V['W']:.2f}")
-# 输出: V*(N) = 47.24, V*(W) = 35.52
-</code></pre>
-
-            <p>无限时域的最优策略是<strong>平稳的</strong>：无论处于第 1 期还是第 1000 期，只要设备磨损就应该维护。管理者永远有足够的未来来回收维护投资。</p>
-
-            <!-- ==================== 对比 ==================== -->
-            <h2>对比：时域假设如何改变最优策略</h2>
-
-            <p>将两个场景的结果并列对比：</p>
-
-            <table class="result-table">
-                <thead>
                     <tr>
-                        <th></th>
-                        <th>场景 A：租赁 20 期</th>
-                        <th>场景 B：自有设备</th>
+                        <td><strong>触发条件</strong></td>
+                        <td>特定事件发生（如请求到达、任务完成）</td>
+                        <td>固定时间间隔 $\Delta t$</td>
                     </tr>
-                </thead>
-                <tbody>
-                    <tr><td style="text-align:left;">时域</td><td>有限（$T = 20$）</td><td>无限</td></tr>
-                    <tr><td style="text-align:left;">求解方法</td><td>反向归纳</td><td>值迭代</td></tr>
-                    <tr><td style="text-align:left;">策略类型</td><td>非平稳（随剩余时间变化）</td><td>平稳</td></tr>
-                    <tr><td style="text-align:left;">磨损时动作</td><td>$k \geq 4$ 维护，$k \leq 3$ 生产</td><td>始终维护</td></tr>
+                    <tr>
+                        <td><strong>决策频率</strong></td>
+                        <td>由事件到达过程决定，不可控</td>
+                        <td>固定，由建模者选择</td>
+                    </tr>
+                    <tr>
+                        <td><strong>响应延迟</strong></td>
+                        <td>无延迟，事件到达即处理</td>
+                        <td>最多延迟 $\Delta t$</td>
+                    </tr>
+                    <tr>
+                        <td><strong>计算负载</strong></td>
+                        <td>随事件密度波动</td>
+                        <td>均匀可预测</td>
+                    </tr>
+                    <tr>
+                        <td><strong>批量处理</strong></td>
+                        <td>逐个处理，难以全局优化</td>
+                        <td>天然支持批量决策</td>
+                    </tr>
+                    <tr>
+                        <td><strong>MDP 适配</strong></td>
+                        <td>时间步不等距，需要调整折扣</td>
+                        <td>天然对应等间距时间步</td>
+                    </tr>
+                    <tr>
+                        <td><strong>典型场景</strong></td>
+                        <td>呼叫中心来电分配、告警响应</td>
+                        <td>车辆调度、库存补货、交通信号控制</td>
+                    </tr>
                 </tbody>
             </table>
 
             <div class="concept-card">
-                <div class="concept-name">核心洞察</div>
-                <p style="margin:0;line-height:1.7;">两个场景的状态空间、动作空间和转移概率完全相同，唯一的区别是<strong>管理者面对的时间约束</strong>。同一个 MDP，不同的时域假设，给出截然不同的最优策略。这不是算法问题，而是建模问题：你的模型有没有忠实反映管理者的真实处境。</p>
+                <div class="concept-name">建模建议</div>
+                <p>如果问题中的事件到达率相对稳定，事件驱动是自然的选择。如果事件到达率波动剧烈，或者需要对多个事件进行联合优化，时间驱动更为稳健。大多数管理科学中的 RL 应用采用时间驱动模式，因为它与标准 MDP 框架的对接最为直接。</p>
             </div>
 
-            <p>场景 A 的策略是非平稳的：最优动作取决于状态 $s$ 和剩余期数 $k$，即 $\pi^*_k(s)$。而本书从第一章起讨论的都是平稳策略 $\pi(s)$。有没有办法将场景 A 也纳入平稳策略的框架？下面用两个视角来解决这个问题。</p>
+            <!-- ===== 3. 决策频率的影响 ===== -->
 
-            <!-- ==================== 场景 C ==================== -->
-            <h2>场景 C：将剩余时间纳入状态</h2>
+            <h2>决策频率的影响</h2>
 
-            <p>场景 A 的策略之所以"非平稳"，是因为最优动作依赖于一个没有被纳入状态的信息：剩余期数 $k$。一条通用原则是：<strong>如果最优动作依赖于某个变量，这个变量就应该成为状态的一部分</strong>。</p>
+            <p>在时间驱动模式下，决策间隔 $\Delta t$ 的选择对 MDP 的性质有深远影响。直觉上，$\Delta t$ 太小和太大都有问题。</p>
 
-            <p>将剩余期数 $k$ 编码进状态，得到增广状态空间 $\{(N, k),\, (W, k) \mid k = 1, \ldots, 20\}$，共 $40$ 个状态。转移规则与场景 A 相同，只是状态从 $s$ 变为 $(s, k)$，每经过一步 $k$ 减一，$k$ 到达 $0$ 时回合结束。贝尔曼最优方程为：</p>
+            <h3>决策过于频繁</h3>
 
-            $$V^*\big((N, k)\big) = 10 + \gamma\big[0.5\, V^*\big((N, k{-}1)\big) + 0.5\, V^*\big((W, k{-}1)\big)\big] \tag{4.4-5}$$
+            <p>当 $\Delta t$ 很小时，相邻两个决策点之间系统几乎没有变化。这带来几个后果：</p>
 
-            $$V^*\big((W, k)\big) = \max\big\{3 + \gamma\, V^*\big((W, k{-}1)\big),\;\; {-7} + \gamma\, V^*\big((N, k{-}1)\big)\big\} \tag{4.4-6}$$
-
-            <p>边界条件 $V^*\big((N, 0)\big) = V^*\big((W, 0)\big) = 0$。由于状态 $(s, k)$ 只会转移到 $(s', k{-}1)$，从 $k = 1$ 逐层推到 $k = 20$，一次遍历即可求出所有值：</p>
-
-<pre><code class="language-python"># 场景 C: 增广状态 (s, k), 从 k=1 逐层推到 k=20
-gamma, T = 0.9, 20
-V = {(s, 0): 0.0 for s in ['N', 'W']}
-
-for k in range(1, T + 1):
-    V[('N', k)] = 10 + gamma * (0.5*V[('N',k-1)] + 0.5*V[('W',k-1)])
-    q_op = 3  + gamma * V[('W', k-1)]
-    q_mt = -7 + gamma * V[('N', k-1)]
-    V[('W', k)] = max(q_op, q_mt)
-    print(f"k={k:2d}  V(W,k)={V[('W',k)]:6.2f}  "
-          f"{'维护' if q_mt &gt;= q_op else '生产'}")
-</code></pre>
-
-            <p>运行结果与场景 A 逐值相等：$k \leq 3$ 继续生产，$k \geq 4$ 停机维护。这并不意外，因为公式 (4.4-5)(4.4-6) 与场景 A 的公式 (4.4-1)(4.4-2) 形式完全一致。区别在于理解方式：在场景 A 中，$\pi^*_k(s)$ 是一个随 $k$ 变化的非平稳策略；而在场景 C 中，$\pi^*\big((s, k)\big)$ 是增广状态空间上的<strong>平稳策略</strong>。$(W, 3)$ 和 $(W, 16)$ 是两个不同的状态，对应不同的最优动作，就像场景 B 中 $N$ 和 $W$ 对应不同动作一样。</p>
-
-            <p>场景 C 回答了一个问题：<strong>有限时域问题的最优策略也可以是平稳的，只要把剩余时间视为状态的一部分</strong>。</p>
-
-            <!-- ==================== 场景 D ==================== -->
-            <h2>场景 D：在场景 B 的 MDP 上引入吸收状态</h2>
-
-            <p>场景 C 把非平稳变为平稳，但求解方式仍是逐层推导（本质还是反向归纳）。能不能直接用场景 B 的<strong>无限时域值迭代</strong>来求解场景 A 的有限时域问题？</p>
-
-            <p>答案是可以的，方法是<strong>吸收状态构造</strong>。在场景 C 的增广状态空间上再增加一个吸收状态 $s_{\text{abs}}$，使之成为一个形式上的无限时域 MDP：</p>
-
-            <div class="scenario-box">
-                <div class="scenario-title">吸收状态构造</div>
-                <p style="margin:0;">增广状态空间 $\mathcal{S}' = \big\{(N, 20), \ldots, (N, 1),\; (W, 20), \ldots, (W, 1),\; s_{\text{abs}}\big\}$，共 $41$ 个状态。$s_{\text{abs}}$ 满足 $R(s_{\text{abs}}, a) = 0$，$P(s_{\text{abs}} \mid s_{\text{abs}}, a) = 1$。$k = 1$ 的下一步转移到 $s_{\text{abs}}$，之后永远留在那里。</p>
-            </div>
-
-            <p>进入吸收状态后，无限求和自动退化为有限求和：</p>
-
-            $$G_t = \underbrace{\sum_{k=0}^{T-1-t} \gamma^k R_{t+k}}_{\text{有限回报}} + \underbrace{\sum_{k=T-t}^{\infty} \gamma^k \cdot 0}_{\text{吸收状态后全部为零}} = \sum_{k=0}^{T-1-t} \gamma^k R_{t+k} \tag{4.4-7}$$
-
-            <p>现在用场景 B 完全相同的<strong>无限时域值迭代</strong>求解：对所有 $41$ 个状态反复迭代贝尔曼最优方程直到收敛。</p>
-
-<pre><code class="language-python"># 场景 D: 无限时域值迭代 (与场景 B 完全相同的算法)
-gamma, T = 0.9, 20
-V = {(s, k): 0.0 for s in ['N', 'W'] for k in range(T + 1)}
-
-for iteration in range(1000):    # 反复迭代直到收敛
-    V_new = {(s, 0): 0.0 for s in ['N', 'W']}  # 吸收状态: V=0
-    for k in range(1, T + 1):
-        V_new[('N', k)] = 10 + gamma * (
-            0.5 * V[('N', k-1)] + 0.5 * V[('W', k-1)])
-        q_op = 3  + gamma * V[('W', k-1)]
-        q_mt = -7 + gamma * V[('N', k-1)]
-        V_new[('W', k)] = max(q_op, q_mt)
-    if max(abs(V_new[key] - V[key]) for key in V) &lt; 1e-12:
-        print(f'收敛于第 {iteration+1} 轮')
-        break
-    V = V_new
-
-# 验证: 与场景 A、C 的结果逐值相等
-for k in [1, 2, 3, 4, 5, 20]:
-    q_op = 3  + gamma * V[('W', k-1)]
-    q_mt = -7 + gamma * V[('N', k-1)]
-    action = '维护' if q_mt &gt;= q_op else '生产'
-    print(f'k={k:2d}: {action}  Q(继续)={q_op:.2f} Q(维护)={q_mt:.2f}')
-</code></pre>
-
-            <p>运行结果与场景 A 的反向归纳、场景 C 的逐层推导<strong>逐值相等</strong>：$k \leq 3$ 继续生产，$k \geq 4$ 停机维护。三条求解路径殊途同归。</p>
-
-            <p>场景 D 的意义在于：场景 A 的有限时域问题，可以被完全嵌入场景 B 的无限时域框架中，用同一套值迭代算法求解。这就是本书选择无限时域作为统一数学语言的原因。贝尔曼方程、策略梯度定理、所有 RL 算法（REINFORCE、DQN、PPO 等）都无需修改即可直接应用于两种时域设定。</p>
-
-            <!-- ==================== 四场景总结 ==================== -->
-
-            <table class="result-table">
-                <thead><tr><th></th><th>场景 A</th><th>场景 B</th><th>场景 C</th><th>场景 D</th></tr></thead>
-                <tbody>
-                    <tr><td style="text-align:left;">管理者</td><td colspan="2" style="text-align:center;">租赁 20 期</td><td colspan="2" style="text-align:center;">同 A（租赁 20 期）</td></tr>
-                    <tr><td style="text-align:left;">状态空间</td><td>$\{N, W\}$</td><td>$\{N, W\}$</td><td>$\{(s, k)\}$</td><td>$\{(s, k),\, s_{\text{abs}}\}$</td></tr>
-                    <tr><td style="text-align:left;">时域</td><td>有限</td><td>无限</td><td>有限</td><td>无限（含吸收态）</td></tr>
-                    <tr><td style="text-align:left;">求解方法</td><td>反向归纳</td><td>值迭代</td><td>逐层推导</td><td>值迭代（同 B）</td></tr>
-                    <tr><td style="text-align:left;">策略类型</td><td>非平稳</td><td>平稳</td><td>平稳</td><td>平稳</td></tr>
-                    <tr><td style="text-align:left;">磨损时动作</td><td colspan="1">$k{\geq}4$ 维护</td><td>始终维护</td><td colspan="2" style="text-align:center;">与 A 一致</td></tr>
-                </tbody>
-            </table>
-            <div class="fig-caption">四个场景的对比。场景 C 和 D 从不同角度桥接了 A 和 B：C 通过增广状态将非平稳策略转为平稳；D 通过吸收状态将有限时域问题嵌入无限时域框架。两者给出的最优策略与 A 完全一致。</div>
-
-            <!-- ==================== 什么时候把时间放进状态 ==================== -->
-            <h2>什么时候应该把时间放进状态</h2>
-
-            <p>场景 C 和 D 的核心操作是将时间 $k$ 纳入状态。但不是所有问题都应该这样做。判断标准：<strong>最优动作是否应该随时间变化？</strong></p>
-
-            <ul style="margin:0.5rem 0 1rem 2rem;">
-                <li><strong>有限期问题</strong>（租赁设备、航班起飞前的收益管理、季节性商品清仓）：将剩余时间 $k$ 放进状态。策略可以表达"最后 3 期不维护"这样的时间依赖行为。</li>
-                <li><strong>持续运营问题</strong>（自有设备维护、常规库存补货、交通信号控制）：不放。最优策略只取决于系统状态，与"这是第几期"无关。</li>
-                <li><strong>周期性问题</strong>（网约车早晚高峰、季节性需求波动）：放<strong>时段特征</strong>（如一天中的小时数），但不放"训练回合的剩余步数"。前者反映系统的真实周期性，后者是训练的人为产物。</li>
+            <ul>
+                <li><strong>状态变化微小。</strong>连续两个状态 $S_t$ 和 $S_{t+1}$ 几乎相同，使得值函数 $V(S_t) \approx V(S_{t+1})$，TD 目标 $R_{t+1} + \gamma V(S_{t+1})$ 提供的学习信号非常弱。</li>
+                <li><strong>动作效果不明显。</strong>在极短的间隔内，动作产生的影响很小，大量时间步的动作选择对最终结果几乎没有区别。</li>
+                <li><strong>回合步数激增。</strong>假设一个派单场景持续 3 小时。若 $\Delta t = 1$ 秒，一个回合就有 $T = 10800$ 步；若 $\Delta t = 10$ 秒，则只有 $T = 1080$ 步。更长的回合意味着更长的信用分配链，增加了学习难度。</li>
+                <li><strong>计算开销增大。</strong>每个决策步都需要前向推理（查询策略网络），步数翻 10 倍意味着推理开销翻 10 倍。</li>
             </ul>
 
-            <div class="note">
-                <strong>一条判断规则</strong> &nbsp; 如果改变截止时刻 $T$（比如从 20 期改为 30 期）会改变中间某一期的最优动作，那么时间应该进状态。如果不会（即最优动作只取决于当前系统状态），那么时间不应该进状态。在设备维护的例子中：场景 A 改变 $T$ 会影响策略（$T = 10$ 时最后 3 期不维护，$T = 30$ 时也是最后 3 期不维护，但"最后 3 期"指向不同的日历时间）；场景 B 没有 $T$，策略完全由 $(N, W)$ 决定。
-            </div>
+            <h3>决策过于稀疏</h3>
 
-            <!-- ==================== 回合是一个建模选择 ==================== -->
-            <h2>回合是一个建模选择</h2>
+            <p>当 $\Delta t$ 很大时，两次决策之间系统发生了剧烈变化：</p>
 
-            <p>在管理科学中，回合的边界往往不是问题天然给定的，而是<strong>建模者的选择</strong>。选择回合边界的一般原则：找到系统中<strong>自然的重置点</strong>。如果系统状态在某些时刻会回到（或接近）某个初始条件，那里就是回合的自然分界线。回合过短则智能体看不到长期效应，过长则蒙特卡洛回报 $G_t$ 方差过大。</p>
-
-            <p>RL 的训练范式是<strong>有限回合 + 重复采样</strong>：用仿真器模拟一个回合，计算回报并更新参数，然后重复成百上千次。我们优化的不是某一个特定回合的表现，而是<strong>跨回合的平均表现</strong>。</p>
-
-            <!-- ==================== gamma ==================== -->
-            <h2>折扣因子 $\gamma$ 的双重角色</h2>
-
-            <p>在无限时域设定中，$\gamma < 1$ 是保证 $\sum_{k=0}^{\infty} \gamma^k R_{t+k}$ 收敛的数学必要条件。在有限时域中，$\gamma = 1$ 也完全合法。实践中通常仍然使用 $\gamma < 1$，但原因从数学必要性变为<strong>建模选择</strong>：</p>
-
-            <ul style="margin: 0.5rem 0 1rem 2rem;">
-                <li><strong>时间偏好</strong>：$\gamma$ 直接对应金融中的贴现率。$\gamma = 0.99$ 意味着一期后的一元钱在当前只值 $0.99$ 元，与净现值分析中的折现完全一致。</li>
-                <li><strong>降低方差</strong>：$\gamma < 1$ 让远期奖励的权重指数衰减，使回报 $G_t$ 方差更小，梯度估计更稳定。</li>
-                <li><strong>隐含的有效视野</strong>：$\gamma$ 隐式定义了规划范围。$\gamma^k$ 在 $k \approx 1/(1-\gamma)$ 步后衰减到可忽略的水平。$\gamma = 0.99$ 对应约 $100$ 步的有效视野。</li>
+            <ul>
+                <li><strong>信息过时。</strong>决策基于 $\Delta t$ 秒前的状态，但系统此时可能已经面目全非。车辆已经驶过了最佳接客点，请求可能已被乘客取消。</li>
+                <li><strong>错失机会。</strong>两次决策之间到达的事件无法被及时响应，导致服务质量下降。</li>
+                <li><strong>状态跳变剧烈。</strong>$S_t$ 和 $S_{t+1}$ 之间的差异很大，转移概率 $P(S_{t+1} \mid S_t, A_t)$ 的方差增加，使得值函数更难学习。</li>
+                <li><strong>训练样本减少。</strong>同样 3 小时的模拟，$\Delta t = 300$ 秒只产生 36 步，可供学习的转移样本大幅减少。</li>
             </ul>
 
-            <!-- ==================== TD 学习的角度 ==================== -->
-            <h2>TD 学习为什么让这个区别变得不那么显眼</h2>
+            <h3>合适的尺度</h3>
 
-            <p>读到这里，有一个自然的疑问：既然实践中几乎都用 TD 学习（如 Q-learning、PPO），而 TD 更新只需要一步转移 $(s_t, a_t, r_{t+1}, s_{t+1})$，不像蒙特卡洛方法那样需要等到回合结束计算完整回报 $G_t$，那么有限与无限的区别在哪里？</p>
+            <div class="concept-card">
+                <div class="concept-name">决策频率的适配原则</div>
+                <p>$\Delta t$ 应当与系统中<strong>有意义变化</strong>的时间尺度相匹配。具体地，$\Delta t$ 应足够大，使得两步之间有值得响应的新信息到达；又足够小，使得决策能在事件发生后及时做出。</p>
+            </div>
 
-            <p>这个疑问揭示了 TD 方法的一个重要性质：<strong>在算法运行的层面，TD 确实不受回合长度的限制</strong>。蒙特卡洛方法需要完整轨迹来计算 $G_t = \sum_{k=0}^{\infty} \gamma^k r_{t+k+1}$，无限时域意味着这个级数永远算不完，MC 因此无法用于真正的无限时域问题。TD 通过自举（用 $V(s_{t+1})$ 替代未来回报的精确值）绕过了这个限制。不管回合有 20 步还是无限步，TD 的更新公式都一样：</p>
+            <p>用网约车派单场景来具体说明。设请求的平均到达间隔为 $\bar{\tau}$ 秒，车辆的平均行驶速度为 $v$ 米/秒。</p>
 
-            $$V(s_t) \leftarrow V(s_t) + \alpha \big[r_{t+1} + \gamma\, V(s_{t+1}) - V(s_t)\big] \tag{4.4-8}$$
-
-            <p>但有限与无限的区别并没有消失，它只是从算法层面转移到了<strong>建模层面</strong>。上面的设备维护例子已经清楚地表明：</p>
-
-            <ul style="margin:0.5rem 0 1rem 2rem;">
-                <li><strong>有限时域</strong>的最优策略随时间变化（非平稳）：第 1 期和第 18 期的最优维护决策不同。</li>
-                <li><strong>无限时域</strong>的最优策略不随时间变化（平稳）：任何时候磨损了都应该维护。</li>
+            <ul>
+                <li>如果 $\Delta t \ll \bar{\tau}$，大多数决策步没有新请求到达，智能体反复观测相同的待处理列表，浪费了计算资源。</li>
+                <li>如果 $\Delta t \gg \bar{\tau}$，两次决策之间累积了大量请求，先到的请求等待时间过长。同时，车辆在 $\Delta t$ 内行驶了 $v \cdot \Delta t$ 米，位置信息已经严重滞后。</li>
+                <li>合适的范围是 $\Delta t$ 与 $\bar{\tau}$ 同阶，即 $\Delta t \approx \bar{\tau}$ 或略小于 $\bar{\tau}$。</li>
             </ul>
 
-            <p>用 TD 还是 MC 都不会改变这个建模层面的区别。建模者必须先回答"管理者面对的是什么样的时间约束"，再选择对应的 MDP 类型。选对了模型，TD 和 MC 都会给出正确答案；选错了模型，用什么算法都会学到有偏的策略。</p>
+            <p>例如，在一个每秒到达 0.5 个请求的场景中，$\bar{\tau} = 2$ 秒。选择 $\Delta t = 2 \sim 5$ 秒是合理的，每个决策步平均处理 $1 \sim 2.5$ 个新请求。若车辆速度 $v = 10$ 米/秒，在 $\Delta t = 5$ 秒内车辆移动约 50 米，位置变化可接受。</p>
 
-            <!-- ==================== 截断陷阱 ==================== -->
-            <h2>截断陷阱：当模型与现实不匹配时</h2>
+            <!-- ===== 4. 批量决策 ===== -->
 
-            <p>理解了上述区别后，一种常见的实践错误就很容易理解了。</p>
+            <h2>批量决策</h2>
 
-            <p>假设管理者拥有设备并计划长期使用（场景 B），但研究者在训练时为了方便，把仿真切成 20 步一段，并在回合末尾设置 $V(s_T) = 0$。这等于告诉智能体"第 20 期后设备消失了"。智能体会"理性地"在最后 3 期放弃维护，学到的策略如下表所示：</p>
+            <p>当采用时间驱动模式且 $\Delta t$ 大于事件平均到达间隔时，每个决策点通常面临多个待处理事件。如何在一个时间步内处理这批事件，有两种主要策略。</p>
 
-            <table class="result-table">
-                <thead>
-                    <tr>
-                        <th>时间步 $t$</th>
-                        <th>0—16</th>
-                        <th>17</th>
-                        <th>18</th>
-                        <th>19</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="text-align:left;">磨损时动作</td>
-                        <td class="good">停机维护 ✓</td>
-                        <td class="highlight">继续生产 ✗</td>
-                        <td class="highlight">继续生产 ✗</td>
-                        <td class="highlight">继续生产 ✗</td>
-                    </tr>
-                </tbody>
-            </table>
+            <h3>顺序处理</h3>
 
-            <p>这个策略对于"20 期后设备消失"的假想世界是正确的。但管理者的设备并不会在第 20 期消失。在真实的持续运营中，第 17—19 期放弃维护意味着设备带着磨损进入下一段运营，性能白白损失。</p>
+            <p><strong>顺序处理</strong>是将批内事件按某种顺序排列（例如到达时间、优先级），逐一做出决策。每处理一个事件后，更新系统的工作状态副本，下一个事件的决策基于更新后的状态。</p>
 
-            <div class="warning">
-                <strong>截断陷阱</strong>的根源不是 TD 或 MC 的算法选择，而是<strong>MDP 模型与现实之间的不匹配</strong>。研究者为了训练方便引入的回合边界，被智能体当成了真实的终止条件。问题不在于截断本身，而在于截断时把 $V(s_T) = 0$。
-            </div>
+            <p>以网约车派单为例。假设在 $\Delta t = 10$ 秒内到达了 3 个请求 $\{r_1, r_2, r_3\}$，系统有 5 辆空闲车辆。顺序处理的流程如下：</p>
 
-            <!-- ==================== 没有自然终点 ==================== -->
-            <h2>没有自然终点时怎么办</h2>
-
-            <p>有些管理科学问题确实没有明显的回合边界：在线定价系统持续运行，生产排程周而复始，仓库不间断地补货出货。这类持续运营问题需要人为截断为回合来训练，但必须正确处理边界。常用的方法有两种。</p>
-
-            <h3>方法一：在截断处自举</h3>
-
-            <p>回合结束时不置 $V(s_T) = 0$，而是用当前值函数的估计 $\hat{V}(s_T)$ 作为最后一步的自举目标。这告诉智能体：回合结束后世界并没有消失，$s_T$ 之后仍有价值。在设备维护的例子中，我们已经验证过：用 $V^*$ 自举后，反向归纳在所有 20 个时间步都给出与无限时域一致的"始终维护"策略。</p>
-
-            <h3>方法二：冗余缓冲段</h3>
-
-            <p>实际模拟 $H_{\text{total}}$ 步，但只对前 $H_{\text{eval}}$ 步计算回报和更新参数。后面的 $H_{\text{total}} - H_{\text{eval}}$ 步仅用于提供未来奖励的估计，不参与梯度计算。在 $H_{\text{eval}}$ 时刻，智能体并不知道自己处于回合的哪个位置，边界效应就被消除了。</p>
-
-            <div class="note">
-                <strong>判断标准</strong> &nbsp; 面对一个管理科学问题，先问自己：回合结束时，系统状态对管理者还有价值吗？如果有（如自有设备仍在运行），就必须自举或使用缓冲段；如果没有（如租约到期设备归还），终止处理 $V = 0$ 就是正确的。
-            </div>
-
-            <!-- ==================== 小结 ==================== -->
-            <h2>小结</h2>
-
-            <ol style="margin: 0.5rem 0 1rem 2rem;">
-                <li>有限时域与无限时域的区别不在于算法（TD 两者都能用），而在于<strong>管理者面对的时间约束</strong>。同一个 MDP，不同的时域假设给出不同的最优策略。</li>
-                <li>场景 C 将剩余时间纳入状态，把非平稳策略转化为增广状态空间上的平稳策略。是否把时间放进状态取决于最优动作是否依赖于时间。</li>
-                <li>场景 D 在场景 B 的无限时域 MDP 上引入吸收状态，用同一套值迭代算法求解，结果与场景 A 的反向归纳完全一致。这验证了无限时域框架的一般性。</li>
-                <li>截断陷阱的根源是模型与现实的不匹配。对持续运营问题，必须在截断处自举或使用缓冲段。</li>
+            <ol>
+                <li>处理 $r_1$：在 5 辆空闲车辆中为 $r_1$ 分配一辆，更新工作状态（剩余 4 辆空闲车辆）。</li>
+                <li>处理 $r_2$：在 4 辆空闲车辆中为 $r_2$ 分配一辆，更新工作状态（剩余 3 辆空闲车辆）。</li>
+                <li>处理 $r_3$：在 3 辆空闲车辆中为 $r_3$ 分配一辆。</li>
             </ol>
 
+            <p>注意这里有一个微妙之处：处理顺序会影响结果。$r_1$ 先被处理，所以它有更多的可选车辆。如果 $r_3$ 的优先级更高（例如是预约订单），应当调整处理顺序让它先被服务。</p>
+
+            <p>顺序处理的优势在于，它将批量决策分解为多次标准的单步决策，每一次都是一个 $(S, A) \to (S', R)$ 转移。这与标准 RL 框架完全兼容，不需要特殊的网络架构。代价是没有全局最优性保证，因为为 $r_1$ 做决策时并不知道 $r_2$ 和 $r_3$ 即将到来。</p>
+
+            <h3>联合优化</h3>
+
+            <p><strong>联合优化</strong>是将整批事件作为一个整体，同时决定所有分配方案。在派单场景中，这相当于求解一个二部图匹配问题：将 3 个请求同时分配给 5 辆车辆，使总体成本最小。</p>
+
+            <p>联合优化可以利用运筹学中成熟的组合优化算法（如匈牙利算法、拍卖算法）。但它与标准 RL 的结合需要更多设计，因为动作空间从单个分配变成了一个分配方案的组合。一种思路是让 RL 负责学习每个请求-车辆对的价值（考虑长期影响），再由组合优化算法根据这些价值求解即时的匹配问题。这种混合架构将在第七章的具体案例中详细展开。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">顺序处理 vs 联合优化</div>
+                <p>顺序处理简单直接，兼容标准 RL 框架，适合事件之间耦合较弱的场景。联合优化能利用全局信息，适合事件之间存在资源竞争的场景（例如多个请求抢占同一辆车）。两者也可以结合：用 RL 学习长期价值，用组合优化求解短期分配。</p>
+            </div>
+
+            <!-- ===== 5. 回合结构 ===== -->
+
+            <h2>回合结构</h2>
+
+            <p>决策频率确定之后，还需要决定一个回合（episode）的时间跨度。回合结构的选择取决于问题的时间特性。</p>
+
+            <h3>有限期任务</h3>
+
+            <p>很多管理问题有天然的起止边界。一个网约车司机的工作班次有固定的开始和结束时间；一个航班的登机过程在舱门关闭时结束；一场促销活动持续 7 天。这些问题自然地被建模为有限期（episodic）MDP，一个回合对应一个完整的业务周期。</p>
+
+            <p>回合长度 $T$ 的选择需要权衡。过短的回合无法反映长期效应（例如，30 分钟的回合看不到车辆从远处空驶回来的成本），过长的回合则增加训练时间。一个常用的选择是让一个回合覆盖一个完整的业务高峰期，例如早高峰 7:00-10:00（3 小时）。</p>
+
+            <h3>无限期任务</h3>
+
+            <p>有些管理问题没有自然终止点。一个配送中心 24 小时运转，一个库存系统持续运营。这些问题被建模为无限期（continuing）MDP，使用折扣因子 $\gamma < 1$ 确保回报 $G_t = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1}$ 有限。</p>
+
+            <p>在实践中，仿真不可能无限运行。通常的做法是选定一个截断长度 $T$，运行 $T$ 步后终止仿真，但不将 $S_T$ 视为终止状态。相反，用当前值函数的估计 $V(S_T)$ 作为截断点之后回报的近似，即：</p>
+
+            $$G_t = \sum_{k=0}^{T-t-1} \gamma^k R_{t+k+1} + \gamma^{T-t} V(S_T) \tag{4.4-1}$$
+
+            <p>公式 (4.4-1) 中的最后一项 $\gamma^{T-t} V(S_T)$ 称为<strong>自举项</strong>（bootstrap term）。它用值函数估计替代了截断之后无穷多步的真实回报。如果 $V$ 的估计是准确的，截断带来的偏差可以忽略不计。</p>
+
+            <h3>暖启动与冷却效应</h3>
+
+            <p>无论采用有限期还是无限期建模，回合的首尾都需要额外关注。</p>
+
+            <p>在回合开始时，系统可能处于不自然的状态。例如，仿真在 $t=0$ 时将所有车辆放置在随机位置，这与真实系统的稳态分布差异很大。前几分钟的决策和回报受初始条件的影响，不能反映稳态性能。常见的处理方法是设置一个<strong>暖启动期</strong>（warm-up period），在暖启动阶段运行仿真但不收集训练数据，等系统进入稳态后再开始记录。</p>
+
+            <p>在回合结束时，如果智能体知道终止时刻即将到来，可能会做出短视的决策。例如在班次即将结束时，司机倾向于拒绝远途订单，因为它在本回合内无法带来足够回报。这种<strong>末端效应</strong>（end-of-horizon effect）可以通过公式 (4.4-1) 中的自举项来缓解：即使回合在 $T$ 步截断，值函数估计 $V(S_T)$ 仍然能引导智能体考虑截断之后的长期影响。</p>
+
+            <!-- ===== 6. 多时间尺度的系统 ===== -->
+
+            <h2>多时间尺度的系统</h2>
+
+            <p>到目前为止，我们讨论的都是单一决策者在单一时间尺度上的行为。但真实的管理系统往往包含多个层次，每个层次有不同的时间尺度。</p>
+
+            <p>以网约车平台为例，至少存在三个层次：</p>
+
+            <ul>
+                <li><strong>物理层。</strong>车辆在道路网络上连续移动，GPS 坐标每秒更新一次。仿真器以 $\Delta t_{\text{phys}} = 1$ 秒的粒度追踪车辆位置。</li>
+                <li><strong>业务逻辑层。</strong>乘客请求随机到达，系统检测接驾完成和送达完成等事件。这些事件的时间尺度从数秒到数分钟不等。</li>
+                <li><strong>决策层。</strong>RL 智能体每隔 $\Delta t_{\text{dec}} = 10$ 秒做一次派单决策。它不需要知道每一秒的车辆位置更新，只需要在决策点获取当前的系统快照。</li>
+            </ul>
+
+            <p>下图展示了三个层次的时间尺度关系。</p>
+
+            <!-- SVG 图 4.4-1 -->
+            <div style="text-align:center; margin:2rem 0 0.5rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 260" style="max-width:660px; width:100%;">
+                    <!-- 背景 -->
+                    <rect x="0" y="0" width="700" height="260" fill="white" rx="8"/>
+
+                    <!-- 时间轴基线 -->
+                    <line x1="140" y1="55" x2="660" y2="55" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="140" y1="130" x2="660" y2="130" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="140" y1="205" x2="660" y2="205" stroke="#cbd5e0" stroke-width="1"/>
+
+                    <!-- 物理层 (蓝色) - 每个小刻度 = 1秒, 共20个 -->
+                    <foreignObject x="4" y="38" width="130" height="34">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px; color:#2b6cb0; font-weight:600; text-align:right; line-height:34px;">物理层 (1s)</div>
+                    </foreignObject>
+                    <!-- 20个刻度, 从x=160到x=640, 间距24 -->
+                    <line x1="160" y1="48" x2="160" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="184" y1="48" x2="184" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="208" y1="48" x2="208" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="232" y1="48" x2="232" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="256" y1="48" x2="256" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="280" y1="48" x2="280" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="304" y1="48" x2="304" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="328" y1="48" x2="328" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="352" y1="48" x2="352" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="376" y1="48" x2="376" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="400" y1="48" x2="400" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="424" y1="48" x2="424" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="448" y1="48" x2="448" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="472" y1="48" x2="472" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="496" y1="48" x2="496" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="520" y1="48" x2="520" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="544" y1="48" x2="544" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="568" y1="48" x2="568" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="592" y1="48" x2="592" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="616" y1="48" x2="616" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="640" y1="48" x2="640" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <!-- 物理层连线 -->
+                    <line x1="160" y1="55" x2="640" y2="55" stroke="#2b6cb0" stroke-width="2.5" stroke-linecap="round"/>
+
+                    <!-- 业务逻辑层 (黄色) - 不等间距的事件 -->
+                    <foreignObject x="4" y="113" width="130" height="34">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px; color:#d69e2e; font-weight:600; text-align:right; line-height:34px;">逻辑层 (事件)</div>
+                    </foreignObject>
+                    <!-- 事件标记：不等间距的竖线+圆点 -->
+                    <circle cx="196" cy="130" r="5" fill="#d69e2e"/>
+                    <line x1="196" y1="120" x2="196" y2="140" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="284" cy="130" r="5" fill="#d69e2e"/>
+                    <line x1="284" y1="120" x2="284" y2="140" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="316" cy="130" r="5" fill="#d69e2e"/>
+                    <line x1="316" y1="120" x2="316" y2="140" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="420" cy="130" r="5" fill="#d69e2e"/>
+                    <line x1="420" y1="120" x2="420" y2="140" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="465" cy="130" r="5" fill="#d69e2e"/>
+                    <line x1="465" y1="120" x2="465" y2="140" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="480" cy="130" r="5" fill="#d69e2e"/>
+                    <line x1="480" y1="120" x2="480" y2="140" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="590" cy="130" r="5" fill="#d69e2e"/>
+                    <line x1="590" y1="120" x2="590" y2="140" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
+                    <!-- 逻辑层连线 -->
+                    <line x1="160" y1="130" x2="640" y2="130" stroke="#d69e2e" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="6,4"/>
+
+                    <!-- 决策层 (红色) - 每10秒一个决策点, 间距 = 10*24 = 240 -->
+                    <foreignObject x="4" y="188" width="130" height="34">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px; color:#c53030; font-weight:600; text-align:right; line-height:34px;">决策层 (10s)</div>
+                    </foreignObject>
+                    <!-- 决策点：大圆点 + 粗竖线 -->
+                    <circle cx="160" cy="205" r="7" fill="#c53030"/>
+                    <line x1="160" y1="192" x2="160" y2="218" stroke="#c53030" stroke-width="3" stroke-linecap="round"/>
+                    <circle cx="400" cy="205" r="7" fill="#c53030"/>
+                    <line x1="400" y1="192" x2="400" y2="218" stroke="#c53030" stroke-width="3" stroke-linecap="round"/>
+                    <circle cx="640" cy="205" r="7" fill="#c53030"/>
+                    <line x1="640" y1="192" x2="640" y2="218" stroke="#c53030" stroke-width="3" stroke-linecap="round"/>
+                    <!-- 决策层连线 -->
+                    <line x1="160" y1="205" x2="640" y2="205" stroke="#c53030" stroke-width="2.5" stroke-linecap="round"/>
+
+                    <!-- 竖向虚线连接决策点到其他层 -->
+                    <line x1="160" y1="65" x2="160" y2="190" stroke="#c53030" stroke-width="1" stroke-dasharray="4,4" opacity="0.4"/>
+                    <line x1="400" y1="65" x2="400" y2="190" stroke="#c53030" stroke-width="1" stroke-dasharray="4,4" opacity="0.4"/>
+                    <line x1="640" y1="65" x2="640" y2="190" stroke="#c53030" stroke-width="1" stroke-dasharray="4,4" opacity="0.4"/>
+
+                    <!-- 时间标注 -->
+                    <foreignObject x="140" y="228" width="50" height="25">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px; color:#4a5568; text-align:center;">$t$</div>
+                    </foreignObject>
+                    <foreignObject x="376" y="228" width="50" height="25">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px; color:#4a5568; text-align:center;">$t{+}10$</div>
+                    </foreignObject>
+                    <foreignObject x="616" y="228" width="50" height="25">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px; color:#4a5568; text-align:center;">$t{+}20$</div>
+                    </foreignObject>
+
+                    <!-- 括号标注: 事件累积区间 -->
+                    <rect x="165" y="150" width="230" height="22" rx="4" fill="#fed7d7" fill-opacity="0.5"/>
+                    <foreignObject x="165" y="148" width="230" height="26">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px; color:#c53030; text-align:center; line-height:26px;">3 个事件在此区间累积</div>
+                    </foreignObject>
+                    <rect x="405" y="150" width="230" height="22" rx="4" fill="#fed7d7" fill-opacity="0.5"/>
+                    <foreignObject x="405" y="148" width="230" height="26">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px; color:#c53030; text-align:center; line-height:26px;">4 个事件在此区间累积</div>
+                    </foreignObject>
+                </svg>
+            </div>
+            <p class="fig-caption">图 4.4-1：多时间尺度的系统架构。物理层（蓝色）每秒更新一次车辆位置；业务逻辑层（黄色）在不规则的时间点产生事件；决策层（红色）每 10 秒做一次派单决策，处理区间内累积的所有事件。</p>
+
+            <p>这种分层架构的核心思想是：<strong>MDP 的时间步不必与底层仿真的时间步一致</strong>。物理仿真以 1 秒为步长精确追踪系统动态，RL 智能体以 10 秒为步长做出决策。在两个决策点之间，物理仿真自主运转 10 步，产生的状态变化和事件被汇总为 RL 智能体看到的下一个状态。</p>
+
+            <p>从 RL 智能体的视角看，环境每 10 秒返回一次状态观测和累积奖励，它完全不需要感知底层的 1 秒步长。从仿真器的视角看，RL 智能体的决策是一个持续 10 秒的不变输入，直到下一个决策点才会更新。这种解耦使得决策频率和仿真精度可以独立调节。</p>
+
+            <p>更进一步，某些系统包含不同时间尺度的多层决策。例如，网约车平台的<strong>调度层</strong>每 10 秒决定派单方案，而<strong>运营层</strong>每小时决定不同区域的定价策略和车辆调配方案。较高层的决策成为较低层环境的一部分：调度智能体的状态中包含当前定价，而定价智能体的状态中包含过去一小时的供需统计。这种层次化的建模方式将在第五章仿真架构中进一步讨论。</p>
+
+            <details class="optional-reading">
+                <summary>选读：非等间距时间步的折扣处理</summary>
+                <div class="opt-body">
+                    <p>在事件驱动或混合模式下，相邻两个决策点之间的实际时间间隔 $\delta_t$ 可能不等。如果仍使用固定的折扣因子 $\gamma$，则隐含地假设了等间距时间步。一个更准确的做法是使用<strong>连续时间折扣</strong>。</p>
+
+                    <p>设连续时间折扣率为 $\rho > 0$，则经过 $\delta$ 秒后的折扣因子为：</p>
+
+                    $$\gamma(\delta) = e^{-\rho \delta} \tag{4.4-2}$$
+
+                    <p>对应的回报定义为：</p>
+
+                    $$G_t = \sum_{k=0}^{\infty} e^{-\rho \sum_{j=0}^{k-1} \delta_{t+j}} R_{t+k+1} \tag{4.4-3}$$
+
+                    <p>当所有 $\delta_t = \Delta t$ 相等时，$e^{-\rho \Delta t}$ 就是常见的固定折扣因子 $\gamma$，公式 (4.4-3) 退化为标准形式。</p>
+
+                    <p>在实现上，只需将 TD 目标中的 $\gamma$ 替换为 $e^{-\rho \delta_t}$ 即可。例如 TD(0) 的更新变为：</p>
+
+                    $$V(S_t) \leftarrow V(S_t) + \alpha \Big[ R_{t+1} + e^{-\rho \delta_t} V(S_{t+1}) - V(S_t) \Big] \tag{4.4-4}$$
+                </div>
+            </details>
+
+            <!-- ===== 7. 小结与衔接 ===== -->
+
+            <h2>小结</h2>
+
+            <p>本节讨论了将管理问题映射为 MDP 时的时间维度建模。事件驱动和时间驱动各有适用场景；决策频率 $\Delta t$ 的选择需要与系统变化的时间尺度匹配；多个事件累积时可以采用顺序处理或联合优化；回合结构和多时间尺度的分层设计则提供了额外的建模灵活性。</p>
+
+            <p>至此，4.1 到 4.4 节回答了 MDP 建模中的核心问题：观测什么（状态空间）、做什么（动作空间）、优化什么（奖励函数）、何时做（决策时机与频率）。剩下的问题是如何表示策略和值函数。在离散的小规模问题中，表格就足够了；但在状态空间高维、连续的管理问题中，需要用神经网络作为函数逼近器。下一节将讨论如何根据问题特征选择合适的神经网络架构。</p>
+
             <div class="chapter-nav">
-                <a href="../ch04/4.3.html">&larr; 4.3 决策时机与决策频率的建模</a>
+                <a href="../ch04/4.3.html">&larr; 4.3 状态空间、动作空间与奖励函数的设计</a>
                 <a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择 &rarr;</a>
             </div>
         </main>
