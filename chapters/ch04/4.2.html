@@ -158,8 +158,8 @@
 
                     <!-- W 自环: 继续生产（顶部，向左，与N自环对称） -->
                     <path d="M 372 74 Q 395 18 418 74" fill="none" stroke="#d69e2e" stroke-width="2" marker-end="url(#ah-yellow)"/>
-                    <foreignObject x="345" y="18" width="100" height="28">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#975a16;">继续生产 ($r\!=\!+3$)</div>
+                    <foreignObject x="340" y="18" width="110" height="28">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#975a16;">继续生产 ($r = +3$)</div>
                     </foreignObject>
 
                     <!-- N 收益标注（圆内下方） -->
@@ -182,7 +182,7 @@
                 <p style="margin:0;">管理者签订了 20 期的设备租赁合同。第 20 期结束后，设备归还出租方，设备此后的状态与自己无关。管理者的目标是最大化这 20 期内的折扣总收益。</p>
             </div>
 
-            <p>这是一个<strong>有限时域 MDP</strong>，$T = 20$。有限时域的标准求解方法是<strong>反向归纳</strong>（backward induction）。它的思路与 1.4.2 节的值迭代一脉相承，都是反复应用贝尔曼最优方程来求解最优值函数。区别在于：无限时域值迭代从一个任意初始猜测出发，反复迭代直到收敛；反向归纳则从一个已知的边界条件（终止时刻的值为零）出发，逐期向前推导，一次遍历即可得到每一期的精确解。</p>
+            <p>这是一个<strong>有限时域 MDP</strong>，$T = 20$。有限时域的标准求解方法是<strong>反向归纳</strong>（backward induction）。它的思路与 1.4.2 节的值迭代一脉相承，都是反复应用贝尔曼最优方程来求解最优值函数。区别在于：无限时域值迭代从一个任意初始猜测出发，反复迭代直到收敛；反向归纳则从一个已知的边界条件（终止时刻的值为零）出发，逐期向前推导，一次遍历即可得到每一期的精确解。读者如果学过运筹学中的动态规划（如胡运权《运筹学》第 9 章），会发现反向归纳就是那里的逆序求解法。</p>
 
             <p>设 $V_k(s)$ 表示还剩 $k$ 期时处于状态 $s$ 的最优值。边界条件 $V_0(N) = V_0(W) = 0$（租约到期，无剩余价值）。</p>
 
@@ -254,7 +254,7 @@ for k in range(1, T + 1):
                 <p style="margin:0;">管理者拥有这台设备，计划长期使用，没有确定的退出时间。管理者的目标是最大化长期折扣总收益。</p>
             </div>
 
-            <p>这是一个<strong>无限时域 MDP</strong>。用值迭代（1.4.2节）求解。贝尔曼最优方程为：</p>
+            <p>这是一个<strong>无限时域 MDP</strong>，没有终止时刻，因此无法从"最后一期"反向推导。用 1.4.2 节介绍的值迭代求解：从任意初始值出发，反复应用贝尔曼最优方程直到收敛。</p>
 
             $$V^*(N) = 10 + \gamma\big[0.5\, V^*(N) + 0.5\, V^*(W)\big] \tag{4.2-3}$$
             $$V^*(W) = \max\big\{3 + \gamma\, V^*(W),\;\; {-7} + \gamma\, V^*(N)\big\} \tag{4.2-4}$$
@@ -328,7 +328,7 @@ print(f"V*(N) = {V['N']:.2f}, V*(W) = {V['W']:.2f}")
 
             <p>场景 A 的策略之所以"非平稳"，是因为最优动作依赖于一个没有被纳入状态的信息：剩余期数 $k$。一个自然的想法是：<strong>既然最优动作依赖于 $k$，就把 $k$ 也作为状态的一部分</strong>。</p>
 
-            <p>将剩余期数 $k$ 编码进状态，得到增广状态空间 $\{(N, k),\, (W, k) \mid k = 1, \ldots, 20\}$，共 $40$ 个状态。转移规则与场景 A 相同，只是状态从 $s$ 变为 $(s, k)$，每经过一步 $k$ 减一，$k$ 到达 $0$ 时回合结束。贝尔曼最优方程为：</p>
+            <p>将剩余期数 $k$ 编码进状态，得到增广状态空间 $\{(N, k),\, (W, k) \mid k = 1, \ldots, 20\}$，共 $40$ 个状态。增广后的状态转移有两个维度：设备状态 $s$ 的转移与场景 A 相同（随机的），而剩余期数 $k$ 每一步确定性地减一，$k$ 到达 $0$ 时回合结束。贝尔曼最优方程为：</p>
 
             $$V^*\big((N, k)\big) = 10 + \gamma\big[0.5\, V^*\big((N, k{-}1)\big) + 0.5\, V^*\big((W, k{-}1)\big)\big] \tag{4.2-5}$$
 
@@ -405,12 +405,12 @@ for k in [1, 2, 3, 4, 5, 20]:
             <table class="result-table">
                 <thead><tr><th></th><th>场景 A</th><th>场景 B</th><th>视角 C</th><th>视角 D</th></tr></thead>
                 <tbody>
-                    <tr><td style="text-align:left;">管理者</td><td colspan="2" style="text-align:center;">租赁 20 期</td><td colspan="2" style="text-align:center;">同 A（租赁 20 期）</td></tr>
+                    <tr><td style="text-align:left;">管理者</td><td colspan="2" style="text-align:center;">租赁 20 期</td><td colspan="2" style="text-align:center;">同场景 A（租赁 20 期）</td></tr>
                     <tr><td style="text-align:left;">状态空间</td><td>$\{N, W\}$</td><td>$\{N, W\}$</td><td>$\{(s, k)\}$</td><td>$\{(s, k),\, s_{\text{abs}}\}$</td></tr>
                     <tr><td style="text-align:left;">时域</td><td>有限</td><td>无限</td><td>有限</td><td>无限（含吸收态）</td></tr>
                     <tr><td style="text-align:left;">求解方法</td><td>值迭代（反向）</td><td>值迭代（迭代至收敛）</td><td>值迭代（反向）</td><td>值迭代（迭代至收敛）</td></tr>
                     <tr><td style="text-align:left;">策略类型</td><td>非平稳</td><td>平稳</td><td>平稳</td><td>平稳</td></tr>
-                    <tr><td style="text-align:left;">磨损时动作</td><td colspan="1">$k{\geq}4$ 维护</td><td>始终维护</td><td colspan="2" style="text-align:center;">与 A 一致</td></tr>
+                    <tr><td style="text-align:left;">磨损时动作</td><td colspan="1">$k{\geq}4$ 维护</td><td>始终维护</td><td colspan="2" style="text-align:center;">与场景 A 一致</td></tr>
                 </tbody>
             </table>
             <div class="fig-caption">四个场景的对比。视角 C 和 D 从不同角度桥接了 A 和 B：C 通过增广状态将非平稳策略转为平稳；D 通过吸收状态将有限时域问题嵌入无限时域框架。两者给出的最优策略与 A 完全一致。</div>
@@ -457,14 +457,9 @@ for k in [1, 2, 3, 4, 5, 20]:
 
             $$V(s_t) \leftarrow V(s_t) + \alpha \big[r_{t+1} + \gamma\, V(s_{t+1}) - V(s_t)\big] \tag{4.2-8}$$
 
-            <p>但有限与无限的区别并没有消失，它只是从算法层面转移到了<strong>建模层面</strong>。上面的设备维护例子已经清楚地表明：</p>
+            <p>但有限与无限的区别并没有消失，它只是从算法层面转移到了<strong>建模层面</strong>。上面的设备维护例子已经清楚地表明：即使使用完全相同的 TD 更新公式，如果将问题建模为有限时域（场景 A），学到的最优策略是非平稳的（最后 3 期不维护）；如果建模为无限时域（场景 B），学到的最优策略是平稳的（始终维护）。算法没有变，变的是 MDP 模型的结构，而最优策略因此完全不同。</p>
 
-            <ul style="margin:0.5rem 0 1rem 2rem;">
-                <li><strong>有限时域</strong>的最优策略随时间变化（非平稳）：第 1 期和第 18 期的最优维护决策不同。</li>
-                <li><strong>无限时域</strong>的最优策略不随时间变化（平稳）：任何时候磨损了都应该维护。</li>
-            </ul>
-
-            <p>用 TD 还是 MC 都不会改变这个建模层面的区别。建模者必须先回答"管理者面对的是什么样的时间约束"，再选择对应的 MDP 类型。选对了模型，TD 和 MC 都会给出正确答案；选错了模型，用什么算法都会学到有偏的策略。</p>
+            <p>这意味着，建模者必须先回答"管理者面对的是什么样的时间约束"，再选择对应的 MDP 类型。这个建模决策先于算法选择，也比算法选择更重要。</p>
 
             <!-- ==================== 截断陷阱 ==================== -->
             <h2>截断陷阱：当模型与现实不匹配时</h2>
