@@ -314,68 +314,67 @@ print(f"V*(N) = {V['N']:.2f}, V*(W) = {V['W']:.2f}")
 
             <p>场景 A 的策略之所以"非平稳"，是因为最优动作依赖于一个没有被纳入状态的信息：剩余期数 $k$。一条通用原则是：<strong>如果最优动作依赖于某个变量，这个变量就应该成为状态的一部分</strong>。</p>
 
-            <p>将剩余期数 $k$ 编码进状态，得到增广状态空间 $\{(N, k),\, (W, k)\}$，其中 $k = 1, 2, \ldots, 20$。在这个增广空间上，策略变为 $\pi^*\big((s, k)\big)$：</p>
+            <p>将剩余期数 $k$ 编码进状态，得到增广状态空间 $\{(N, k),\, (W, k) \mid k = 1, \ldots, 20\}$，共 $40$ 个状态。转移规则与场景 A 相同，只是状态从 $s$ 变为 $(s, k)$，每经过一步 $k$ 减一，$k$ 到达 $0$ 时回合结束。贝尔曼最优方程为：</p>
 
-            <ul style="margin:0.5rem 0 1rem 2rem;">
-                <li>$\pi^*\big((W, 16)\big) = $ 停机维护（剩余期数充足，值得投资）</li>
-                <li>$\pi^*\big((W, 3)\big) = $ 继续生产（剩余期数不足，来不及回本）</li>
-            </ul>
+            $$V^*\big((N, k)\big) = 10 + \gamma\big[0.5\, V^*\big((N, k{-}1)\big) + 0.5\, V^*\big((W, k{-}1)\big)\big] \tag{4.4-5}$$
 
-            <p>这个策略是<strong>平稳的</strong>：它是从增广状态 $(s, k)$ 到动作的固定映射，不随时间变化。场景 A 中"第 17 期维护、第 4 期不维护"的行为，在场景 C 中变成了两个不同状态上的不同动作，就像场景 B 中 $N$ 和 $W$ 对应不同的最优动作一样。</p>
+            $$V^*\big((W, k)\big) = \max\big\{3 + \gamma\, V^*\big((W, k{-}1)\big),\;\; {-7} + \gamma\, V^*\big((N, k{-}1)\big)\big\} \tag{4.4-6}$$
 
-            <p>这给出了一条实用的建模准则：</p>
+            <p>边界条件 $V^*\big((N, 0)\big) = V^*\big((W, 0)\big) = 0$。由于状态 $(s, k)$ 只会转移到 $(s', k{-}1)$，从 $k = 1$ 逐层推到 $k = 20$，一次遍历即可求出所有值：</p>
 
-            <div class="concept-card">
-                <div class="concept-name">什么时候应该把时间放进状态</div>
-                <ul style="margin:0.3rem 0 0 1.2rem; line-height:1.9;">
-                    <li><strong>有限期问题</strong>（租赁设备、航班起飞前的收益管理、季节性商品清仓）：将剩余时间 $k$ 放进状态。策略可以表达"最后 3 期不维护"这样的时间依赖行为。</li>
-                    <li><strong>持续运营问题</strong>（自有设备维护、常规库存补货、交通信号控制）：不放。最优策略只取决于系统状态，与"这是第几期"无关。</li>
-                    <li><strong>周期性问题</strong>（网约车早晚高峰、季节性需求波动）：放<strong>时段特征</strong>（如一天中的小时数），但不放"训练回合的剩余步数"。前者反映系统的真实周期性，后者是训练的人为产物。</li>
-                </ul>
-            </div>
+<pre><code class="language-python"># 场景 C: 增广状态 (s, k), 从 k=1 逐层推到 k=20
+gamma, T = 0.9, 20
+V = {(s, 0): 0.0 for s in ['N', 'W']}
+
+for k in range(1, T + 1):
+    V[('N', k)] = 10 + gamma * (0.5*V[('N',k-1)] + 0.5*V[('W',k-1)])
+    q_op = 3  + gamma * V[('W', k-1)]
+    q_mt = -7 + gamma * V[('N', k-1)]
+    V[('W', k)] = max(q_op, q_mt)
+    print(f"k={k:2d}  V(W,k)={V[('W',k)]:6.2f}  "
+          f"{'维护' if q_mt &gt;= q_op else '生产'}")
+</code></pre>
+
+            <p>运行结果与场景 A 逐值相等：$k \leq 3$ 继续生产，$k \geq 4$ 停机维护。这并不意外，因为公式 (4.4-5)(4.4-6) 与场景 A 的公式 (4.4-1)(4.4-2) 形式完全一致。区别在于理解方式：在场景 A 中，$\pi^*_k(s)$ 是一个随 $k$ 变化的非平稳策略；而在场景 C 中，$\pi^*\big((s, k)\big)$ 是增广状态空间上的<strong>平稳策略</strong>。$(W, 3)$ 和 $(W, 16)$ 是两个不同的状态，对应不同的最优动作，就像场景 B 中 $N$ 和 $W$ 对应不同动作一样。</p>
+
+            <p>场景 C 回答了一个问题：<strong>有限时域问题的最优策略也可以是平稳的，只要把剩余时间视为状态的一部分</strong>。</p>
 
             <!-- ==================== 场景 D ==================== -->
             <h2>场景 D：在场景 B 的 MDP 上引入吸收状态</h2>
 
-            <p>场景 C 通过增广状态把非平稳变为平稳，但它仍然是一个有限时域问题，需要用反向归纳（或等价的有限步值迭代）求解。有没有办法直接用场景 B 的无限时域框架来表达场景 A 的有限时域约束？</p>
+            <p>场景 C 把非平稳变为平稳，但求解方式仍是逐层推导（本质还是反向归纳）。能不能直接用场景 B 的<strong>无限时域值迭代</strong>来求解场景 A 的有限时域问题？</p>
 
-            <p>答案是<strong>吸收状态构造</strong>。在场景 B 的 MDP 上做一个修改：增加一个<strong>吸收状态</strong> $s_{\text{abs}}$，满足 $R(s_{\text{abs}}, a) = 0$ 且 $P(s_{\text{abs}} \mid s_{\text{abs}}, a) = 1$。将剩余期数 $k$ 纳入状态，当 $k$ 减到 $0$ 时转移到 $s_{\text{abs}}$。</p>
+            <p>答案是可以的，方法是<strong>吸收状态构造</strong>。在场景 C 的增广状态空间上再增加一个吸收状态 $s_{\text{abs}}$，使之成为一个形式上的无限时域 MDP：</p>
 
             <div class="scenario-box">
-                <div class="scenario-title">增广状态空间</div>
-                <p style="margin:0;text-align:center;">$\mathcal{S}' = \big\{(N, 20),\, \ldots,\, (N, 1),\; (W, 20),\, \ldots,\, (W, 1),\; s_{\text{abs}}\big\}$</p>
-                <p style="margin:0.5rem 0 0 0;">共 $41$ 个状态。转移规则与场景 B 相同，只是每经过一步 $k$ 减一；$k = 1$ 的下一步转移到 $s_{\text{abs}}$。一旦进入 $s_{\text{abs}}$，永远留在那里，且不再获得任何奖励。</p>
+                <div class="scenario-title">吸收状态构造</div>
+                <p style="margin:0;">增广状态空间 $\mathcal{S}' = \big\{(N, 20), \ldots, (N, 1),\; (W, 20), \ldots, (W, 1),\; s_{\text{abs}}\big\}$，共 $41$ 个状态。$s_{\text{abs}}$ 满足 $R(s_{\text{abs}}, a) = 0$，$P(s_{\text{abs}} \mid s_{\text{abs}}, a) = 1$。$k = 1$ 的下一步转移到 $s_{\text{abs}}$，之后永远留在那里。</p>
             </div>
 
-            <p>进入吸收状态后，无限时域的回报自动退化为有限求和：</p>
+            <p>进入吸收状态后，无限求和自动退化为有限求和：</p>
 
-            $$G_t = \underbrace{\sum_{k=0}^{T-1-t} \gamma^k R_{t+k}}_{\text{有限回报}} + \underbrace{\sum_{k=T-t}^{\infty} \gamma^k \cdot 0}_{\text{吸收状态后全部为零}} = \sum_{k=0}^{T-1-t} \gamma^k R_{t+k} \tag{4.4-5}$$
+            $$G_t = \underbrace{\sum_{k=0}^{T-1-t} \gamma^k R_{t+k}}_{\text{有限回报}} + \underbrace{\sum_{k=T-t}^{\infty} \gamma^k \cdot 0}_{\text{吸收状态后全部为零}} = \sum_{k=0}^{T-1-t} \gamma^k R_{t+k} \tag{4.4-7}$$
 
-            <p>在这个增广 MDP 上，用场景 B <strong>完全相同的值迭代算法</strong>求解。贝尔曼最优方程为：</p>
+            <p>现在用场景 B 完全相同的<strong>无限时域值迭代</strong>求解：对所有 $41$ 个状态反复迭代贝尔曼最优方程直到收敛。</p>
 
-            $$V^*\big((N, k)\big) = 10 + \gamma\big[0.5\, V^*\big((N, k{-}1)\big) + 0.5\, V^*\big((W, k{-}1)\big)\big] \tag{4.4-7}$$
+<pre><code class="language-python"># 场景 D: 无限时域值迭代 (与场景 B 完全相同的算法)
+gamma, T = 0.9, 20
+V = {(s, k): 0.0 for s in ['N', 'W'] for k in range(T + 1)}
 
-            $$V^*\big((W, k)\big) = \max\big\{3 + \gamma\, V^*\big((W, k{-}1)\big),\;\; {-7} + \gamma\, V^*\big((N, k{-}1)\big)\big\} \tag{4.4-8}$$
-
-            <p>边界条件 $V^*(s_{\text{abs}}) = V^*\big((N, 0)\big) = V^*\big((W, 0)\big) = 0$。对比场景 A 的反向归纳公式 (4.4-1)(4.4-2)，形式完全一致。用代码验证：</p>
-
-<pre><code class="language-python"># 场景 D: 在场景 B 的 MDP 上引入吸收状态, 用值迭代求解
-V = {}
-for s in ['N', 'W']:
-    for k in range(T + 1):   # k=0 对应吸收状态
-        V[(s, k)] = 0.0
-
-for iteration in range(1000):
-    V_new = {(s, 0): 0.0 for s in ['N', 'W']}
+for iteration in range(1000):    # 反复迭代直到收敛
+    V_new = {(s, 0): 0.0 for s in ['N', 'W']}  # 吸收状态: V=0
     for k in range(1, T + 1):
         V_new[('N', k)] = 10 + gamma * (
             0.5 * V[('N', k-1)] + 0.5 * V[('W', k-1)])
         q_op = 3  + gamma * V[('W', k-1)]
         q_mt = -7 + gamma * V[('N', k-1)]
         V_new[('W', k)] = max(q_op, q_mt)
+    if max(abs(V_new[key] - V[key]) for key in V) &lt; 1e-12:
+        print(f'收敛于第 {iteration+1} 轮')
+        break
     V = V_new
 
-# 输出与场景 A 的反向归纳完全一致
+# 验证: 与场景 A、C 的结果逐值相等
 for k in [1, 2, 3, 4, 5, 20]:
     q_op = 3  + gamma * V[('W', k-1)]
     q_mt = -7 + gamma * V[('N', k-1)]
@@ -383,9 +382,39 @@ for k in [1, 2, 3, 4, 5, 20]:
     print(f'k={k:2d}: {action}  Q(继续)={q_op:.2f} Q(维护)={q_mt:.2f}')
 </code></pre>
 
-            <p>运行结果与场景 A 的反向归纳逐值相等：$k \leq 3$ 继续生产，$k \geq 4$ 停机维护。</p>
+            <p>运行结果与场景 A 的反向归纳、场景 C 的逐层推导<strong>逐值相等</strong>：$k \leq 3$ 继续生产，$k \geq 4$ 停机维护。三条求解路径殊途同归。</p>
 
-            <p>这验证了一个重要结论：<strong>场景 B 的无限时域框架 + 吸收状态 = 场景 A 的有限时域结果</strong>。两种求解路径不同（A 用反向归纳，D 用值迭代），但最优策略完全一致。这就是本书选择无限时域作为统一框架的原因：它足够一般，有限时域作为特例被自然包含。贝尔曼方程、策略梯度定理、所有算法都无需修改即可直接应用。</p>
+            <p>场景 D 的意义在于：场景 A 的有限时域问题，可以被完全嵌入场景 B 的无限时域框架中，用同一套值迭代算法求解。这就是本书选择无限时域作为统一数学语言的原因。贝尔曼方程、策略梯度定理、所有 RL 算法（REINFORCE、DQN、PPO 等）都无需修改即可直接应用于两种时域设定。</p>
+
+            <!-- ==================== 四场景总结 ==================== -->
+
+            <table class="result-table">
+                <thead><tr><th></th><th>场景 A</th><th>场景 B</th><th>场景 C</th><th>场景 D</th></tr></thead>
+                <tbody>
+                    <tr><td style="text-align:left;">管理者</td><td colspan="2" style="text-align:center;">租赁 20 期</td><td colspan="2" style="text-align:center;">同 A（租赁 20 期）</td></tr>
+                    <tr><td style="text-align:left;">状态空间</td><td>$\{N, W\}$</td><td>$\{N, W\}$</td><td>$\{(s, k)\}$</td><td>$\{(s, k),\, s_{\text{abs}}\}$</td></tr>
+                    <tr><td style="text-align:left;">时域</td><td>有限</td><td>无限</td><td>有限</td><td>无限（含吸收态）</td></tr>
+                    <tr><td style="text-align:left;">求解方法</td><td>反向归纳</td><td>值迭代</td><td>逐层推导</td><td>值迭代（同 B）</td></tr>
+                    <tr><td style="text-align:left;">策略类型</td><td>非平稳</td><td>平稳</td><td>平稳</td><td>平稳</td></tr>
+                    <tr><td style="text-align:left;">磨损时动作</td><td colspan="1">$k{\geq}4$ 维护</td><td>始终维护</td><td colspan="2" style="text-align:center;">与 A 一致</td></tr>
+                </tbody>
+            </table>
+            <div class="fig-caption">四个场景的对比。场景 C 和 D 从不同角度桥接了 A 和 B：C 通过增广状态将非平稳策略转为平稳；D 通过吸收状态将有限时域问题嵌入无限时域框架。两者给出的最优策略与 A 完全一致。</div>
+
+            <!-- ==================== 什么时候把时间放进状态 ==================== -->
+            <h2>什么时候应该把时间放进状态</h2>
+
+            <p>场景 C 和 D 的核心操作是将时间 $k$ 纳入状态。但不是所有问题都应该这样做。判断标准：<strong>最优动作是否应该随时间变化？</strong></p>
+
+            <ul style="margin:0.5rem 0 1rem 2rem;">
+                <li><strong>有限期问题</strong>（租赁设备、航班起飞前的收益管理、季节性商品清仓）：将剩余时间 $k$ 放进状态。策略可以表达"最后 3 期不维护"这样的时间依赖行为。</li>
+                <li><strong>持续运营问题</strong>（自有设备维护、常规库存补货、交通信号控制）：不放。最优策略只取决于系统状态，与"这是第几期"无关。</li>
+                <li><strong>周期性问题</strong>（网约车早晚高峰、季节性需求波动）：放<strong>时段特征</strong>（如一天中的小时数），但不放"训练回合的剩余步数"。前者反映系统的真实周期性，后者是训练的人为产物。</li>
+            </ul>
+
+            <div class="note">
+                <strong>一条判断规则</strong> &nbsp; 如果改变截止时刻 $T$（比如从 20 期改为 30 期）会改变中间某一期的最优动作，那么时间应该进状态。如果不会（即最优动作只取决于当前系统状态），那么时间不应该进状态。在设备维护的例子中：场景 A 改变 $T$ 会影响策略（$T = 10$ 时最后 3 期不维护，$T = 30$ 时也是最后 3 期不维护，但"最后 3 期"指向不同的日历时间）；场景 B 没有 $T$，策略完全由 $(N, W)$ 决定。
+            </div>
 
             <!-- ==================== 回合是一个建模选择 ==================== -->
             <h2>回合是一个建模选择</h2>
@@ -393,10 +422,6 @@ for k in [1, 2, 3, 4, 5, 20]:
             <p>在管理科学中，回合的边界往往不是问题天然给定的，而是<strong>建模者的选择</strong>。选择回合边界的一般原则：找到系统中<strong>自然的重置点</strong>。如果系统状态在某些时刻会回到（或接近）某个初始条件，那里就是回合的自然分界线。回合过短则智能体看不到长期效应，过长则蒙特卡洛回报 $G_t$ 方差过大。</p>
 
             <p>RL 的训练范式是<strong>有限回合 + 重复采样</strong>：用仿真器模拟一个回合，计算回报并更新参数，然后重复成百上千次。我们优化的不是某一个特定回合的表现，而是<strong>跨回合的平均表现</strong>。</p>
-
-            <div class="note">
-                <strong>一条判断规则</strong> &nbsp; 如果改变截止时刻 $T$（比如从 20 期改为 30 期）会改变中间某一期的最优动作，那么时间应该进状态。如果不会（即最优动作只取决于当前系统状态），那么时间不应该进状态。在设备维护的例子中：场景 A 改变 $T$ 会影响策略（$T = 10$ 时最后 3 期不维护，$T = 30$ 时也是最后 3 期不维护，但"最后 3 期"指向不同的日历时间）；场景 B 没有 $T$，策略完全由 $(N, W)$ 决定。
-            </div>
 
             <!-- ==================== gamma ==================== -->
             <h2>折扣因子 $\gamma$ 的双重角色</h2>
@@ -416,7 +441,7 @@ for k in [1, 2, 3, 4, 5, 20]:
 
             <p>这个疑问揭示了 TD 方法的一个重要性质：<strong>在算法运行的层面，TD 确实不受回合长度的限制</strong>。蒙特卡洛方法需要完整轨迹来计算 $G_t = \sum_{k=0}^{\infty} \gamma^k r_{t+k+1}$，无限时域意味着这个级数永远算不完，MC 因此无法用于真正的无限时域问题。TD 通过自举（用 $V(s_{t+1})$ 替代未来回报的精确值）绕过了这个限制。不管回合有 20 步还是无限步，TD 的更新公式都一样：</p>
 
-            $$V(s_t) \leftarrow V(s_t) + \alpha \big[r_{t+1} + \gamma\, V(s_{t+1}) - V(s_t)\big] \tag{4.4-6}$$
+            $$V(s_t) \leftarrow V(s_t) + \alpha \big[r_{t+1} + \gamma\, V(s_{t+1}) - V(s_t)\big] \tag{4.4-8}$$
 
             <p>但有限与无限的区别并没有消失，它只是从算法层面转移到了<strong>建模层面</strong>。上面的设备维护例子已经清楚地表明：</p>
 
