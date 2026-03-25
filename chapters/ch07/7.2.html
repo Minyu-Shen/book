@@ -3,13 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>7.2 公交串车控制 - 运筹智能</title>
+    <title>7.2 面向对象编程与智能体建模 - 运筹智能</title>
     <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
     <script defer src="../../js/code-copy.js"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .fig-caption { text-align:center; font-size:0.9rem; color:#718096; margin-top:0.5rem; margin-bottom:1.5rem; }
+        .note { background: var(--highlight-color); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .warning { background: #fffbeb; border-left: 4px solid #d69e2e; padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .compare-box { display: flex; gap: 1.5rem; flex-wrap: wrap; margin: 1.5rem 0; }
+        .compare-box > div { flex: 1; min-width: 200px; background: var(--sidebar-bg); padding: 1rem 1.2rem; border-radius: 8px; border-top: 3px solid var(--accent-color); }
+        .compare-box > div h4 { margin: 0 0 0.5rem 0; color: var(--primary-color); }
+    </style>
 </head>
 <body>
     <div class="page-wrapper">
@@ -20,60 +33,501 @@
                 <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
                 <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
                 <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
-                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
-                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
-                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.3.html">1.5.3 SARSA与Q-learning</a></li>
-                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
-                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
-                <li class="sidebar-chapter">第二章 深度学习基础</li>
-                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
-                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
-                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
-                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
-                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
-                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
-                <li><a href="../ch03/3.2.html">3.2 Policy Gradient与PPO</a></li>
-                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
-                <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
-                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
-                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
-                <li><a href="../ch04/4.2.html">4.2 时域建模与回合定义</a></li>
-                <li><a href="../ch04/4.3.html">4.3 状态空间、动作空间与奖励函数的设计</a></li>
-                <li><a href="../ch04/4.4.html">4.4 决策时机与决策频率的建模</a></li>
-                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
-                <li class="sidebar-chapter">第五章 仿真器搭建</li>
-                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
-                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
-                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
-                <li><a href="../ch05/5.4.html">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
-                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
-                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
-                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
-                <li><a href="../ch07/7.2.html" class="active">7.2 公交串车控制</a></li>
-                <li><a href="../ch07/7.3.html">7.3 需求响应公交调度优化</a></li>
-                <li class="sidebar-chapter">第八章 进阶话题</li>
-                <li><a href="../ch08/8.1.html">8.1 多智能体强化学习</a></li>
-                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html" class="active">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
                 </ul>
             </nav>
         </aside>
 
         <main class="main-content">
-            <h1>7.2 公交串车控制</h1>
+            <h1>7.2 面向对象编程与智能体建模</h1>
 
-            <p>（内容待补充）</p>
+            <!-- ==================== 引言 ==================== -->
+            <h2>为什么仿真器需要面向对象编程</h2>
+
+            <p>考虑一个城市配送车队调度系统的仿真器。这个系统至少涉及以下实体：<strong>车辆</strong>（有位置、容量、载货量、行驶状态）、<strong>订单</strong>（有起点、终点、生成时间、当前状态）、<strong>站点</strong>（有坐标、等待队列）、<strong>路线</strong>（有途经站点序列、预计用时）。每种实体都有自己的数据和行为规则。例如，车辆需要检查是否超载才能装货；订单需要按照固定的生命周期流转状态；路线需要根据交通状况更新预计到达时间。</p>
+
+            <p>如果用纯过程式的写法，所有数据会散落在各种列表和字典中，所有行为逻辑混杂在一个庞大的函数里。当实体类型增多、交互关系变复杂时，代码很快变得难以维护。更危险的是，过程式代码中很难保证数据的一致性。例如，一段代码给车辆增加了货物，另一段代码却忘记更新载货量，导致仿真结果出错。</p>
+
+            <p><strong>面向对象编程</strong>（Object-Oriented Programming, OOP）为这类问题提供了自然的解决方案。它的核心思想是：将数据和操作数据的行为打包在一起，形成<strong>对象</strong>。每个现实世界的实体对应一个<strong>类</strong>（class），类定义了该实体拥有的属性（数据）和方法（行为）。对象是类的实例，代表一个具体的实体（如编号为 $\text{V-001}$ 的车辆）。</p>
+
+            <p>OOP 的好处在于：</p>
+            <ul>
+                <li><strong>模块化</strong>：每种实体的逻辑封装在自己的类中，互不干扰。修改车辆的逻辑不会影响订单的代码。</li>
+                <li><strong>一致性保护</strong>：通过方法来修改数据，可以在方法内部检查约束条件（如容量限制），防止实体进入非法状态。</li>
+                <li><strong>可复用</strong>：设计好的类可以在不同仿真场景中复用。例如，同一个 $\text{Vehicle}$ 类既可以用于配送仿真，也可以用于网约车仿真。</li>
+                <li><strong>可读性</strong>：代码的组织结构与问题的实体结构一一对应，便于理解和沟通。</li>
+            </ul>
+
+            <p>本节将以城市配送车队调度为例，展示如何用 OOP 的方式建模仿真中的各类实体。</p>
+
+            <!-- ==================== 车辆类 ==================== -->
+            <h2>实体设计：车辆类</h2>
+
+            <p>车辆是配送仿真中最核心的实体。一辆车在仿真过程中需要维护以下信息：</p>
+            <ul>
+                <li><strong>标识</strong>：车辆编号 $\text{vehicle\_id}$</li>
+                <li><strong>位置</strong>：当前坐标 $(x, y)$</li>
+                <li><strong>容量与载货</strong>：最大容量 $\text{capacity}$，当前载货量 $\text{current\_load}$</li>
+                <li><strong>状态</strong>：空闲（$\text{IDLE}$）、行驶中（$\text{MOVING}$）、停靠中（$\text{STOPPED}$）</li>
+                <li><strong>任务列表</strong>：待执行的取货/送货任务序列 $\text{schedule}$</li>
+            </ul>
+
+            <p>在 Python 中，我们使用 <code>Enum</code> 来定义有限的状态集合，使用 <code>dataclass</code> 来简洁地定义纯数据结构，并通过类的方法来保护状态变更的合法性。</p>
+
+<pre><code class="language-python">from enum import Enum
+from dataclasses import dataclass
+
+class VehicleStatus(Enum):
+    IDLE = "idle"
+    MOVING = "moving"
+    STOPPED = "stopped"
+
+@dataclass
+class Location:
+    x: float
+    y: float
+
+class Vehicle:
+    def __init__(self, vehicle_id: str, location: Location, capacity: int):
+        self.vehicle_id = vehicle_id
+        self.location = location
+        self.capacity = capacity
+        self.current_load = 0
+        self.status = VehicleStatus.IDLE
+        self.schedule: list = []
+
+    def can_board(self, num_passengers: int) -&gt; bool:
+        """检查是否还有足够容量"""
+        return self.current_load + num_passengers &lt;= self.capacity
+
+    def board_passenger(self, num_passengers: int):
+        """装载货物/乘客，装载前检查容量约束"""
+        if not self.can_board(num_passengers):
+            raise ValueError(
+                f"超出容量: {self.current_load}+{num_passengers} &gt; {self.capacity}"
+            )
+        self.current_load += num_passengers
+
+    def alight_passenger(self, num_passengers: int):
+        """卸载货物/乘客，卸载前检查合法性"""
+        if num_passengers &gt; self.current_load:
+            raise ValueError(f"下车人数超出载客量")
+        self.current_load -= num_passengers</code></pre>
+
+            <p>上述代码有几个值得注意的设计。</p>
+
+            <p>第一，<code>VehicleStatus</code> 使用 <code>Enum</code> 而非字符串。如果用字符串表示状态（如 <code>"idle"</code>、<code>"moving"</code>），拼写错误不会报错，调试时极难发现。使用 <code>Enum</code> 后，写错状态名会立即抛出 <code>AttributeError</code>。</p>
+
+            <p>第二，<code>Location</code> 使用 <code>@dataclass</code>。它本质上是一个只包含数据的容器，不需要复杂的行为逻辑。<code>@dataclass</code> 装饰器自动生成 <code>__init__</code>、<code>__repr__</code> 等方法，比手写更简洁。</p>
+
+            <p>第三，<code>board_passenger</code> 和 <code>alight_passenger</code> 方法在修改 $\text{current\_load}$ 之前先做合法性检查。这是 OOP 最重要的设计原则之一，我们将在后文专门讨论。</p>
+
+            <!-- ==================== 订单类 ==================== -->
+            <h2>实体设计：订单类与状态机</h2>
+
+            <p>订单是仿真中另一个核心实体。与车辆不同，订单有一个明确的<strong>生命周期</strong>：从用户发出请求开始，经过派单、取货、配送，最终完成或被取消。这种具有固定状态流转规则的模式称为<strong>有限状态机</strong>（Finite State Machine, FSM）。</p>
+
+            <p>订单的状态机定义如下。订单在任意时刻处于以下五个状态之一：</p>
+
+            <ul>
+                <li>$\text{WAITING}$：等待派单</li>
+                <li>$\text{ASSIGNED}$：已派单，等待取货</li>
+                <li>$\text{IN\_TRANSIT}$：运输中</li>
+                <li>$\text{COMPLETED}$：已送达</li>
+                <li>$\text{CANCELLED}$：已取消</li>
+            </ul>
+
+            <p>合法的状态转移路径是固定的：$\text{WAITING}$ 可以转移到 $\text{ASSIGNED}$ 或 $\text{CANCELLED}$；$\text{ASSIGNED}$ 可以转移到 $\text{IN\_TRANSIT}$ 或 $\text{CANCELLED}$；$\text{IN\_TRANSIT}$ 只能转移到 $\text{COMPLETED}$；而 $\text{COMPLETED}$ 和 $\text{CANCELLED}$ 是终止状态，不能再转移。任何不在上述列表中的转移都应被视为程序错误。</p>
+
+            <!-- SVG: 订单状态机 -->
+            <div style="text-align:center; margin: 2rem 0 0.5rem 0;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 220" width="780" height="220" style="max-width:100%;">
+                    <!-- WAITING -->
+                    <rect x="20" y="80" width="120" height="50" rx="10" fill="#dbeafe" stroke="#2b6cb0" stroke-width="2"/>
+                    <foreignObject x="20" y="80" width="120" height="50">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:14px;color:#2d3748;font-weight:600;">WAITING</div>
+                    </foreignObject>
+
+                    <!-- ASSIGNED -->
+                    <rect x="210" y="80" width="120" height="50" rx="10" fill="#dbeafe" stroke="#2b6cb0" stroke-width="2"/>
+                    <foreignObject x="210" y="80" width="120" height="50">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:14px;color:#2d3748;font-weight:600;">ASSIGNED</div>
+                    </foreignObject>
+
+                    <!-- IN_TRANSIT -->
+                    <rect x="400" y="80" width="120" height="50" rx="10" fill="#dbeafe" stroke="#2b6cb0" stroke-width="2"/>
+                    <foreignObject x="400" y="80" width="120" height="50">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:14px;color:#2d3748;font-weight:600;">IN_TRANSIT</div>
+                    </foreignObject>
+
+                    <!-- COMPLETED -->
+                    <rect x="590" y="80" width="130" height="50" rx="10" fill="#f0fff4" stroke="#48bb78" stroke-width="2.5"/>
+                    <foreignObject x="590" y="80" width="130" height="50">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:14px;color:#2d3748;font-weight:600;">COMPLETED</div>
+                    </foreignObject>
+
+                    <!-- CANCELLED -->
+                    <rect x="170" y="5" width="130" height="50" rx="10" fill="#fed7d7" stroke="#c53030" stroke-width="2"/>
+                    <foreignObject x="170" y="5" width="130" height="50">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:14px;color:#2d3748;font-weight:600;">CANCELLED</div>
+                    </foreignObject>
+
+                    <!-- Line: WAITING -> ASSIGNED -->
+                    <line x1="140" y1="105" x2="207" y2="105" stroke="#4a5568" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="207" cy="105" r="3.5" fill="#4a5568"/>
+                    <foreignObject x="148" y="108" width="52" height="22">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#718096;text-align:center;">派单</div>
+                    </foreignObject>
+
+                    <!-- Line: ASSIGNED -> IN_TRANSIT -->
+                    <line x1="330" y1="105" x2="397" y2="105" stroke="#4a5568" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="397" cy="105" r="3.5" fill="#4a5568"/>
+                    <foreignObject x="338" y="108" width="52" height="22">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#718096;text-align:center;">取货</div>
+                    </foreignObject>
+
+                    <!-- Line: IN_TRANSIT -> COMPLETED -->
+                    <line x1="520" y1="105" x2="587" y2="105" stroke="#48bb78" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="587" cy="105" r="3.5" fill="#48bb78"/>
+                    <foreignObject x="528" y="108" width="52" height="22">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#718096;text-align:center;">送达</div>
+                    </foreignObject>
+
+                    <!-- Line: WAITING -> CANCELLED -->
+                    <line x1="80" y1="80" x2="172" y2="47" stroke="#c53030" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="5,3"/>
+                    <circle cx="172" cy="47" r="3" fill="#c53030"/>
+                    <foreignObject x="85" y="44" width="52" height="22">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#c53030;text-align:center;">取消</div>
+                    </foreignObject>
+
+                    <!-- Line: ASSIGNED -> CANCELLED -->
+                    <line x1="270" y1="80" x2="255" y2="55" stroke="#c53030" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="5,3"/>
+                    <circle cx="255" cy="55" r="3" fill="#c53030"/>
+                    <foreignObject x="260" y="56" width="52" height="22">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#c53030;text-align:center;">取消</div>
+                    </foreignObject>
+                </svg>
+            </div>
+            <div class="fig-caption">图 7.2-1 &nbsp; 订单生命周期状态机。实线为正常流转路径，虚线为取消路径。$\text{COMPLETED}$ 和 $\text{CANCELLED}$ 为终止状态。</div>
+
+            <p>在代码中，我们用一个字典 <code>VALID_TRANSITIONS</code> 显式列出所有合法的状态转移，并在 <code>transition_to</code> 方法中检查转移是否合法。这种做法将状态机的规则集中定义在一处，避免了在代码各处散布 <code>if-else</code> 判断。</p>
+
+<pre><code class="language-python">class OrderStatus(Enum):
+    WAITING = "waiting"
+    ASSIGNED = "assigned"
+    IN_TRANSIT = "in_transit"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+class Order:
+    # 显式定义所有合法的状态转移
+    VALID_TRANSITIONS = {
+        OrderStatus.WAITING:    {OrderStatus.ASSIGNED, OrderStatus.CANCELLED},
+        OrderStatus.ASSIGNED:   {OrderStatus.IN_TRANSIT, OrderStatus.CANCELLED},
+        OrderStatus.IN_TRANSIT: {OrderStatus.COMPLETED},
+        OrderStatus.COMPLETED:  set(),
+        OrderStatus.CANCELLED:  set(),
+    }
+
+    def __init__(self, order_id, origin, destination, request_time, num_items=1):
+        self.order_id = order_id
+        self.origin = origin           # Location 对象
+        self.destination = destination  # Location 对象
+        self.request_time = request_time
+        self.num_items = num_items
+        self.status = OrderStatus.WAITING
+        # 用于计算 KPI 的时间戳
+        self.assignment_time = None
+        self.pickup_time = None
+        self.delivery_time = None
+
+    def transition_to(self, new_status: OrderStatus, current_time: float):
+        """将订单转移到新状态，同时记录时间戳"""
+        if new_status not in self.VALID_TRANSITIONS[self.status]:
+            raise ValueError(
+                f"非法状态转移: {self.status.value} → {new_status.value}"
+            )
+        self.status = new_status
+        # 自动记录各阶段时间戳
+        if new_status == OrderStatus.ASSIGNED:
+            self.assignment_time = current_time
+        elif new_status == OrderStatus.IN_TRANSIT:
+            self.pickup_time = current_time
+        elif new_status == OrderStatus.COMPLETED:
+            self.delivery_time = current_time
+
+    @property
+    def wait_time(self):
+        """计算从请求到被分配的等待时间"""
+        if self.assignment_time is not None:
+            return self.assignment_time - self.request_time
+        return None
+
+    @property
+    def service_time(self):
+        """计算从取货到送达的服务时间"""
+        if self.pickup_time is not None and self.delivery_time is not None:
+            return self.delivery_time - self.pickup_time
+        return None</code></pre>
+
+            <p>这段代码的关键设计在于 <code>transition_to</code> 方法承担了两项职责：验证状态转移的合法性，以及自动记录对应的时间戳。外部代码只需调用 <code>order.transition_to(OrderStatus.ASSIGNED, t)</code>，不需要分别设置状态和时间戳。这确保了状态和时间戳始终保持一致。</p>
+
+            <p>此外，$\text{wait\_time}$ 和 $\text{service\_time}$ 用 <code>@property</code> 装饰器定义为只读属性。它们的值由其他属性派生而来，而非独立存储，避免了数据冗余带来的不一致风险。以 $\text{wait\_time}$ 为例，它的计算规则为：</p>
+
+            $$
+            \text{wait\_time} = \text{assignment\_time} - \text{request\_time} \tag{7.2-1}
+            $$
+
+            <p>如果将 $\text{wait\_time}$ 作为独立属性存储，每当 $\text{assignment\_time}$ 更新时都需要同步更新 $\text{wait\_time}$，一旦遗漏就会产生不一致。而用 <code>@property</code> 实现的派生属性总是实时计算，从根源上避免了这个问题。</p>
+
+            <div class="note">
+                <p><strong>为什么显式定义状态转移？</strong> 在仿真调试中，最难排查的 bug 往往是实体进入了非法状态。例如，一个已经送达的订单被再次派单，或一个尚未取货的订单被标记为送达。如果没有状态转移检查，这类错误可能不会立即报错，而是在很久之后才以不合理的 KPI 数值暴露出来，届时已很难追溯根因。显式定义 <code>VALID_TRANSITIONS</code> 可以让这类错误在发生的瞬间就被捕获。</p>
+            </div>
+
+            <!-- ==================== 封装原则 ==================== -->
+            <h2>设计原则：封装与受保护的状态更新</h2>
+
+            <p>回顾上面的 <code>Vehicle</code> 类。假设调度逻辑中需要给车辆装载 $3$ 件货物，有两种写法：</p>
+
+            <div class="compare-box">
+                <div style="border-top-color: #c53030;">
+                    <h4 style="color: #c53030;">直接修改属性</h4>
+<pre><code class="language-python">vehicle.current_load += 3</code></pre>
+                    <p style="font-size:0.9rem; color:#718096; margin:0.5rem 0 0 0;">跳过容量检查，可能导致 $\text{current\_load} > \text{capacity}$</p>
+                </div>
+                <div style="border-top-color: #48bb78;">
+                    <h4 style="color: #2b6cb0;">通过方法修改</h4>
+<pre><code class="language-python">vehicle.board_passenger(3)</code></pre>
+                    <p style="font-size:0.9rem; color:#718096; margin:0.5rem 0 0 0;">方法内部自动检查容量，违规时立即报错</p>
+                </div>
+            </div>
+
+            <p>左边的写法绕过了容量约束检查。如果仿真中某处代码不小心给一辆容量为 $5$ 的车装了 $8$ 件货物，程序不会报错，但仿真结果将是错误的。这种 bug 的隐蔽性极强，可能在调试数天后才被发现。</p>
+
+            <p>右边的写法将修改操作封装在 <code>board_passenger</code> 方法中。方法在修改前先调用 <code>can_board</code> 检查容量约束。如果违反约束，立即抛出异常，开发者可以迅速定位问题。</p>
+
+            <p>这个道理类似于银行 ATM 的设计：ATM 不会让你直接修改账户余额，而是通过取款操作来间接修改，取款操作会先验证余额是否充足。这种设计保证了系统的<strong>不变量</strong>（invariant），即在任何时刻都必须成立的约束条件。对于车辆而言，不变量是：</p>
+
+            $$
+            0 \leq \text{current\_load} \leq \text{capacity} \tag{7.2-2}
+            $$
+
+            <p>对于订单而言，不变量包括：状态只能按 $\text{VALID\_TRANSITIONS}$ 中定义的路径流转；$\text{assignment\_time}$ 非空当且仅当状态已经经过 $\text{ASSIGNED}$。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">封装的核心目的</div>
+                <p>封装不仅仅是隐藏数据，更重要的是<strong>保护不变量</strong>。每一次状态变更都通过方法进行，方法在修改前检查约束条件，确保实体永远不会进入非法状态。在仿真开发中，这意味着 bug 能够在发生的第一时间被发现，而不是在数千步仿真之后才以不合理的结果暴露出来。</p>
+            </div>
+
+            <!-- ==================== 集合管理 ==================== -->
+            <h2>集合管理：从单个实体到车队</h2>
+
+            <p>仿真中通常需要管理大量同类实体。例如，一个配送系统可能有数十辆车、数百个订单同时存在。我们需要一种方式来组织这些实体，并提供高效的查询能力。</p>
+
+            <p>最直观的做法是使用字典，以实体的唯一标识（如车辆编号）为键：</p>
+
+<pre><code class="language-python">class Fleet:
+    def __init__(self):
+        self.vehicles: dict[str, Vehicle] = {}
+
+    def add_vehicle(self, vehicle: Vehicle):
+        """添加车辆到车队"""
+        self.vehicles[vehicle.vehicle_id] = vehicle
+
+    def get_idle_vehicles(self) -&gt; list[Vehicle]:
+        """返回所有空闲车辆"""
+        return [v for v in self.vehicles.values()
+                if v.status == VehicleStatus.IDLE]
+
+    def get_available_vehicles(self, num_passengers: int) -&gt; list[Vehicle]:
+        """返回所有有足够容量的车辆"""
+        return [v for v in self.vehicles.values()
+                if v.can_board(num_passengers)]</code></pre>
+
+            <p><code>Fleet</code> 类将车辆集合的管理逻辑封装在一处。外部代码不需要知道车辆内部如何存储，只需通过 <code>get_idle_vehicles()</code> 等方法获取所需的车辆子集。这些查询方法直接复用了 <code>Vehicle</code> 类上已有的方法（如 <code>can_board</code>），体现了 OOP 的层次化组织优势。</p>
+
+            <p>类似地，我们可以设计一个 <code>OrderPool</code> 来管理所有订单：</p>
+
+<pre><code class="language-python">class OrderPool:
+    def __init__(self):
+        self.orders: dict[str, Order] = {}
+
+    def add_order(self, order: Order):
+        """添加订单到订单池"""
+        self.orders[order.order_id] = order
+
+    def get_pending_orders(self) -&gt; list[Order]:
+        """返回所有等待派单的订单"""
+        return [o for o in self.orders.values()
+                if o.status == OrderStatus.WAITING]
+
+    def get_completed_orders(self) -&gt; list[Order]:
+        """返回所有已完成的订单"""
+        return [o for o in self.orders.values()
+                if o.status == OrderStatus.COMPLETED]
+
+    def average_wait_time(self) -&gt; float:
+        """计算已完成订单的平均等待时间"""
+        completed = self.get_completed_orders()
+        if not completed:
+            return 0.0
+        wait_times = [o.wait_time for o in completed
+                      if o.wait_time is not None]
+        return sum(wait_times) / len(wait_times) if wait_times else 0.0</code></pre>
+
+            <p>注意 <code>average_wait_time</code> 方法如何利用 <code>Order</code> 类的 $\text{wait\_time}$ 属性来计算 KPI。这是一个两层调用的例子：<code>OrderPool</code> 负责筛选和聚合，<code>Order</code> 负责计算单个订单的等待时间。每一层只做自己该做的事情，职责划分清晰。</p>
+
+            <!-- ==================== 实体间交互 ==================== -->
+            <h2>实体间的协作</h2>
+
+            <p>在实际的仿真逻辑中，不同实体需要协作。例如，当调度系统将一个订单分配给一辆车时，需要同时更新订单的状态和车辆的载货量。下面展示一个简化的调度函数：</p>
+
+<pre><code class="language-python">def assign_order_to_vehicle(order: Order, vehicle: Vehicle,
+                            current_time: float):
+    """将订单分配给车辆"""
+    # 1. 检查车辆容量
+    if not vehicle.can_board(order.num_items):
+        raise ValueError(
+            f"车辆 {vehicle.vehicle_id} 容量不足，"
+            f"无法装载订单 {order.order_id}"
+        )
+    # 2. 更新订单状态（内部检查状态转移合法性）
+    order.transition_to(OrderStatus.ASSIGNED, current_time)
+    # 3. 装载货物（内部再次检查容量）
+    vehicle.board_passenger(order.num_items)
+    # 4. 将任务添加到车辆调度表
+    vehicle.schedule.append(order.order_id)</code></pre>
+
+            <p>这个函数的逻辑非常清晰，因为每个实体已经在自己的方法中封装了验证逻辑。调度函数不需要知道容量检查的具体规则，也不需要知道哪些状态转移是合法的，它只需要调用已有的方法即可。如果任何一步检查失败（如车辆容量不足，或订单当前状态不允许被分配），相应的方法会抛出异常，阻止后续步骤执行。</p>
+
+            <div class="warning">
+                <p><strong>注意操作的原子性。</strong> 在上面的函数中，如果第 3 步（装载货物）失败，第 2 步（订单状态变更）已经执行了。这意味着订单状态变成了 $\text{ASSIGNED}$，但货物没有装上车。在生产级仿真器中，需要考虑事务性，即要么所有步骤都成功，要么全部回滚。一种简单的做法是先做所有检查，再做所有修改：</p>
+<pre><code class="language-python"># 先检查所有前置条件
+assert vehicle.can_board(order.num_items)
+assert OrderStatus.ASSIGNED in Order.VALID_TRANSITIONS[order.status]
+
+# 再执行所有修改
+order.transition_to(OrderStatus.ASSIGNED, current_time)
+vehicle.board_passenger(order.num_items)
+vehicle.schedule.append(order.order_id)</code></pre>
+            </div>
+
+            <!-- ==================== 完整示例 ==================== -->
+            <h2>完整示例：创建并操作仿真实体</h2>
+
+            <p>下面的代码展示了如何将以上所有类组合起来，完成一个简单的调度流程：</p>
+
+<pre><code class="language-python"># 创建车辆
+v1 = Vehicle("V-001", Location(0.0, 0.0), capacity=5)
+v2 = Vehicle("V-002", Location(3.0, 4.0), capacity=3)
+
+# 创建车队并添加车辆
+fleet = Fleet()
+fleet.add_vehicle(v1)
+fleet.add_vehicle(v2)
+
+# 创建订单
+o1 = Order("O-101", origin=Location(1.0, 1.0),
+           destination=Location(5.0, 5.0),
+           request_time=0.0, num_items=2)
+o2 = Order("O-102", origin=Location(2.0, 3.0),
+           destination=Location(6.0, 1.0),
+           request_time=1.5, num_items=4)
+
+# 在 t=2.0 时刻进行调度
+current_time = 2.0
+
+# 将 O-101 分配给 V-001
+assign_order_to_vehicle(o1, v1, current_time)
+print(f"订单 {o1.order_id}: {o1.status.value}")
+# 输出: 订单 O-101: assigned
+print(f"车辆 {v1.vehicle_id}: 载货 {v1.current_load}/{v1.capacity}")
+# 输出: 车辆 V-001: 载货 2/5
+
+# 尝试将 O-102 分配给 V-002（容量为 3，但需要装载 4 件）
+try:
+    assign_order_to_vehicle(o2, v2, current_time)
+except ValueError as e:
+    print(f"分配失败: {e}")
+# 输出: 分配失败: 车辆 V-002 容量不足，无法装载订单 O-102
+
+# 在 t=5.0 时刻，O-101 取货完成，开始运输
+o1.transition_to(OrderStatus.IN_TRANSIT, 5.0)
+
+# 在 t=8.0 时刻，O-101 送达
+o1.transition_to(OrderStatus.COMPLETED, 8.0)
+v1.alight_passenger(o1.num_items)
+
+print(f"订单 {o1.order_id} 等待时间: {o1.wait_time}")
+# 输出: 订单 O-101 等待时间: 2.0
+print(f"订单 {o1.order_id} 服务时间: {o1.service_time}")
+# 输出: 订单 O-101 服务时间: 3.0</code></pre>
+
+            <p>这段代码展示了实体类在实际使用中的样貌。每一步操作都有清晰的语义，且错误会被立即捕获。当仿真规模增大到数百辆车、数千个订单时，这种结构化的代码组织方式将显著降低调试和维护的成本。</p>
+
+            <!-- ==================== 从实体到仿真器 ==================== -->
+            <h2>从实体类到仿真器</h2>
+
+            <p>本节介绍的 <code>Vehicle</code>、<code>Order</code>、<code>Fleet</code>、<code>OrderPool</code> 等类是仿真器的<strong>基础构件</strong>。它们定义了仿真中各类实体的数据结构和行为规则，但还没有涉及仿真的核心问题：时间如何推进？每个时间步里发生什么？实体之间如何按照时序进行交互？</p>
+
+            <p>这正是 5.3 节将要解决的问题。在 5.3 节中，我们将引入基于时间步的仿真循环，把这些实体类放入一个随时间推进的仿真框架中。在 5.4 节中，我们将进一步把仿真器组织为算法层、逻辑层、物理层的分层架构，使 RL 智能体可以方便地与仿真器交互。</p>
+
+            <p>好的实体设计让仿真逻辑变得简单。如果 <code>Vehicle.board_passenger()</code> 已经处理了所有容量验证，仿真循环就不需要操心容量检查；如果 <code>Order.transition_to()</code> 已经强制了状态转移规则，调度逻辑就不需要记住哪些转移是合法的。实体类承担了<strong>约束守卫</strong>的角色，让上层代码可以专注于业务逻辑本身。</p>
 
             <div class="chapter-nav">
-                <a href="../ch07/7.1.html">&larr; 7.1 网约车派单优化</a>
-                <a href="../ch07/7.3.html">7.3 需求响应公交调度优化 &rarr;</a>
+                <a href="../ch07/7.1.html">&larr; 7.1 为什么管理科学研究离不开仿真器</a>
+                <a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑 &rarr;</a>
             </div>
         </main>
     </div>

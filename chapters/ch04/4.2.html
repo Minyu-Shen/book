@@ -3,30 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>4.2 时域建模与回合定义 - 运筹智能</title>
+    <title>4.2 卷积神经网络与循环神经网络 - 运筹智能</title>
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
     <style>
         .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
         .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
-        .example-box { background: #fffbeb; border-left: 3px solid #d69e2e; padding: 0.8rem 1.2rem; margin: 1rem 0; border-radius: 0 6px 6px 0; }
-        .example-box .example-title { font-weight: 600; color: #975a16; margin-bottom: 0.3rem; }
-        .fig-caption { text-align:center; font-size:0.9rem; color:#718096; margin-top:0.5rem; margin-bottom:1.5rem; }
+        .trans-table { width: auto; border-collapse: collapse; margin: 1rem auto; font-size: 0.95rem; }
+        .trans-table th, .trans-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: center; }
+        .trans-table th { background: var(--primary-color); color: white; }
+        .trans-table tr:nth-child(even) { background: var(--sidebar-bg); }
         .note { background: var(--highlight-color); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
-        .warning { background: #fffbeb; border-left: 4px solid #d69e2e; padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
-        .result-table { width: auto; margin: 1rem auto; border-collapse: collapse; font-size: 0.95rem; }
-        .result-table th, .result-table td { border: 1px solid var(--border-color); padding: 0.4rem 0.8rem; text-align: center; }
-        .result-table th { background: var(--sidebar-bg); font-weight: 700; color: var(--primary-color); }
-        .result-table .highlight { background: #fed7d7; }
-        .result-table .good { background: #f0fff4; }
-        .scenario-box { background: var(--sidebar-bg); border: 2px solid var(--border-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
-        .scenario-box .scenario-title { font-weight: 700; color: var(--primary-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .formula-block { background: var(--code-bg); padding: 1.2rem 1.5rem; margin: 1.5rem 0; border-radius: 6px; overflow-x: auto; text-align: center; }
+        .fig-caption { text-align: center; font-size: 0.9rem; color: #718096; margin-top: 0.5rem; margin-bottom: 1.5rem; }
+        .optional-reading { background: #f0fff4; border: 1px solid #9ae6b4; border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; }
+        .optional-reading summary { font-weight: 700; color: #276749; cursor: pointer; font-size: 1rem; }
+        .app-box { background: #ebf4ff; border: 2px solid #2b6cb0; border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .app-box .app-title { font-weight: 700; color: #2b6cb0; font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .derivation { background: var(--sidebar-bg); padding: 1.2rem 1.5rem; border-radius: 6px; margin: 1.5rem 0; }
+        .derivation .step-label { font-weight: 600; color: var(--accent-color); margin-bottom: 0.3rem; }
+        .compare-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.95rem; }
+        .compare-table th, .compare-table td { border: 1px solid var(--border-color); padding: 0.6rem 0.8rem; text-align: left; }
+        .compare-table th { background: var(--primary-color); color: white; text-align: center; }
+        .compare-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .gate-card { background: #fff; border: 1px solid #cbd5e0; border-radius: 6px; padding: 0.8rem 1.2rem; margin: 0.8rem 0; }
+        .gate-card .gate-name { font-weight: 700; color: #c53030; margin-bottom: 0.3rem; }
     </style>
     <script defer src="../../js/code-copy.js"></script>
 </head>
@@ -39,492 +43,473 @@
                 <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
                 <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
                 <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
-                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
-                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
-                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.3.html">1.5.3 SARSA与Q-learning</a></li>
-                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
-                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
-                <li class="sidebar-chapter">第二章 深度学习基础</li>
-                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
-                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
-                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
-                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
-                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
-                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
-                <li><a href="../ch03/3.2.html">3.2 Policy Gradient与PPO</a></li>
-                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
-                <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
-                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
-                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
-                <li><a href="../ch04/4.2.html" class="active">4.2 时域建模与回合定义</a></li>
-                <li><a href="../ch04/4.3.html">4.3 状态空间、动作空间与奖励函数的设计</a></li>
-                <li><a href="../ch04/4.4.html">4.4 决策时机与决策频率的建模</a></li>
-                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
-                <li class="sidebar-chapter">第五章 仿真器搭建</li>
-                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
-                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
-                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
-                <li><a href="../ch05/5.4.html">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
-                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
-                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
-                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
-                <li><a href="../ch07/7.2.html">7.2 公交串车控制</a></li>
-                <li><a href="../ch07/7.3.html">7.3 需求响应公交调度优化</a></li>
-                <li class="sidebar-chapter">第八章 进阶话题</li>
-                <li><a href="../ch08/8.1.html">8.1 多智能体强化学习</a></li>
-                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html" class="active">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
                 </ul>
             </nav>
         </aside>
 
         <main class="main-content">
-            <h1>4.2 时域建模与回合定义</h1>
+            <h1>4.2 卷积神经网络与循环神经网络</h1>
 
-            <p>上一节介绍了将管理科学问题抽象为 MDP 的整体框架。在进入状态、动作、奖励等具体设计之前，有一个更基本的建模决策需要先回答：<strong>管理者的规划时域是有限的还是无限的</strong>？这个选择会如何影响最优策略？</p>
+            <p>在 2.1 节中，我们介绍了全连接神经网络：每一层的每个神经元与上一层的所有神经元相连。这种结构通用性强，但对两类常见的数据结构缺乏针对性，即<strong>空间结构</strong>和<strong>时序结构</strong>。本节介绍两种专门处理这两类结构的网络架构：卷积神经网络（Convolutional Neural Network, CNN）处理空间局部模式，循环神经网络（Recurrent Neural Network, RNN）处理时间序列依赖。</p>
 
-            <p>这些问题在初次将 RL 应用于管理科学问题时容易被忽视。我们通过一个精确可解的小例子来把这件事说清楚。</p>
+            <!-- ================================================================== -->
+            <!--                    PART 1: CNN                                      -->
+            <!-- ================================================================== -->
 
-            <!-- ==================== 管理者的目标决定时域 ==================== -->
-            <h2>管理者的目标决定时域建模</h2>
+            <h2>一、卷积神经网络（CNN）</h2>
 
-            <p>建模的第一步不是写状态空间和动作空间，而是搞清楚一个问题：<strong>管理者真正关心的是什么，约束是什么</strong>。同一套设备、同样的状态转移，管理者面对不同的约束条件，最优策略可以截然不同。</p>
+            <h3>全连接网络的局限：一个仓储管理的例子</h3>
 
-            <p>下面用一个设备维护的例子来展示这一点。</p>
+            <p>考虑一个电商仓库的拣货效率优化问题。仓库被划分为 $6 \times 6$ 的网格，每个格子代表一个存储区域。管理者需要根据当前各区域的订单热度（一个 $6 \times 6$ 的矩阵）来预测下一小时哪些区域会拥堵，从而提前调配拣货人员。</p>
 
-            <!-- ==================== 例子：设备预防性维护 ==================== -->
-            <h2>例子：设备预防性维护</h2>
+            <p>如果用全连接网络处理这个问题，需要将 $6 \times 6 = 36$ 个格子的数据展平成一个 36 维向量输入网络。这样做有两个严重问题：</p>
 
-            <p>一台生产设备有两个状态。</p>
-            <ul style="margin:0.5rem 0 1rem 2rem;">
-                <li><strong>正常</strong>（$N$）：每期产出收益 $+10$。但设备会自然退化，每期有 $50\%$ 的概率变为磨损。</li>
-                <li><strong>磨损</strong>（$W$）：产出效率下降，每期收益仅 $+3$。设备不会自行恢复。</li>
-            </ul>
-
-            <p>在磨损状态下，管理者面临选择：</p>
-            <ul style="margin:0.5rem 0 1rem 2rem;">
-                <li><strong>继续生产</strong>：当期收益 $+3$，设备保持磨损。</li>
-                <li><strong>停机维护</strong>：当期净收益 $-7$（停产损失加维修费用），但设备恢复正常。</li>
-            </ul>
-
-            <p>折扣因子 $\gamma = 0.9$。用 MDP 的语言，这个问题的转移结构如下图所示：</p>
-
-            <!-- SVG: MDP 转移图 -->
-            <div style="text-align:center; margin:1.5rem 0 0.5rem 0;">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 240" width="540" height="240" style="max-width:100%;">
-                    <defs>
-                        <marker id="ah-red" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#c53030"/></marker>
-                        <marker id="ah-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#48bb78"/></marker>
-                        <marker id="ah-blue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2b6cb0"/></marker>
-                        <marker id="ah-yellow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#d69e2e"/></marker>
-                    </defs>
-
-                    <!-- 状态 N -->
-                    <circle cx="145" cy="120" r="48" fill="#f0fff4" stroke="#48bb78" stroke-width="2.5"/>
-                    <foreignObject x="105" y="105" width="80" height="30">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:30px;font-size:17px;color:#2d3748;font-weight:700;">正常 $N$</div>
-                    </foreignObject>
-
-                    <!-- 状态 W -->
-                    <circle cx="395" cy="120" r="48" fill="#fffbeb" stroke="#d69e2e" stroke-width="2.5"/>
-                    <foreignObject x="355" y="105" width="80" height="30">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:30px;font-size:17px;color:#2d3748;font-weight:700;">磨损 $W$</div>
-                    </foreignObject>
-
-                    <!-- N → W: 退化 -->
-                    <line x1="193" y1="108" x2="345" y2="108" stroke="#c53030" stroke-width="2" marker-end="url(#ah-red)"/>
-                    <foreignObject x="220" y="78" width="100" height="28">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#c53030;">退化 (0.5)</div>
-                    </foreignObject>
-
-                    <!-- N 自环: 保持正常（顶部，向右） -->
-                    <path d="M 122 74 Q 145 18 168 74" fill="none" stroke="#48bb78" stroke-width="2" marker-end="url(#ah-green)"/>
-                    <foreignObject x="95" y="18" width="100" height="28">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#2f855a;">保持正常 (0.5)</div>
-                    </foreignObject>
-
-                    <!-- W → N: 维护 -->
-                    <line x1="347" y1="132" x2="195" y2="132" stroke="#2b6cb0" stroke-width="2" marker-end="url(#ah-blue)"/>
-                    <foreignObject x="220" y="137" width="110" height="28">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#2b6cb0;">维护 ($r = -7$)</div>
-                    </foreignObject>
-
-                    <!-- W 自环: 继续生产（顶部，向左，与N自环对称） -->
-                    <path d="M 372 74 Q 395 18 418 74" fill="none" stroke="#d69e2e" stroke-width="2" marker-end="url(#ah-yellow)"/>
-                    <foreignObject x="325" y="18" width="140" height="28">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#975a16;">继续生产 ($r = +3$)</div>
-                    </foreignObject>
-
-                    <!-- N 收益标注（圆内下方） -->
-                    <foreignObject x="105" y="128" width="80" height="24">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:12px;color:#2f855a;">$r = +10$</div>
-                    </foreignObject>
-                </svg>
-            </div>
-            <div class="fig-caption">图 4.2-1　设备维护 MDP 的状态转移图。正常状态每期以 50% 概率退化为磨损；磨损状态下，管理者选择继续生产（低收益但零成本）或停机维护（付出成本但恢复正常）。</div>
-
-            <p>维护本质上是一项<strong>先投资、后收益</strong>的决策：当期付出 $7$（收益从 $+3$ 降为 $-7$，落差为 $10$），换取后续若干期产出从 $3$ 提升到 $10$（每期多赚 $7$）。直觉上大约需要 $10 \div 7 \approx 1.4$ 期才能回本。那么，管理者应该维护吗？</p>
-
-            <p>答案取决于<strong>管理者面对的时间约束</strong>。</p>
-
-            <!-- ==================== 场景 A：有限时域 ==================== -->
-            <h2>场景 A：设备租赁 20 期后归还</h2>
-
-            <div class="scenario-box">
-                <div class="scenario-title">问题设定</div>
-                <p style="margin:0;">管理者签订了 20 期的设备租赁合同。第 20 期结束后，设备归还出租方，设备此后的状态与自己无关。管理者的目标是最大化这 20 期内的折扣总收益。</p>
-            </div>
-
-            <p>这是一个<strong>有限时域 MDP</strong>，$T = 20$。有限时域的标准求解方法是<strong>反向归纳</strong>（backward induction）。它的思路与 1.4.2 节的值迭代一脉相承，都是反复应用贝尔曼最优方程来求解最优值函数。区别在于：无限时域值迭代从一个任意初始猜测出发，反复迭代直到收敛；反向归纳则从一个已知的边界条件（终止时刻的值为零）出发，逐期向前推导，一次遍历即可得到每一期的精确解。读者如果学过运筹学中的动态规划（如胡运权《运筹学》第 9 章），会发现反向归纳就是那里的逆序求解法。</p>
-
-            <p>设 $V_k(s)$ 表示还剩 $k$ 期时处于状态 $s$ 的最优值。边界条件 $V_0(N) = V_0(W) = 0$（租约到期，无剩余价值）。</p>
-
-            <p>递推关系为：</p>
-
-            $$V_k(N) = 10 + \gamma\big[0.5\, V_{k-1}(N) + 0.5\, V_{k-1}(W)\big] \tag{4.2-1}$$
-
-            $$V_k(W) = \max\Big\{\underbrace{3 + \gamma\, V_{k-1}(W)}_{\text{继续生产}},\;\; \underbrace{-7 + \gamma\, V_{k-1}(N)}_{\text{停机维护}}\Big\} \tag{4.2-2}$$
-
-            <p>手动计算前几步（验证直觉）：</p>
-
-            <p><strong>$k=1$</strong>（最后 1 期）：$Q(W, \text{继续}) = 3$，$Q(W, \text{维护}) = -7$。选择继续生产。还剩 1 期根本来不及回本。</p>
-
-            <p><strong>$k=2$</strong>：$Q(W, \text{继续}) = 3 + 0.9 \times 3 = 5.70$，$Q(W, \text{维护}) = -7 + 0.9 \times 10 = 2.00$。选择继续生产。</p>
-
-            <p><strong>$k=3$</strong>：$Q(W, \text{继续}) = 3 + 0.9 \times 5.70 = 8.13$，$Q(W, \text{维护}) = -7 + 0.9 \times 15.85 = 7.27$。继续生产仍然更好，但差距已经收窄到 $0.86$。</p>
-
-            <p><strong>$k=4$</strong>：$Q(W, \text{继续}) = 10.32$，$Q(W, \text{维护}) = 10.73$。维护首次胜出！</p>
-
-            <p>用代码完成全部 20 期的反向归纳：</p>
-
-<pre><code class="language-python">import numpy as np
-
-gamma = 0.9
-T = 20
-
-# V[k] = 还剩 k 期时的值函数，V[0] = 终止值 = 0
-V = [{'N': 0.0, 'W': 0.0} for _ in range(T + 1)]
-
-for k in range(1, T + 1):
-    V[k]['N'] = 10 + gamma * (0.5 * V[k-1]['N'] + 0.5 * V[k-1]['W'])
-    q_operate  = 3  + gamma * V[k-1]['W']
-    q_maintain = -7 + gamma * V[k-1]['N']
-    V[k]['W'] = max(q_operate, q_maintain)
-    action = '维护' if q_maintain &gt;= q_operate else '生产'
-    print(f'k={k:2d}  Q(继续)={q_operate:6.2f}  '
-          f'Q(维护)={q_maintain:6.2f}  → {action}')
-</code></pre>
-
-            <p>完整结果汇总如下：</p>
-
-            <table class="result-table">
-                <thead>
-                    <tr>
-                        <th>剩余期数 $k$</th>
-                        <th>$Q(W, \text{继续})$</th>
-                        <th>$Q(W, \text{维护})$</th>
-                        <th>磨损状态最优动作</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr class="highlight"><td>1</td><td>3.00</td><td>$-$7.00</td><td>继续生产</td></tr>
-                    <tr class="highlight"><td>2</td><td>5.70</td><td>2.00</td><td>继续生产</td></tr>
-                    <tr class="highlight"><td>3</td><td>8.13</td><td>7.27</td><td>继续生产</td></tr>
-                    <tr class="good"><td>4</td><td>10.32</td><td>10.73</td><td>停机维护</td></tr>
-                    <tr class="good"><td>5</td><td>12.65</td><td>13.27</td><td>停机维护</td></tr>
-                    <tr class="good"><td>$\vdots$</td><td>$\vdots$</td><td>$\vdots$</td><td>停机维护</td></tr>
-                    <tr class="good"><td>20</td><td>30.38</td><td>30.93</td><td>停机维护</td></tr>
-                </tbody>
-            </table>
-
-            <p>有限时域的最优策略是<strong>非平稳的</strong>：剩余期数 $k \geq 4$ 时维护，$k \leq 3$ 时继续生产。最后 3 期不维护是完全合理的决策。何必花 7 万给即将归还的设备做保养？</p>
-
-            <!-- ==================== 场景 B：无限时域 ==================== -->
-            <h2>场景 B：自有设备持续运营</h2>
-
-            <div class="scenario-box">
-                <div class="scenario-title">问题设定</div>
-                <p style="margin:0;">管理者拥有这台设备，计划长期使用，没有确定的退出时间。管理者的目标是最大化长期折扣总收益。</p>
-            </div>
-
-            <p>这是一个<strong>无限时域 MDP</strong>，没有终止时刻，因此无法从"最后一期"反向推导。用 1.4.2 节介绍的值迭代求解：从任意初始值出发，反复应用贝尔曼最优方程直到收敛。</p>
-
-            $$V^*(N) = 10 + \gamma\big[0.5\, V^*(N) + 0.5\, V^*(W)\big] \tag{4.2-3}$$
-            $$V^*(W) = \max\big\{3 + \gamma\, V^*(W),\;\; {-7} + \gamma\, V^*(N)\big\} \tag{4.2-4}$$
-
-            <p>假设维护是最优的，则 $V^*(W) = -7 + \gamma\, V^*(N)$，代入式(4.2-3)：</p>
-
-            $$V^*(N) = 10 + \gamma\big[0.5\, V^*(N) + 0.5\,({-7} + \gamma\, V^*(N))\big] = 6.85 + 0.855\, V^*(N)$$
-
-            <p>解得 $V^*(N) = 6.85 \,/\, 0.145 = 47.24$，进而 $V^*(W) = -7 + 0.9 \times 47.24 = 35.52$。验证：</p>
-
-            $$Q^*(W, \text{继续}) = 3 + 0.9 \times 35.52 = 34.97,\quad Q^*(W, \text{维护}) = 35.52$$
-
-            <p>维护确实是最优的（$35.52 > 34.97$），假设成立。</p>
-
-<pre><code class="language-python"># 无限时域值迭代
-V = {'N': 0.0, 'W': 0.0}
-for _ in range(1000):
-    V = {
-        'N': 10 + gamma * (0.5 * V['N'] + 0.5 * V['W']),
-        'W': max(3 + gamma * V['W'],       # 继续生产
-                 -7 + gamma * V['N'])       # 停机维护
-    }
-print(f"V*(N) = {V['N']:.2f}, V*(W) = {V['W']:.2f}")
-# 输出: V*(N) = 47.24, V*(W) = 35.52
-</code></pre>
-
-            <p>无限时域的最优策略是<strong>平稳的</strong>：不管当前是第几期，最优动作只取决于设备状态。</p>
-
-            <table class="result-table">
-                <thead>
-                    <tr><th>设备状态</th><th>最优动作</th><th>$V^*(s)$</th></tr>
-                </thead>
-                <tbody>
-                    <tr class="good"><td>$N$（正常）</td><td>继续生产（唯一动作）</td><td>$47.24$</td></tr>
-                    <tr class="good"><td>$W$（磨损）</td><td>停机维护</td><td>$35.52$</td></tr>
-                </tbody>
-            </table>
-
-            <p>与场景 A 的对比鲜明：场景 A 中，磨损状态的最优动作随剩余期数变化（$k \geq 4$ 维护，$k \leq 3$ 继续生产）；场景 B 中，磨损时始终维护，因为管理者永远有足够的未来来回收维护投资。</p>
-
-            <!-- ==================== 对比 ==================== -->
-            <h2>对比：时域假设如何改变最优策略</h2>
-
-            <p>将两个场景的结果并列对比：</p>
-
-            <table class="result-table">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>场景 A：租赁 20 期</th>
-                        <th>场景 B：自有设备</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td style="text-align:left;">时域</td><td>有限（$T = 20$）</td><td>无限</td></tr>
-                    <tr><td style="text-align:left;">求解方法</td><td>值迭代（从终止条件反向推导）</td><td>值迭代（从初始猜测迭代至收敛）</td></tr>
-                    <tr><td style="text-align:left;">策略类型</td><td>非平稳（随剩余时间变化）</td><td>平稳</td></tr>
-                    <tr><td style="text-align:left;">磨损时动作</td><td>$k \geq 4$ 维护，$k \leq 3$ 生产</td><td>始终维护</td></tr>
-                </tbody>
-            </table>
-
-            <div class="concept-card">
-                <div class="concept-name">核心洞察</div>
-                <p style="margin:0;line-height:1.7;">两个场景的状态空间、动作空间和转移概率完全相同，区别仅在于<strong>管理者面对的时间约束</strong>。同一套系统动力学，不同的时域假设，给出不同的最优策略。这不是算法问题，而是建模问题。</p>
-            </div>
-
-            <p>场景 A 的策略是非平稳的：最优动作取决于状态 $s$ 和剩余期数 $k$，即 $\pi^*_k(s)$。而本书从第一章起讨论的都是平稳策略 $\pi(s)$。有没有办法将场景 A 也纳入平稳策略的框架？下面从两个角度来解决这个问题。</p>
-
-            <!-- ==================== 视角 C ==================== -->
-            <h2>视角 C：将剩余时间纳入状态</h2>
-
-            <p>场景 A 的策略之所以"非平稳"，是因为最优动作依赖于一个没有被纳入状态的信息：剩余期数 $k$。一个自然的想法是：<strong>既然最优动作依赖于 $k$，就把 $k$ 也作为状态的一部分</strong>。</p>
-
-            <p>将剩余期数 $k$ 编码进状态，得到增广状态空间 $\{(N, k),\, (W, k) \mid k = 1, \ldots, 20\}$，共 $40$ 个状态。增广后的状态转移有两个维度：设备状态 $s$ 的转移与场景 A 相同（随机的），而剩余期数 $k$ 每一步确定性地减一，$k$ 到达 $0$ 时回合结束。贝尔曼最优方程为：</p>
-
-            $$V^*\big((N, k)\big) = 10 + \gamma\big[0.5\, V^*\big((N, k{-}1)\big) + 0.5\, V^*\big((W, k{-}1)\big)\big] \tag{4.2-5}$$
-
-            $$V^*\big((W, k)\big) = \max\big\{3 + \gamma\, V^*\big((W, k{-}1)\big),\;\; {-7} + \gamma\, V^*\big((N, k{-}1)\big)\big\} \tag{4.2-6}$$
-
-            <p>边界条件 $V^*\big((N, 0)\big) = V^*\big((W, 0)\big) = 0$。由于状态 $(s, k)$ 只会转移到 $(s', k{-}1)$，从 $k = 1$ 逐层推到 $k = 20$，一次遍历即可求出所有值：</p>
-
-<pre><code class="language-python"># 视角 C: 增广状态 (s, k), 从 k=1 逐层推到 k=20
-gamma, T = 0.9, 20
-V = {(s, 0): 0.0 for s in ['N', 'W']}
-
-for k in range(1, T + 1):
-    V[('N', k)] = 10 + gamma * (0.5*V[('N',k-1)] + 0.5*V[('W',k-1)])
-    q_op = 3  + gamma * V[('W', k-1)]
-    q_mt = -7 + gamma * V[('N', k-1)]
-    V[('W', k)] = max(q_op, q_mt)
-    print(f"k={k:2d}  V(W,k)={V[('W',k)]:6.2f}  "
-          f"{'维护' if q_mt &gt;= q_op else '生产'}")
-</code></pre>
-
-            <p>运行结果与场景 A 逐值相等：$k \leq 3$ 继续生产，$k \geq 4$ 停机维护。这并不意外，因为公式 (4.2-5)(4.2-6) 与场景 A 的公式 (4.2-1)(4.2-2) 形式完全一致。区别在于理解方式：在场景 A 中，$\pi^*_k(s)$ 是一个随 $k$ 变化的非平稳策略；而在视角 C 中，$\pi^*\big((s, k)\big)$ 是增广状态空间上的<strong>平稳策略</strong>。$(W, 3)$ 和 $(W, 16)$ 是两个不同的状态，对应不同的最优动作，就像场景 B 中 $N$ 和 $W$ 对应不同动作一样。</p>
-
-            <p>视角 C 回答了一个问题：<strong>有限时域问题的最优策略也可以是平稳的，只要把剩余时间视为状态的一部分</strong>。</p>
-
-            <!-- ==================== 视角 D ==================== -->
-            <h2>视角 D：在场景 B 的 MDP 上引入吸收状态</h2>
-
-            <p>视角 C 把非平稳变为平稳，但求解方式仍是逐层推导。一个更根本的问题是：能不能把场景 A 的<strong>有限时域问题本身转化为无限时域问题</strong>？如果可以，就能直接复用场景 B 的值迭代算法，不需要为有限时域单独开发求解方法。</p>
-
-            <p><strong>吸收状态构造</strong>正是实现这一转化的方法。在视角 C 的增广状态空间上增加一个吸收状态 $s_{\text{abs}}$，使整个问题成为一个无限时域 MDP：</p>
-
-            <div class="scenario-box">
-                <div class="scenario-title">吸收状态构造</div>
-                <p style="margin:0;">增广状态空间 $\mathcal{S}' = \big\{(N, 20), \ldots, (N, 1),\; (W, 20), \ldots, (W, 1),\; s_{\text{abs}}\big\}$，共 $41$ 个状态。$s_{\text{abs}}$ 满足 $R(s_{\text{abs}}, a) = 0$，$P(s_{\text{abs}} \mid s_{\text{abs}}, a) = 1$。$k = 1$ 的下一步转移到 $s_{\text{abs}}$，之后永远留在那里。</p>
-            </div>
-
-            <p>进入吸收状态后，无限求和自动退化为有限求和：</p>
-
-            $$G_t = \underbrace{\sum_{k=0}^{T-1-t} \gamma^k R_{t+k}}_{\text{有限回报}} + \underbrace{\sum_{k=T-t}^{\infty} \gamma^k \cdot 0}_{\text{吸收状态后全部为零}} = \sum_{k=0}^{T-1-t} \gamma^k R_{t+k} \tag{4.2-7}$$
-
-            <p>现在用场景 B 完全相同的<strong>无限时域值迭代</strong>求解：对所有 $41$ 个状态反复迭代贝尔曼最优方程直到收敛。</p>
-
-<pre><code class="language-python"># 视角 D: 无限时域值迭代 (与场景 B 完全相同的算法)
-gamma, T = 0.9, 20
-V = {(s, k): 0.0 for s in ['N', 'W'] for k in range(T + 1)}
-
-for iteration in range(1000):    # 反复迭代直到收敛
-    V_new = {(s, 0): 0.0 for s in ['N', 'W']}  # 吸收状态: V=0
-    for k in range(1, T + 1):
-        V_new[('N', k)] = 10 + gamma * (
-            0.5 * V[('N', k-1)] + 0.5 * V[('W', k-1)])
-        q_op = 3  + gamma * V[('W', k-1)]
-        q_mt = -7 + gamma * V[('N', k-1)]
-        V_new[('W', k)] = max(q_op, q_mt)
-    if max(abs(V_new[key] - V[key]) for key in V) &lt; 1e-12:
-        print(f'收敛于第 {iteration+1} 轮')
-        break
-    V = V_new
-
-# 验证: 与场景 A、C 的结果逐值相等
-for k in [1, 2, 3, 4, 5, 20]:
-    q_op = 3  + gamma * V[('W', k-1)]
-    q_mt = -7 + gamma * V[('N', k-1)]
-    action = '维护' if q_mt &gt;= q_op else '生产'
-    print(f'k={k:2d}: {action}  Q(继续)={q_op:.2f} Q(维护)={q_mt:.2f}')
-</code></pre>
-
-            <p>运行结果与场景 A 的反向归纳、视角 C 的逐层推导<strong>逐值相等</strong>：$k \leq 3$ 继续生产，$k \geq 4$ 停机维护。三条求解路径殊途同归。</p>
-
-            <p>视角 D 的意义在于：场景 A 的有限时域问题，可以被嵌入场景 B 的无限时域框架中，用同一套值迭代算法求解。这是本书选择无限时域作为统一数学语言的主要原因：贝尔曼方程、策略梯度定理等核心结论只需推导一次，有限时域问题通过吸收状态构造自动纳入。</p>
-
-            <!-- ==================== 四场景总结 ==================== -->
-
-            <table class="result-table">
-                <thead><tr><th></th><th>场景 A</th><th>场景 B</th><th>视角 C</th><th>视角 D</th></tr></thead>
-                <tbody>
-                    <tr><td style="text-align:left;">管理者</td><td colspan="2" style="text-align:center;">租赁 20 期</td><td colspan="2" style="text-align:center;">同场景 A（租赁 20 期）</td></tr>
-                    <tr><td style="text-align:left;">状态空间</td><td>$\{N, W\}$</td><td>$\{N, W\}$</td><td>$\{(s, k)\}$</td><td>$\{(s, k),\, s_{\text{abs}}\}$</td></tr>
-                    <tr><td style="text-align:left;">时域</td><td>有限</td><td>无限</td><td>有限</td><td>无限（含吸收态）</td></tr>
-                    <tr><td style="text-align:left;">求解方法</td><td>值迭代（反向）</td><td>值迭代（迭代至收敛）</td><td>值迭代（反向）</td><td>值迭代（迭代至收敛）</td></tr>
-                    <tr><td style="text-align:left;">策略类型</td><td>非平稳</td><td>平稳</td><td>平稳</td><td>平稳</td></tr>
-                    <tr><td style="text-align:left;">磨损时动作</td><td colspan="1">$k{\geq}4$ 维护</td><td>始终维护</td><td colspan="2" style="text-align:center;">与场景 A 一致</td></tr>
-                </tbody>
-            </table>
-            <div class="fig-caption">四个场景的对比。视角 C 和 D 从不同角度桥接了 A 和 B：C 通过增广状态将非平稳策略转为平稳；D 通过吸收状态将有限时域问题嵌入无限时域框架。两者给出的最优策略与 A 完全一致。</div>
-
-            <!-- ==================== 什么时候把时间放进状态 ==================== -->
-            <h2>什么时候应该把时间放进状态</h2>
-
-            <p>视角 C 和 D 的核心操作是将时间 $k$ 纳入状态。但并非所有问题都需要这样做。判断标准：<strong>最优动作是否应该随时间变化？</strong></p>
-
-            <ul style="margin:0.5rem 0 1rem 2rem;">
-                <li><strong>有限期问题</strong>（租赁设备、航班起飞前的收益管理、季节性商品清仓）：将剩余时间 $k$ 放进状态。策略可以表达"最后 3 期不维护"这样的时间依赖行为。其中机票动态定价是一个特别有趣的有限时域问题：航班起飞是硬截止，剩余时间不仅影响定价策略，还影响顾客的购买行为（如果总在临近起飞时降价，理性顾客会学着等待），我们将在后续章节的应用案例中详细展开。</li>
-                <li><strong>持续运营问题</strong>（自有设备维护、常规库存补货、交通信号控制）：不放。最优策略只取决于系统状态，与"这是第几期"无关。</li>
-                <li><strong>周期性问题</strong>（网约车早晚高峰、季节性需求波动）：放<strong>时段特征</strong>（如一天中的小时数），但不放"训练回合的剩余步数"。前者反映系统的真实周期性，后者是训练的人为产物。</li>
-            </ul>
-
-            <div class="note">
-                <strong>一条判断规则</strong> &nbsp; 如果改变截止时刻 $T$（比如从 20 期改为 30 期）会改变中间某一期的最优动作，那么时间应该进状态。如果不会（即最优动作只取决于当前系统状态），那么时间不应该进状态。在设备维护的例子中：场景 A 改变 $T$ 会影响策略（$T = 10$ 时最后 3 期不维护，$T = 30$ 时也是最后 3 期不维护，但"最后 3 期"指向不同的日历时间）；场景 B 没有 $T$，策略完全由 $(N, W)$ 决定。
-            </div>
-
-            <!-- ==================== 回合是一个建模选择 ==================== -->
-            <h2>回合是一个建模选择</h2>
-
-            <p>在管理科学中，回合的边界往往不是问题天然给定的，而是<strong>建模者的选择</strong>。选择回合边界的一般原则：找到系统中<strong>自然的重置点</strong>。如果系统状态在某些时刻会回到（或接近）某个初始条件，那里就是回合的自然分界线。回合过短则智能体看不到长期效应，过长则蒙特卡洛回报 $G_t$ 方差过大。</p>
-
-            <p>RL 的训练范式是<strong>有限回合 + 重复采样</strong>：用仿真器模拟一个回合，计算回报并更新参数，然后重复成百上千次。我们优化的不是某一个特定回合的表现，而是<strong>跨回合的平均表现</strong>。</p>
-
-            <!-- ==================== gamma ==================== -->
-            <h2>折扣因子 $\gamma$ 的双重角色</h2>
-
-            <p>在无限时域设定中，$\gamma < 1$ 是保证 $\sum_{k=0}^{\infty} \gamma^k R_{t+k}$ 收敛的数学必要条件。在有限时域中，$\gamma = 1$ 也完全合法。实践中通常仍然使用 $\gamma < 1$，但原因从数学必要性变为<strong>建模选择</strong>：</p>
-
-            <ul style="margin: 0.5rem 0 1rem 2rem;">
-                <li><strong>时间偏好</strong>：$\gamma$ 直接对应金融中的贴现率。$\gamma = 0.99$ 意味着一期后的一元钱在当前只值 $0.99$ 元，与净现值分析中的折现完全一致。</li>
-                <li><strong>降低方差</strong>：$\gamma < 1$ 让远期奖励的权重指数衰减，使回报 $G_t$ 方差更小，梯度估计更稳定。</li>
-                <li><strong>隐含的有效视野</strong>：$\gamma$ 隐式定义了规划范围。$\gamma^k$ 在 $k \approx 1/(1-\gamma)$ 步后衰减到可忽略的水平。$\gamma = 0.99$ 对应约 $100$ 步的有效视野。</li>
-            </ul>
-
-            <!-- ==================== TD 学习的角度 ==================== -->
-            <h2>TD 学习为什么让这个区别变得不那么显眼</h2>
-
-            <p>读到这里，有一个自然的疑问：既然实践中几乎都用 TD 学习（如 Q-learning、PPO），而 TD 更新只需要一步转移 $(s_t, a_t, r_{t+1}, s_{t+1})$，不像蒙特卡洛方法那样需要等到回合结束计算完整回报 $G_t$，那么有限与无限的区别在哪里？</p>
-
-            <p>这个疑问揭示了 TD 方法的一个重要性质：<strong>在算法运行的层面，TD 确实不受回合长度的限制</strong>。蒙特卡洛方法需要完整轨迹来计算 $G_t = \sum_{k=0}^{\infty} \gamma^k r_{t+k+1}$，无限时域意味着这个级数永远算不完，MC 因此无法用于真正的无限时域问题。TD 通过自举（用 $V(s_{t+1})$ 替代未来回报的精确值）绕过了这个限制。不管回合有 20 步还是无限步，TD 的更新公式都一样：</p>
-
-            $$V(s_t) \leftarrow V(s_t) + \alpha \big[r_{t+1} + \gamma\, V(s_{t+1}) - V(s_t)\big] \tag{4.2-8}$$
-
-            <p>但有限与无限的区别并没有消失，它只是从算法层面转移到了<strong>建模层面</strong>。上面的设备维护例子已经清楚地表明：即使使用完全相同的 TD 更新公式，如果将问题建模为有限时域（场景 A），学到的最优策略是非平稳的（最后 3 期不维护）；如果建模为无限时域（场景 B），学到的最优策略是平稳的（始终维护）。算法没有变，变的是 MDP 模型的结构，而最优策略因此完全不同。</p>
-
-            <p>这意味着，建模者必须先回答"管理者面对的是什么样的时间约束"，再选择对应的 MDP 类型。在这个意义上，建模决策先于算法选择。</p>
-
-            <!-- ==================== 截断陷阱 ==================== -->
-            <h2>截断陷阱：当模型与现实不匹配时</h2>
-
-            <p>理解了上述区别后，一种常见的实践错误就很容易理解了。</p>
-
-            <p>假设管理者拥有设备并计划长期使用（场景 B），但研究者在训练时为了方便，把仿真切成 20 步一段，并在回合末尾设置 $V(s_T) = 0$。这等于告诉智能体"第 20 期后设备消失了"。智能体会"理性地"在最后 3 期放弃维护，学到的策略如下表所示：</p>
-
-            <table class="result-table">
-                <thead>
-                    <tr>
-                        <th>时间步 $t$</th>
-                        <th>0—16</th>
-                        <th>17</th>
-                        <th>18</th>
-                        <th>19</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="text-align:left;">磨损时动作</td>
-                        <td class="good">停机维护 ✓</td>
-                        <td class="highlight">继续生产 ✗</td>
-                        <td class="highlight">继续生产 ✗</td>
-                        <td class="highlight">继续生产 ✗</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <p>这个策略对于"20 期后设备消失"的假想世界是正确的。但管理者的设备并不会在第 20 期消失。在真实的持续运营中，第 17—19 期放弃维护意味着设备带着磨损进入下一段运营，性能白白损失。</p>
-
-            <div class="warning">
-                <strong>截断陷阱</strong>的根源不是 TD 或 MC 的算法选择，而是<strong>MDP 模型与现实之间的不匹配</strong>。研究者为了训练方便引入的回合边界，被智能体当成了真实的终止条件。问题不在于截断本身，而在于截断时把 $V(s_T) = 0$。
-            </div>
-
-            <!-- ==================== 没有自然终点 ==================== -->
-            <h2>没有自然终点时怎么办</h2>
-
-            <p>有些管理科学问题确实没有明显的回合边界：在线定价系统持续运行，生产排程周而复始，仓库不间断地补货出货。这类持续运营问题需要人为截断为回合来训练，但必须正确处理边界。常用的方法有两种。</p>
-
-            <h3>方法一：在截断处自举</h3>
-
-            <p>回合结束时不置 $V(s_T) = 0$，而是用当前值函数的估计 $\hat{V}(s_T)$ 作为最后一步的自举目标。这告诉智能体：回合结束后世界并没有消失，$s_T$ 之后仍有价值。在设备维护的例子中，我们已经验证过：用 $V^*$ 自举后，反向归纳在所有 20 个时间步都给出与无限时域一致的"始终维护"策略。</p>
-
-            <h3>方法二：冗余缓冲段</h3>
-
-            <p>实际模拟 $H_{\text{total}}$ 步，但只对前 $H_{\text{eval}}$ 步计算回报和更新参数。后面的 $H_{\text{total}} - H_{\text{eval}}$ 步仅用于提供未来奖励的估计，不参与梯度计算。在 $H_{\text{eval}}$ 时刻，智能体并不知道自己处于回合的哪个位置，边界效应就被消除了。</p>
-
-            <div class="note">
-                <strong>判断标准</strong> &nbsp; 面对一个管理科学问题，先问自己：回合结束时，系统状态对管理者还有价值吗？如果有（如自有设备仍在运行），就必须自举或使用缓冲段；如果没有（如租约到期设备归还），终止处理 $V = 0$ 就是正确的。
-            </div>
-
-            <!-- ==================== 小结 ==================== -->
-            <h2>小结</h2>
-
-            <ol style="margin: 0.5rem 0 1rem 2rem;">
-                <li>有限时域与无限时域的区别不在于算法（TD 两者都能用），而在于<strong>管理者面对的时间约束</strong>。同一个 MDP，不同的时域假设给出不同的最优策略。</li>
-                <li>视角 C 将剩余时间纳入状态，把非平稳策略转化为增广状态空间上的平稳策略。是否把时间放进状态取决于最优动作是否依赖于时间。</li>
-                <li>视角 D 在场景 B 的无限时域 MDP 上引入吸收状态，用同一套值迭代算法求解，结果与场景 A 的反向归纳完全一致。这验证了无限时域框架的一般性。</li>
-                <li>截断陷阱的根源是模型与现实的不匹配。对持续运营问题，必须在截断处自举或使用缓冲段。</li>
+            <ol style="margin:0.3rem 0 1rem 2rem;">
+                <li><strong>空间关系丢失</strong>。展平后，相邻格子（如第 2 行第 3 列和第 2 行第 4 列）与远离的格子（如第 1 行第 1 列和第 6 行第 6 列）在网络看来没有区别。但实际上，拥堵往往从一个区域<strong>扩散</strong>到邻近区域，距离越远影响越小。</li>
+                <li><strong>参数量过大</strong>。如果输入是 $n \times n$ 的网格，隐藏层有 $m$ 个神经元，仅第一层就需要 $n^2 \times m$ 个参数。当网格变大（如 $100 \times 100$ 的城市区域划分），参数量急剧膨胀，训练困难且容易过拟合。</li>
             </ol>
 
+            <p>问题的根源在于：全连接网络忽略了输入数据的<strong>空间局部性</strong>。在仓库网格中，一个区域的拥堵主要受周围区域影响，而不是整个仓库所有区域的影响。我们需要一种网络结构，能够利用这种局部性。</p>
+
+            <!-- ==================== 卷积运算 ==================== -->
+            <h3>卷积运算：用滑动的小窗口提取局部特征</h3>
+
+            <p>卷积神经网络的核心思想很简单：不让每个神经元看到整个输入，而是只让它看一个小的局部区域。这个小区域称为<strong>感受野</strong>（receptive field），在其上滑动的参数矩阵称为<strong>卷积核</strong>（kernel）或<strong>滤波器</strong>（filter）。</p>
+
+            <p>先从一维情形建立直觉。假设一条公路沿线分布着 8 个加油站，我们记录了某天各站点的加油量 $f = [f_0, f_1, \ldots, f_7]$。我们想检测哪些位置存在需求突变（先低后高的跳跃），可以用一个长度为 3 的卷积核 $g = [-1, 0, +1]$ 在序列上滑动。一维卷积运算定义为：</p>
+
+            <div class="formula-block">
+                $$(f * g)[i] = \sum_{k=0}^{K-1} g[k] \cdot f[i+k] \tag{4.2-1}$$
+            </div>
+
+            <p>其中 $K$ 是卷积核的长度。对于 $g = [-1, 0, +1]$，输出为 $(f * g)[i] = -f[i] + f[i+2]$，即位置 $i$ 与位置 $i+2$ 的差值。如果某个位置的输出值很大，说明该处需求从左到右急剧上升。</p>
+
+            <div class="derivation">
+                <div class="step-label">具体计算</div>
+                <p>设加油量 $f = [3, 2, 4, 8, 7, 9, 5, 3]$，卷积核 $g = [-1, 0, +1]$。逐位计算：</p>
+                <table class="trans-table" style="font-size:0.88rem;">
+                    <thead><tr><th>位置 $i$</th><th>窗口 $[f_i, f_{i+1}, f_{i+2}]$</th><th>$(f*g)[i] = -f_i + f_{i+2}$</th><th>含义</th></tr></thead>
+                    <tbody>
+                        <tr><td>$0$</td><td>$[3, 2, 4]$</td><td>$-3+4 = +1$</td><td>小幅上升</td></tr>
+                        <tr><td>$1$</td><td>$[2, 4, 8]$</td><td>$-2+8 = +6$</td><td>急剧上升</td></tr>
+                        <tr><td>$2$</td><td>$[4, 8, 7]$</td><td>$-4+7 = +3$</td><td>中等上升</td></tr>
+                        <tr><td>$3$</td><td>$[8, 7, 9]$</td><td>$-8+9 = +1$</td><td>小幅上升</td></tr>
+                        <tr><td>$4$</td><td>$[7, 9, 5]$</td><td>$-7+5 = -2$</td><td>下降</td></tr>
+                        <tr><td>$5$</td><td>$[9, 5, 3]$</td><td>$-9+3 = -6$</td><td>急剧下降</td></tr>
+                    </tbody>
+                </table>
+                <p>位置 $i=1$ 的输出最大（$+6$），对应加油量从 $2$ 跳到 $8$ 的位置。卷积核成功检测出了需求突变的位置。</p>
+            </div>
+
+            <p>推广到二维。回到仓库网格的例子，输入是一个 $H \times W$ 的矩阵 $F$（如 $6 \times 6$ 的订单热度图），卷积核是一个 $K_h \times K_w$ 的小矩阵 $K$（如 $3 \times 3$）。二维卷积运算定义为：</p>
+
+            <div class="formula-block">
+                $$(F * K)[i, j] = \sum_{m=0}^{K_h - 1} \sum_{n=0}^{K_w - 1} K[m, n] \cdot F[i+m, \, j+n] \tag{4.2-2}$$
+            </div>
+
+            <p>卷积核在输入矩阵上从左到右、从上到下逐步滑动，每到一个位置就计算核与对应局部区域的逐元素乘积之和。输出的每个元素只取决于输入的一个 $K_h \times K_w$ 的局部窗口。</p>
+
+            <div class="derivation">
+                <div class="step-label">二维卷积的具体例子</div>
+                <p>假设仓库订单热度矩阵（简化为 $4 \times 4$）为：</p>
+                <div class="formula-block">
+                    $$F = \begin{bmatrix} 1 & 0 & 2 & 1 \\ 0 & 3 & 1 & 0 \\ 2 & 1 & 4 & 3 \\ 1 & 0 & 2 & 1 \end{bmatrix}$$
+                </div>
+                <p>使用一个 $3 \times 3$ 的卷积核：</p>
+                <div class="formula-block">
+                    $$K = \begin{bmatrix} 0 & 1 & 0 \\ 1 & -4 & 1 \\ 0 & 1 & 0 \end{bmatrix}$$
+                </div>
+                <p>这个卷积核计算的是中心像素与其上下左右四个邻居的关系：如果中心值远高于邻居均值，输出为负（热度孤峰）；如果中心值低于邻居均值，输出为正（热度洼地）。以位置 $(1,1)$ 为例：</p>
+                <div class="formula-block">
+                    $$(F*K)[1,1] = 0 \cdot 1 + 1 \cdot 0 + 0 \cdot 2 + 1 \cdot 0 + (-4) \cdot 3 + 1 \cdot 1 + 0 \cdot 2 + 1 \cdot 1 + 0 \cdot 4 = -10$$
+                </div>
+                <p>输出 $-10$ 是一个很大的负值，说明位置 $(1,1)$ 的热度（$3$）远高于周围邻居（上 $0$，下 $1$，左 $0$，右 $1$），是一个局部热点。管理者可以据此提前在该区域增派人手。</p>
+            </div>
+
+            <!-- ==================== CNN三大性质 ==================== -->
+            <h3>卷积的三大核心性质</h3>
+
+            <p>与全连接层相比，卷积层具有三个关键性质，使它特别适合处理具有空间结构的数据。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">1. 参数共享（Parameter Sharing）</div>
+                <p>同一个卷积核在输入的所有位置使用完全相同的参数。对于一个 $3 \times 3$ 的卷积核，无论输入是 $6 \times 6$ 还是 $100 \times 100$，核本身只有 $3 \times 3 = 9$ 个可训练参数。相比之下，全连接层需要为每个输入位置与每个输出位置之间各分配一个独立的权重。</p>
+                <p>在仓库管理的例子中，这意味着网络假设<strong>检测拥堵扩散的模式在仓库的每个角落都是相同的</strong>。这是一个合理的归纳偏置：拥堵从 A 区扩散到 B 区的规律，与从 C 区扩散到 D 区并无本质不同。</p>
+            </div>
+
+            <div class="concept-card">
+                <div class="concept-name">2. 平移等变性（Translation Equivariance）</div>
+                <p>如果输入中的某个模式从一个位置移到另一个位置，卷积的输出也会相应地移动。形式化地说，设 $T_{\Delta}$ 表示将输入平移 $\Delta$ 的操作，则 $T_{\Delta}(F) * K = T_{\Delta}(F * K)$。</p>
+                <p>在仓库场景中，这意味着无论热点出现在仓库的左上角还是右下角，同一个卷积核都能检测到它。网络不需要分别学习在每个位置识别热点的能力。</p>
+            </div>
+
+            <div class="concept-card">
+                <div class="concept-name">3. 局部感受野（Local Receptive Field）</div>
+                <p>每个输出位置只依赖于输入中一个有限大小的局部区域。$3 \times 3$ 的卷积核意味着每个输出只看到 $3 \times 3 = 9$ 个输入元素。这与仓库管理中的物理直觉一致：一个区域的拥堵状况主要受其邻近区域影响。</p>
+            </div>
+
+            <!-- ==================== 池化 ==================== -->
+            <h3>池化：降采样与尺度不变性</h3>
+
+            <p>卷积层提取了局部特征，但输出的尺寸与输入几乎一样大。在实际问题中，我们往往不需要精确到每个格子的细节，而更关心整体的空间模式。<strong>池化</strong>（pooling）通过对局部区域取最大值或均值来缩小特征图的尺寸。</p>
+
+            <p>最常见的池化操作是 $2 \times 2$ <strong>最大池化</strong>（max pooling）：将特征图划分为不重叠的 $2 \times 2$ 小块，每块只保留最大值。这使得特征图的高和宽各缩小一半。<strong>平均池化</strong>（average pooling）则取每块的均值。</p>
+
+            <div class="derivation">
+                <div class="step-label">池化的作用</div>
+                <p>假设卷积层在 $6 \times 6$ 的仓库热度图上检测出了一个 $6 \times 6$ 的特征图，记录了各位置的拥堵风险。经过 $2 \times 2$ 最大池化后，输出变为 $3 \times 3$。这相当于把仓库划分为 $3 \times 3 = 9$ 个大区，每个大区只保留其中拥堵风险最高的值。即使拥堵热点在大区内稍有偏移，池化后的结果也不会变化。这就是<strong>平移不变性</strong>：池化使网络对输入的小幅平移不敏感。</p>
+            </div>
+
+            <!-- ==================== CNN整体架构 ==================== -->
+            <h3>CNN 的整体架构</h3>
+
+            <p>一个典型的 CNN 由以下模块堆叠而成：</p>
+
+            <div class="formula-block" style="text-align:center; font-size: 1rem;">
+                $$\text{输入} \;\to\; \underbrace{[\text{Conv} \to \text{ReLU} \to \text{Pool}]}_{\text{重复若干次}} \;\to\; \text{Flatten} \;\to\; \underbrace{[\text{FC} \to \text{ReLU}]}_{\text{重复若干次}} \;\to\; \text{输出}$$
+            </div>
+
+            <p>前半部分的卷积-激活-池化模块负责从输入中逐层提取越来越抽象的空间特征：</p>
+            <ul style="margin:0.3rem 0 1rem 2rem;">
+                <li><strong>第一层卷积</strong>检测最基础的局部模式，如边缘、小块热点。</li>
+                <li><strong>第二层卷积</strong>在第一层的输出上再次卷积，检测由基础模式组合而成的更复杂的模式，如 L 形拥堵带、十字路口式的热度分布。</li>
+                <li><strong>更深层的卷积</strong>继续组合，捕捉越来越大范围的空间模式。</li>
+            </ul>
+
+            <p>经过多轮卷积和池化后，特征图的尺寸已经很小但通道数很多。<strong>Flatten</strong> 将多维特征图展平为一维向量，送入后半部分的全连接层进行最终的分类或回归。</p>
+
+            <div class="note">
+                <strong>通道（channel）</strong>的概念。在图像处理中，RGB 图像有 3 个通道。在管理科学中，输入的网格可能有多个通道，例如仓库网格的每个格子可以同时记录订单量、库存量、人员密度，构成 3 个通道。每个卷积核会同时在所有输入通道上卷积并求和。一层卷积通常使用多个不同的卷积核，每个核产生一个输出通道，因此输出的通道数等于该层卷积核的个数。
+            </div>
+
+            <!-- ==================== CNN在管理科学中的应用 ==================== -->
+            <h3>CNN 在管理科学中的应用</h3>
+
+            <p>CNN 的核心优势在于高效提取空间局部模式。在管理科学中，当问题的状态可以自然地表示为二维网格，且局部邻域之间存在空间相关性时，CNN 就是合适的工具。</p>
+
+            <div class="app-box">
+                <div class="app-title">应用一：城市网约车需求预测</div>
+                <p>将城市划分为 $M \times N$ 的网格（如 $20 \times 20$），每个格子记录当前时段的叫车订单数。整个城市的需求分布构成一张"需求热力图"，本质上是一张灰度图像。CNN 可以从中识别出空间模式，例如商业区与居民区之间的潮汐流动、地铁站周围的需求聚集效应。多个时间步的需求图可以叠加为多通道输入，让 CNN 同时学习空间模式和短期时间趋势。</p>
+            </div>
+
+            <div class="app-box">
+                <div class="app-title">应用二：仓库与设施布局优化</div>
+                <p>电商仓库的存储区域可以表示为网格，各格子的订单频率构成热度图。CNN 可以识别出热点区域的空间分布模式（如高频商品集中在某一带状区域），辅助决策将高频商品调配到离出库口更近的位置。在更大尺度上，物流网络中的设施选址问题也可以将地理区域网格化，用 CNN 提取区域间的空间需求关联。</p>
+            </div>
+
+            <div class="app-box">
+                <div class="app-title">应用三：交通状态表征与 RL 的结合</div>
+                <p>在交通信号控制、自动驾驶等强化学习应用中，路网的车辆占用状态可以表示为一张二维图（如十字路口各车道的车辆分布矩阵）。CNN 将这张图编码为一个紧凑的特征向量，作为 RL 智能体的状态输入。智能体的策略网络或价值网络以此特征向量为输入来决定信号灯相位或行驶动作。</p>
+            </div>
+
+            <div class="app-box">
+                <div class="app-title">应用四：制造业质量检测</div>
+                <p>生产线上的产品图像可以直接送入 CNN 进行缺陷检测（如表面划痕、焊点不良）。CNN 在不同层级提取从边缘到纹理到整体形状的特征，判断产品是否合格。这是 CNN 在工业管理中最成熟的应用之一。</p>
+            </div>
+
+            <div class="note">
+                <strong>何时使用 CNN？</strong> 一个简单的判断标准：如果你的输入数据可以自然地排列成一张网格（二维矩阵），并且局部邻域之间的关系比远距离元素之间的关系更重要，那么 CNN 是比全连接网络更好的选择。
+            </div>
+
+            <!-- ================================================================== -->
+            <!--                    PART 2: RNN                                      -->
+            <!-- ================================================================== -->
+
+            <h2>二、循环神经网络（RNN）</h2>
+
+            <h3>从空间到时间：序列数据的挑战</h3>
+
+            <p>CNN 解决了空间局部性的问题。但管理科学中还有一类同样普遍的数据结构，即<strong>时间序列</strong>。供应链经理需要根据过去几周的销售数据预测未来需求；动态定价系统需要参考历史价格与销量的变化趋势；设备管理者需要从传感器的历史读数中判断故障风险。</p>
+
+            <p>考虑一个供应链需求预测的场景。某商品过去 8 周的销量为 $x = [120, 135, 128, 142, 155, 148, 163, 170]$。从数据中可以看出两个特征：整体呈上升趋势，但其中有波动。管理者需要预测第 9 周的销量。</p>
+
+            <p>如果用全连接网络，可以将这 8 个数作为输入特征，输出一个预测值。但这样做有两个问题：</p>
+
+            <ol style="margin:0.3rem 0 1rem 2rem;">
+                <li><strong>没有时序概念</strong>。全连接网络将 8 个数视为无序的特征集合，不知道 $x_1$ 在 $x_2$ 之前。如果把输入顺序打乱，网络无法区分上升趋势和下降趋势。</li>
+                <li><strong>长度固定</strong>。如果某个商品有 12 周的历史数据而另一个只有 5 周，网络的输入维度无法适配。</li>
+            </ol>
+
+            <p>循环神经网络的设计正是为了解决这类序列数据的处理问题。</p>
+
+            <!-- ==================== RNN基本结构 ==================== -->
+            <h3>RNN 的基本结构：隐状态作为记忆</h3>
+
+            <p>RNN 的核心思想是引入一个<strong>隐状态</strong>（hidden state）$h_t$，在处理序列的每一步中逐步更新。在时间步 $t$，RNN 接收当前输入 $x_t$ 和上一步的隐状态 $h_{t-1}$，通过以下公式计算新的隐状态：</p>
+
+            <div class="formula-block">
+                $$h_t = \tanh(W_h \, h_{t-1} + W_x \, x_t + b_h) \tag{4.2-3}$$
+            </div>
+
+            <p>其中 $W_h$ 是隐状态到隐状态的权重矩阵，$W_x$ 是输入到隐状态的权重矩阵，$b_h$ 是偏置向量，$\tanh$ 是激活函数。在每个时间步，如果需要产生输出（如预测），可以用：</p>
+
+            <div class="formula-block">
+                $$y_t = W_y \, h_t + b_y \tag{4.2-4}$$
+            </div>
+
+            <p>理解 RNN 的关键在于隐状态 $h_t$ 的角色。它是一个固定维度的向量（如 64 维或 128 维），在时间步之间<strong>传递</strong>。每处理一个新的输入 $x_t$，隐状态就被更新一次，融入新信息的同时保留旧信息。因此 $h_t$ 可以被理解为网络对序列 $x_0, x_1, \ldots, x_t$ 的<strong>压缩记忆</strong>。</p>
+
+            <div class="derivation">
+                <div class="step-label">用供应链例子理解隐状态</div>
+                <p>回到销量预测的例子。设隐状态维度为 2（实际中会大得多），初始隐状态 $h_0 = [0, 0]$。</p>
+                <ul style="margin:0.3rem 0 0.5rem 1.5rem;">
+                    <li>$t=1$：输入 $x_1 = 120$。RNN 计算 $h_1 = \tanh(W_h \cdot h_0 + W_x \cdot 120 + b_h)$。隐状态 $h_1$ 编码了"第一周销量为 120"这一信息。</li>
+                    <li>$t=2$：输入 $x_2 = 135$。RNN 计算 $h_2 = \tanh(W_h \cdot h_1 + W_x \cdot 135 + b_h)$。隐状态 $h_2$ 融合了第一周和第二周的信息。由于 $135 > 120$，如果训练得当，$h_2$ 中可能已经编码了"需求在上升"的信号。</li>
+                    <li>$t=8$：处理完所有 8 周数据后，$h_8$ 压缩了整个历史序列的模式（趋势、波动幅度等）。用 $y_8 = W_y \cdot h_8 + b_y$ 输出第 9 周的预测。</li>
+                </ul>
+                <p>注意 $W_h$、$W_x$、$b_h$ 在每个时间步都是同一组参数。这就是 RNN 的<strong>参数共享</strong>：无论序列多长，参数量不变。模型假设处理序列中每一步的规则是相同的。</p>
+            </div>
+
+            <div class="note">
+                <strong>RNN 与 CNN 的参数共享对比。</strong> CNN 在空间维度上共享参数（同一个卷积核扫描所有位置），RNN 在时间维度上共享参数（同一组权重处理每个时间步）。两者的共同思想是：利用数据的结构性来减少参数量，同时注入合理的归纳偏置。
+            </div>
+
+            <!-- ==================== 梯度消失 ==================== -->
+            <h3>梯度消失问题：为什么基本 RNN 难以捕捉长程依赖</h3>
+
+            <p>基本 RNN 在理论上可以记住任意长的历史。但在实践中，当序列较长时（如数十步以上），训练往往失败。原因是<strong>梯度消失</strong>（vanishing gradient）问题。</p>
+
+            <p>训练 RNN 需要通过反向传播计算损失对参数的梯度。由于隐状态的递推关系 $h_t = \tanh(W_h h_{t-1} + \cdots)$，从时间步 $T$ 回溯到时间步 $1$ 时，梯度中会包含一连串矩阵乘积：</p>
+
+            <div class="formula-block">
+                $$\frac{\partial h_T}{\partial h_1} = \prod_{t=2}^{T} \frac{\partial h_t}{\partial h_{t-1}} = \prod_{t=2}^{T} \text{diag}(\tanh'(\cdot)) \cdot W_h \tag{4.2-5}$$
+            </div>
+
+            <p>其中 $\tanh'(\cdot)$ 的值域为 $(0, 1]$。当 $W_h$ 的特征值小于 $1$ 时，连乘 $T-1$ 次后梯度指数级衰减趋近于零；当特征值大于 $1$ 时，梯度则指数级增长（<strong>梯度爆炸</strong>）。在典型的训练条件下，梯度消失远比梯度爆炸常见。</p>
+
+            <p>直觉上，这意味着基本 RNN 很难将序列开头的信息有效传递到序列末尾。在需求预测中，如果季节性周期为 52 周（一年），基本 RNN 几乎无法学到这种长周期模式。</p>
+
+            <!-- ==================== LSTM ==================== -->
+            <h3>LSTM：用门控机制解决长程依赖</h3>
+
+            <p>长短期记忆网络（Long Short-Term Memory, LSTM）通过引入<strong>门控机制</strong>和一条独立的<strong>细胞状态</strong>（cell state）通路来解决梯度消失问题。LSTM 的核心思想可以用一个比喻来理解。</p>
+
+            <p>想象一条传送带从序列的起点运行到终点，上面承载着信息。在每个时间步，有三个控制闸门：</p>
+
+            <ul style="margin:0.3rem 0 1rem 2rem;">
+                <li><strong>遗忘门</strong>（forget gate）：决定传送带上哪些旧信息要丢弃。</li>
+                <li><strong>输入门</strong>（input gate）：决定哪些新信息要放上传送带。</li>
+                <li><strong>输出门</strong>（output gate）：决定传送带上的哪些信息要输出给当前时间步使用。</li>
+            </ul>
+
+            <p>形式化地，LSTM 在每个时间步 $t$ 的计算如下。</p>
+
+            <div class="gate-card">
+                <div class="gate-name">遗忘门 $f_t$</div>
+                <div class="formula-block">
+                    $$f_t = \sigma\!\left(W_f \, [h_{t-1}, \, x_t] + b_f\right) \tag{4.2-6}$$
+                </div>
+                <p>$\sigma$ 是 sigmoid 函数，输出值在 $(0, 1)$ 之间。$f_t$ 中每个分量的值越接近 $0$，表示对应的细胞状态分量越应该被遗忘；越接近 $1$，则越应该保留。</p>
+            </div>
+
+            <div class="gate-card">
+                <div class="gate-name">输入门 $i_t$ 与候选值 $\tilde{C}_t$</div>
+                <div class="formula-block">
+                    $$i_t = \sigma\!\left(W_i \, [h_{t-1}, \, x_t] + b_i\right) \tag{4.2-7}$$
+                </div>
+                <div class="formula-block">
+                    $$\tilde{C}_t = \tanh\!\left(W_C \, [h_{t-1}, \, x_t] + b_C\right) \tag{4.2-8}$$
+                </div>
+                <p>$i_t$ 控制新信息的写入强度，$\tilde{C}_t$ 是当前时间步候选的新信息内容。</p>
+            </div>
+
+            <div class="gate-card">
+                <div class="gate-name">细胞状态更新</div>
+                <div class="formula-block">
+                    $$C_t = f_t \odot C_{t-1} + i_t \odot \tilde{C}_t \tag{4.2-9}$$
+                </div>
+                <p>$\odot$ 表示逐元素乘法。这是 LSTM 的核心公式。细胞状态 $C_t$ 通过遗忘门选择性地保留旧信息 $C_{t-1}$，再通过输入门选择性地加入新信息 $\tilde{C}_t$。</p>
+            </div>
+
+            <div class="gate-card">
+                <div class="gate-name">输出门与隐状态</div>
+                <div class="formula-block">
+                    $$o_t = \sigma\!\left(W_o \, [h_{t-1}, \, x_t] + b_o\right) \tag{4.2-10}$$
+                </div>
+                <div class="formula-block">
+                    $$h_t = o_t \odot \tanh(C_t) \tag{4.2-11}$$
+                </div>
+                <p>输出门 $o_t$ 决定细胞状态中的哪些信息在当前时间步作为隐状态输出。$h_t$ 既作为当前步的输出，也传递给下一个时间步。</p>
+            </div>
+
+            <div class="derivation">
+                <div class="step-label">为什么 LSTM 能缓解梯度消失</div>
+                <p>关键在于细胞状态的更新公式 $C_t = f_t \odot C_{t-1} + i_t \odot \tilde{C}_t$。如果遗忘门 $f_t \approx 1$（保留旧信息）且输入门 $i_t \approx 0$（不写入新信息），则 $C_t \approx C_{t-1}$，细胞状态几乎不变地传递下去。在反向传播时，$\partial C_t / \partial C_{t-1} = f_t$，这是一个对角矩阵而非 $W_h$ 的连乘。只要 $f_t$ 接近 $1$，梯度就能沿着细胞状态通路几乎无损地传播任意多步。</p>
+                <p>这就是<strong>传送带</strong>比喻的数学含义：细胞状态提供了一条梯度可以畅通流动的高速公路，门控机制在需要时打开写入和读出的闸口。</p>
+            </div>
+
+            <div class="derivation">
+                <div class="step-label">LSTM 处理供应链数据的直觉</div>
+                <p>回到供应链需求预测的例子。假设 LSTM 正在处理包含年度季节性的周销量数据：</p>
+                <ul style="margin:0.3rem 0 0.5rem 1.5rem;">
+                    <li>在普通的非节假日周份，遗忘门 $f_t \approx 1$，输入门 $i_t$ 较小。细胞状态主要保留之前学到的长期趋势（如年增长率），新数据只微调隐状态。</li>
+                    <li>在双十一促销周，输入激增。输入门 $i_t$ 变大，将促销信息写入细胞状态。同时遗忘门 $f_t$ 可能部分打开，让细胞状态适应新的模式。</li>
+                    <li>促销结束后，遗忘门可以选择性地清除促销期的异常信号（$f_t$ 对应分量变小），使细胞状态恢复到常态趋势。</li>
+                </ul>
+                <p>这种选择性记忆和遗忘的能力，使 LSTM 能够同时维护长期趋势信息和短期波动信息。</p>
+            </div>
+
+            <details class="optional-reading">
+                <summary>选读：GRU——LSTM 的简化变体</summary>
+                <p>门控循环单元（Gated Recurrent Unit, GRU）是 LSTM 的一个简化版本，由 Cho et al. (2014) 提出。GRU 将遗忘门和输入门合并为一个<strong>更新门</strong> $z_t$，并去掉了独立的细胞状态，直接在隐状态上操作：</p>
+                <div class="formula-block">
+                    $$z_t = \sigma(W_z [h_{t-1}, x_t] + b_z)$$
+                </div>
+                <div class="formula-block">
+                    $$r_t = \sigma(W_r [h_{t-1}, x_t] + b_r)$$
+                </div>
+                <div class="formula-block">
+                    $$\tilde{h}_t = \tanh(W_{\tilde{h}} [r_t \odot h_{t-1}, x_t] + b_{\tilde{h}})$$
+                </div>
+                <div class="formula-block">
+                    $$h_t = (1 - z_t) \odot h_{t-1} + z_t \odot \tilde{h}_t$$
+                </div>
+                <p>其中 $z_t$ 是更新门，$r_t$ 是重置门。GRU 的参数量比 LSTM 少约 25%，在许多任务上性能相近。当数据量有限或模型需要轻量化时，GRU 是一个值得考虑的替代方案。</p>
+            </details>
+
+            <!-- ==================== RNN在管理科学中的应用 ==================== -->
+            <h3>RNN/LSTM 在管理科学中的应用</h3>
+
+            <div class="app-box">
+                <div class="app-title">应用一：需求预测</div>
+                <p>需求预测是供应链管理的核心任务。LSTM 接收历史销量的时间序列作为输入，逐步编码趋势、季节性和突发事件的信息，最终输出未来若干期的需求预测值。与传统的 ARIMA 等统计模型相比，LSTM 的优势在于能自动学习非线性时间模式，并方便地融入额外特征（天气、促销信息等）作为每个时间步的辅助输入。</p>
+            </div>
+
+            <div class="app-box">
+                <div class="app-title">应用二：客户行为序列建模</div>
+                <p>电商场景中，一个客户的行为轨迹是一个事件序列：浏览商品 $\to$ 点击详情 $\to$ 加入购物车 $\to$ 移除 $\to$ 再次浏览 $\to$ 下单。RNN 将这一序列逐步编码为隐状态，用于预测客户下一步的行为（如是否会下单）。隐状态 $h_t$ 编码了截至当前步的完整行为历史，比简单统计"浏览次数""加购次数"等聚合特征更丰富。</p>
+            </div>
+
+            <div class="app-box">
+                <div class="app-title">应用三：设备退化与预测性维护</div>
+                <p>生产设备上的传感器持续输出温度、振动、压力等时间序列数据。LSTM 可以从中学习设备退化的时序模式，在故障发生前预警。与基于阈值的规则（如"温度超过 80°C 即报警"）不同，LSTM 能捕捉更细微的渐变模式，例如"振动幅度在过去 200 个采样步中缓慢增加 15%"，从而实现更精准的预测性维护。</p>
+            </div>
+
+            <div class="app-box">
+                <div class="app-title">应用四：强化学习中的观测历史编码</div>
+                <p>在许多实际的管理决策问题中，智能体无法观测到完整的环境状态（即<strong>部分可观测</strong>问题，POMDP）。例如，网约车调度系统无法知道所有乘客的精确目的地，只能观测到已发出的订单。此时，单个时间步的观测不足以推断环境状态，智能体需要利用观测的历史序列。RNN 将观测序列 $o_0, o_1, \ldots, o_t$ 编码为隐状态 $h_t$，作为智能体的<strong>近似信念状态</strong>，供策略网络和价值网络使用。这正是第五章将要介绍的深度 RL 算法所采用的做法。</p>
+            </div>
+
+            <!-- ================================================================== -->
+            <!--                    PART 3: 小结                                     -->
+            <!-- ================================================================== -->
+
+            <h2>三、小结：从数据结构到网络结构</h2>
+
+            <p>本节介绍了两种针对特定数据结构设计的神经网络架构。它们与全连接网络的关系并非替代，而是<strong>互补</strong>：全连接网络处理无结构的特征向量，CNN 处理具有空间局部性的网格数据，RNN/LSTM 处理具有时序依赖性的序列数据。在实际问题中，三者经常组合使用。</p>
+
+            <table class="compare-table">
+                <thead>
+                    <tr>
+                        <th>特性</th>
+                        <th>全连接网络（FC）</th>
+                        <th>卷积神经网络（CNN）</th>
+                        <th>循环神经网络（RNN/LSTM）</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>适用数据</strong></td>
+                        <td>固定长度的特征向量</td>
+                        <td>网格/图像（二维空间结构）</td>
+                        <td>变长序列（时间/事件序列）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>核心思想</strong></td>
+                        <td>每个神经元看到所有输入</td>
+                        <td>局部感受野 + 参数共享</td>
+                        <td>隐状态递推 + 参数共享</td>
+                    </tr>
+                    <tr>
+                        <td><strong>参数共享方式</strong></td>
+                        <td>无（每个连接独立）</td>
+                        <td>空间维度（同一卷积核扫描所有位置）</td>
+                        <td>时间维度（同一权重处理每个时间步）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>归纳偏置</strong></td>
+                        <td>无特殊假设</td>
+                        <td>局部性 + 平移等变性</td>
+                        <td>时序递推 + 短期/长期记忆</td>
+                    </tr>
+                    <tr>
+                        <td><strong>管理科学典型场景</strong></td>
+                        <td>结构化表格数据的回归/分类</td>
+                        <td>城市需求网格、仓库热度图、产品图像检测</td>
+                        <td>需求预测、客户行为序列、设备退化监测</td>
+                    </tr>
+                    <tr>
+                        <td><strong>在 RL 中的角色</strong></td>
+                        <td>策略/价值网络的输出层</td>
+                        <td>将网格状态编码为特征向量</td>
+                        <td>将观测历史编码为信念状态</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p>在深度强化学习中，CNN 和 RNN 通常不单独使用，而是作为<strong>状态编码器</strong>（state encoder）嵌入到更大的网络架构中。它们的作用是将原始的高维观测（图像、序列）转化为紧凑的特征表示，然后送入全连接层来输出策略或价值估计。这种"编码器 + 决策头"的架构是深度 RL 的标准范式：</p>
+
+            <div class="formula-block" style="text-align:center; font-size:1rem;">
+                $$\underbrace{\text{原始观测}}_{\text{图像/序列}} \;\xrightarrow{\text{CNN / RNN}}\; \underbrace{\text{特征向量}}_{\text{紧凑表示}} \;\xrightarrow{\text{FC 层}}\; \underbrace{\pi(a|s) \;\text{或}\; V(s)}_{\text{策略/价值}}$$
+            </div>
+
+            <p>在下一节中，我们将介绍 Attention 机制与 Transformer 架构。Transformer 可以被视为 RNN 的一种替代方案：它同样处理序列数据，但不再通过递推的方式逐步传递信息，而是让序列中的每个位置直接关注所有其他位置。这种并行化的设计在很长的序列上表现优异，并在近年来成为序列建模的主流选择。</p>
+
             <div class="chapter-nav">
-                <a href="../ch04/4.1.html">&larr; 4.1 如何将管理科学问题抽象为MDP</a>
-                <a href="../ch04/4.3.html">4.3 状态空间、动作空间与奖励函数的设计 &rarr;</a>
+                <a href="../ch04/4.1.html">&larr; 4.1 从线性回归到神经网络</a>
+                <a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构 &rarr;</a>
             </div>
         </main>
     </div>

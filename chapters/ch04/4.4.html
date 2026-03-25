@@ -3,72 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>4.4 决策时机与决策频率的建模 - 运筹智能</title>
+    <title>4.4 图神经网络 - 运筹智能</title>
     <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
     <style>
-        .concept-card {
-            background: var(--sidebar-bg);
-            border-left: 4px solid var(--accent-color);
-            padding: 1rem 1.5rem;
-            margin: 1.5rem 0;
-            border-radius: 0 6px 6px 0;
-        }
-        .concept-card .concept-name {
-            font-weight: 700;
-            color: var(--accent-color);
-            font-size: 1.05rem;
-            margin-bottom: 0.5rem;
-        }
-        .compare-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1.5rem 0;
-        }
-        .compare-table th {
-            background: var(--primary-color);
-            color: white;
-            padding: 0.7rem 1rem;
-            text-align: center;
-        }
-        .compare-table td {
-            padding: 0.6rem 1rem;
-            border: 1px solid var(--border-color);
-            vertical-align: top;
-        }
-        .compare-table tr:nth-child(even) {
-            background: var(--sidebar-bg);
-        }
-        .fig-caption {
-            text-align: center;
-            font-size: 0.9rem;
-            color: #718096;
-            margin-top: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
-        .optional-reading {
-            background: #fafafa;
-            border: 1px solid #e2e8f0;
-            border-left: 4px solid #a0aec0;
-            border-radius: 0 8px 8px 0;
-            margin: 2.5rem 0;
-        }
-        .optional-reading summary {
-            padding: 1rem 1.5rem;
-            cursor: pointer;
-            font-weight: 700;
-            color: #4a5568;
-            font-size: 1.1rem;
-            list-style: none;
-        }
-        .optional-reading summary::-webkit-details-marker { display: none; }
-        .optional-reading summary::before { content: '▶ '; font-size: 0.8em; margin-right: 0.3rem; }
-        .optional-reading[open] summary::before { content: '▼ '; }
-        .optional-reading[open] summary { border-bottom: 1px solid #e2e8f0; }
-        .optional-reading .opt-body { padding: 1.2rem 1.5rem; }
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .trans-table { width: auto; border-collapse: collapse; margin: 1rem auto; font-size: 0.95rem; }
+        .trans-table th, .trans-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: center; }
+        .trans-table th { background: var(--primary-color); color: white; }
+        .trans-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .note { background: var(--highlight-color); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .formula-block { background: var(--code-bg); padding: 1.2rem 1.5rem; margin: 1.5rem 0; border-radius: 6px; overflow-x: auto; text-align: center; }
+        .fig-caption { text-align: center; font-size: 0.92rem; color: #4a5568; margin: 0.8rem 0 1.5rem 0; }
+        .optional-reading { background: #f0fff4; border: 1px solid #9ae6b4; border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; }
+        .optional-reading summary { font-weight: 700; color: #276749; cursor: pointer; font-size: 1rem; }
+        .optional-reading summary:hover { color: var(--accent-color); }
+        .app-box { background: #fffff0; border: 2px solid #d69e2e; border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .app-box .app-title { font-weight: 700; color: #975a16; font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid #ecc94b; padding-bottom: 0.5rem; }
+        .derivation { background: var(--sidebar-bg); padding: 1.2rem 1.5rem; border-radius: 6px; margin: 1.5rem 0; }
+        .derivation .step-label { font-weight: 600; color: var(--accent-color); margin-bottom: 0.3rem; }
+        .arch-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.93rem; }
+        .arch-table th, .arch-table td { border: 1px solid var(--border-color); padding: 0.6rem 0.8rem; text-align: left; vertical-align: top; }
+        .arch-table th { background: var(--primary-color); color: white; text-align: center; font-size: 0.9rem; }
+        .arch-table td:first-child { font-weight: 600; color: var(--accent-color); text-align: center; white-space: nowrap; }
+        .arch-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .key-insight { background: #ebf4ff; border: 2px solid var(--accent-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .key-insight .insight-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
     </style>
     <script defer src="../../js/code-copy.js"></script>
 </head>
@@ -81,406 +48,497 @@
                 <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
                 <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
                 <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
-                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
-                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
-                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.3.html">1.5.3 SARSA与Q-learning</a></li>
-                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
-                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
-                <li class="sidebar-chapter">第二章 深度学习基础</li>
-                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
-                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
-                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
-                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
-                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
-                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
-                <li><a href="../ch03/3.2.html">3.2 Policy Gradient与PPO</a></li>
-                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
-                <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
-                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
-                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
-                <li><a href="../ch04/4.2.html">4.2 时域建模与回合定义</a></li>
-                <li><a href="../ch04/4.3.html">4.3 状态空间、动作空间与奖励函数的设计</a></li>
-                <li><a href="../ch04/4.4.html" class="active">4.4 决策时机与决策频率的建模</a></li>
-                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
-                <li class="sidebar-chapter">第五章 仿真器搭建</li>
-                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
-                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
-                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
-                <li><a href="../ch05/5.4.html">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
-                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
-                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
-                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
-                <li><a href="../ch07/7.2.html">7.2 公交串车控制</a></li>
-                <li><a href="../ch07/7.3.html">7.3 需求响应公交调度优化</a></li>
-                <li class="sidebar-chapter">第八章 进阶话题</li>
-                <li><a href="../ch08/8.1.html">8.1 多智能体强化学习</a></li>
-                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html" class="active">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
                 </ul>
             </nav>
         </aside>
 
         <main class="main-content">
-            <h1>4.4 决策时机与决策频率的建模</h1>
+            <h1>4.4 图神经网络</h1>
 
-            <!-- ===== 1. 引言 ===== -->
+            <!-- ==================== Part 1: 为什么需要图结构 ==================== -->
+            <h2>为什么需要图结构</h2>
 
-            <p>4.3 节讨论了状态空间、动作空间和奖励函数的设计，回答了智能体<strong>观测什么、做什么、优化什么</strong>的问题。然而，还有一个同样重要的建模选择尚未涉及：智能体<strong>何时做出决策</strong>？</p>
+            <p>考虑一个城市公交网络：若干站点通过公交和地铁线路相连，某个站点发生故障会沿线路向周围站点扩散延误。再考虑一条供应链：原材料供应商、零部件制造商、组装工厂、配送中心、零售商构成了一张有向图，任何一个节点的中断都会沿着边传导至下游。这些问题有一个共同特点：数据天然具有<strong>图结构</strong>，节点之间的拓扑关系蕴含了关键信息。</p>
 
-            <p>在教科书的 MDP 形式中，智能体在每个时间步 $t = 0, 1, 2, \ldots$ 都要选择一个动作，时间步之间的间隔是均匀且抽象的。但在管理科学的实际问题中，时间有具体的物理含义。一个网约车派单系统中，乘客请求可能每秒钟都在到达；一个库存管理系统中，补货决策可能只在每天下班前做一次。如何将这些具体的时间结构映射到 MDP 的抽象时间步，直接影响模型的可行性和求解效率。</p>
+            <p>在 2.2 节中，我们介绍了卷积神经网络（CNN）和循环神经网络（RNN）。CNN 擅长处理规则网格上的数据（如图像），RNN 擅长处理序列数据（如时间序列）。但管理科学中的许多问题既不是规则网格，也不是简单的序列：</p>
 
-            <p>本节将依次讨论三个问题：决策由什么触发（事件驱动还是时间驱动），决策频率如何选择，以及如何处理两次决策之间累积的多个事件。</p>
+            <ul style="margin:0.3rem 0 1rem 2rem;">
+                <li><strong>交通网络</strong>：路口为节点，道路为边，拓扑结构不规则</li>
+                <li><strong>供应链网络</strong>：设施为节点，物料流为边，具有复杂的层级结构</li>
+                <li><strong>社交/组织网络</strong>：人员为节点，互动关系为边，连接模式各异</li>
+                <li><strong>通信/物流网络</strong>：枢纽为节点，路线为边，规模和形状随场景变化</li>
+            </ul>
 
-            <!-- ===== 2. 事件驱动 vs 时间驱动 ===== -->
+            <p>图神经网络（Graph Neural Network, GNN）正是为了处理这类任意拓扑结构的数据而设计的。它是本章介绍的最后一种架构，也是管理科学中网络类问题的核心工具。</p>
 
-            <h2>事件驱动与时间驱动</h2>
+            <!-- ==================== Part 2: 图的表示 ==================== -->
+            <h2>图的表示</h2>
 
-            <p>根据决策被触发的机制，可以将决策模式分为两大类。</p>
+            <p>一张图 $G = (\mathcal{V}, \mathcal{E})$ 由节点集合 $\mathcal{V}$ 和边集合 $\mathcal{E}$ 组成。每条边 $(u, v) \in \mathcal{E}$ 表示节点 $u$ 和 $v$ 之间存在连接。图的结构可以用<strong>邻接矩阵</strong> $A \in \{0, 1\}^{|\mathcal{V}| \times |\mathcal{V}|}$ 表示，其中 $A_{uv} = 1$ 当且仅当 $(u, v) \in \mathcal{E}$。</p>
 
-            <h3>事件驱动决策</h3>
+            <p>除了拓扑结构，每个节点通常携带特征信息。将所有节点的特征排列成矩阵，得到<strong>节点特征矩阵</strong> $X \in \mathbb{R}^{|\mathcal{V}| \times d}$，其中 $d$ 是特征维度。</p>
 
-            <p><strong>事件驱动</strong>（event-driven）是指每当某个特定事件发生时，智能体立即做出一次决策。以网约车派单为例，每当一个新的乘客请求到达，系统就为这个请求分配一辆车辆。在这种模式下，MDP 的一个时间步对应一个事件的到达，状态中自然包含了触发决策的事件信息（例如新请求的出发地和目的地）。</p>
+            <p>以一个 5 站公交网络为例。5 个站点分别为 $v_1, \ldots, v_5$，每个站点有 3 维特征：客流量、延误时长、站台容量。</p>
 
-            <p>事件驱动的优势在于响应及时，每个事件都能得到即时处理。但它有一个显著的问题：决策的频率完全由事件的到达过程决定，不受建模者控制。在早高峰时段，请求可能每秒到达数十个，智能体需要高频决策；在深夜时段，可能几分钟才有一个请求。这种不均匀的决策频率给算法训练带来了困难，因为不同时间步的间隔差异悬殊，而标准的折扣回报公式 $G_t = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1}$ 假设时间步是等间距的。</p>
+            <table class="trans-table">
+                <thead>
+                    <tr><th>站点</th><th>客流量</th><th>延误 (min)</th><th>容量</th><th>邻居</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>$v_1$</td><td>120</td><td>2</td><td>200</td><td>$v_2, v_3$</td></tr>
+                    <tr><td>$v_2$</td><td>85</td><td>0</td><td>150</td><td>$v_1, v_3, v_4$</td></tr>
+                    <tr><td>$v_3$</td><td>200</td><td>5</td><td>300</td><td>$v_1, v_2, v_5$</td></tr>
+                    <tr><td>$v_4$</td><td>60</td><td>1</td><td>100</td><td>$v_2, v_5$</td></tr>
+                    <tr><td>$v_5$</td><td>150</td><td>3</td><td>250</td><td>$v_3, v_4$</td></tr>
+                </tbody>
+            </table>
 
-            <h3>时间驱动决策</h3>
+            <div class="fig-caption">图 4.4-1 &nbsp; 5 站公交网络示例。每个站点携带 3 维特征（客流量、延误、容量），站点之间通过公交线路相连。</div>
 
-            <p><strong>时间驱动</strong>（time-driven）是指按照固定的时间间隔 $\Delta t$ 进行决策。每隔 $\Delta t$ 秒（或分钟、小时），智能体观测当前系统状态，做出一次决策。例如，每隔 10 秒钟，派单系统审视所有待处理的乘客请求，统一进行车辆分配。</p>
+            <p>对应的邻接矩阵为：</p>
 
-            <p>时间驱动的好处是决策频率可控，计算负载可预测，并且天然适配标准 MDP 的等间距时间步。代价是响应可能不够及时：如果 $\Delta t = 10$ 秒，那么一个在第 1 秒到达的请求最多要等 9 秒才能被处理。</p>
+            <div class="formula-block">
+                $$A = \begin{pmatrix} 0 & 1 & 1 & 0 & 0 \\ 1 & 0 & 1 & 1 & 0 \\ 1 & 1 & 0 & 0 & 1 \\ 0 & 1 & 0 & 0 & 1 \\ 0 & 0 & 1 & 1 & 0 \end{pmatrix}$$
+            </div>
 
-            <h3>混合模式</h3>
+            <h3>为什么不能直接把邻接矩阵展平成向量？</h3>
 
-            <p>实践中，很多系统采用<strong>混合模式</strong>：以固定间隔 $\Delta t$ 做常规决策，同时对特定的高优先级事件立即响应。例如，派单系统每 30 秒做一次批量派单，但当 VIP 乘客发出请求时，立即触发一次额外的决策。混合模式结合了两者的优点，但在 MDP 建模中需要额外的设计来处理非等间距的时间步。</p>
+            <p>一个自然的想法是：把邻接矩阵 $A$ 和节点特征 $X$ 拼接成一个长向量，送入全连接网络。这个方案有三个根本问题：</p>
 
-            <p>下表总结了两种基本模式的对比。</p>
+            <ol style="margin:0.3rem 0 1rem 2rem;">
+                <li><strong>图的大小可变</strong>：不同城市的公交网络有不同数量的站点。一个为 5 站设计的网络无法直接用于 50 站的图，因为输入维度不同。</li>
+                <li><strong>节点编号是任意的</strong>：将 $v_1$ 和 $v_2$ 的编号对调，只是重新排列了邻接矩阵的行和列，图本身没有变化。但全连接网络会给出不同的输出，因为它对每个位置分配了固定的权重。换言之，全连接网络不具备<strong>排列不变性</strong>（permutation invariance）。</li>
+                <li><strong>稀疏性浪费</strong>：邻接矩阵中大部分元素为 0（实际的交通网络中，每个路口平均只连接少数几条路）。展平后，大量参数被分配给这些始终为零的位置，既浪费计算资源，又增加过拟合风险。</li>
+            </ol>
 
-            <table class="compare-table">
+            <p>我们需要一种架构，能够直接利用图的拓扑结构，同时对节点编号的排列保持不变。这正是图神经网络的核心设计思想。</p>
+
+            <!-- ==================== Part 3: 消息传递框架 ==================== -->
+            <h2>消息传递框架</h2>
+
+            <p>图神经网络的核心操作可以用一句话概括：<strong>每个节点通过聚合邻居的信息来更新自己的表示</strong>。这个过程称为<strong>消息传递</strong>（message passing）。</p>
+
+            <p>形象地说，每个节点在每一轮中做三件事：向邻居询问它们当前的状态，将收到的回答汇总成一条消息，然后根据这条消息和自己当前的状态更新自己。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">消息传递的一般形式</div>
+                <p>设 $h_v^{(l)}$ 表示节点 $v$ 在第 $l$ 层的表示向量，$\mathcal{N}(v)$ 表示 $v$ 的邻居集合。消息传递分为两步：</p>
+                <p><strong>聚合</strong>（Aggregate）：从邻居收集信息</p>
+                <div class="formula-block">
+                    $$m_v^{(l)} = \text{AGGREGATE}^{(l)}\!\left(\left\{h_u^{(l-1)} : u \in \mathcal{N}(v)\right\}\right) \tag{4.4-1}$$
+                </div>
+                <p><strong>更新</strong>（Update）：结合自身信息和聚合信息</p>
+                <div class="formula-block">
+                    $$h_v^{(l)} = \text{UPDATE}^{(l)}\!\left(h_v^{(l-1)},\; m_v^{(l)}\right) \tag{4.4-2}$$
+                </div>
+                <p>初始表示 $h_v^{(0)} = x_v$ 就是节点的原始特征。</p>
+            </div>
+
+            <p>公式 (4.4-1) 和 (4.4-2) 定义了一个通用框架。不同的 GNN 变体，如 GCN、GAT、GraphSAGE 等，本质上只是对 $\text{AGGREGATE}$ 和 $\text{UPDATE}$ 做了不同的具体选择。</p>
+
+            <h3>感受野的增长</h3>
+
+            <p>消息传递的一个关键性质是：经过 $L$ 层消息传递后，每个节点的表示编码了其 $L$ 跳邻域的信息。第 1 层后，节点 $v$ 知道了直接邻居的特征；第 2 层后，它进一步知道了邻居的邻居的信息（因为邻居在第 1 层已经聚合了它们各自邻居的信息）。这与 CNN 中卷积核的感受野随层数增长是类似的。</p>
+
+            <h3>具体示例：追踪两轮消息传递</h3>
+
+            <p>回到 5 站公交网络的例子。假设 $\text{AGGREGATE}$ 是取邻居特征的均值，$\text{UPDATE}$ 是将自身特征和邻居均值拼接后通过一个线性变换加 ReLU。追踪站点 $v_1$（邻居为 $v_2, v_3$）的两轮更新过程：</p>
+
+            <div class="derivation">
+                <div class="step-label">第 0 层（初始）</div>
+                <p>$h_{v_1}^{(0)} = x_{v_1} = (120, 2, 200)$，即原始特征（客流量、延误、容量）。</p>
+            </div>
+
+            <div class="derivation">
+                <div class="step-label">第 1 层</div>
+                <p>$v_1$ 的邻居为 $v_2$ 和 $v_3$。聚合它们的初始特征：</p>
+                <div class="formula-block">
+                    $$m_{v_1}^{(1)} = \frac{1}{2}\left(h_{v_2}^{(0)} + h_{v_3}^{(0)}\right) = \frac{1}{2}\big((85,0,150) + (200,5,300)\big) = (142.5,\; 2.5,\; 225)$$
+                </div>
+                <p>然后将 $h_{v_1}^{(0)}$ 与 $m_{v_1}^{(1)}$ 拼接，经线性变换和 ReLU 得到 $h_{v_1}^{(1)}$。此时 $v_1$ 的表示已经包含了 $v_2$ 和 $v_3$ 的信息。</p>
+            </div>
+
+            <div class="derivation">
+                <div class="step-label">第 2 层</div>
+                <p>$v_1$ 再次聚合邻居的表示，但此时 $h_{v_2}^{(1)}$ 和 $h_{v_3}^{(1)}$ 本身已经包含了各自邻居的信息。特别是，$h_{v_2}^{(1)}$ 包含了 $v_4$ 的信息，$h_{v_3}^{(1)}$ 包含了 $v_5$ 的信息。因此经过第 2 层后，$v_1$ 的表示 $h_{v_1}^{(2)}$ 间接编码了整张图所有 5 个站点的信息。</p>
+            </div>
+
+            <p>这个例子清楚地展示了消息传递的核心机制：信息沿着边逐层扩散，每多一层，每个节点就多感知一跳范围的信息。</p>
+
+            <!-- ==================== Part 4: GCN ==================== -->
+            <h2>图卷积网络（GCN）</h2>
+
+            <p>图卷积网络（Graph Convolutional Network, GCN）是 Kipf 和 Welling 在 2017 年提出的经典 GNN 模型。它对消息传递框架做了一个简洁而有效的实例化。</p>
+
+            <p>GCN 的单层更新公式为：</p>
+
+            <div class="formula-block">
+                $$H^{(l+1)} = \sigma\!\left(\tilde{D}^{-1/2}\,\tilde{A}\,\tilde{D}^{-1/2}\, H^{(l)}\, W^{(l)}\right) \tag{4.4-3}$$
+            </div>
+
+            <p>其中：</p>
+            <ul style="margin:0.3rem 0 1rem 2rem;">
+                <li>$\tilde{A} = A + I$ 是加了自环的邻接矩阵（$I$ 为单位矩阵，自环意味着节点也聚合自身的信息）</li>
+                <li>$\tilde{D}$ 是 $\tilde{A}$ 的度矩阵，$\tilde{D}_{ii} = \sum_j \tilde{A}_{ij}$</li>
+                <li>$W^{(l)} \in \mathbb{R}^{d_l \times d_{l+1}}$ 是可学习的权重矩阵</li>
+                <li>$\sigma$ 是激活函数（如 ReLU）</li>
+            </ul>
+
+            <p>公式 (4.4-3) 看起来较为抽象，但其本质非常直观。对于单个节点 $v$，这个公式等价于：</p>
+
+            <div class="formula-block">
+                $$h_v^{(l+1)} = \sigma\!\left(W^{(l)} \cdot \sum_{u \in \mathcal{N}(v) \cup \{v\}} \frac{h_u^{(l)}}{\sqrt{\tilde{d}_v \cdot \tilde{d}_u}}\right) \tag{4.4-4}$$
+            </div>
+
+            <p>其中 $\tilde{d}_v = |\mathcal{N}(v)| + 1$ 是节点 $v$ 在加自环后的度。用一句话概括：<strong>对邻居的特征（包括自身）做归一化加权平均，然后通过权重矩阵变换</strong>。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">为什么需要归一化？</div>
+                <p>如果不做归一化，直接对邻居特征求和，那么度数高的节点（如交通枢纽，连接了大量道路）的聚合值会远大于度数低的节点（如小巷路口）。$\tilde{D}^{-1/2}\tilde{A}\tilde{D}^{-1/2}$ 这个对称归一化确保了不同度数的节点在聚合后的尺度一致，防止高度数节点在训练中主导梯度。</p>
+            </div>
+
+            <p>GCN 的一个重要特点是<strong>参数共享</strong>：权重矩阵 $W^{(l)}$ 对图中所有节点是共用的，无论节点在图中处于什么位置。这与 CNN 中卷积核在所有空间位置共享的思想一致。参数共享带来两个好处：大幅减少参数量，以及允许模型在不同大小的图之间迁移。</p>
+
+            <details class="optional-reading">
+                <summary>选读：GCN 的谱域解释</summary>
+                <p style="margin-top:0.8rem;">GCN 的设计有深层的数学根源。在图信号处理中，图的拉普拉斯矩阵 $L = D - A$（或其归一化形式 $L_{\text{sym}} = I - D^{-1/2}AD^{-1/2}$）的特征向量构成了图上的"傅里叶基"。在这个基下，可以定义图上的卷积运算。GCN 可以视为对谱域卷积的一阶切比雪夫多项式近似。具体地，图上的卷积核 $g_\theta$ 作用于信号 $x$ 可以写成 $g_\theta \star x = U g_\theta(\Lambda) U^\top x$，其中 $U$ 和 $\Lambda$ 分别是 $L_{\text{sym}}$ 的特征向量矩阵和特征值矩阵。将 $g_\theta(\Lambda)$ 用一阶切比雪夫多项式近似，并做适当的参数化简化，就得到了公式 (4.4-3) 的形式。这一推导说明 GCN 的"邻居聚合"操作在频域上对应于一个低通滤波器，即平滑相邻节点的特征表示。</p>
+            </details>
+
+            <h3>GCN 的 PyTorch 实现</h3>
+
+            <p>下面用 PyTorch Geometric 库实现一个简单的两层 GCN。这段代码展示了 GNN 的实现比公式看起来要简洁得多，因为消息传递的细节被封装在了 <code>GCNConv</code> 层中。</p>
+
+            <pre><code class="language-python">import torch
+import torch.nn.functional as F
+from torch_geometric.nn import GCNConv, global_mean_pool
+
+class GCN(torch.nn.Module):
+    def __init__(self, in_dim, hidden_dim, out_dim):
+        super().__init__()
+        self.conv1 = GCNConv(in_dim, hidden_dim)    # 第一层图卷积
+        self.conv2 = GCNConv(hidden_dim, hidden_dim) # 第二层图卷积
+        self.head = torch.nn.Linear(hidden_dim, out_dim)  # 输出头
+
+    def forward(self, x, edge_index, batch=None):
+        # x: 节点特征 [num_nodes, in_dim]
+        # edge_index: 边列表 [2, num_edges]
+        h = F.relu(self.conv1(x, edge_index))  # 第一层消息传递
+        h = F.relu(self.conv2(h, edge_index))  # 第二层消息传递
+
+        if batch is not None:
+            # 图级任务：对所有节点做全局均值池化
+            h = global_mean_pool(h, batch)
+
+        return self.head(h)</code></pre>
+
+            <p>注意 <code>edge_index</code> 以边列表（而非邻接矩阵）的形式存储图的拓扑，这种稀疏表示在处理大规模图时非常高效。对于节点级任务，直接用每个节点的 $h$ 向量做预测；对于图级任务，先通过 <code>global_mean_pool</code> 聚合为图表示，再做预测。</p>
+
+            <!-- ==================== Part 5: GAT ==================== -->
+            <h2>图注意力网络（GAT）</h2>
+
+            <p>GCN 对所有邻居一视同仁（只按度数做归一化），但在很多场景下，不同邻居的重要性是不同的。以交通网络为例：预测某个路口 $i$ 的拥堵状况时，一条日均车流量 5 万的主干道连接的邻居路口 $j$，显然比一条日均 500 的支路连接的邻居路口 $k$ 更重要。GCN 没有这种区分能力。</p>
+
+            <p>图注意力网络（Graph Attention Network, GAT）由 Velickovic 等人在 2018 年提出，将 2.3 节介绍的注意力机制引入图神经网络，让模型自动学习邻居之间的重要性权重。</p>
+
+            <p>GAT 的核心是为每对相邻节点 $(i, j)$ 计算一个注意力系数 $\alpha_{ij}$：</p>
+
+            <div class="formula-block">
+                $$e_{ij} = \text{LeakyReLU}\!\left(\mathbf{a}^\top \left[W h_i \;\|\; W h_j\right]\right) \tag{4.4-5}$$
+            </div>
+
+            <div class="formula-block">
+                $$\alpha_{ij} = \frac{\exp(e_{ij})}{\sum_{k \in \mathcal{N}(i)} \exp(e_{ik})} \tag{4.4-6}$$
+            </div>
+
+            <p>其中 $W \in \mathbb{R}^{d' \times d}$ 是共享的线性变换矩阵，$\mathbf{a} \in \mathbb{R}^{2d'}$ 是注意力向量，$\|$ 表示向量拼接。公式 (4.4-5) 计算原始的注意力分数，公式 (4.4-6) 通过 softmax 将其归一化为权重。</p>
+
+            <p>得到注意力系数后，节点 $i$ 的更新规则为：</p>
+
+            <div class="formula-block">
+                $$h_i^{\prime} = \sigma\!\left(\sum_{j \in \mathcal{N}(i)} \alpha_{ij}\, W h_j\right) \tag{4.4-7}$$
+            </div>
+
+            <p>与 GCN 对比，唯一的区别在于：GCN 用固定的归一化系数 $1/\sqrt{\tilde{d}_i \cdot \tilde{d}_j}$ 加权邻居，而 GAT 用<strong>数据驱动</strong>的注意力系数 $\alpha_{ij}$ 加权。注意力系数是节点特征的函数，因此会随输入数据动态变化。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">多头注意力</div>
+                <p>与 2.3 节中 Transformer 的多头注意力类似，GAT 也采用多头机制。使用 $K$ 组独立的注意力参数 $\{W^k, \mathbf{a}^k\}_{k=1}^{K}$，分别计算注意力系数 $\alpha_{ij}^k$，然后将各头的输出拼接或取平均：</p>
+                <div class="formula-block">
+                    $$h_i^{\prime} = \Big\|_{k=1}^{K}\; \sigma\!\left(\sum_{j \in \mathcal{N}(i)} \alpha_{ij}^{k}\, W^k h_j\right)$$
+                </div>
+                <p>不同的头可以关注不同类型的邻居关系。例如在交通网络中，一个头可能关注上游车流输入，另一个头关注相邻区域的排队长度。</p>
+            </div>
+
+            <p>回到公交网络的例子来建立直觉。假设站点 $v_3$（大型换乘站，客流量 200）有三个邻居 $v_1$、$v_2$、$v_5$。如果我们要预测 $v_3$ 下一时段的客流量，来自 $v_5$（客流量 150，且有 3 分钟延误正在传播过来）的信息可能比 $v_2$（客流量仅 85，无延误）更重要。GAT 通过注意力系数 $\alpha_{3,5} > \alpha_{3,2}$ 自动实现了这种区分，而 GCN 会给三个邻居几乎相同的权重。</p>
+
+            <div class="note">
+                <strong>GAT 与 Transformer 的关系。</strong>在 2.3 节中，我们介绍了 Transformer 的 Scaled Dot-Product Attention。GAT 可以看作将注意力机制应用于图结构数据的特例：Transformer 对序列中所有位置对计算注意力（全连接图），而 GAT 只在图的边上计算注意力（稀疏图）。当底层拓扑为全连接图时，GAT 退化为一种 Transformer 变体。
+            </div>
+
+            <!-- ==================== Part 6: 图级别输出 ==================== -->
+            <h2>图级别输出</h2>
+
+            <p>消息传递得到的是每个节点的表示向量 $h_v^{(L)}$。在许多任务中，我们需要的确实是节点级别的输出，例如预测每个路口的信号配时方案。但有些任务需要对<strong>整张图</strong>做出判断，例如评估一个交通网络的整体拥堵程度，或判断一个供应链网络的健壮性。</p>
+
+            <p>将节点表示汇聚成图表示的操作称为<strong>Readout</strong>（或 Pooling）。最常用的方式是全局池化：</p>
+
+            <div class="formula-block">
+                $$h_G = \frac{1}{|\mathcal{V}|}\sum_{v \in \mathcal{V}} h_v^{(L)} \tag{4.4-8}$$
+            </div>
+
+            <p>公式 (4.4-8) 是全局均值池化。类似地，也可以使用最大池化 $h_G = \max_{v \in \mathcal{V}} h_v^{(L)}$（逐维取最大值）或求和池化。更复杂的方案包括层次化池化（如 DiffPool），通过学习将节点逐步聚类成更粗粒度的图表示。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">节点级任务 vs. 图级任务</div>
+                <p>选择输出层级取决于问题的决策粒度：</p>
+                <ul style="margin:0.3rem 0 0.5rem 1.5rem;">
+                    <li><strong>节点级</strong>：每个路口的信号配时方案、每个仓库的补货量、每个用户的推荐内容</li>
+                    <li><strong>边级</strong>：每条路段的流量预测、每条供应链环节的运输量分配</li>
+                    <li><strong>图级</strong>：整个网络的拥堵等级评估、整条供应链的风险评分、一个分子的性质预测</li>
+                </ul>
+            </div>
+
+            <!-- ==================== Part 7: 管理科学中的应用 ==================== -->
+            <h2>管理科学中的应用</h2>
+
+            <p>图神经网络在管理科学中有广泛的应用场景。只要问题的底层数据具有网络拓扑结构，GNN 通常是首选的特征提取架构。下面介绍四个典型方向。</p>
+
+            <div class="app-box">
+                <div class="app-title">应用一：交通网络控制</div>
+                <p>城市交通信号控制是一个典型的图结构决策问题。将每个路口建模为图的一个节点，道路连接建模为边。每个路口的特征包括各方向的排队长度、当前信号相位、等待时间等。</p>
+                <p>GNN 在这类问题中的角色是<strong>状态编码器</strong>：将整个路网的原始状态（所有路口的局部观测）编码为考虑了邻域拓扑关系的表示。具体地，经过若干层消息传递后，路口 $i$ 的表示 $h_i^{(L)}$ 不仅包含自身的排队信息，还融入了周围路口的交通状况。这些表示随后作为强化学习策略网络的输入，输出信号配时决策。</p>
+                <p>在多智能体设置中，每个路口可以是一个独立的 RL 智能体。GNN 提供了一种自然的<strong>通信机制</strong>：智能体之间不需要显式的消息传递协议，图结构本身定义了谁与谁交流信息。</p>
+            </div>
+
+            <div class="app-box">
+                <div class="app-title">应用二：供应链优化</div>
+                <p>供应链天然是一张有向图：原材料供应商、零部件工厂、组装厂、配送中心、零售商构成节点，物料和产品的流动方向构成有向边。每个节点的特征可以包括库存水平、生产能力、需求预测等。</p>
+                <p>GNN 可以编码供应链的全局状态。例如，经过消息传递后，一个组装厂的表示不仅包含自身的库存信息，还融入了上游零部件供应商的产能状况和下游配送中心的库存压力。这种上下游信息的自动传递对于库存分配、中断风险预测、需求信号传导等任务都至关重要。</p>
+                <p>一个典型场景是<strong>中断传播预测</strong>：某个供应商发生停产，GNN 可以通过图结构预测中断将如何向下游传导，以及各节点受影响的程度。</p>
+            </div>
+
+            <div class="app-box">
+                <div class="app-title">应用三：网络上的资源调度</div>
+                <p>网约车调度、救护车部署、共享单车再平衡等问题都发生在一张空间网络上。以网约车为例：将城市划分为若干区域作为节点，相邻区域之间的连接作为边。每个区域的特征包括当前供需比、历史订单密度、平均接驾距离等。</p>
+                <p>GNN 编码了区域之间的空间关系。经过消息传递后，每个区域的表示不仅反映自身的供需状况，还融入了相邻区域的信息。这对于调度决策非常关键：一个供大于求的区域可以向供不应求的相邻区域输送运力。</p>
+                <p>在末端配送场景中，配送区域构成图节点，GNN 帮助每个区域的调度策略感知周边区域的工作负载和交通状况。</p>
+            </div>
+
+            <div class="app-box">
+                <div class="app-title">应用四：社交网络与营销优化</div>
+                <p>社交网络中，用户为节点，社交关系为边。用户的属性（消费偏好、活跃度等）为节点特征。GNN 在此有多种应用：</p>
+                <ul style="margin:0.3rem 0 0.5rem 1.5rem;">
+                    <li><strong>影响力最大化</strong>：选择少量种子用户使信息传播范围最大化。GNN 编码的节点表示天然包含了用户在网络中的结构位置信息</li>
+                    <li><strong>客户分群</strong>：结合用户属性和网络位置进行更精准的客户细分</li>
+                    <li><strong>推荐系统</strong>：用户和商品构成二部图，GNN 通过用户-商品交互的图结构学习协同过滤信号</li>
+                </ul>
+            </div>
+
+            <div class="key-insight">
+                <div class="insight-title">核心判断准则</div>
+                <p>当你的管理问题具有一个底层的<strong>网络拓扑</strong>，且这个拓扑结构蕴含了决策所需的关键信息时，GNN 是最自然的选择。与 CNN 不同，GNN 不要求数据排列在规则网格上，可以处理任意结构的图。这使它特别适合交通、物流、供应链等基础设施密集型领域。</p>
+            </div>
+
+            <!-- ==================== Part 7.5: 过平滑问题 ==================== -->
+            <h3>GNN 的层数选择：过平滑问题</h3>
+
+            <p>一个自然的想法是，既然每多一层就能看到更远的邻居，那多堆几层 GNN 是否更好？实际上，GNN 存在一个与深度 CNN 不同的问题：<strong>过平滑</strong>（over-smoothing）。随着层数增加，所有节点的表示趋于相同，因为每个节点经过足够多轮消息传递后，其表示融合了整张图几乎所有节点的信息，节点之间的区分度下降。</p>
+
+            <p>在实践中，2 到 4 层 GNN 通常是最佳选择。对于大多数管理科学中的图结构问题，2 到 3 跳的邻域信息已经足够。例如，在交通信号控制中，一个路口通常只需要考虑 2 到 3 跳范围内的交通状况；更远路口的影响可以通过多步决策间接体现。</p>
+
+            <!-- ==================== Part 8: GNN 天然处理变长问题 ==================== -->
+            <h2>GNN 天然处理变长问题</h2>
+
+            <p>GNN 的一个重要实践优势是<strong>天然适应不同大小的图</strong>。这是因为消息传递的权重矩阵 $W^{(l)}$ 对所有节点共享，与图中节点数量无关。一个在 20 站公交网络上训练的 GNN，可以直接应用于 50 站甚至 200 站的网络，无需修改模型结构。</p>
+
+            <p>这个性质对管理科学研究特别有价值。在交通信号控制研究中，研究者往往在小规模路网上训练和调参，然后将学到的策略迁移到大规模路网。GNN 的参数共享机制使这种迁移成为可能。类似地，在供应链管理中，同一个 GNN 模型可以用于不同结构的供应链网络。</p>
+
+            <h3>与 Attention 机制的对比</h3>
+
+            <p>2.3 节介绍的 Attention 机制同样能处理变长输入。两者的关键区别在于对结构信息的利用方式：</p>
+
+            <table class="trans-table" style="font-size:0.92rem;">
+                <thead>
+                    <tr><th></th><th>GNN</th><th>Attention / Transformer</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>结构假设</strong></td><td>需要显式的图结构（邻接矩阵）</td><td>不假设预定义结构</td></tr>
+                    <tr><td><strong>信息交互范围</strong></td><td>仅在边连接的邻居之间</td><td>所有元素对之间</td></tr>
+                    <tr><td><strong>计算复杂度</strong></td><td>$O(|\mathcal{E}|)$，与边数成正比</td><td>$O(|\mathcal{V}|^2)$，与节点数的平方成正比</td></tr>
+                    <tr><td><strong>适用场景</strong></td><td>图结构已知且有意义</td><td>元素间关系需要从数据中学习</td></tr>
+                </tbody>
+            </table>
+
+            <p>简言之：当节点之间的连接关系是已知的、有物理意义的（如道路网、供应链），使用 GNN 直接利用这种结构；当元素之间的关系需要从数据中自动发现时（如序列中哪些时间步彼此相关），使用 Attention。在实践中，两者也经常结合使用，例如在图上使用注意力机制聚合邻居信息（即 GAT）。</p>
+
+            <!-- ==================== Part 9: 与强化学习的结合 ==================== -->
+            <h2>与强化学习的结合</h2>
+
+            <p>GNN 与强化学习的结合主要有三种模式：</p>
+
+            <h3>模式一：GNN 作为状态编码器</h3>
+
+            <p>当 RL 环境具有图结构时（如交通网络、供应链），GNN 充当策略网络和价值网络的前端编码器。整体架构为：</p>
+
+            <div class="formula-block">
+                $$\text{原始图状态} \;\xrightarrow{\text{GNN}}\; \text{节点/图表示} \;\xrightarrow{\text{MLP}}\; \text{动作/价值}$$
+            </div>
+
+            <p>GNN 将图结构的状态编码为固定维度的向量表示，后续的策略头或价值头可以是简单的全连接网络。这种分离使得 RL 算法（DQN、PPO、SAC 等）无需修改，只需更换状态编码器。</p>
+
+            <h3>模式二：GNN 实现多智能体通信</h3>
+
+            <p>在多智能体 RL 中，每个智能体是图的一个节点，智能体之间的通信拓扑定义了边。GNN 的消息传递过程天然实现了智能体之间的信息交换：每个智能体在做决策前，先通过 GNN 聚合邻居智能体的观测或隐藏状态。这种方式比全连接通信（每个智能体与所有其他智能体通信）高效得多，也更贴合实际场景中的通信约束。</p>
+
+            <h3>模式三：GNN 用于图上的动作选择</h3>
+
+            <p>有些 RL 问题的动作空间本身定义在图上。例如，"选择一个路口进行改造"或"选择一条路线优先调度"。这类动作可以用节点或边的表示来评分：</p>
+
+            <div class="formula-block">
+                $$\pi(v \mid G) = \frac{\exp\!\left(f(h_v^{(L)})\right)}{\sum_{u \in \mathcal{V}} \exp\!\left(f(h_u^{(L)})\right)} \tag{4.4-9}$$
+            </div>
+
+            <p>其中 $f$ 是一个评分函数，$h_v^{(L)}$ 是 GNN 输出的节点表示。策略通过 softmax 在所有节点上定义选择概率。这种设计的优势在于：动作空间的大小随图的规模变化，而模型参数不变。</p>
+
+            <h3>一个具体的架构示例</h3>
+
+            <p>以交通信号控制为例，说明 GNN + RL 的完整架构。假设一个有 $n$ 个路口的路网，每个路口 $i$ 的局部观测为 $x_i \in \mathbb{R}^d$（包括各方向排队长度、当前相位等），动作为选择下一个信号相位 $a_i \in \{1, 2, \ldots, K\}$。</p>
+
+            <ol style="margin:0.3rem 0 1rem 2rem;">
+                <li><strong>构建图</strong>：节点集 $\mathcal{V} = \{1, \ldots, n\}$，边集 $\mathcal{E}$ 由道路连接定义，节点特征矩阵 $X = [x_1; \ldots; x_n] \in \mathbb{R}^{n \times d}$</li>
+                <li><strong>GNN 编码</strong>：将 $(X, \mathcal{E})$ 送入两层 GCN 或 GAT，得到每个路口的上下文表示 $h_i^{(2)} \in \mathbb{R}^{d'}$</li>
+                <li><strong>策略输出</strong>：每个路口的策略 $\pi_\theta(a_i \mid h_i^{(2)}) = \text{softmax}(\text{MLP}(h_i^{(2)}))$</li>
+                <li><strong>价值输出</strong>：每个路口的状态价值 $V_\phi(h_i^{(2)}) = \text{MLP}(h_i^{(2)})$，或将所有节点表示池化后得到全局价值</li>
+                <li><strong>训练</strong>：使用 PPO 等策略梯度算法，基于所有路口的奖励（如通行量、等待时间的负值）更新 GNN 和 MLP 的参数</li>
+            </ol>
+
+            <p>由于 GNN 的权重在所有路口之间共享，这个架构可以在小路网上训练后迁移到更大的路网，只需更换图的拓扑结构即可。</p>
+
+            <!-- ==================== Part 10: 小结 ==================== -->
+            <h2>小结</h2>
+
+            <p>图神经网络通过消息传递机制，让每个节点能够感知和融合其邻域的信息。GCN 用固定的归一化权重聚合邻居，GAT 用注意力机制动态调整邻居权重。GNN 天然适应不同大小和拓扑的图，这使它成为处理网络结构管理问题的核心工具。</p>
+
+            <p>至此，我们已经介绍了深度学习中的四种主要架构：全连接网络、CNN、RNN/Attention、GNN。每种架构对数据结构有不同的假设，适用于不同类型的管理科学问题。下表做一个系统的对比。</p>
+
+            <h3>第四章总结：从数据结构到网络架构</h3>
+
+            <table class="arch-table">
                 <thead>
                     <tr>
-                        <th style="width:18%;">对比维度</th>
-                        <th style="width:41%;">事件驱动</th>
-                        <th style="width:41%;">时间驱动</th>
+                        <th style="width:10%;">架构</th>
+                        <th style="width:15%;">数据结构假设</th>
+                        <th style="width:18%;">核心操作</th>
+                        <th style="width:15%;">关键归纳偏置</th>
+                        <th style="width:12%;">变长输入</th>
+                        <th style="width:30%;">管理科学典型应用</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td><strong>触发条件</strong></td>
-                        <td>特定事件发生（如请求到达、任务完成）</td>
-                        <td>固定时间间隔 $\Delta t$</td>
+                        <td>全连接网络 (FC)</td>
+                        <td>无结构假设，固定维度向量</td>
+                        <td>矩阵乘法 + 激活函数</td>
+                        <td>万能近似，但无结构先验</td>
+                        <td>不支持</td>
+                        <td>低维状态的价值函数和策略网络（如库存管理中 $(\text{库存}, \text{需求})$ 向量）；特征已预处理好的回归/分类任务</td>
                     </tr>
                     <tr>
-                        <td><strong>决策频率</strong></td>
-                        <td>由事件到达过程决定，不可控</td>
-                        <td>固定，由建模者选择</td>
+                        <td>CNN</td>
+                        <td>规则网格（如图像、热力图）</td>
+                        <td>局部卷积核滑动</td>
+                        <td>局部性 + 平移不变性</td>
+                        <td>有限支持（需固定网格大小或做 padding）</td>
+                        <td>将城市划分为规则网格后的需求预测热力图、遥感图像分析、棋盘类博弈（如围棋）</td>
                     </tr>
                     <tr>
-                        <td><strong>响应延迟</strong></td>
-                        <td>无延迟，事件到达即处理</td>
-                        <td>最多延迟 $\Delta t$</td>
+                        <td>RNN / LSTM</td>
+                        <td>序列（有先后顺序）</td>
+                        <td>按时间步递归更新隐藏状态</td>
+                        <td>时间局部性 + 顺序依赖</td>
+                        <td>支持</td>
+                        <td>时间序列预测（需求、价格）、有先后依赖的调度序列、对话式交互</td>
                     </tr>
                     <tr>
-                        <td><strong>计算负载</strong></td>
-                        <td>随事件密度波动</td>
-                        <td>均匀可预测</td>
+                        <td>Attention / Transformer</td>
+                        <td>集合或序列（无固定拓扑）</td>
+                        <td>全对全注意力计算</td>
+                        <td>排列等变/不变性，关系自动学习</td>
+                        <td>支持</td>
+                        <td>变长车队/订单的调度分配、多品类库存的联合决策、自然语言指令理解</td>
                     </tr>
                     <tr>
-                        <td><strong>批量处理</strong></td>
-                        <td>逐个处理，难以全局优化</td>
-                        <td>天然支持批量决策</td>
-                    </tr>
-                    <tr>
-                        <td><strong>MDP 适配</strong></td>
-                        <td>时间步不等距，需要调整折扣</td>
-                        <td>天然对应等间距时间步</td>
-                    </tr>
-                    <tr>
-                        <td><strong>典型场景</strong></td>
-                        <td>呼叫中心来电分配、告警响应</td>
-                        <td>车辆调度、库存补货、交通信号控制</td>
+                        <td>GNN</td>
+                        <td>图（任意拓扑连接）</td>
+                        <td>沿边的消息传递与邻居聚合</td>
+                        <td>排列不变性 + 拓扑结构先验</td>
+                        <td>支持</td>
+                        <td>交通信号控制（路网图）、供应链优化（供应网络）、网约车/物流调度（空间图）、社交网络营销</td>
                     </tr>
                 </tbody>
             </table>
 
-            <div class="concept-card">
-                <div class="concept-name">建模建议</div>
-                <p>如果问题中的事件到达率相对稳定，事件驱动是自然的选择。如果事件到达率波动剧烈，或者需要对多个事件进行联合优化，时间驱动更为稳健。大多数管理科学中的 RL 应用采用时间驱动模式，因为它与标准 MDP 框架的对接最为直接。</p>
+            <div class="fig-caption">图 4.4-2 &nbsp; 第四章总结：五种网络架构的对比。选择架构的核心依据是数据的内在结构，而非问题的复杂程度。</div>
+
+            <div class="note">
+                <strong>架构选择的指导原则。</strong>数据是规则网格就用 CNN，是序列就用 RNN 或 Attention，是图就用 GNN，没有明显结构就用全连接网络。当数据同时具有多种结构（例如交通网络上的时间序列）时，可以组合使用多种架构：用 GNN 编码空间拓扑，用 RNN 或 Attention 编码时间依赖。关键是让网络的归纳偏置与数据的内在结构匹配，这样模型可以用更少的数据学到更好的表示。
             </div>
-
-            <!-- ===== 3. 决策频率的影响 ===== -->
-
-            <h2>决策频率的影响</h2>
-
-            <p>在时间驱动模式下，决策间隔 $\Delta t$ 的选择对 MDP 的性质有深远影响。直觉上，$\Delta t$ 太小和太大都有问题。</p>
-
-            <h3>决策过于频繁</h3>
-
-            <p>当 $\Delta t$ 很小时，相邻两个决策点之间系统几乎没有变化。这带来几个后果：</p>
-
-            <ul>
-                <li><strong>状态变化微小。</strong>连续两个状态 $S_t$ 和 $S_{t+1}$ 几乎相同，使得值函数 $V(S_t) \approx V(S_{t+1})$，TD 目标 $R_{t+1} + \gamma V(S_{t+1})$ 提供的学习信号非常弱。</li>
-                <li><strong>动作效果不明显。</strong>在极短的间隔内，动作产生的影响很小，大量时间步的动作选择对最终结果几乎没有区别。</li>
-                <li><strong>回合步数激增。</strong>假设一个派单场景持续 3 小时。若 $\Delta t = 1$ 秒，一个回合就有 $T = 10800$ 步；若 $\Delta t = 10$ 秒，则只有 $T = 1080$ 步。更长的回合意味着更长的信用分配链，增加了学习难度。</li>
-                <li><strong>计算开销增大。</strong>每个决策步都需要前向推理（查询策略网络），步数翻 10 倍意味着推理开销翻 10 倍。</li>
-            </ul>
-
-            <h3>决策过于稀疏</h3>
-
-            <p>当 $\Delta t$ 很大时，两次决策之间系统发生了剧烈变化：</p>
-
-            <ul>
-                <li><strong>信息过时。</strong>决策基于 $\Delta t$ 秒前的状态，但系统此时可能已经面目全非。车辆已经驶过了最佳接客点，请求可能已被乘客取消。</li>
-                <li><strong>错失机会。</strong>两次决策之间到达的事件无法被及时响应，导致服务质量下降。</li>
-                <li><strong>状态跳变剧烈。</strong>$S_t$ 和 $S_{t+1}$ 之间的差异很大，转移概率 $P(S_{t+1} \mid S_t, A_t)$ 的方差增加，使得值函数更难学习。</li>
-                <li><strong>训练样本减少。</strong>同样 3 小时的模拟，$\Delta t = 300$ 秒只产生 36 步，可供学习的转移样本大幅减少。</li>
-            </ul>
-
-            <h3>合适的尺度</h3>
-
-            <div class="concept-card">
-                <div class="concept-name">决策频率的适配原则</div>
-                <p>$\Delta t$ 应当与系统中<strong>有意义变化</strong>的时间尺度相匹配。具体地，$\Delta t$ 应足够大，使得两步之间有值得响应的新信息到达；又足够小，使得决策能在事件发生后及时做出。</p>
-            </div>
-
-            <p>用网约车派单场景来具体说明。设请求的平均到达间隔为 $\bar{\tau}$ 秒，车辆的平均行驶速度为 $v$ 米/秒。</p>
-
-            <ul>
-                <li>如果 $\Delta t \ll \bar{\tau}$，大多数决策步没有新请求到达，智能体反复观测相同的待处理列表，浪费了计算资源。</li>
-                <li>如果 $\Delta t \gg \bar{\tau}$，两次决策之间累积了大量请求，先到的请求等待时间过长。同时，车辆在 $\Delta t$ 内行驶了 $v \cdot \Delta t$ 米，位置信息已经严重滞后。</li>
-                <li>合适的范围是 $\Delta t$ 与 $\bar{\tau}$ 同阶，即 $\Delta t \approx \bar{\tau}$ 或略小于 $\bar{\tau}$。</li>
-            </ul>
-
-            <p>例如，在一个每秒到达 0.5 个请求的场景中，$\bar{\tau} = 2$ 秒。选择 $\Delta t = 2 \sim 5$ 秒是合理的，每个决策步平均处理 $1 \sim 2.5$ 个新请求。若车辆速度 $v = 10$ 米/秒，在 $\Delta t = 5$ 秒内车辆移动约 50 米，位置变化可接受。</p>
-
-            <!-- ===== 4. 批量决策 ===== -->
-
-            <h2>批量决策</h2>
-
-            <p>当采用时间驱动模式且 $\Delta t$ 大于事件平均到达间隔时，每个决策点通常面临多个待处理事件。如何在一个时间步内处理这批事件，有两种主要策略。</p>
-
-            <h3>顺序处理</h3>
-
-            <p><strong>顺序处理</strong>是将批内事件按某种顺序排列（例如到达时间、优先级），逐一做出决策。每处理一个事件后，更新系统的工作状态副本，下一个事件的决策基于更新后的状态。</p>
-
-            <p>以网约车派单为例。假设在 $\Delta t = 10$ 秒内到达了 3 个请求 $\{r_1, r_2, r_3\}$，系统有 5 辆空闲车辆。顺序处理的流程如下：</p>
-
-            <ol>
-                <li>处理 $r_1$：在 5 辆空闲车辆中为 $r_1$ 分配一辆，更新工作状态（剩余 4 辆空闲车辆）。</li>
-                <li>处理 $r_2$：在 4 辆空闲车辆中为 $r_2$ 分配一辆，更新工作状态（剩余 3 辆空闲车辆）。</li>
-                <li>处理 $r_3$：在 3 辆空闲车辆中为 $r_3$ 分配一辆。</li>
-            </ol>
-
-            <p>注意这里有一个微妙之处：处理顺序会影响结果。$r_1$ 先被处理，所以它有更多的可选车辆。如果 $r_3$ 的优先级更高（例如是预约订单），应当调整处理顺序让它先被服务。</p>
-
-            <p>顺序处理的优势在于，它将批量决策分解为多次标准的单步决策，每一次都是一个 $(S, A) \to (S', R)$ 转移。这与标准 RL 框架完全兼容，不需要特殊的网络架构。代价是没有全局最优性保证，因为为 $r_1$ 做决策时并不知道 $r_2$ 和 $r_3$ 即将到来。</p>
-
-            <h3>联合优化</h3>
-
-            <p><strong>联合优化</strong>是将整批事件作为一个整体，同时决定所有分配方案。在派单场景中，这相当于求解一个二部图匹配问题：将 3 个请求同时分配给 5 辆车辆，使总体成本最小。</p>
-
-            <p>联合优化可以利用运筹学中成熟的组合优化算法（如匈牙利算法、拍卖算法）。但它与标准 RL 的结合需要更多设计，因为动作空间从单个分配变成了一个分配方案的组合。一种思路是让 RL 负责学习每个请求-车辆对的价值（考虑长期影响），再由组合优化算法根据这些价值求解即时的匹配问题。这种混合架构将在第七章的具体案例中详细展开。</p>
-
-            <div class="concept-card">
-                <div class="concept-name">顺序处理 vs 联合优化</div>
-                <p>顺序处理简单直接，兼容标准 RL 框架，适合事件之间耦合较弱的场景。联合优化能利用全局信息，适合事件之间存在资源竞争的场景（例如多个请求抢占同一辆车）。两者也可以结合：用 RL 学习长期价值，用组合优化求解短期分配。</p>
-            </div>
-
-            <!-- ===== 5. 回合结构 ===== -->
-
-            <h2>回合结构</h2>
-
-            <p>决策频率确定之后，还需要决定一个回合（episode）的时间跨度。回合结构的选择取决于问题的时间特性。</p>
-
-            <h3>有限期任务</h3>
-
-            <p>很多管理问题有天然的起止边界。一个网约车司机的工作班次有固定的开始和结束时间；一个航班的登机过程在舱门关闭时结束；一场促销活动持续 7 天。这些问题自然地被建模为有限期（episodic）MDP，一个回合对应一个完整的业务周期。</p>
-
-            <p>回合长度 $T$ 的选择需要权衡。过短的回合无法反映长期效应（例如，30 分钟的回合看不到车辆从远处空驶回来的成本），过长的回合则增加训练时间。一个常用的选择是让一个回合覆盖一个完整的业务高峰期，例如早高峰 7:00-10:00（3 小时）。</p>
-
-            <h3>无限期任务</h3>
-
-            <p>有些管理问题没有自然终止点。一个配送中心 24 小时运转，一个库存系统持续运营。这些问题被建模为无限期（continuing）MDP，使用折扣因子 $\gamma < 1$ 确保回报 $G_t = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1}$ 有限。</p>
-
-            <p>在实践中，仿真不可能无限运行。通常的做法是选定一个截断长度 $T$，运行 $T$ 步后终止仿真，但不将 $S_T$ 视为终止状态。相反，用当前值函数的估计 $V(S_T)$ 作为截断点之后回报的近似，即：</p>
-
-            $$G_t = \sum_{k=0}^{T-t-1} \gamma^k R_{t+k+1} + \gamma^{T-t} V(S_T) \tag{4.4-1}$$
-
-            <p>公式 (4.4-1) 中的最后一项 $\gamma^{T-t} V(S_T)$ 称为<strong>自举项</strong>（bootstrap term）。它用值函数估计替代了截断之后无穷多步的真实回报。如果 $V$ 的估计是准确的，截断带来的偏差可以忽略不计。</p>
-
-            <h3>暖启动与冷却效应</h3>
-
-            <p>无论采用有限期还是无限期建模，回合的首尾都需要额外关注。</p>
-
-            <p>在回合开始时，系统可能处于不自然的状态。例如，仿真在 $t=0$ 时将所有车辆放置在随机位置，这与真实系统的稳态分布差异很大。前几分钟的决策和回报受初始条件的影响，不能反映稳态性能。常见的处理方法是设置一个<strong>暖启动期</strong>（warm-up period），在暖启动阶段运行仿真但不收集训练数据，等系统进入稳态后再开始记录。</p>
-
-            <p>在回合结束时，如果智能体知道终止时刻即将到来，可能会做出短视的决策。例如在班次即将结束时，司机倾向于拒绝远途订单，因为它在本回合内无法带来足够回报。这种<strong>末端效应</strong>（end-of-horizon effect）可以通过公式 (4.4-1) 中的自举项来缓解：即使回合在 $T$ 步截断，值函数估计 $V(S_T)$ 仍然能引导智能体考虑截断之后的长期影响。</p>
-
-            <!-- ===== 6. 多时间尺度的系统 ===== -->
-
-            <h2>多时间尺度的系统</h2>
-
-            <p>到目前为止，我们讨论的都是单一决策者在单一时间尺度上的行为。但真实的管理系统往往包含多个层次，每个层次有不同的时间尺度。</p>
-
-            <p>以网约车平台为例，至少存在三个层次：</p>
-
-            <ul>
-                <li><strong>物理层。</strong>车辆在道路网络上连续移动，GPS 坐标每秒更新一次。仿真器以 $\Delta t_{\text{phys}} = 1$ 秒的粒度追踪车辆位置。</li>
-                <li><strong>业务逻辑层。</strong>乘客请求随机到达，系统检测接驾完成和送达完成等事件。这些事件的时间尺度从数秒到数分钟不等。</li>
-                <li><strong>决策层。</strong>RL 智能体每隔 $\Delta t_{\text{dec}} = 10$ 秒做一次派单决策。它不需要知道每一秒的车辆位置更新，只需要在决策点获取当前的系统快照。</li>
-            </ul>
-
-            <p>下图展示了三个层次的时间尺度关系。</p>
-
-            <!-- SVG 图 4.4-1 -->
-            <div style="text-align:center; margin:2rem 0 0.5rem;">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 260" style="max-width:660px; width:100%;">
-                    <!-- 背景 -->
-                    <rect x="0" y="0" width="700" height="260" fill="white" rx="8"/>
-
-                    <!-- 时间轴基线 -->
-                    <line x1="140" y1="55" x2="660" y2="55" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="140" y1="130" x2="660" y2="130" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="140" y1="205" x2="660" y2="205" stroke="#cbd5e0" stroke-width="1"/>
-
-                    <!-- 物理层 (蓝色) - 每个小刻度 = 1秒, 共20个 -->
-                    <foreignObject x="4" y="38" width="130" height="34">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px; color:#2b6cb0; font-weight:600; text-align:right; line-height:34px;">物理层 (1s)</div>
-                    </foreignObject>
-                    <!-- 20个刻度, 从x=160到x=640, 间距24 -->
-                    <line x1="160" y1="48" x2="160" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="184" y1="48" x2="184" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="208" y1="48" x2="208" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="232" y1="48" x2="232" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="256" y1="48" x2="256" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="280" y1="48" x2="280" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="304" y1="48" x2="304" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="328" y1="48" x2="328" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="352" y1="48" x2="352" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="376" y1="48" x2="376" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="400" y1="48" x2="400" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="424" y1="48" x2="424" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="448" y1="48" x2="448" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="472" y1="48" x2="472" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="496" y1="48" x2="496" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="520" y1="48" x2="520" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="544" y1="48" x2="544" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="568" y1="48" x2="568" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="592" y1="48" x2="592" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="616" y1="48" x2="616" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="640" y1="48" x2="640" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
-                    <!-- 物理层连线 -->
-                    <line x1="160" y1="55" x2="640" y2="55" stroke="#2b6cb0" stroke-width="2.5" stroke-linecap="round"/>
-
-                    <!-- 业务逻辑层 (黄色) - 不等间距的事件 -->
-                    <foreignObject x="4" y="113" width="130" height="34">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px; color:#d69e2e; font-weight:600; text-align:right; line-height:34px;">逻辑层 (事件)</div>
-                    </foreignObject>
-                    <!-- 事件标记：不等间距的竖线+圆点 -->
-                    <circle cx="196" cy="130" r="5" fill="#d69e2e"/>
-                    <line x1="196" y1="120" x2="196" y2="140" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
-                    <circle cx="284" cy="130" r="5" fill="#d69e2e"/>
-                    <line x1="284" y1="120" x2="284" y2="140" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
-                    <circle cx="316" cy="130" r="5" fill="#d69e2e"/>
-                    <line x1="316" y1="120" x2="316" y2="140" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
-                    <circle cx="420" cy="130" r="5" fill="#d69e2e"/>
-                    <line x1="420" y1="120" x2="420" y2="140" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
-                    <circle cx="465" cy="130" r="5" fill="#d69e2e"/>
-                    <line x1="465" y1="120" x2="465" y2="140" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
-                    <circle cx="480" cy="130" r="5" fill="#d69e2e"/>
-                    <line x1="480" y1="120" x2="480" y2="140" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
-                    <circle cx="590" cy="130" r="5" fill="#d69e2e"/>
-                    <line x1="590" y1="120" x2="590" y2="140" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
-                    <!-- 逻辑层连线 -->
-                    <line x1="160" y1="130" x2="640" y2="130" stroke="#d69e2e" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="6,4"/>
-
-                    <!-- 决策层 (红色) - 每10秒一个决策点, 间距 = 10*24 = 240 -->
-                    <foreignObject x="4" y="188" width="130" height="34">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px; color:#c53030; font-weight:600; text-align:right; line-height:34px;">决策层 (10s)</div>
-                    </foreignObject>
-                    <!-- 决策点：大圆点 + 粗竖线 -->
-                    <circle cx="160" cy="205" r="7" fill="#c53030"/>
-                    <line x1="160" y1="192" x2="160" y2="218" stroke="#c53030" stroke-width="3" stroke-linecap="round"/>
-                    <circle cx="400" cy="205" r="7" fill="#c53030"/>
-                    <line x1="400" y1="192" x2="400" y2="218" stroke="#c53030" stroke-width="3" stroke-linecap="round"/>
-                    <circle cx="640" cy="205" r="7" fill="#c53030"/>
-                    <line x1="640" y1="192" x2="640" y2="218" stroke="#c53030" stroke-width="3" stroke-linecap="round"/>
-                    <!-- 决策层连线 -->
-                    <line x1="160" y1="205" x2="640" y2="205" stroke="#c53030" stroke-width="2.5" stroke-linecap="round"/>
-
-                    <!-- 竖向虚线连接决策点到其他层 -->
-                    <line x1="160" y1="65" x2="160" y2="190" stroke="#c53030" stroke-width="1" stroke-dasharray="4,4" opacity="0.4"/>
-                    <line x1="400" y1="65" x2="400" y2="190" stroke="#c53030" stroke-width="1" stroke-dasharray="4,4" opacity="0.4"/>
-                    <line x1="640" y1="65" x2="640" y2="190" stroke="#c53030" stroke-width="1" stroke-dasharray="4,4" opacity="0.4"/>
-
-                    <!-- 时间标注 -->
-                    <foreignObject x="140" y="228" width="50" height="25">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px; color:#4a5568; text-align:center;">$t$</div>
-                    </foreignObject>
-                    <foreignObject x="376" y="228" width="50" height="25">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px; color:#4a5568; text-align:center;">$t{+}10$</div>
-                    </foreignObject>
-                    <foreignObject x="616" y="228" width="50" height="25">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px; color:#4a5568; text-align:center;">$t{+}20$</div>
-                    </foreignObject>
-
-                    <!-- 括号标注: 事件累积区间 -->
-                    <rect x="165" y="150" width="230" height="22" rx="4" fill="#fed7d7" fill-opacity="0.5"/>
-                    <foreignObject x="165" y="148" width="230" height="26">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px; color:#c53030; text-align:center; line-height:26px;">3 个事件在此区间累积</div>
-                    </foreignObject>
-                    <rect x="405" y="150" width="230" height="22" rx="4" fill="#fed7d7" fill-opacity="0.5"/>
-                    <foreignObject x="405" y="148" width="230" height="26">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px; color:#c53030; text-align:center; line-height:26px;">4 个事件在此区间累积</div>
-                    </foreignObject>
-                </svg>
-            </div>
-            <p class="fig-caption">图 4.4-1：多时间尺度的系统架构。物理层（蓝色）每秒更新一次车辆位置；业务逻辑层（黄色）在不规则的时间点产生事件；决策层（红色）每 10 秒做一次派单决策，处理区间内累积的所有事件。</p>
-
-            <p>这种分层架构的核心思想是：<strong>MDP 的时间步不必与底层仿真的时间步一致</strong>。物理仿真以 1 秒为步长精确追踪系统动态，RL 智能体以 10 秒为步长做出决策。在两个决策点之间，物理仿真自主运转 10 步，产生的状态变化和事件被汇总为 RL 智能体看到的下一个状态。</p>
-
-            <p>从 RL 智能体的视角看，环境每 10 秒返回一次状态观测和累积奖励，它完全不需要感知底层的 1 秒步长。从仿真器的视角看，RL 智能体的决策是一个持续 10 秒的不变输入，直到下一个决策点才会更新。这种解耦使得决策频率和仿真精度可以独立调节。</p>
-
-            <p>更进一步，某些系统包含不同时间尺度的多层决策。例如，网约车平台的<strong>调度层</strong>每 10 秒决定派单方案，而<strong>运营层</strong>每小时决定不同区域的定价策略和车辆调配方案。较高层的决策成为较低层环境的一部分：调度智能体的状态中包含当前定价，而定价智能体的状态中包含过去一小时的供需统计。这种层次化的建模方式将在第五章仿真架构中进一步讨论。</p>
-
-            <details class="optional-reading">
-                <summary>选读：非等间距时间步的折扣处理</summary>
-                <div class="opt-body">
-                    <p>在事件驱动或混合模式下，相邻两个决策点之间的实际时间间隔 $\delta_t$ 可能不等。如果仍使用固定的折扣因子 $\gamma$，则隐含地假设了等间距时间步。一个更准确的做法是使用<strong>连续时间折扣</strong>。</p>
-
-                    <p>设连续时间折扣率为 $\rho > 0$，则经过 $\delta$ 秒后的折扣因子为：</p>
-
-                    $$\gamma(\delta) = e^{-\rho \delta} \tag{4.4-2}$$
-
-                    <p>对应的回报定义为：</p>
-
-                    $$G_t = \sum_{k=0}^{\infty} e^{-\rho \sum_{j=0}^{k-1} \delta_{t+j}} R_{t+k+1} \tag{4.4-3}$$
-
-                    <p>当所有 $\delta_t = \Delta t$ 相等时，$e^{-\rho \Delta t}$ 就是常见的固定折扣因子 $\gamma$，公式 (4.4-3) 退化为标准形式。</p>
-
-                    <p>在实现上，只需将 TD 目标中的 $\gamma$ 替换为 $e^{-\rho \delta_t}$ 即可。例如 TD(0) 的更新变为：</p>
-
-                    $$V(S_t) \leftarrow V(S_t) + \alpha \Big[ R_{t+1} + e^{-\rho \delta_t} V(S_{t+1}) - V(S_t) \Big] \tag{4.4-4}$$
-                </div>
-            </details>
-
-            <!-- ===== 7. 小结与衔接 ===== -->
-
-            <h2>小结</h2>
-
-            <p>本节讨论了将管理问题映射为 MDP 时的时间维度建模。事件驱动和时间驱动各有适用场景；决策频率 $\Delta t$ 的选择需要与系统变化的时间尺度匹配；多个事件累积时可以采用顺序处理或联合优化；回合结构和多时间尺度的分层设计则提供了额外的建模灵活性。</p>
-
-            <p>至此，4.1 到 4.4 节回答了 MDP 建模中的核心问题：观测什么（状态空间）、做什么（动作空间）、优化什么（奖励函数）、何时做（决策时机与频率）。剩下的问题是如何表示策略和值函数。在离散的小规模问题中，表格就足够了；但在状态空间高维、连续的管理问题中，需要用神经网络作为函数逼近器。下一节将讨论如何根据问题特征选择合适的神经网络架构。</p>
 
             <div class="chapter-nav">
-                <a href="../ch04/4.3.html">&larr; 4.3 状态空间、动作空间与奖励函数的设计</a>
-                <a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择 &rarr;</a>
+                <a href="../ch04/4.3.html">&larr; 4.3 Attention机制与Transformer架构</a>
+                <a href="../ch05/5.1.html">5.1 Deep Q-Network &rarr;</a>
             </div>
         </main>
     </div>

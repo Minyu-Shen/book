@@ -3,33 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>5.4 算法层-逻辑层-物理层的仿真架构 - 运筹智能</title>
+    <title>5.4 基于模型的深度强化学习 - 运筹智能</title>
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
     <style>
         .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
         .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
-        .fig-caption { text-align:center; font-size:0.9rem; color:#718096; margin-top:0.5rem; margin-bottom:1.5rem; }
-        .note { background: var(--highlight-color); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
-        .warning { background: #fffbeb; border-left: 4px solid #d69e2e; padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
-        .layer-section { margin-top: 2.5rem; }
-        .layer-section h3 { border-bottom: 2px solid #e2e8f0; padding-bottom: 0.3rem; }
-        .benefit-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.95rem; }
-        .benefit-table th, .benefit-table td { border: 1px solid var(--border-color); padding: 0.6rem 1rem; text-align: left; }
-        .benefit-table th { background: var(--primary-color); color: white; }
-        .benefit-table tr:nth-child(even) { background: var(--sidebar-bg); }
-        .walkthrough { background: #f7fafc; border: 2px solid var(--accent-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
-        .walkthrough .walk-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
-        .walkthrough ol { margin: 0.3rem 0 0.3rem 1.5rem; line-height: 2; }
-        .step-physics { color: #276749; }
-        .step-logic { color: #2b6cb0; }
-        .step-algo { color: #c53030; }
+        .trans-table { width: auto; border-collapse: collapse; margin: 1rem auto; font-size: 0.95rem; }
+        .trans-table th, .trans-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: center; }
+        .trans-table th { background: var(--primary-color); color: white; }
+        .trans-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .result-box { background: var(--highlight-color); border: 2px solid var(--accent-color); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; text-align: center; }
+        .algo-box { background: #f7fafc; border: 2px solid var(--accent-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .algo-box .algo-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .algo-box ol { margin: 0.3rem 0 0.3rem 1.5rem; line-height: 2; }
+        .algo-box .algo-note { font-size: 0.9rem; color: #718096; margin-top: 0.5rem; }
+        .formula-block { background: var(--sidebar-bg); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; overflow-x: auto; }
+        .note { background: #f0fff4; border-left: 4px solid #48bb78; padding: 0.8rem 1.2rem; margin: 1.2rem 0; border-radius: 0 6px 6px 0; font-size: 0.95rem; }
+        .fig-caption { text-align: center; font-size: 0.9rem; color: #718096; margin-top: 0.5rem; margin-bottom: 1rem; }
+        .optional-reading { background: #f0fff4; border: 1px solid #9ae6b4; border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; }
+        .optional-reading summary { font-weight: 700; color: #276749; cursor: pointer; font-size: 1rem; }
+        .optional-reading summary:hover { color: var(--accent-color); }
+        .scenario-box { background: var(--sidebar-bg); border: 2px solid var(--border-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .scenario-box .scenario-title { font-weight: 700; color: var(--primary-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .spectrum-bar { display: flex; align-items: stretch; margin: 1.5rem 0; border-radius: 8px; overflow: hidden; font-size: 0.9rem; }
+        .spectrum-bar .spec-item { flex: 1; padding: 0.8rem 0.6rem; text-align: center; line-height: 1.5; }
+        .page-nav { display: flex; justify-content: space-between; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); font-size: 0.95rem; }
+        .page-nav a { color: var(--accent-color); text-decoration: none; }
+        .page-nav a:hover { text-decoration: underline; }
     </style>
     <script defer src="../../js/code-copy.js"></script>
 </head>
@@ -42,667 +46,528 @@
                 <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
                 <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
                 <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
-                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
-                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
-                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.3.html">1.5.3 SARSA与Q-learning</a></li>
-                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
-                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
-                <li class="sidebar-chapter">第二章 深度学习基础</li>
-                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
-                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
-                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
-                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
-                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
-                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
-                <li><a href="../ch03/3.2.html">3.2 Policy Gradient与PPO</a></li>
-                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
-                <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
-                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
-                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
-                <li><a href="../ch04/4.2.html">4.2 时域建模与回合定义</a></li>
-                <li><a href="../ch04/4.3.html">4.3 状态空间、动作空间与奖励函数的设计</a></li>
-                <li><a href="../ch04/4.4.html">4.4 决策时机与决策频率的建模</a></li>
-                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
-                <li class="sidebar-chapter">第五章 仿真器搭建</li>
-                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
-                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
-                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
-                <li><a href="../ch05/5.4.html" class="active">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
-                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
-                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
-                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
-                <li><a href="../ch07/7.2.html">7.2 公交串车控制</a></li>
-                <li><a href="../ch07/7.3.html">7.3 需求响应公交调度优化</a></li>
-                <li class="sidebar-chapter">第八章 进阶话题</li>
-                <li><a href="../ch08/8.1.html">8.1 多智能体强化学习</a></li>
-                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.4.html" class="active">5.4 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
                 </ul>
             </nav>
         </aside>
 
         <main class="main-content">
-            <h1>5.4 算法层-逻辑层-物理层的仿真架构</h1>
+            <h1>5.4 基于模型的深度强化学习</h1>
 
-            <!-- ===== 引言：复杂度问题 ===== -->
-            <p>5.2节和5.3节分别介绍了实体建模和仿真循环。对于库存管理这类简单场景，一个类加一个循环就能实现完整的仿真器。然而，当我们面对车队调度、需求响应公交等真实管理科学问题时，仿真器的复杂度会急剧上升：需要同时处理数十辆车的运动轨迹、乘客的上下车流程、订单的状态流转、路径规划、需求生成，以及调度决策本身。</p>
+            <!-- ==================== 回顾：模型与无模型 ==================== -->
+            <h2>回顾：模型与无模型</h2>
 
-            <p>如果把所有逻辑都写在一个类或一个函数里，代码会迅速膨胀为难以维护的混乱结构。车辆移动的物理计算与订单匹配的业务规则交织在一起，调度算法与状态转移的边界模糊不清，任何一个小改动都可能引发连锁反应。更重要的是，当我们需要把调度策略从启发式切换为RL策略时，不得不在大量无关代码中寻找修改点。</p>
+            <p>在第一章中，我们假设MDP的转移概率 $P(s'|s,a)$ 和奖励函数 $R(s,a)$ 是完全已知的，并以此为基础介绍了策略迭代和值迭代两种动态规划算法。这种方法可以称为<strong>纯粹的基于模型方法</strong>：有了完整的模型，就可以通过计算直接求解最优策略，不需要与环境进行任何交互。</p>
 
-            <p>本节介绍一种经过实践检验的仿真架构：将仿真器划分为<strong>算法层</strong>、<strong>逻辑层</strong>和<strong>物理层</strong>三个层次，每一层承担明确的职责，层与层之间通过清晰的接口通信。这种分层架构源自生产级车队调度仿真系统的工程实践，能够有效管理复杂度，并为RL策略的嵌入提供天然的接口。</p>
+            <p>在3.1至5.3节中，我们走向了另一个极端。DQN、PPO和SAC都属于<strong>无模型</strong>（model-free）算法：它们完全不尝试理解环境的运转规律，而是直接从与环境的交互数据中学习值函数或策略。这种方法的优点是通用性强，无论环境多么复杂，只要能与之交互并获得奖励信号，就有可能学到好的策略。</p>
 
-            <!-- ===== 三层架构概览 ===== -->
-            <h2>三层架构概览</h2>
-
-            <p>三层架构的核心思想是<strong>关注点分离</strong>（separation of concerns）：把仿真系统中性质不同的计算分配到不同的层次中，每一层只处理自己职责范围内的事务。</p>
+            <p>但无模型方法有一个显而易见的代价：<strong>样本效率低</strong>。DQN在Atari游戏上需要约两亿帧画面才能达到人类水平的表现，PPO训练一个机器人行走策略通常需要数千万步交互。在游戏或仿真环境中，交互的成本几乎为零，这不是问题。然而在管理科学的许多实际场景中，每一次交互都意味着真实的业务决策：一次库存补货、一次车辆调度、一次价格调整。这些决策的试错成本可能非常高昂。</p>
 
             <div class="concept-card">
-                <div class="concept-name">物理层（Physics Layer）</div>
-                <p>负责纯粹的动力学计算。在车队调度的场景中，物理层的唯一任务是根据车辆当前的位置、速度和路径，推算下一个时间步的位置。它不知道订单是什么，也不关心调度决策，只处理运动学。</p>
+                <div class="concept-name">管理科学中的样本效率困境</div>
+                <p>考虑一个零售库存管理问题。每天做一次补货决策，一年只有365个决策步。如果无模型算法需要100万步交互才能收敛，那意味着需要大约2740年的运营数据。即使用仿真器加速，仿真器本身的构建和校准也需要大量真实数据。能否从更少的真实交互中学到更好的策略？</p>
             </div>
+
+            <p>本节介绍的<strong>基于模型的深度强化学习</strong>（model-based deep RL）正是为了回答这个问题。它的核心思想是：先从有限的交互数据中<strong>学习一个环境的预测模型</strong>（通常称为<strong>世界模型</strong>，world model），然后利用这个学到的模型来<strong>想象</strong>更多的经验，从而大幅减少对真实交互的需求。</p>
+
+            <p>可以把这三种路径看作一个光谱：</p>
+
+            <div class="spectrum-bar">
+                <div class="spec-item" style="background:#dbeafe; border-right:1px solid #93c5fd;">
+                    <strong>纯粹基于模型</strong><br>
+                    已知 $P$, $R$<br>
+                    动态规划<br>
+                    <span style="font-size:0.82rem;color:#718096;">（第一章）</span>
+                </div>
+                <div class="spec-item" style="background:#fed7d7; border-right:1px solid #feb2b2;">
+                    <strong>学习模型后规划</strong><br>
+                    从数据中学 $\hat{P}$, $\hat{R}$<br>
+                    模型内想象 + 策略优化<br>
+                    <span style="font-size:0.82rem;color:#718096;">（本节）</span>
+                </div>
+                <div class="spec-item" style="background:#fefcbf;">
+                    <strong>纯粹无模型</strong><br>
+                    不学模型<br>
+                    直接从交互中学策略<br>
+                    <span style="font-size:0.82rem;color:#718096;">（3.1 &ndash; 3.3）</span>
+                </div>
+            </div>
+            <div class="fig-caption">图 5.4-1 &nbsp; 从纯粹基于模型到纯粹无模型的方法光谱。本节聚焦于中间路径：从数据中学习模型，再用模型辅助策略优化。</div>
+
+            <!-- ==================== 学习世界模型 ==================== -->
+            <h2>学习世界模型</h2>
+
+            <h3>什么是世界模型</h3>
+
+            <p>世界模型的目标很直接：给定当前状态 $s_t$ 和动作 $a_t$，预测下一个状态 $s_{t+1}$ 和即时奖励 $r_t$。我们用两个带参数 $\phi$ 的神经网络来实现这个预测：</p>
+
+            <div class="formula-block">
+            $$\hat{s}_{t+1} = f_\phi(s_t,\, a_t) \tag{5.4-1}$$
+            </div>
+            <div class="formula-block">
+            $$\hat{r}_t = g_\phi(s_t,\, a_t) \tag{5.4-2}$$
+            </div>
+
+            <p>其中 $f_\phi$ 是<strong>状态转移模型</strong>，$g_\phi$ 是<strong>奖励模型</strong>。有了这两个模型，我们就可以在不与真实环境交互的情况下，从任意状态出发，逐步"想象"出一条完整的轨迹。</p>
+
+            <p>用管理科学的语言来说，世界模型就是一个<strong>数据驱动的仿真器</strong>。与传统运筹学中手工构建的仿真模型不同，这里的仿真器是从数据中自动学习得到的。</p>
+
+            <h3>训练世界模型</h3>
+
+            <p>训练世界模型的过程其实就是一个标准的<strong>监督学习</strong>问题。首先，通过与真实环境交互，收集一批转移数据 $(s_t, a_t, r_t, s_{t+1})$，存入数据缓冲区 $\mathcal{D}$。然后，最小化模型预测与真实数据之间的误差：</p>
+
+            <div class="formula-block">
+            $$L_{\text{model}}(\phi) = \mathbb{E}_{(s,a,r,s') \sim \mathcal{D}}\!\Big[\big\|f_\phi(s,a) - s'\big\|^2 + \big\|g_\phi(s,a) - r\big\|^2\Big] \tag{5.4-3}$$
+            </div>
+
+            <p>公式(5.4-3)的含义非常直观：对于缓冲区中的每一条真实转移，我们要求状态转移模型 $f_\phi$ 的预测尽量接近真实的下一状态 $s'$，奖励模型 $g_\phi$ 的预测尽量接近真实的奖励 $r$。这与第四章中介绍的回归任务训练方式完全一致。</p>
+
+            <h3>确定性模型与随机性模型</h3>
+
+            <p>公式(5.4-1)描述的是<strong>确定性模型</strong>：给定 $(s_t, a_t)$，模型输出一个确定的预测 $\hat{s}_{t+1}$。这种方式简单高效，但忽略了环境中固有的随机性。</p>
+
+            <p>在管理科学中，许多问题的动力学具有显著的随机性：顾客到达是随机的，需求量是不确定的，供应商的交货时间有波动。对于这类问题，更合理的做法是让模型输出一个<strong>概率分布</strong>：</p>
+
+            $$s_{t+1} \sim p_\phi(s_{t+1} \mid s_t, a_t) \tag{5.4-4}$$
+
+            <p>一种常见的实现方式是让神经网络同时输出均值 $\mu_\phi(s_t, a_t)$ 和方差 $\sigma^2_\phi(s_t, a_t)$，假设下一状态服从高斯分布。训练时使用负对数似然作为损失函数，而不是均方误差。</p>
+
+            <h3>集成模型</h3>
+
+            <p>单个神经网络模型虽然可以拟合训练数据，但我们很难知道它在训练数据之外的区域是否可靠。<strong>集成模型</strong>（ensemble model）的思路是：同时训练 $M$ 个结构相同但随机初始化不同的模型 $\{f_{\phi_1}, f_{\phi_2}, \ldots, f_{\phi_M}\}$，用它们预测的一致程度来衡量不确定性。</p>
+
+            <p>如果 $M$ 个模型对某个状态-动作对的预测高度一致，说明该区域的数据充足、模型可信；如果预测之间差异很大，则说明该区域数据稀疏，模型的预测不可靠。这种<strong>认识论不确定性</strong>（epistemic uncertainty）的量化，对于后续在模型中进行想象时控制误差至关重要。</p>
+
+            <div class="note">
+                <strong>集成模型的实际规模：</strong>在大多数实现中，$M = 5 \sim 7$ 个模型就足以提供有效的不确定性估计。虽然训练 $M$ 个模型增加了计算量，但相比节省的真实环境交互次数，这个计算成本通常是值得的。
+            </div>
+
+            <!-- ==================== Dyna架构 ==================== -->
+            <h2>利用模型：Dyna架构</h2>
+
+            <p>有了学到的世界模型，如何用它来加速策略学习？最经典也最直观的框架是 Sutton (1991) 提出的 <strong>Dyna</strong> 架构。Dyna 的核心思想可以用一句话概括：<strong>每次与真实环境交互后，额外在世界模型中进行多次想象交互，然后用真实和想象的数据一起训练策略</strong>。</p>
+
+            <p>我们用一个库存管理的场景来理解这个过程。</p>
+
+            <div class="scenario-box">
+                <div class="scenario-title">场景：零售商补货决策</div>
+                <p>某零售商每天观察库存水平 $s_t$（状态），决定补货数量 $a_t$（动作），随后面对随机的顾客需求 $d_t$，产生持有成本和缺货惩罚（奖励）。新的库存水平 $s_{t+1}$ 由库存平衡方程决定。</p>
+                <p>无模型方法（如DQN）的做法：每天做一次真实的补货决策，观察结果，用这一条经验更新Q网络。学到好策略可能需要数千天的真实运营。</p>
+                <p>Dyna的做法：每天做完真实决策后，用已收集的数据训练一个需求预测模型。然后在<strong>模型中想象</strong>10次不同的补货场景，用这10条想象经验额外更新Q网络。这样一天的真实交互就产生了11次学习机会。</p>
+            </div>
+
+            <p>Dyna架构的一般流程如下：</p>
+
+            <div class="algo-box">
+                <div class="algo-title">Dyna框架</div>
+                <ol>
+                    <li>在真实环境中，根据当前策略 $\pi$ 选择动作 $a_t$，执行后观察 $r_t, s_{t+1}$</li>
+                    <li>将真实转移 $(s_t, a_t, r_t, s_{t+1})$ 存入数据缓冲区 $\mathcal{D}$</li>
+                    <li>用 $\mathcal{D}$ 中的数据更新世界模型 $f_\phi, g_\phi$（监督学习）</li>
+                    <li><strong>想象阶段</strong>：重复 $K$ 次
+                        <ul style="margin:0.3rem 0 0.3rem 1rem; list-style:disc;">
+                            <li>从 $\mathcal{D}$ 中采样一个真实状态 $\tilde{s}$ 作为起点</li>
+                            <li>选择动作 $\tilde{a}$（依据当前策略 $\pi$ 或随机探索）</li>
+                            <li>用世界模型预测：$\tilde{s}' = f_\phi(\tilde{s}, \tilde{a})$，$\tilde{r} = g_\phi(\tilde{s}, \tilde{a})$</li>
+                            <li>用想象转移 $(\tilde{s}, \tilde{a}, \tilde{r}, \tilde{s}')$ 更新策略（或值函数）</li>
+                        </ul>
+                    </li>
+                    <li>用真实转移 $(s_t, a_t, r_t, s_{t+1})$ 更新策略（或值函数）</li>
+                </ol>
+                <div class="algo-note">其中 $K$ 是想象步数，控制了模型利用的力度。$K$ 越大，从每次真实交互中提取的学习信号越多，但也更依赖世界模型的准确性。</div>
+            </div>
+
+            <p>Dyna框架的关键洞见在于：<strong>每一次真实交互产生 $K+1$ 次学习机会</strong>（1次真实 + $K$ 次想象）。如果设 $K=10$，则策略获得的训练信号是纯无模型方法的11倍。这直接解释了基于模型方法样本效率更高的原因。</p>
 
             <div class="concept-card">
-                <div class="concept-name">逻辑层（Logic Layer）</div>
-                <p>负责业务规则和状态管理。逻辑层检测事件（车辆到达目的地、新订单产生），执行状态转移（订单从等待变为运送中，乘客上车、下车），管理队列和容量约束。它是物理层和算法层之间的桥梁：从物理层接收事件，向算法层提供状态查询，将算法层的决策转化为对实体的具体操作。</p>
+                <div class="concept-name">想象 = 廉价的仿真</div>
+                <p>Dyna框架中的想象步骤，在管理科学的语境下可以理解为<strong>在学到的仿真器中做蒙特卡洛模拟</strong>。运筹学家长期以来就依赖仿真来评估和优化决策方案。Dyna的独特之处在于，仿真器本身也是从数据中学习得到的，而且它与策略优化过程紧密耦合，形成了学习-想象-优化的闭环。</p>
             </div>
 
-            <div class="concept-card">
-                <div class="concept-name">算法层（Algorithm Layer）</div>
-                <p>负责高层决策。在车队调度中，算法层的任务是给定当前可用车辆和待服务订单，决定哪辆车去服务哪个订单。RL策略或启发式算法就嵌入在这一层。算法层可以独立替换，而不需要修改物理层和逻辑层的代码。</p>
+            <!-- ==================== 模型误差累积 ==================== -->
+            <h2>模型误差的累积问题</h2>
+
+            <p>Dyna框架看起来很理想，但实践中有一个严峻的挑战：<strong>世界模型并不完美</strong>。</p>
+
+            <p>假设世界模型在每一步预测中的平均误差为 $\epsilon$。当我们从某个真实状态出发，在模型中连续想象 $H$ 步时，会发生什么？第1步的预测状态有 $\epsilon$ 的误差，第2步基于这个已有误差的状态再预测，误差进一步增大。经过 $H$ 步后，累积误差大致按 $H$ 的量级增长。当 $H$ 较大时，想象轨迹的末端可能已经与真实环境的行为毫无关系。</p>
+
+            <p>更糟糕的是，策略如果在这些不真实的想象数据上训练，可能学会利用模型的漏洞：找到那些在世界模型中获得高奖励、但在真实环境中根本不存在的状态-动作组合。这种现象被称为<strong>模型利用</strong>（model exploitation），是基于模型方法面临的核心挑战。</p>
+
+            <div class="warning">
+                <strong>模型误差累积的直觉：</strong>想象一位基金经理使用收益预测模型来制定投资策略。如果模型对每日收益的预测误差为1%，预测一周（5个交易日）可能还勉强可用，但预测一年（250个交易日）后的组合表现就完全不可信了。在世界模型中进行长期想象也面临同样的困境。
             </div>
 
-            <p>图 5.4-1 展示了三层架构的整体结构和层间通信关系。</p>
+            <p>这个问题意味着，简单地在世界模型中想象很长的轨迹是不可靠的。我们需要更谨慎地使用模型。这正是下面要介绍的MBPO算法所解决的问题。</p>
 
-            <!-- ===== 图 5.4-1：三层架构示意图 ===== -->
-            <div style="text-align:center; margin:2rem 0 0.5rem;">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 420" style="max-width:680px; width:100%;">
-                    <defs>
-                        <filter id="shadow1" x="-3%" y="-3%" width="106%" height="112%">
-                            <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.1"/>
-                        </filter>
-                    </defs>
+            <!-- ==================== MBPO ==================== -->
+            <h2>MBPO：基于模型的策略优化</h2>
 
-                    <!-- Algorithm Layer -->
-                    <rect x="140" y="30" width="420" height="90" rx="10" ry="10"
-                          fill="#fed7d7" stroke="#c53030" stroke-width="2" filter="url(#shadow1)"/>
-                    <foreignObject x="140" y="30" width="420" height="90">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;font-family:sans-serif;">
-                            <div style="font-size:17px;font-weight:700;color:#c53030;">算法层 (Algorithm Layer)</div>
-                            <div style="font-size:13px;color:#4a5568;margin-top:6px;">RL策略 / 启发式算法 / 调度决策</div>
-                        </div>
-                    </foreignObject>
+            <p><strong>MBPO</strong>（Model-Based Policy Optimization，Janner et al., 2019）是现代基于模型深度强化学习的代表性算法。它对Dyna框架做了一个关键改进：<strong>用短距离的分支想象代替长距离的完整想象</strong>。</p>
 
-                    <!-- Logic Layer -->
-                    <rect x="140" y="165" width="420" height="90" rx="10" ry="10"
-                          fill="#dbeafe" stroke="#2b6cb0" stroke-width="2" filter="url(#shadow1)"/>
-                    <foreignObject x="140" y="165" width="420" height="90">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;font-family:sans-serif;">
-                            <div style="font-size:17px;font-weight:700;color:#2b6cb0;">逻辑层 (Logic Layer)</div>
-                            <div style="font-size:13px;color:#4a5568;margin-top:6px;">状态机 / 事件处理 / 业务规则</div>
-                        </div>
-                    </foreignObject>
+            <h3>核心思想：短分支想象</h3>
 
-                    <!-- Physics Layer -->
-                    <rect x="140" y="300" width="420" height="90" rx="10" ry="10"
-                          fill="#f0fff4" stroke="#48bb78" stroke-width="2" filter="url(#shadow1)"/>
-                    <foreignObject x="140" y="300" width="420" height="90">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;font-family:sans-serif;">
-                            <div style="font-size:17px;font-weight:700;color:#276749;">物理层 (Physics Layer)</div>
-                            <div style="font-size:13px;color:#4a5568;margin-top:6px;">运动学 / 位置更新 / 轨迹推算</div>
-                        </div>
-                    </foreignObject>
+            <p>MBPO不从某个初始状态开始想象一整条长轨迹，而是：</p>
+            <ol>
+                <li>从真实数据缓冲区 $\mathcal{D}$ 中采样一批<strong>真实状态</strong>作为起点；</li>
+                <li>从每个真实状态出发，在学到的世界模型中仅向前想象 $h$ 步（$h$ 通常很小，如 $1 \sim 5$）；</li>
+                <li>将这些短想象轨迹存入一个单独的模型数据缓冲区 $\mathcal{D}_{\text{model}}$；</li>
+                <li>用 $\mathcal{D} \cup \mathcal{D}_{\text{model}}$ 中的数据训练一个无模型算法（如SAC）。</li>
+            </ol>
 
-                    <!-- Left side connections: Algorithm <-> Logic -->
-                    <line x1="115" y1="95" x2="115" y2="190" stroke="#4a5568" stroke-width="2" stroke-linecap="round"/>
-                    <!-- Left labels -->
-                    <foreignObject x="8" y="115" width="100" height="40">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#c53030;text-align:right;font-family:sans-serif;line-height:1.3;">
-                            决策指令 ↓
-                        </div>
-                    </foreignObject>
-                    <foreignObject x="8" y="155" width="100" height="40">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#2b6cb0;text-align:right;font-family:sans-serif;line-height:1.3;">
-                            状态查询 ↑
-                        </div>
-                    </foreignObject>
+            <p>这样做的好处是双重的。第一，每条想象轨迹都<strong>从真实状态出发</strong>，保证了起点的可靠性。第二，想象步数 $h$ 很短，限制了误差的累积。想象轨迹的末端距离真实数据只有 $h$ 步，模型误差不会失控。</p>
 
-                    <!-- Right side connections: Logic <-> Physics -->
-                    <line x1="585" y1="230" x2="585" y2="325" stroke="#4a5568" stroke-width="2" stroke-linecap="round"/>
-                    <!-- Right labels -->
-                    <foreignObject x="595" y="245" width="100" height="40">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#276749;text-align:left;font-family:sans-serif;line-height:1.3;">
-                            ↑ 事件触发
-                        </div>
-                    </foreignObject>
-                    <foreignObject x="595" y="275" width="100" height="40">
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#2b6cb0;text-align:left;font-family:sans-serif;line-height:1.3;">
-                            ↓ 执行命令
-                        </div>
-                    </foreignObject>
+            <h3>理论保证</h3>
 
-                    <!-- Center vertical connections -->
-                    <line x1="350" y1="120" x2="350" y2="165" stroke="#4a5568" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="5,4"/>
-                    <line x1="350" y1="255" x2="350" y2="300" stroke="#4a5568" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="5,4"/>
-                </svg>
-            </div>
-            <div class="fig-caption">图 5.4-1 &nbsp; 三层仿真架构。算法层负责决策，逻辑层负责业务规则与状态管理，物理层负责运动学计算。层间通过清晰的接口通信。</div>
+            <p>MBPO为短分支想象提供了理论支撑。设 $\eta[\pi]$ 为策略 $\pi$ 在真实环境中的期望回报，$\hat{\eta}[\pi]$ 为在学到的模型中的期望回报，则有：</p>
 
-            <!-- ===== 物理层 ===== -->
-            <div class="layer-section">
-                <h2>物理层：纯粹的运动学</h2>
-
-                <p>物理层是整个仿真器的底层引擎。它的职责极为单纯：根据车辆的当前位置、速度和预定路径，计算经过一个时间步 $\Delta t$ 后车辆的新位置。物理层不知道订单的存在，不关心调度策略，甚至不关心车辆为什么在移动。它只回答一个问题：按照当前速度沿当前路径走 $\Delta t$ 秒，车辆会到达哪里？</p>
-
-                <p>以下是物理层核心服务 <code>VehiclePhysicsService</code> 的实现。每辆车维护一条路径（由若干路径点组成的折线段），物理层沿折线段推进车辆位置。</p>
-
-<pre><code class="language-python">class VehiclePhysicsService:
-    def __init__(self, delta_t: float):
-        self.delta_t = delta_t
-
-    def update(self, vehicles: list[Vehicle]):
-        """推进所有正在移动的车辆的位置"""
-        for vehicle in vehicles:
-            if vehicle.status != VehicleStatus.MOVING:
-                continue
-            if not vehicle.current_route:
-                continue
-
-            # 本时间步需要前进的距离：速度 × 时间步长
-            distance_to_travel = vehicle.speed * self.delta_t
-            self._advance_along_route(vehicle, distance_to_travel)
-
-    def _advance_along_route(self, vehicle, distance):
-        """沿折线路径前进指定距离"""
-        route = vehicle.current_route
-        while distance &gt; 0 and vehicle.route_index &lt; len(route) - 1:
-            segment_start = route[vehicle.route_index]
-            segment_end = route[vehicle.route_index + 1]
-            segment_length = self._distance(segment_start, segment_end)
-            remaining = segment_length - vehicle.segment_progress
-
-            if distance &gt;= remaining:
-                # 走完当前线段，进入下一段
-                distance -= remaining
-                vehicle.route_index += 1
-                vehicle.segment_progress = 0.0
-            else:
-                # 在当前线段内前进
-                vehicle.segment_progress += distance
-                distance = 0.0
-
-        # 更新车辆坐标
-        if vehicle.route_index &gt;= len(route) - 1:
-            vehicle.location = route[-1]
-            vehicle.status = VehicleStatus.STOPPED
-        else:
-            vehicle.location = self._interpolate(
-                route[vehicle.route_index],
-                route[vehicle.route_index + 1],
-                vehicle.segment_progress
-            )</code></pre>
-
-                <p>值得注意的是，当车辆走完整条路径时，物理层将其状态设为 <code>STOPPED</code>。但物理层并不处理到达后的业务逻辑（乘客上下车、订单状态更新等），这些属于逻辑层的职责。物理层只报告一个事实：车辆到达了路径的终点。</p>
-
-                <div class="note">
-                    <strong>设计原则：</strong>物理层不包含任何 <code>if order...</code> 或 <code>if schedule...</code> 类型的判断。如果你发现物理层的代码里出现了业务概念，说明职责划分出了问题。物理层应当可以在完全不知道"订单""乘客""调度"等概念的情况下独立工作。
-                </div>
+            <div class="formula-block">
+            $$\eta[\pi] \geq \hat{\eta}[\pi] - C \cdot \big(\epsilon_m + (h-1)\,\epsilon_\pi\big) \tag{5.4-5}$$
             </div>
 
-            <!-- ===== 逻辑层 ===== -->
-            <div class="layer-section">
-                <h2>逻辑层：业务规则与状态管理</h2>
+            <p>其中 $\epsilon_m$ 是世界模型的预测误差，$h$ 是想象步数，$\epsilon_\pi$ 是策略相对于数据收集策略的偏移量，$C$ 是与折扣因子相关的常数。</p>
 
-                <p>逻辑层是三层架构的枢纽。它从物理层接收事件（车辆停下了），根据业务规则执行相应操作（处理上下车、更新订单状态），并为算法层提供决策所需的状态信息（哪些车辆空闲、哪些订单在等待）。</p>
+            <p>公式(5.4-5)给出了一个<strong>策略表现下界</strong>：在模型中优化得到的策略表现 $\hat{\eta}[\pi]$，与其在真实环境中的实际表现 $\eta[\pi]$ 之间的差距，受模型误差 $\epsilon_m$ 和想象步数 $h$ 共同控制。想象步数 $h$ 越短，这个下界越紧，也就越安全。</p>
 
-                <p>逻辑层通常由多个服务类组成，每个服务类处理一类业务规则。以车队调度仿真器为例，核心的逻辑服务是 <code>VehicleStateService</code>，负责检测车辆到达目的地并执行相应的业务操作。</p>
+            <details class="optional-reading">
+                <summary>选读：公式(5.4-5)的直觉解释</summary>
+                <p style="margin-top:0.5rem;">公式(5.4-5)本质上在说：模型中的策略回报与真实回报之间的差距来自两个误差源。第一个是 $\epsilon_m$，即模型本身的预测偏差，这在第0步就存在。第二个是 $(h-1)\,\epsilon_\pi$，即随着想象步数增加，策略与收集数据时所用策略的偏移不断放大模型误差。当 $h=1$ 时，第二项消失，差距仅由模型精度决定。这解释了为什么MBPO倾向于使用非常短的想象步数。</p>
+                <p>在实践中，MBPO会随着模型精度的提升逐步增加 $h$。训练初期模型不准确，用 $h=1$；模型改善后，可以适当增加到 $h=3$ 或 $h=5$。</p>
+            </details>
 
-<pre><code class="language-python">class VehicleStateService:
-    """检测车辆到达目的地，执行取货和送货逻辑"""
+            <h3>MBPO算法流程</h3>
 
-    def update(self, vehicles, orders, current_time):
-        for vehicle in vehicles:
-            if vehicle.status != VehicleStatus.STOPPED:
-                continue
-            if not vehicle.schedule:
-                vehicle.status = VehicleStatus.IDLE
-                continue
-
-            next_task = vehicle.schedule[0]
-            if self._at_location(vehicle.location, next_task.location):
-                self._process_arrival(vehicle, next_task,
-                                      orders, current_time)
-
-    def _process_arrival(self, vehicle, task, orders, current_time):
-        # 处理取货：乘客上车，订单进入运送状态
-        for order_id in task.pickup_order_ids:
-            order = orders[order_id]
-            vehicle.board_passenger(order.num_items)
-            order.transition_to(OrderStatus.IN_TRANSIT, current_time)
-
-        # 处理送货：乘客下车，订单完成
-        for order_id in task.dropoff_order_ids:
-            order = orders[order_id]
-            vehicle.alight_passenger(order.num_items)
-            order.transition_to(OrderStatus.COMPLETED, current_time)
-
-        # 当前任务完成，从调度表中移除
-        vehicle.schedule.pop(0)
-        if vehicle.schedule:
-            # 设置前往下一个任务地点的路径
-            vehicle.current_route = self._plan_route(
-                vehicle.location, vehicle.schedule[0].location
-            )
-            vehicle.route_index = 0
-            vehicle.segment_progress = 0.0
-            vehicle.status = VehicleStatus.MOVING
-        else:
-            vehicle.status = VehicleStatus.IDLE</code></pre>
-
-                <p>逻辑层还可以包含其他服务，例如：</p>
-                <ul>
-                    <li><code>DemandService</code>：按照预设的需求分布，在特定时刻生成新订单。</li>
-                    <li><code>StopOperationService</code>：处理车辆在站点停靠时的上下客时间模拟。</li>
-                    <li><code>MetricsService</code>：计算服务质量指标，如平均等待时间、完成率等。</li>
-                </ul>
-
-                <p>这些服务各自独立，但共同维护着仿真系统的业务状态。它们之间通过共享的实体对象（<code>Vehicle</code>、<code>Order</code>）进行通信。</p>
+            <div class="algo-box">
+                <div class="algo-title">MBPO算法</div>
+                <p><strong>初始化：</strong>策略 $\pi_\theta$，Q网络 $Q_\psi$（SAC框架），集成世界模型 $\{f_{\phi_1}, \ldots, f_{\phi_M}\}$，真实数据缓冲区 $\mathcal{D}$，模型数据缓冲区 $\mathcal{D}_{\text{model}}$</p>
+                <ol>
+                    <li><strong>收集真实数据：</strong>用当前策略 $\pi_\theta$ 在真实环境中交互，收集转移并存入 $\mathcal{D}$</li>
+                    <li><strong>更新世界模型：</strong>在 $\mathcal{D}$ 上训练集成模型 $\{f_{\phi_i}\}$，最小化预测误差（公式 3.4-3）</li>
+                    <li><strong>模型内想象：</strong>
+                        <ul style="margin:0.3rem 0 0.3rem 1rem; list-style:disc;">
+                            <li>从 $\mathcal{D}$ 中均匀采样一批真实状态 $\{s^{(j)}\}$</li>
+                            <li>对每个 $s^{(j)}$，在随机选取的一个集成成员 $f_{\phi_i}$ 中，按当前策略 $\pi_\theta$ 向前展开 $h$ 步</li>
+                            <li>将产生的所有想象转移存入 $\mathcal{D}_{\text{model}}$</li>
+                        </ul>
+                    </li>
+                    <li><strong>策略优化：</strong>从 $\mathcal{D} \cup \mathcal{D}_{\text{model}}$ 中采样 mini-batch，用 SAC 更新 $\pi_\theta$ 和 $Q_\psi$</li>
+                    <li>重复步骤1-4</li>
+                </ol>
+                <div class="algo-note">步骤3中，每次想象时随机选择一个集成成员，等效于从模型的后验分布中采样，自然地引入了对模型不确定性的考量。</div>
             </div>
 
-            <!-- ===== 算法层 ===== -->
-            <div class="layer-section">
-                <h2>算法层：决策与策略</h2>
-
-                <p>算法层位于架构的顶端，负责做出高层决策。在车队调度场景中，算法层的核心问题是：给定当前的空闲车辆集合和待服务订单集合，如何将车辆分配给订单？</p>
-
-                <p>算法层的入口是 <code>DispatchController</code>，它控制决策频率，并将具体的分配逻辑委托给可替换的策略对象。</p>
-
-<pre><code class="language-python">class DispatchController:
-    def __init__(self, strategy: DispatchStrategy):
-        self.strategy = strategy   # RL策略或启发式
-        self.decision_interval = 10.0  # 每10秒做一次决策
-        self.last_decision_time = -float('inf')
-
-    def update(self, vehicles, pending_orders, current_time):
-        if current_time - self.last_decision_time &lt; self.decision_interval:
-            return []
-        self.last_decision_time = current_time
-
-        available = [v for v in vehicles
-                     if v.status == VehicleStatus.IDLE]
-        waiting = [o for o in pending_orders
-                   if o.status == OrderStatus.WAITING]
-
-        if not available or not waiting:
-            return []
-
-        return self.strategy.make_decisions(
-            available, waiting, current_time
-        )</code></pre>
-
-                <p>策略的设计采用<strong>策略模式</strong>（Strategy Pattern）：定义统一的抽象接口，不同的策略实现这个接口。这样，切换算法只需要替换策略对象，而不需要修改控制器或仿真器的其他部分。</p>
-
-<pre><code class="language-python">from abc import ABC, abstractmethod
-
-class DispatchStrategy(ABC):
-    @abstractmethod
-    def make_decisions(self, vehicles, orders, current_time):
-        """返回 [(vehicle_id, order_id), ...] 形式的分配列表"""
-        pass
-
-
-class NearestNeighborStrategy(DispatchStrategy):
-    """最近邻启发式：将每个订单分配给距离最近的空闲车辆"""
-
-    def make_decisions(self, vehicles, orders, current_time):
-        decisions = []
-        assigned_vehicles = set()
-        for order in orders:
-            best_vehicle = None
-            best_dist = float('inf')
-            for vehicle in vehicles:
-                if vehicle.vehicle_id in assigned_vehicles:
-                    continue
-                dist = distance(vehicle.location, order.origin)
-                if dist &lt; best_dist:
-                    best_dist = dist
-                    best_vehicle = vehicle
-            if best_vehicle:
-                decisions.append(
-                    (best_vehicle.vehicle_id, order.order_id)
-                )
-                assigned_vehicles.add(best_vehicle.vehicle_id)
-        return decisions
-
-
-class RLStrategy(DispatchStrategy):
-    """RL策略：使用训练好的神经网络做调度决策"""
-
-    def __init__(self, policy_network):
-        self.policy = policy_network
-
-    def make_decisions(self, vehicles, orders, current_time):
-        obs = self._build_observation(vehicles, orders)
-        actions = self.policy.predict(obs)
-        return self._decode_actions(actions, vehicles, orders)</code></pre>
-
-                <p>从启发式算法切换到RL策略，只需在初始化时更换策略对象：</p>
-
-<pre><code class="language-python"># 使用启发式
-controller = DispatchController(NearestNeighborStrategy())
-
-# 切换为RL策略
-controller = DispatchController(RLStrategy(trained_policy))</code></pre>
-
-                <p>仿真器的其余代码（物理层、逻辑层）完全不需要修改。这正是分层架构的价值所在。</p>
+            <div class="note">
+                <strong>MBPO与SAC的关系：</strong>MBPO并不是一个全新的算法，而是在SAC（或任何无模型算法）的基础上，添加了世界模型和想象数据生成这两个模块。可以将MBPO理解为一个<strong>数据增强框架</strong>：用世界模型为无模型算法生产额外的训练数据。这种模块化的设计使得MBPO非常灵活，将SAC替换为PPO或其他算法同样可行。
             </div>
 
-            <!-- ===== 接口隔离 ===== -->
-            <div class="layer-section">
-                <h2>接口隔离：读与写的分离</h2>
+            <h3>样本效率的提升</h3>
 
-                <p>三层架构还隐含着一个重要的设计原则：算法层只能<strong>读取</strong>状态，不能直接修改实体。所有对实体状态的修改都必须经过逻辑层。</p>
+            <p>MBPO在多个连续控制基准任务上展示了显著的样本效率优势。例如，在 HalfCheetah 任务上，SAC 需要约 $3 \times 10^5$ 步真实交互才能达到良好性能，而MBPO只需约 $3 \times 10^4$ 步，提升了大约一个数量级。在某些任务上，MBPO的样本效率比纯无模型方法高出 $10 \sim 100$ 倍。</p>
 
-                <p>为什么这很重要？考虑一个没有接口隔离的场景：算法层在做调度决策时，直接把车辆状态改成了 <code>MOVING</code>，但没有设置路径。这辆车在物理层的更新中就会出现异常。如果算法层直接修改了订单状态，而跳过了逻辑层的上下车处理，车辆的载客数和订单状态就会不一致。</p>
+            <p>对于管理科学应用而言，这种样本效率的提升具有实际意义。如果一个库存优化问题用SAC需要10万步仿真交互（约274年的每日决策），用MBPO可能只需要1万步（约27年），再结合历史数据的利用，实际部署就变得可行了。</p>
 
-                <div class="concept-card">
-                    <div class="concept-name">接口隔离原则</div>
-                    <p>算法层通过<strong>只读接口</strong>查询系统状态，通过<strong>命令</strong>发出决策。逻辑层是唯一能修改实体状态的组件。这种分离确保实体始终处于合法状态，避免因算法层的直接修改而引入不一致性。</p>
-                </div>
+            <!-- ==================== 潜空间世界模型 ==================== -->
+            <h2>世界模型与潜空间想象</h2>
 
-                <p>在代码中，这种分离可以通过定义查询接口和命令接口来实现。</p>
+            <p>前面介绍的世界模型直接在<strong>原始状态空间</strong>中进行预测：输入 $(s_t, a_t)$，输出 $\hat{s}_{t+1}$。当状态空间维度较低时（如库存水平、车辆位置等），这种方式工作良好。但当状态空间很高维时，例如用摄像头图像作为状态，直接预测下一帧图像的每个像素就变得既困难又浪费。图像中大量的像素信息（如背景颜色、光照变化）对于决策来说并不重要。</p>
 
-<pre><code class="language-python">class VehicleQueryInterface:
-    """算法层通过此接口查询车辆状态（只读）"""
+            <p>现代世界模型的解决方案是：在一个<strong>压缩的潜空间</strong>（latent space）中进行想象。</p>
 
-    def get_idle_vehicles(self) -&gt; list[Vehicle]:
-        """返回所有空闲车辆"""
-        ...
+            <h3>潜空间世界模型的结构</h3>
 
-    def get_vehicle_location(self, vid: str) -&gt; Location:
-        """查询指定车辆的当前位置"""
-        ...
-
-    def get_vehicle_load(self, vid: str) -&gt; int:
-        """查询指定车辆的当前载客数"""
-        ...
-
-
-class VehicleCommandInterface:
-    """逻辑层通过此接口修改车辆状态（写入）"""
-
-    def assign_schedule(self, vid: str, schedule: list):
-        """为车辆分配新的调度计划"""
-        ...
-
-    def update_location(self, vid: str, location: Location):
-        """更新车辆位置（由物理层调用）"""
-        ...</code></pre>
-
-                <p>算法层持有 <code>VehicleQueryInterface</code> 的引用，只能读取信息。当算法层做出分配决策后，它返回一组 <code>(vehicle_id, order_id)</code> 元组，由逻辑层负责将这些决策转化为实体的状态变更。这条规则看似增加了代码量，实际上大幅降低了调试难度：当实体出现非法状态时，只需要在逻辑层排查原因，而不必在整个代码库中搜索。</p>
-            </div>
-
-            <!-- ===== 完整系统图 ===== -->
-            <div class="layer-section">
-                <h2>完整系统组件图</h2>
-
-                <p>图 5.4-2 展示了车队调度仿真器中各组件的归属层次和相互关系。</p>
-
-                <div style="text-align:center; margin:2rem 0 0.5rem;">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 520" style="max-width:720px; width:100%;">
-                        <defs>
-                            <filter id="shadow2" x="-3%" y="-3%" width="106%" height="112%">
-                                <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.08"/>
-                            </filter>
-                        </defs>
-
-                        <!-- Algorithm Layer background -->
-                        <rect x="30" y="20" width="680" height="110" rx="10" ry="10"
-                              fill="#fed7d7" fill-opacity="0.4" stroke="#c53030" stroke-width="1.5" stroke-dasharray="6,3"/>
-                        <foreignObject x="38" y="24" width="200" height="24">
-                            <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;font-weight:700;color:#c53030;font-family:sans-serif;">算法层</div>
-                        </foreignObject>
-
-                        <!-- DispatchController -->
-                        <rect x="60" y="52" width="200" height="60" rx="8" ry="8"
-                              fill="white" stroke="#c53030" stroke-width="1.5" filter="url(#shadow2)"/>
-                        <foreignObject x="60" y="52" width="200" height="60">
-                            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:14px;color:#c53030;font-weight:600;font-family:sans-serif;">
-                                DispatchController
-                            </div>
-                        </foreignObject>
-
-                        <!-- NearestNeighborStrategy -->
-                        <rect x="310" y="52" width="185" height="60" rx="8" ry="8"
-                              fill="white" stroke="#c53030" stroke-width="1.5" filter="url(#shadow2)"/>
-                        <foreignObject x="310" y="52" width="185" height="60">
-                            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;font-family:sans-serif;">
-                                <div style="font-size:13px;color:#c53030;font-weight:600;">NearestNeighbor</div>
-                                <div style="font-size:11px;color:#718096;">Strategy</div>
-                            </div>
-                        </foreignObject>
-
-                        <!-- RLStrategy -->
-                        <rect x="540" y="52" width="150" height="60" rx="8" ry="8"
-                              fill="white" stroke="#c53030" stroke-width="1.5" filter="url(#shadow2)"/>
-                        <foreignObject x="540" y="52" width="150" height="60">
-                            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;font-family:sans-serif;">
-                                <div style="font-size:13px;color:#c53030;font-weight:600;">RLStrategy</div>
-                                <div style="font-size:11px;color:#718096;">Strategy</div>
-                            </div>
-                        </foreignObject>
-
-                        <!-- Connection: Controller -> Strategies -->
-                        <line x1="260" y1="82" x2="310" y2="82" stroke="#c53030" stroke-width="1.5" stroke-linecap="round"/>
-                        <line x1="495" y1="82" x2="540" y2="82" stroke="#c53030" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="4,3"/>
-
-                        <!-- Logic Layer background -->
-                        <rect x="30" y="155" width="680" height="110" rx="10" ry="10"
-                              fill="#dbeafe" fill-opacity="0.4" stroke="#2b6cb0" stroke-width="1.5" stroke-dasharray="6,3"/>
-                        <foreignObject x="38" y="159" width="200" height="24">
-                            <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;font-weight:700;color:#2b6cb0;font-family:sans-serif;">逻辑层</div>
-                        </foreignObject>
-
-                        <!-- VehicleStateService -->
-                        <rect x="60" y="187" width="185" height="60" rx="8" ry="8"
-                              fill="white" stroke="#2b6cb0" stroke-width="1.5" filter="url(#shadow2)"/>
-                        <foreignObject x="60" y="187" width="185" height="60">
-                            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:13px;color:#2b6cb0;font-weight:600;font-family:sans-serif;">
-                                VehicleStateService
-                            </div>
-                        </foreignObject>
-
-                        <!-- DemandService -->
-                        <rect x="280" y="187" width="170" height="60" rx="8" ry="8"
-                              fill="white" stroke="#2b6cb0" stroke-width="1.5" filter="url(#shadow2)"/>
-                        <foreignObject x="280" y="187" width="170" height="60">
-                            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:13px;color:#2b6cb0;font-weight:600;font-family:sans-serif;">
-                                DemandService
-                            </div>
-                        </foreignObject>
-
-                        <!-- StopOperationService -->
-                        <rect x="485" y="187" width="205" height="60" rx="8" ry="8"
-                              fill="white" stroke="#2b6cb0" stroke-width="1.5" filter="url(#shadow2)"/>
-                        <foreignObject x="485" y="187" width="205" height="60">
-                            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:13px;color:#2b6cb0;font-weight:600;font-family:sans-serif;">
-                                StopOperationService
-                            </div>
-                        </foreignObject>
-
-                        <!-- Physics Layer background -->
-                        <rect x="30" y="290" width="680" height="100" rx="10" ry="10"
-                              fill="#f0fff4" fill-opacity="0.4" stroke="#48bb78" stroke-width="1.5" stroke-dasharray="6,3"/>
-                        <foreignObject x="38" y="294" width="200" height="24">
-                            <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;font-weight:700;color:#276749;font-family:sans-serif;">物理层</div>
-                        </foreignObject>
-
-                        <!-- VehiclePhysicsService -->
-                        <rect x="220" y="318" width="300" height="56" rx="8" ry="8"
-                              fill="white" stroke="#48bb78" stroke-width="1.5" filter="url(#shadow2)"/>
-                        <foreignObject x="220" y="318" width="300" height="56">
-                            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:14px;color:#276749;font-weight:600;font-family:sans-serif;">
-                                VehiclePhysicsService
-                            </div>
-                        </foreignObject>
-
-                        <!-- Shared Entities -->
-                        <rect x="30" y="415" width="680" height="85" rx="10" ry="10"
-                              fill="#fefcbf" fill-opacity="0.4" stroke="#d69e2e" stroke-width="1.5" stroke-dasharray="6,3"/>
-                        <foreignObject x="38" y="419" width="250" height="24">
-                            <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;font-weight:700;color:#975a16;font-family:sans-serif;">共享实体 (Shared Data)</div>
-                        </foreignObject>
-
-                        <!-- Vehicle entity -->
-                        <rect x="100" y="447" width="130" height="40" rx="6" ry="6"
-                              fill="white" stroke="#d69e2e" stroke-width="1.5" filter="url(#shadow2)"/>
-                        <foreignObject x="100" y="447" width="130" height="40">
-                            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:13px;color:#975a16;font-weight:600;font-family:sans-serif;">
-                                Vehicle
-                            </div>
-                        </foreignObject>
-
-                        <!-- Order entity -->
-                        <rect x="290" y="447" width="130" height="40" rx="6" ry="6"
-                              fill="white" stroke="#d69e2e" stroke-width="1.5" filter="url(#shadow2)"/>
-                        <foreignObject x="290" y="447" width="130" height="40">
-                            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:13px;color:#975a16;font-weight:600;font-family:sans-serif;">
-                                Order
-                            </div>
-                        </foreignObject>
-
-                        <!-- Schedule entity -->
-                        <rect x="480" y="447" width="130" height="40" rx="6" ry="6"
-                              fill="white" stroke="#d69e2e" stroke-width="1.5" filter="url(#shadow2)"/>
-                        <foreignObject x="480" y="447" width="130" height="40">
-                            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:13px;color:#975a16;font-weight:600;font-family:sans-serif;">
-                                Schedule
-                            </div>
-                        </foreignObject>
-
-                        <!-- Vertical connections between layers -->
-                        <line x1="152" y1="112" x2="152" y2="187" stroke="#4a5568" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="4,3"/>
-                        <line x1="365" y1="247" x2="365" y2="318" stroke="#4a5568" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="4,3"/>
-
-                        <!-- Connections to shared entities -->
-                        <line x1="165" y1="390" x2="165" y2="447" stroke="#d69e2e" stroke-width="1" stroke-linecap="round" stroke-dasharray="3,3"/>
-                        <line x1="355" y1="390" x2="355" y2="447" stroke="#d69e2e" stroke-width="1" stroke-linecap="round" stroke-dasharray="3,3"/>
-                        <line x1="545" y1="390" x2="545" y2="447" stroke="#d69e2e" stroke-width="1" stroke-linecap="round" stroke-dasharray="3,3"/>
-                    </svg>
-                </div>
-                <div class="fig-caption">图 5.4-2 &nbsp; 车队调度仿真器的完整组件图。各层包含具体的服务类，所有层通过共享实体对象进行数据交换。</div>
-            </div>
-
-            <!-- ===== 架构的好处 ===== -->
-            <div class="layer-section">
-                <h2>为什么需要分层</h2>
-
-                <p>对于小型仿真器，分层架构可能显得过度设计。但当仿真器达到生产级别的规模（数十个实体类型、上百种业务规则），不分层的代码几乎不可能维护。下表总结了分层架构带来的具体收益。</p>
-
-                <table class="benefit-table">
-                    <thead>
-                        <tr>
-                            <th style="width:25%;">收益</th>
-                            <th>说明</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>算法可替换</strong></td>
-                            <td>RL策略和启发式共享同一接口，切换策略只需替换一个对象，无需修改仿真器的其他部分。在训练阶段使用RL策略，在基线对比实验中使用启发式，代码完全相同。</td>
-                        </tr>
-                        <tr>
-                            <td><strong>独立测试</strong></td>
-                            <td>物理层可以脱离算法层单独做单元测试，验证车辆移动逻辑的正确性。逻辑层可以用预设的事件序列测试状态转移是否正确。每一层的测试都不依赖其他层。</td>
-                        </tr>
-                        <tr>
-                            <td><strong>团队协作</strong></td>
-                            <td>不同的团队成员可以同时开发不同的层。开发RL算法的研究者不需要了解物理引擎的细节，负责仿真环境的工程师也不需要理解策略梯度的数学。</td>
-                        </tr>
-                        <tr>
-                            <td><strong>定位问题</strong></td>
-                            <td>当仿真器产生异常行为时，可以逐层排查。车辆位置计算错误是物理层的问题，订单状态不一致是逻辑层的问题，分配效率低是算法层的问题。</td>
-                        </tr>
-                        <tr>
-                            <td><strong>跨场景复用</strong></td>
-                            <td>同一个物理层可以用于网约车调度、外卖配送、需求响应公交等不同场景。只需更换逻辑层和算法层的实现。</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- ===== 完整时间步 walkthrough ===== -->
-            <div class="layer-section">
-                <h2>完整的一个时间步</h2>
-
-                <p>为了让三层架构的协作方式更加具体，我们完整追踪一个时间步内各层的执行过程。假设当前时刻为 $t = 120$ 秒，时间步长 $\Delta t = 1$ 秒。</p>
-
-                <div class="walkthrough">
-                    <div class="walk-title">时间步 $t = 120 \to 121$ 秒的执行流程</div>
-                    <ol>
-                        <li><span class="step-physics"><strong>物理层</strong></span>：<code>VehiclePhysicsService.update()</code> 推进所有移动中车辆的位置。车辆 A 沿路径前进 $v \cdot \Delta t = 10$ 米。</li>
-                        <li><span class="step-physics"><strong>物理层</strong></span>：车辆 A 恰好到达路径终点，物理层将其状态设为 <code>STOPPED</code>。</li>
-                        <li><span class="step-logic"><strong>逻辑层</strong></span>：<code>VehicleStateService.update()</code> 检测到车辆 A 的状态为 <code>STOPPED</code>，且调度表中的下一个任务地点与当前位置一致。执行送货逻辑：乘客下车，订单 #42 状态变更为 <code>COMPLETED</code>。车辆 A 的调度表为空，状态变为 <code>IDLE</code>。</li>
-                        <li><span class="step-logic"><strong>逻辑层</strong></span>：<code>DemandService.update()</code> 根据需求分布，在当前时刻生成新订单 #57。</li>
-                        <li><span class="step-algo"><strong>算法层</strong></span>：<code>DispatchController.update()</code> 发现距离上次决策已超过 10 秒。查询空闲车辆（车辆 A、车辆 B），查询等待中的订单（订单 #57）。调用策略，决定将订单 #57 分配给车辆 B。</li>
-                        <li><span class="step-logic"><strong>逻辑层</strong></span>：接收算法层的分配结果，为车辆 B 创建调度表（先去取货点，再去送货点），规划路径，将车辆 B 状态设为 <code>MOVING</code>。</li>
-                    </ol>
-                </div>
-
-                <p>注意执行顺序：先物理层，再逻辑层，最后算法层，然后逻辑层将算法层的决策落地。这个顺序保证了逻辑层在处理事件时已经拿到最新的物理状态，算法层在做决策时已经拿到最新的业务状态。</p>
-
-                <p>用伪代码表示，主循环的结构如下：</p>
-
-<pre><code class="language-python">class FleetSimulator:
-    def __init__(self, physics, logic_services, controller):
-        self.physics = physics
-        self.logic_services = logic_services  # 逻辑层的各个服务
-        self.controller = controller          # 算法层
-
-    def step(self, current_time):
-        # 1. 物理层：推进车辆位置
-        self.physics.update(self.vehicles)
-
-        # 2. 逻辑层：处理事件和状态转移
-        for service in self.logic_services:
-            service.update(self.vehicles, self.orders, current_time)
-
-        # 3. 算法层：做出调度决策
-        decisions = self.controller.update(
-            self.vehicles, self.orders, current_time
-        )
-
-        # 4. 逻辑层：将决策转化为实体操作
-        self._apply_decisions(decisions)</code></pre>
-
-                <p>整个仿真器的主循环只有四步，每一步对应架构中的一个明确职责。新加入项目的开发者可以快速理解系统的整体结构，然后深入到具体的层去了解细节。</p>
-            </div>
-
-            <!-- ===== 本节小结 ===== -->
-            <h2>本节小结</h2>
-
-            <p>简单的仿真器可以用一个类完成所有功能。但当仿真系统的复杂度增长到生产级别时，缺乏架构的代码会迅速失控。本节介绍的三层架构提供了一种经过实践验证的组织方式：</p>
+            <p>潜空间世界模型由四个组件构成：</p>
 
             <ul>
-                <li><strong>物理层</strong>处理纯粹的运动学计算，不包含任何业务逻辑。</li>
-                <li><strong>逻辑层</strong>负责业务规则、事件检测和状态转移，是系统的枢纽。</li>
-                <li><strong>算法层</strong>负责高层决策，通过策略模式支持RL与启发式的无缝切换。</li>
+                <li><strong>编码器</strong>（encoder）：$z_t = \text{enc}_\phi(s_t)$，将高维观测压缩为低维潜状态</li>
+                <li><strong>潜空间动力学模型</strong>（latent dynamics）：$\hat{z}_{t+1} = f_\phi(z_t, a_t)$，在潜空间中预测下一步</li>
+                <li><strong>奖励预测器</strong>（reward predictor）：$\hat{r}_t = g_\phi(z_t, a_t)$，从潜状态预测奖励</li>
+                <li><strong>解码器</strong>（decoder，可选）：$\hat{s}_t = \text{dec}_\phi(z_t)$，将潜状态还原为观测</li>
             </ul>
 
-            <p>层间通过接口隔离保持边界清晰：算法层只读取状态、发出决策命令，逻辑层负责所有的状态修改。这种分离使得每一层可以独立开发、独立测试、独立迭代。</p>
+            <p>训练后，整个想象过程都在潜空间中完成：编码真实状态 $\to$ 在潜空间中展开轨迹 $\to$ 用潜空间轨迹训练策略。无需解码回原始状态空间，大幅降低了计算成本。</p>
 
-            <p>对于强化学习研究而言，三层架构的最大价值在于为RL策略提供了天然的嵌入点。算法层的策略接口就是RL智能体与环境的交互边界。训练阶段，RL策略在算法层中探索和学习；部署阶段，训练好的策略替换启发式，仿真器的其余部分无需任何修改。这正是第七章实际案例中采用的架构模式。</p>
-
-            <div class="chapter-nav">
-                <a href="../ch05/5.3.html">&larr; 5.3 基于时间步的仿真逻辑</a>
-                <a href="../ch07/7.1.html">7.1 网约车派单优化 &rarr;</a>
+            <div class="formula-block">
+            $$z_t = \text{enc}_\phi(s_t), \quad \hat{z}_{t+1} = f_\phi(z_t, a_t), \quad \hat{r}_t = g_\phi(z_t, a_t) \tag{5.4-6}$$
             </div>
+
+            <h3>Dreamer算法简介</h3>
+
+            <p><strong>Dreamer</strong>（Hafner et al., 2020）是潜空间世界模型的代表性算法。它的工作流程可以概括为三个阶段：</p>
+
+            <ol>
+                <li><strong>学习世界模型</strong>：用真实交互数据训练编码器、潜空间动力学模型和奖励预测器</li>
+                <li><strong>在潜空间中做梦</strong>：从真实状态编码出的 $z_t$ 出发，在潜空间中展开想象轨迹 $z_t, z_{t+1}, z_{t+2}, \ldots$</li>
+                <li><strong>从梦中学习</strong>：在想象的潜空间轨迹上训练actor-critic，完全不需要与真实环境交互</li>
+            </ol>
+
+            <p>Dreamer的名字来源于它的学习方式：智能体通过在内心世界中反复"做梦"来学习策略，这与人类在睡眠中通过梦境巩固记忆和技能的过程有异曲同工之妙。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">潜状态的管理科学解读</div>
+                <p>在管理科学中，潜空间的概念有一个很自然的对应物。考虑一个大型供应链系统，其原始状态可能包含成千上万个SKU的库存、在途订单、供应商状态等信息。但驱动系统行为的关键因素可能只有少数几个：整体库存健康度、供应紧张程度、需求趋势等。潜空间世界模型学到的 $z_t$ 就类似于一个<strong>高层管理仪表盘</strong>，它从海量运营数据中提炼出了决策所需的关键指标。在这个压缩表示上做规划，既高效又抓住了本质。</p>
+            </div>
+
+            <!-- ==================== 领域知识 ==================== -->
+            <h2>当领域知识遇上学习</h2>
+
+            <p>前面介绍的世界模型都是<strong>纯粹从数据中学习</strong>的：神经网络从零开始拟合环境的动力学。但在管理科学中，我们通常并不是对环境一无所知。许多管理系统的动力学中，有一部分是已知的、确定性的，另一部分才是未知的、需要从数据中学习的。</p>
+
+            <div class="scenario-box">
+                <div class="scenario-title">已知与未知的动力学</div>
+                <ul style="margin:0.3rem 0 0 1.2rem; line-height:2.2;">
+                    <li><strong>库存管理</strong>：库存平衡方程 $I_{t+1} = I_t + q_t - d_t$（$q_t$ 为补货量）是确定性的、已知的；顾客需求 $d_t$ 的分布是未知的、需要学习的</li>
+                    <li><strong>交通网络</strong>：流量守恒定律（驶入车辆数 = 驶出车辆数 + 滞留车辆数变化量）是已知的；驾驶员的路径选择行为是随机的、需要学习的</li>
+                    <li><strong>供应链</strong>：物料清单（BOM）中的组装关系和产能约束是已知的；供应商交货可靠性是不确定的、需要学习的</li>
+                    <li><strong>排队系统</strong>：服务完成后顾客离开、新顾客加入队列的逻辑是已知的；到达过程的参数和服务时间的分布是需要学习的</li>
+                </ul>
+            </div>
+
+            <p>纯粹的数据驱动世界模型忽视了这些已知的结构信息，让神经网络从头学习那些我们已经知道的物理定律和业务逻辑。这不仅浪费了宝贵的样本，还可能导致模型在数据稀疏区域违反这些已知的约束（例如预测出负库存）。</p>
+
+            <h3>混合世界模型</h3>
+
+            <p>更明智的做法是构建<strong>混合世界模型</strong>（hybrid world model）：将已知的动力学写成解析形式，只让神经网络学习未知的部分。一种常用的结构是<strong>残差模型</strong>：</p>
+
+            <div class="formula-block">
+            $$\hat{s}_{t+1} = \underbrace{f_{\text{known}}(s_t, a_t)}_{\text{已知动力学}} + \underbrace{f_\phi(s_t, a_t)}_{\text{学习的残差}} \tag{5.4-7}$$
+            </div>
+
+            <p>以库存管理为例。设状态 $s_t = I_t$（当前库存），动作 $a_t = q_t$（补货量），则混合模型为：</p>
+
+            $$\hat{I}_{t+1} = \underbrace{(I_t + q_t)}_{\text{已知：补货后的库存}} - \underbrace{\hat{d}_\phi(I_t, q_t, \text{context}_t)}_{\text{学习：预测的需求量}} \tag{5.4-8}$$
+
+            <p>其中 $\text{context}_t$ 可以包含星期几、是否节假日、促销信息等特征。神经网络 $\hat{d}_\phi$ 只需要学习需求预测这一个子任务，而不是从零学习整个库存动力学。这大大降低了学习难度，同时保证了库存平衡这一基本物理约束始终被满足。</p>
+
+            <h3>为什么混合模型特别适合管理科学</h3>
+
+            <p>在视频游戏或机器人控制等典型的强化学习基准任务中，环境的动力学要么完全未知（游戏的内部逻辑），要么虽然基于物理定律但难以精确建模（复杂的接触力学）。因此，纯数据驱动的世界模型是自然的选择。</p>
+
+            <p>但管理科学问题有一个独特优势：<strong>系统的结构通常是已知的</strong>。库存平衡方程、流量守恒、会计恒等式、排队论的基本关系——这些都是确定性的、经过验证的数学关系。不确定性主要来自外部因素（需求、天气、市场波动）和人类行为（顾客选择、驾驶员决策）。</p>
+
+            <p>混合世界模型充分利用了这一结构优势：</p>
+            <ul>
+                <li><strong>样本效率更高</strong>：神经网络只需要学习未知的部分，所需数据更少</li>
+                <li><strong>泛化能力更强</strong>：已知的结构约束在任何数据区域都成立，避免了模型在数据稀疏处的荒谬预测</li>
+                <li><strong>可解释性更好</strong>：模型的已知部分对应着明确的业务逻辑，决策者更容易信任和审查</li>
+            </ul>
+
+            <div class="note">
+                <strong>与传统运筹学的联系：</strong>混合世界模型的理念在传统运筹学中早有实践。许多运筹优化模型先建立确定性的数学规划框架（如线性规划、网络流模型），再通过随机规划或鲁棒优化处理不确定性。混合世界模型继承了这一思路，只是用神经网络替代了传统的概率分布假设来建模不确定性，表达能力更强。
+            </div>
+
+            <!-- ==================== 例子 ==================== -->
+            <h2>例子：世界模型辅助的库存管理</h2>
+
+            <p>我们通过一个完整的例子，展示基于模型的方法如何应用于管理科学问题。</p>
+
+            <div class="scenario-box">
+                <div class="scenario-title">问题设定</div>
+                <p>某零售商管理一种商品的库存。每天（$t = 0, 1, 2, \ldots$）执行以下流程：</p>
+                <ul style="margin:0.3rem 0 0 1.2rem; line-height:2;">
+                    <li><strong>状态</strong>：当前库存水平 $I_t \in \{0, 1, \ldots, 100\}$</li>
+                    <li><strong>动作</strong>：补货数量 $q_t \in \{0, 1, \ldots, 50\}$，补货立即到达（无提前期）</li>
+                    <li><strong>需求</strong>：$d_t$ 随机，依赖于星期几和天气等因素</li>
+                    <li><strong>状态转移</strong>：$I_{t+1} = \max(I_t + q_t - d_t,\; 0)$，库存不能为负</li>
+                    <li><strong>奖励</strong>：
+                        $$r_t = -c_h \cdot I_{t+1} - c_s \cdot \max(d_t - I_t - q_t,\; 0) - c_o \cdot q_t \tag{5.4-9}$$
+                        其中 $c_h = 1$ 为单位持有成本，$c_s = 10$ 为单位缺货惩罚，$c_o = 2$ 为单位订购成本
+                    </li>
+                </ul>
+            </div>
+
+            <h3>无模型方法的做法</h3>
+
+            <p>用DQN直接学习 $Q(I_t, q_t)$。智能体每天做一次补货决策，观察结果，更新Q网络。由于需求 $d_t$ 的随机性，Q值的估计方差较大，需要大量交互才能稳定收敛。假设收敛需要 $5 \times 10^4$ 步交互，相当于137年的每日运营数据。</p>
+
+            <h3>MBPO方法的做法</h3>
+
+            <p><strong>第一步：构建混合世界模型。</strong>库存平衡方程是已知的，只需要学习需求模型。构建一个神经网络 $\hat{d}_\phi$，输入当前库存、星期几（one-hot编码）、历史需求等特征，输出需求的预测分布（均值和标准差）。</p>
+
+            <p><strong>第二步：用少量真实数据训练需求模型。</strong>假设有90天（约3个月）的历史运营数据，用这些数据训练 $\hat{d}_\phi$。3个月的数据量远少于无模型方法所需的137年。</p>
+
+            <p><strong>第三步：在模型中想象。</strong>从历史数据中采样真实库存状态，对每个状态尝试不同的补货决策，用需求模型采样生成想象的需求，计算想象的下一状态和奖励。每个真实状态生成 $K = 10$ 条想象转移。</p>
+
+            <p><strong>第四步：训练策略。</strong>将真实数据和想象数据合并，用DQN或SAC训练策略网络。由于想象步数 $h = 1$（只向前想象一步），模型误差不会累积。</p>
+
+            <div class="result-box">
+                <strong>对比结果</strong>（概念性）：无模型DQN需要约 $5 \times 10^4$ 步真实交互；MBPO搭配混合世界模型，仅需约 $5 \times 10^3$ 步真实交互即可达到相近的策略质量，样本效率提升约 $10$ 倍。
+            </div>
+
+            <p>这个例子展示了基于模型方法在管理科学中的两个核心优势：<strong>利用已知结构降低学习难度</strong>（库存平衡方程）和<strong>通过想象扩充训练数据</strong>（需求模型生成的模拟数据）。</p>
+
+            <!-- ==================== 对比 ==================== -->
+            <h2>基于模型与无模型方法的对比</h2>
+
+            <p>学完本节内容后，读者可能会问：既然基于模型的方法样本效率更高，为什么3.1至5.3节还要花大量篇幅介绍无模型方法？答案是，两类方法各有优劣，适用于不同的场景。</p>
+
+            <table class="trans-table">
+                <thead>
+                    <tr>
+                        <th>比较维度</th>
+                        <th>无模型方法（3.1 &ndash; 3.3）</th>
+                        <th>基于模型方法（3.4）</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>样本效率</strong></td>
+                        <td>低，需要大量真实交互</td>
+                        <td>高，通过想象扩充数据</td>
+                    </tr>
+                    <tr>
+                        <td><strong>计算开销</strong></td>
+                        <td>每步计算量较少</td>
+                        <td>更多（模型训练 + 想象生成）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>渐近性能</strong></td>
+                        <td>不受模型精度限制，上限高</td>
+                        <td>受世界模型精度制约</td>
+                    </tr>
+                    <tr>
+                        <td><strong>领域知识利用</strong></td>
+                        <td>难以直接融入</td>
+                        <td>可通过混合模型自然融入</td>
+                    </tr>
+                    <tr>
+                        <td><strong>适用场景</strong></td>
+                        <td>仿真器廉价、动力学极其复杂</td>
+                        <td>真实数据稀缺、动力学部分已知</td>
+                    </tr>
+                    <tr>
+                        <td><strong>管理科学适配度</strong></td>
+                        <td>适合有高质量仿真器的场景</td>
+                        <td>适合真实部署、历史数据驱动的场景</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="fig-caption">图 5.4-2 &nbsp; 无模型方法与基于模型方法的系统对比。</div>
+
+            <p>简而言之：当仿真器的运行成本可以忽略不计时（如使用已有的高质量仿真器），无模型方法因为不受模型精度的限制，往往能达到更高的最终性能。但当真实交互成本高昂、或者我们拥有关于系统动力学的先验知识时，基于模型的方法是更明智的选择。</p>
+
+            <p>在管理科学的实际研究中，二者也经常结合使用。一种常见的策略是：</p>
+            <ol>
+                <li>先用基于模型方法，利用少量真实数据快速得到一个尚可的策略；</li>
+                <li>将这个策略部署到仿真器或受控的真实环境中收集更多数据；</li>
+                <li>如有需要，切换到无模型方法进一步提升性能。</li>
+            </ol>
+
+            <!-- ==================== 小结 ==================== -->
+            <h2>小结</h2>
+
+            <p>本节介绍了基于模型的深度强化学习方法，弥补了前三节纯无模型方法在样本效率上的不足。核心思路是：<strong>从交互数据中学习一个世界模型，再利用这个模型想象额外的经验来加速策略优化</strong>。</p>
+
+            <p>我们依次介绍了以下内容：</p>
+            <ul>
+                <li><strong>世界模型的学习</strong>：通过监督学习训练状态转移模型 $f_\phi$ 和奖励模型 $g_\phi$，支持确定性模型、随机模型和集成模型三种形式</li>
+                <li><strong>Dyna架构</strong>：每次真实交互后在模型中进行 $K$ 次想象，将样本效率提升 $K+1$ 倍</li>
+                <li><strong>MBPO算法</strong>：通过短分支想象控制模型误差的累积，结合集成模型量化不确定性，实现安全且高效的模型利用</li>
+                <li><strong>潜空间世界模型</strong>：将想象过程压缩到低维潜空间中进行，适用于高维状态空间</li>
+                <li><strong>混合世界模型</strong>：将已知的系统动力学与数据驱动的学习相结合，充分利用管理科学问题中丰富的领域知识</li>
+            </ul>
+
+            <p>至此，第五章介绍的算法构成了一个完整的工具箱：</p>
+
+            <table class="trans-table">
+                <thead>
+                    <tr>
+                        <th>算法</th>
+                        <th>类型</th>
+                        <th>动作空间</th>
+                        <th>核心特征</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>DQN（3.1）</td>
+                        <td>基于值函数，无模型</td>
+                        <td>离散</td>
+                        <td>经验回放、目标网络</td>
+                    </tr>
+                    <tr>
+                        <td>PPO（3.2）</td>
+                        <td>策略梯度，无模型</td>
+                        <td>离散/连续</td>
+                        <td>裁剪目标、在策略</td>
+                    </tr>
+                    <tr>
+                        <td>SAC（3.3）</td>
+                        <td>Actor-Critic，无模型</td>
+                        <td>连续</td>
+                        <td>熵正则化、离策略</td>
+                    </tr>
+                    <tr>
+                        <td>MBPO（3.4）</td>
+                        <td>基于模型</td>
+                        <td>离散/连续</td>
+                        <td>世界模型、想象数据、高样本效率</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="fig-caption">图 5.4-3 &nbsp; 第五章四种算法的定位与特点。</div>
+
+            <p>面对具体的管理科学问题，算法的选择取决于三个关键因素：</p>
+            <ol>
+                <li><strong>动作空间</strong>：离散动作优先考虑DQN，连续动作优先考虑SAC或PPO</li>
+                <li><strong>样本预算</strong>：交互成本高、数据稀缺时优先考虑MBPO；有廉价仿真器时可使用无模型方法</li>
+                <li><strong>领域知识</strong>：如果系统动力学部分已知，混合世界模型能充分利用这些先验知识</li>
+            </ol>
+
+            <div class="page-nav">
+                <a href="3.3.html">&larr; 5.3 Soft Actor-Critic</a>
+                <a href="3.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性 &rarr;</a>
+            </div>
+
         </main>
     </div>
 </body>

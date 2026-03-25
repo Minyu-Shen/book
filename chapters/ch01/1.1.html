@@ -9,6 +9,24 @@
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .compare-box { display: flex; gap: 1.5rem; flex-wrap: wrap; margin: 1.5rem 0; }
+        .compare-box > div { flex: 1; min-width: 220px; background: var(--sidebar-bg); padding: 1rem 1.2rem; border-radius: 8px; border-top: 3px solid var(--accent-color); }
+        .compare-box > div h4 { margin: 0 0 0.5rem 0; color: var(--primary-color); }
+        .trans-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.95rem; }
+        .trans-table th, .trans-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: center; }
+        .trans-table th { background: var(--primary-color); color: white; }
+        .trans-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .fig-caption { text-align:center; font-size:0.92rem; color:#4a5568; margin-top:0.5rem; margin-bottom:1.5rem; }
+        .note { background: #ebf4ff; border-radius: 6px; padding: 0.8rem 1.2rem; font-size: 0.95rem; margin: 1rem 0; line-height: 1.7; border-left: 4px solid var(--accent-color); }
+        .roadmap-item { display: flex; gap: 0.8rem; align-items: flex-start; margin: 0.6rem 0; }
+        .roadmap-num { background: var(--accent-color); color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; flex-shrink: 0; }
+        .roadmap-text { flex: 1; line-height: 1.7; }
+        .example-box { background: #f0fff4; border: 1px solid #c6f6d5; border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .example-box .example-title { font-weight: 700; color: #276749; font-size: 1rem; margin-bottom: 0.5rem; }
+    </style>
     <script defer src="../../js/code-copy.js"></script>
 </head>
 <body>
@@ -20,52 +38,58 @@
                 <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
                 <li><a href="../ch01/1.1.html" class="active">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
                 <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
-                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
-                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
-                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
-                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.6.1.html">1.6.1 SARSA</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.6.2.html">1.6.2 Q-learning</a></li>
-                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.7.1.html">1.7.1 策略梯度定理</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.7.2.html">1.7.2 REINFORCE算法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.7.3.html">1.7.3 Actor-Critic框架</a></li>
-                <li class="sidebar-chapter">第二章 深度学习基础</li>
-                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
-                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
-                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
-                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
-                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
-                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
-                <li><a href="../ch03/3.2.html">3.2 Policy Gradient与PPO</a></li>
-                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
-                <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
-                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
-                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
-                <li><a href="../ch04/4.2.html">4.2 时域建模与回合定义</a></li>
-                <li><a href="../ch04/4.3.html">4.3 状态空间、动作空间与奖励函数的设计</a></li>
-                <li><a href="../ch04/4.4.html">4.4 决策时机与决策频率的建模</a></li>
-                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
-                <li class="sidebar-chapter">第五章 仿真器搭建</li>
-                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
-                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
-                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
-                <li><a href="../ch05/5.4.html">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
-                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
-                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
-                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
-                <li><a href="../ch07/7.2.html">7.2 公交串车控制</a></li>
-                <li><a href="../ch07/7.3.html">7.3 需求响应公交调度优化</a></li>
-                <li class="sidebar-chapter">第八章 进阶话题</li>
-                <li><a href="../ch08/8.1.html">8.1 多智能体强化学习</a></li>
-                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
                 </ul>
             </nav>
         </aside>
@@ -73,10 +97,411 @@
         <main class="main-content">
             <h1>1.1 从运筹优化到强化学习：为什么管理科学需要RL</h1>
 
-            <p>（内容待补充）</p>
+            <p>管理科学的核心任务是帮助决策者做出更好的决策。过去半个多世纪，运筹学为此提供了一套强大的工具：线性规划（LP）、整数规划（IP）、动态规划（DP）、排队论、库存论等。这些方法在航空排班、生产计划、物流网络设计等领域取得了巨大的成功。然而，当我们把目光投向一类更具挑战性的问题时，传统方法的局限就开始显现。</p>
+
+            <!-- ===== 传统运筹优化的局限 ===== -->
+            <h2>传统运筹优化的局限</h2>
+
+            <p>考虑一个管理科学专业的学生非常熟悉的问题：线性规划。给定目标函数和约束条件，求解器可以高效地找到最优解。但仔细审视这个框架，它隐含了几个重要假设：</p>
+
+            <ul style="margin:0.5rem 0 1rem 2rem; line-height:2;">
+                <li><strong>一次性决策</strong>：决策者在一个时刻做出所有决定，之后不再调整</li>
+                <li><strong>完全信息</strong>：所有参数（成本系数、约束右端项）在决策时刻已知</li>
+                <li><strong>确定性环境</strong>：不存在随机因素，或者随机性已被简化为期望值</li>
+                <li><strong>已知模型</strong>：目标函数和约束的数学形式完全确定</li>
+            </ul>
+
+            <p>现实中的管理问题往往同时违反上述所有假设。以网约车平台为例：平台需要实时地将订单分配给司机，每一次分配都会改变司机的位置和可用状态，从而影响后续订单的匹配效率。乘客的需求在时间和空间上随机波动，交通状况不断变化，而平台事先并不知道这些随机过程的精确分布。</p>
+
+            <p>传统运筹方法当然也发展出了应对策略。随机规划（stochastic programming）处理参数不确定性，鲁棒优化（robust optimization）处理分布未知的情形，动态规划处理多阶段决策。但这些扩展各自面临困难：</p>
+
+            <ul style="margin:0.5rem 0 1rem 2rem; line-height:2;">
+                <li>随机规划需要对不确定参数的分布做出明确假设，且场景数量增长后求解代价急剧上升</li>
+                <li>鲁棒优化为了应对最坏情形往往过于保守</li>
+                <li>动态规划在理论上是序贯决策问题的精确求解框架，但它要求完整的状态转移概率模型，并且在状态空间较大时会遇到维数灾难（curse of dimensionality）</li>
+            </ul>
+
+            <p>这促使我们思考：是否存在一种方法，既能处理多阶段决策、不确定性和模型未知的问题，又能应对大规模状态空间？强化学习正是这样一种方法。</p>
+
+            <!-- ===== 序贯决策的核心特征 ===== -->
+            <h2>序贯决策的核心特征</h2>
+
+            <p>在引入强化学习之前，我们先精确描述传统优化与序贯决策的关键区别。</p>
+
+            <p>传统优化问题通常可以写成如下形式：</p>
+
+            $$\min_{x} \; f(x) \quad \text{s.t.} \quad x \in \mathcal{X} \tag{1.1-1}$$
+
+            <p>决策变量 $x$ 在一个时刻确定，目标函数 $f(x)$ 立即返回结果。而序贯决策问题的结构截然不同：决策者需要在多个时刻依次做出决策 $A_0, A_1, A_2, \ldots$，每个决策都基于当时观测到的状态 $S_t$，并且每个决策都会影响后续的状态演变。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">序贯决策问题的四个核心特征</div>
+                <p><strong>1. 决策沿时间展开。</strong>决策者在 $t=0, 1, 2, \ldots$ 各时刻分别做出决策 $A_t$，而非一次性确定所有决策。</p>
+                <p><strong>2. 当前决策影响未来状态。</strong>在时刻 $t$ 选择动作 $A_t$ 后，系统转移到新的状态 $S_{t+1}$。这意味着当前的选择会改变未来的决策环境。</p>
+                <p><strong>3. 结果具有不确定性。</strong>即使在相同的状态下采取相同的动作，系统转移到的下一状态也可能不同。决策者面临的是一个随机环境。</p>
+                <p><strong>4. 回报延迟出现。</strong>一个决策的好坏往往不能从即时反馈中判断，需要等到未来多个时刻的回报都实现后才能评估。</p>
+            </div>
+
+            <p>为了让这四个特征更加具体，我们来看一个贯穿本书的例子。</p>
+
+            <div class="example-box">
+                <div class="example-title">例 1.1-1：网约车司机的接单决策</div>
+                <p>一位网约车司机在市中心完成了一个订单。此时他面临选择：接受平台推荐的一个去往郊区的订单（车费 $8$ 元），还是拒绝这个订单、继续在市中心等待？</p>
+                <p>如果只看即时收益，接单获得 $8$ 元，拒绝获得 $0$ 元，选择似乎很明确。但这个决策同时改变了司机的位置：接单后他将身处郊区，而郊区的订单通常较少、单价较低；拒绝后他留在市中心，可能很快接到一个去往机场的高价订单。</p>
+                <p>这正是序贯决策的核心困境：即时收益高的选择，未必带来长期收益的最大化。要做出好的决策，司机需要在<strong>当前收益</strong>和<strong>未来机会</strong>之间进行权衡。</p>
+            </div>
+
+            <p>上面的例子同时体现了全部四个特征：司机在每个时刻决定是否接单（沿时间展开）；接单改变了他的位置（影响未来状态）；乘客的目的地是随机的（不确定性）；一次接单的好坏要到多步之后才能判断（回报延迟）。</p>
+
+            <!-- ===== SVG图：一次性优化 vs 序贯决策 ===== -->
+            <div style="text-align:center; margin:2rem 0 0.5rem 0;">
+            <svg width="700" height="380" viewBox="0 0 700 380" style="max-width:100%;">
+                <!-- 背景分区 -->
+                <rect x="10" y="10" width="320" height="360" rx="12" fill="#dbeafe" fill-opacity="0.3" stroke="#2b6cb0" stroke-width="1.5" stroke-dasharray="6,3"/>
+                <rect x="370" y="10" width="320" height="360" rx="12" fill="#fed7d7" fill-opacity="0.3" stroke="#c53030" stroke-width="1.5" stroke-dasharray="6,3"/>
+
+                <!-- 左侧标题 -->
+                <foreignObject x="40" y="20" width="260" height="30">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:16px;font-weight:700;color:#2b6cb0;text-align:center;">一次性优化</div>
+                </foreignObject>
+
+                <!-- 右侧标题 -->
+                <foreignObject x="400" y="20" width="260" height="30">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:16px;font-weight:700;color:#c53030;text-align:center;">序贯决策</div>
+                </foreignObject>
+
+                <!-- ===== 左侧：一次性优化 ===== -->
+                <!-- 决策者 -->
+                <rect x="110" y="70" width="120" height="40" rx="8" fill="white" stroke="#2b6cb0" stroke-width="2"/>
+                <foreignObject x="110" y="72" width="120" height="40">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px;color:#2d3748;text-align:center;line-height:40px;">决策者</div>
+                </foreignObject>
+
+                <!-- 箭头：决策者 -> 决策x -->
+                <line x1="170" y1="110" x2="170" y2="150" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+
+                <!-- 决策 -->
+                <rect x="110" y="150" width="120" height="40" rx="8" fill="#dbeafe" stroke="#2b6cb0" stroke-width="2"/>
+                <foreignObject x="110" y="148" width="120" height="44">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px;color:#1e40af;text-align:center;line-height:44px;">决策 $x$</div>
+                </foreignObject>
+
+                <!-- 箭头：决策 -> 结果 -->
+                <line x1="170" y1="190" x2="170" y2="230" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+
+                <!-- 结果 -->
+                <rect x="100" y="230" width="140" height="45" rx="8" fill="white" stroke="#2b6cb0" stroke-width="2"/>
+                <foreignObject x="100" y="230" width="140" height="45">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px;color:#2d3748;text-align:center;line-height:45px;">结果 $f(x)$</div>
+                </foreignObject>
+
+                <!-- 标注 -->
+                <foreignObject x="35" y="300" width="270" height="55">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12.5px;color:#4a5568;text-align:center;line-height:1.5;">一个时刻、一个决策、一个结果<br/>所有信息在决策前已知</div>
+                </foreignObject>
+
+                <!-- ===== 右侧：序贯决策 ===== -->
+                <!-- t=0 状态 -->
+                <circle cx="530" cy="80" r="18" fill="white" stroke="#c53030" stroke-width="2"/>
+                <foreignObject x="512" y="66" width="36" height="28">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#c53030;text-align:center;">$S_0$</div>
+                </foreignObject>
+
+                <!-- t=0 动作标注 -->
+                <foreignObject x="552" y="66" width="36" height="28">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#4a5568;">$A_0$</div>
+                </foreignObject>
+
+                <!-- 连线 S0 -> S1 -->
+                <line x1="530" y1="98" x2="490" y2="142" stroke="#c53030" stroke-width="2" stroke-linecap="round"/>
+                <line x1="530" y1="98" x2="570" y2="142" stroke="#b0b8c4" stroke-width="1.2" stroke-dasharray="4,3" stroke-linecap="round"/>
+
+                <!-- 奖励标注 -->
+                <foreignObject x="482" y="108" width="40" height="22">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#c53030;font-weight:600;">$R_1$</div>
+                </foreignObject>
+
+                <!-- t=1 状态 -->
+                <circle cx="490" cy="160" r="18" fill="white" stroke="#c53030" stroke-width="2"/>
+                <foreignObject x="472" y="146" width="36" height="28">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#c53030;text-align:center;">$S_1$</div>
+                </foreignObject>
+                <circle cx="570" cy="160" r="14" fill="#f8fafc" stroke="#d1d5db" stroke-width="1.2"/>
+
+                <!-- t=1 动作标注 -->
+                <foreignObject x="512" y="146" width="36" height="28">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#4a5568;">$A_1$</div>
+                </foreignObject>
+
+                <!-- 连线 S1 -> S2 -->
+                <line x1="490" y1="178" x2="530" y2="222" stroke="#c53030" stroke-width="2" stroke-linecap="round"/>
+                <line x1="490" y1="178" x2="450" y2="222" stroke="#b0b8c4" stroke-width="1.2" stroke-dasharray="4,3" stroke-linecap="round"/>
+
+                <!-- 奖励标注 -->
+                <foreignObject x="510" y="188" width="40" height="22">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#c53030;font-weight:600;">$R_2$</div>
+                </foreignObject>
+
+                <!-- t=2 状态 -->
+                <circle cx="530" cy="240" r="18" fill="white" stroke="#c53030" stroke-width="2"/>
+                <foreignObject x="512" y="226" width="36" height="28">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#c53030;text-align:center;">$S_2$</div>
+                </foreignObject>
+                <circle cx="450" cy="240" r="14" fill="#f8fafc" stroke="#d1d5db" stroke-width="1.2"/>
+
+                <!-- 省略号 -->
+                <foreignObject x="518" y="268" width="30" height="28">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:16px;color:#c53030;text-align:center;">$\vdots$</div>
+                </foreignObject>
+
+                <!-- 标注 -->
+                <foreignObject x="395" y="310" width="270" height="55">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12.5px;color:#4a5568;text-align:center;line-height:1.5;">多个时刻、多个决策、状态不断演变<br/>未来状态依赖于当前决策，且具有随机性</div>
+                </foreignObject>
+            </svg>
+            <p class="fig-caption">图 1.1-1 &nbsp; 一次性优化与序贯决策的对比。左：传统优化在一个时刻确定所有决策变量。右：序贯决策在每个时刻 $t$ 根据当前状态 $S_t$ 选择动作 $A_t$，获得奖励 $R_{t+1}$ 并转移到新状态 $S_{t+1}$。灰色虚线表示未实现的随机转移方向。</p>
+            </div>
+
+            <p>图 1.1-1 直观地展示了两种范式的差异。在一次性优化中，决策者面对的是一个静态的数学模型；在序贯决策中，决策者面对的是一个不断演变的动态环境。每一步决策都会改变环境的状态，而环境的状态又决定了下一步可以采取的决策和可能获得的回报。</p>
+
+            <p>用数学语言来说，序贯决策的目标不再是找到一个最优的决策变量 $x$，而是找到一个<strong>策略</strong>（policy）$\pi$，将每个可能的状态 $s$ 映射到应该采取的动作 $a$：</p>
+
+            $$\pi: s \mapsto a \tag{1.1-2}$$
+
+            <p>好的策略应当最大化从初始状态 $S_0$ 开始的<strong>长期累计回报</strong>：</p>
+
+            $$\max_{\pi} \; \mathbb{E}_\pi \left[\sum_{t=0}^{\infty} \gamma^t R_{t+1}\right] \tag{1.1-3}$$
+
+            <p>其中 $R_{t+1}$ 是时刻 $t$ 采取动作后获得的即时奖励，$\gamma \in [0,1)$ 是折扣因子，用于平衡近期回报和远期回报。公式(1.1-3)中的期望 $\mathbb{E}_\pi$ 涵盖了环境转移的所有随机性，而求最优策略 $\pi$ 就是在所有可能的决策规则中选出使长期累计回报最大的那一个。</p>
+
+            <div class="note">
+                <strong>折扣因子的直觉</strong>：$\gamma$ 反映了决策者对未来回报的耐心程度。$\gamma$ 接近 $1$ 表示重视长远利益，$\gamma$ 较小则更关注近期回报。例如，一位关注月度KPI的运营经理可能隐含较小的 $\gamma$，而关注长期市场份额的战略决策者则隐含较大的 $\gamma$。我们将在第二章给出折扣因子的严格定义。
+            </div>
+
+            <!-- ===== 强化学习的核心思想 ===== -->
+            <h2>强化学习的核心思想</h2>
+
+            <p>序贯决策问题的经典求解框架是<strong>动态规划</strong>（dynamic programming, DP）。DP将长期优化问题分解为一系列子问题，通过贝尔曼方程递推求解。然而，DP有两个重要的前提条件：</p>
+
+            <ol style="margin:0.5rem 0 1rem 2rem; line-height:2;">
+                <li>必须知道环境的完整模型，即状态转移概率 $P(s'|s,a)$ 和奖励函数 $R(s,a)$</li>
+                <li>状态空间和动作空间的规模不能太大，否则无法逐一枚举</li>
+            </ol>
+
+            <p>在网约车的例子中，第一个条件要求平台事先知道每个区域、每个时段、每种天气条件下乘客出行的精确概率分布，这在实际中几乎不可能获得。第二个条件意味着当我们把城市划分为成百上千个区域、考虑几千辆车的联合状态时，DP的计算量将变得不可承受。</p>
+
+            <p><strong>强化学习</strong>（reinforcement learning, RL）提供了一条不同的路径。它的核心思想可以概括为三个方面。</p>
+
+            <h3>从交互中学习</h3>
+
+            <p>RL不需要事先知道环境的转移概率。智能体（agent）通过与环境反复交互来学习：在每个时刻观察当前状态，选择一个动作，观察环境返回的奖励和新状态，然后利用这些经验来改进自己的策略。这种学习方式不依赖于环境模型，只需要能够与环境交互（或有一个可以模拟交互的仿真器）。</p>
+
+            <h3>试错与探索</h3>
+
+            <p>RL通过<strong>试错</strong>（trial and error）来发现好的策略。智能体一开始并不知道哪些动作是好的，它需要尝试不同的动作，观察结果，逐步积累经验。这个过程天然地包含了<strong>探索</strong>（exploration）与<strong>利用</strong>（exploitation）的权衡：是利用已有经验选择当前看来最好的动作，还是尝试未知的动作以获取新信息？</p>
+
+            <h3>处理大规模问题</h3>
+
+            <p>现代RL结合深度学习（deep learning），可以用神经网络来近似策略或值函数，从而处理状态空间和动作空间极其庞大的问题。例如，AlphaGo的棋盘状态数约为 $10^{170}$，远超任何枚举方法的能力范围，但深度强化学习仍然能够找到优秀的策略。</p>
+
+            <p>下图展示了RL的基本交互循环。这个循环将在第二章被严格形式化为马尔可夫决策过程（MDP）框架。</p>
+
+            <!-- ===== SVG图：智能体-环境交互 ===== -->
+            <div style="text-align:center; margin:2rem 0 0.5rem 0;">
+            <svg width="520" height="240" viewBox="0 0 520 240" style="max-width:100%;">
+                <!-- 智能体方框 -->
+                <rect x="50" y="30" width="160" height="70" rx="10" fill="#dbeafe" stroke="#2b6cb0" stroke-width="2.5"/>
+                <foreignObject x="50" y="40" width="160" height="50">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:16px;font-weight:700;color:#1e40af;text-align:center;line-height:50px;">智能体（Agent）</div>
+                </foreignObject>
+
+                <!-- 环境方框 -->
+                <rect x="310" y="30" width="160" height="70" rx="10" fill="#fed7d7" stroke="#c53030" stroke-width="2.5"/>
+                <foreignObject x="310" y="40" width="160" height="50">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:16px;font-weight:700;color:#c53030;text-align:center;line-height:50px;">环境（Environment）</div>
+                </foreignObject>
+
+                <!-- 动作：智能体 -> 环境（上方弧线） -->
+                <path d="M210,50 Q340,0 390,30" fill="none" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                <!-- 动作标签 -->
+                <foreignObject x="260" y="0" width="60" height="26">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#2b6cb0;font-weight:600;text-align:center;">动作 $A_t$</div>
+                </foreignObject>
+
+                <!-- 状态和奖励：环境 -> 智能体（下方路径） -->
+                <!-- 奖励路径 -->
+                <path d="M310,85 Q260,130 210,130 Q160,130 130,100" fill="none" stroke="#c53030" stroke-width="2" stroke-linecap="round"/>
+                <foreignObject x="188" y="108" width="80" height="26">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#c53030;font-weight:600;text-align:center;">奖励 $R_{t+1}$</div>
+                </foreignObject>
+
+                <!-- 状态路径 -->
+                <path d="M310,100 Q260,190 210,190 Q160,190 110,100" fill="none" stroke="#805ad5" stroke-width="2" stroke-linecap="round"/>
+                <foreignObject x="180" y="168" width="100" height="26">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#805ad5;font-weight:600;text-align:center;">新状态 $S_{t+1}$</div>
+                </foreignObject>
+
+                <!-- 说明文字 -->
+                <foreignObject x="60" y="210" width="400" height="28">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#718096;text-align:center;">智能体根据状态 $S_t$ 选择动作 $A_t$，环境返回奖励 $R_{t+1}$ 和新状态 $S_{t+1}$</div>
+                </foreignObject>
+            </svg>
+            <p class="fig-caption">图 1.1-2 &nbsp; 强化学习的智能体-环境交互循环。在每个时刻 $t$，智能体观察状态 $S_t$，选择动作 $A_t$；环境据此产生奖励 $R_{t+1}$ 和下一状态 $S_{t+1}$。这个循环不断重复，智能体通过积累的交互经验来改进策略。</p>
+            </div>
+
+            <!-- ===== 管理科学与RL的天然契合 ===== -->
+            <h2>管理科学与RL的天然契合</h2>
+
+            <p>为什么说管理科学问题特别适合用RL来求解？原因在于管理科学问题天然具备RL所需的几个关键要素。</p>
+
+            <h3>明确的目标函数</h3>
+
+            <p>管理科学问题通常有清晰、可量化的优化目标：利润最大化、成本最小化、服务水平最大化、等待时间最小化等。这些目标可以直接转化为RL中的奖励信号。相比之下，许多其他领域（如对话系统、自动驾驶）的奖励函数设计本身就是一个难题。</p>
+
+            <h3>天然的序贯结构</h3>
+
+            <p>大量管理决策天然地沿时间展开：库存管理中每天决定补货量、定价问题中每个时段调整价格、调度问题中逐一分配任务。这些问题本身就是序贯决策问题，不需要人为地将其改造为RL框架。</p>
+
+            <h3>丰富的历史数据与仿真能力</h3>
+
+            <p>管理系统通常有完善的信息记录：交易数据、运营日志、传感器数据等。这些数据既可以用来构建仿真器（第七章），也可以用于离线强化学习（第十章）。仿真器的存在尤为重要，它让智能体可以在虚拟环境中安全地探索和试错，而不会造成真实的经济损失。</p>
+
+            <p>下表从几个维度对比了传统运筹方法与RL方法在解决管理科学问题时的特点。</p>
+
+            <!-- ===== 对比表 ===== -->
+            <table class="trans-table">
+                <thead>
+                    <tr>
+                        <th style="width:22%;">对比维度</th>
+                        <th style="width:39%;">传统运筹优化</th>
+                        <th style="width:39%;">强化学习</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>环境模型</strong></td>
+                        <td>需要完整的数学模型（转移概率、分布参数）</td>
+                        <td>不需要显式模型，通过交互或仿真器学习</td>
+                    </tr>
+                    <tr>
+                        <td><strong>决策方式</strong></td>
+                        <td>一次性求解或按阶段求解</td>
+                        <td>根据当前状态实时决策</td>
+                    </tr>
+                    <tr>
+                        <td><strong>状态空间</strong></td>
+                        <td>规模受限于求解器能力，大规模时需近似</td>
+                        <td>通过函数近似（神经网络）可处理高维空间</td>
+                    </tr>
+                    <tr>
+                        <td><strong>不确定性</strong></td>
+                        <td>需明确的概率分布假设或最坏情形集合</td>
+                        <td>从数据中隐式学习不确定性的影响</td>
+                    </tr>
+                    <tr>
+                        <td><strong>求解速度</strong></td>
+                        <td>离线优化慢，在线执行快</td>
+                        <td>训练耗时长，推理（执行策略）极快</td>
+                    </tr>
+                    <tr>
+                        <td><strong>可解释性</strong></td>
+                        <td>通常较强（对偶变量、灵敏度分析）</td>
+                        <td>较弱，需额外手段解释策略</td>
+                    </tr>
+                    <tr>
+                        <td><strong>典型应用</strong></td>
+                        <td>静态规划、确定性调度、已知分布下的库存控制</td>
+                        <td>动态调度、实时定价、大规模车辆调度</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p class="fig-caption">表 1.1-1 &nbsp; 传统运筹优化与强化学习的对比</p>
+
+            <p>需要强调的是，RL并非要取代传统运筹方法，而是对其形成互补。对于规模适中、模型已知、结构良好的问题，传统方法通常更高效、更可靠。RL的优势在于处理传统方法难以应对的场景：环境复杂、模型未知、状态空间庞大、需要实时在线决策。事实上，近年来许多前沿研究正在探索两者的结合，例如用运筹模型提供结构化知识来加速RL训练、用RL来求解大规模组合优化问题等。</p>
+
+            <p>为了让上述比较更加具体，下面列举几个管理科学中适合RL的典型场景。这些场景将在1.2节以及后续章节中展开讨论。</p>
+
+            <div class="compare-box">
+                <div>
+                    <h4>库存管理</h4>
+                    <p style="font-size:0.93rem;line-height:1.7;">每天决定各品类的补货量。需求随机、供应链有提前期、多品类之间有替代关系。传统的 $(s,S)$ 策略在单品类下最优，但多品类联合优化时失效。</p>
+                </div>
+                <div>
+                    <h4>动态定价</h4>
+                    <p style="font-size:0.93rem;line-height:1.7;">根据实时供需调整价格。需求对价格的敏感度随时间和竞争环境变化，且定价影响未来的库存水平和客户预期。</p>
+                </div>
+            </div>
+            <div class="compare-box">
+                <div>
+                    <h4>车辆调度</h4>
+                    <p style="font-size:0.93rem;line-height:1.7;">实时分配车辆完成运输任务。订单随机到达，车辆位置不断变化，每次分配影响后续车辆的可用性和响应能力。</p>
+                </div>
+                <div>
+                    <h4>排班与排程</h4>
+                    <p style="font-size:0.93rem;line-height:1.7;">医院手术室排程、工厂生产调度。需要在满足时效约束的前提下最大化资源利用率，且面临加急任务、设备故障等随机扰动。</p>
+                </div>
+            </div>
+
+            <!-- ===== 本书的定位与路线图 ===== -->
+            <h2>本书的定位与路线图</h2>
+
+            <p>本书面向管理科学（运筹学、管理工程、物流与供应链管理等方向）的研究生和高年级本科生，目标是让读者从零开始掌握强化学习的理论和实践能力，最终能够独立地将RL应用于管理科学研究。</p>
+
+            <p>本书的几个特点：</p>
+
+            <ul style="margin:0.5rem 0 1.5rem 2rem; line-height:2;">
+                <li><strong>自包含</strong>：不假设读者有机器学习或深度学习基础，所有前置知识都在书中补充</li>
+                <li><strong>以管理问题为导向</strong>：所有概念和算法都通过管理科学的例子引入和演示</li>
+                <li><strong>重视实践</strong>：从仿真器搭建到算法训练，提供完整的代码实现和调试指南</li>
+                <li><strong>衔接研究前沿</strong>：最后几章讨论真实场景案例和进阶话题，帮助读者顺利过渡到研究工作</li>
+            </ul>
+
+            <p>全书的内容按照如下路线展开：</p>
+
+            <div style="margin:1.5rem 0;">
+                <div class="roadmap-item">
+                    <div class="roadmap-num">1</div>
+                    <div class="roadmap-text"><strong>管理科学中的序贯决策问题</strong>（第一章）。从传统运筹优化出发，引出序贯决策问题的核心特征，并通过网约车、库存管理、动态定价等场景建立直觉。</div>
+                </div>
+                <div class="roadmap-item">
+                    <div class="roadmap-num">2</div>
+                    <div class="roadmap-text"><strong>马尔可夫决策过程与动态规划</strong>（第二章）。引入MDP的形式化框架，定义状态、动作、奖励、策略、值函数等核心概念。在此基础上介绍策略迭代和值迭代两种精确求解算法，为理解RL算法做准备。</div>
+                </div>
+                <div class="roadmap-item">
+                    <div class="roadmap-num">3</div>
+                    <div class="roadmap-text"><strong>强化学习算法</strong>（第三章）。从不依赖模型的角度出发，依次介绍蒙特卡洛方法、时序差分学习、SARSA、Q-learning、策略梯度和Actor-Critic框架。</div>
+                </div>
+                <div class="roadmap-item">
+                    <div class="roadmap-num">4</div>
+                    <div class="roadmap-text"><strong>深度学习基础</strong>（第四章）。为后续的深度强化学习做准备，涵盖神经网络、CNN、RNN、Transformer和图神经网络。</div>
+                </div>
+                <div class="roadmap-item">
+                    <div class="roadmap-num">5</div>
+                    <div class="roadmap-text"><strong>深度强化学习算法</strong>（第五章）。将深度学习与RL结合，介绍DQN、PPO、SAC等现代算法，以及训练实践中的关键技巧。</div>
+                </div>
+                <div class="roadmap-item">
+                    <div class="roadmap-num">6</div>
+                    <div class="roadmap-text"><strong>管理科学问题的建模范式</strong>（第六章）。系统地讨论如何将管理科学问题抽象为MDP，包括状态空间设计、动作空间设计、奖励函数设计和网络架构选择。</div>
+                </div>
+                <div class="roadmap-item">
+                    <div class="roadmap-num">7</div>
+                    <div class="roadmap-text"><strong>仿真器搭建</strong>（第七章）。讲解面向RL训练的仿真器架构和实现方法，这是管理科学RL研究的基础工程能力。</div>
+                </div>
+                <div class="roadmap-item">
+                    <div class="roadmap-num">8</div>
+                    <div class="roadmap-text"><strong>应用案例与真实场景</strong>（第八、九章）。从教学案例（机票动态定价）到真实场景（网约车派单、公交串车控制、需求响应公交），完整展示RL在管理科学中的应用流程。</div>
+                </div>
+                <div class="roadmap-item">
+                    <div class="roadmap-num">9</div>
+                    <div class="roadmap-text"><strong>进阶话题</strong>（第十章）。涵盖多智能体强化学习、从仿真到部署的迁移、离线强化学习等研究前沿。</div>
+                </div>
+            </div>
+
+            <p>如果你是管理科学方向的学生，曾经使用过线性规划、整数规划或动态规划来解决优化问题，那么你已经具备了阅读本书的基础。接下来的旅程将带你进入一个更广阔的决策优化世界。</p>
+
+            <p>下一节将通过更多具体场景，帮助你建立对序贯决策问题的直觉。</p>
 
             <div class="chapter-nav">
-                <span></span>
                 <a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景 &rarr;</a>
             </div>
         </main>

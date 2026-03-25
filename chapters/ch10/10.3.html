@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10.3 离线强化学习 - 运筹智能</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .trans-table { width: auto; border-collapse: collapse; margin: 1rem auto; font-size: 0.95rem; }
+        .trans-table th, .trans-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: center; }
+        .trans-table th { background: var(--primary-color); color: white; }
+        .trans-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .result-box { background: var(--highlight-color); border: 2px solid var(--accent-color); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; text-align: center; }
+        .algo-box { background: #f7fafc; border: 2px solid var(--accent-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .algo-box .algo-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .algo-box ol { margin: 0.3rem 0 0.3rem 1.5rem; line-height: 2; }
+        .algo-box .algo-note { font-size: 0.9rem; color: #718096; margin-top: 0.5rem; }
+        .note { background: var(--highlight-color); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .warning { background: #fffbeb; border-left: 4px solid #d69e2e; padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .formula-block { background: var(--code-bg); padding: 1.2rem 1.5rem; margin: 1.5rem 0; border-radius: 6px; overflow-x: auto; text-align: center; }
+        .optional-reading { background: #f0fff4; border: 1px solid #9ae6b4; border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; }
+        .optional-reading summary { font-weight: 700; color: #276749; cursor: pointer; font-size: 1rem; }
+        .optional-reading summary:hover { color: var(--accent-color); }
+        .fig-caption { text-align: center; font-size: 0.9rem; color: #718096; margin-top: 0.5rem; margin-bottom: 1.5rem; }
+        .scenario-box { background: var(--sidebar-bg); border: 2px solid var(--border-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .scenario-box .scenario-title { font-weight: 700; color: var(--primary-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .comparison-highlight { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0; }
+        .comparison-highlight > div { flex: 1; min-width: 260px; padding: 1rem 1.2rem; border-radius: 8px; }
+        .comparison-highlight .online-box { background: #dbeafe; border: 2px solid #2b6cb0; }
+        .comparison-highlight .offline-box { background: #fed7d7; border: 2px solid #c53030; }
+        .comparison-highlight .box-title { font-weight: 700; font-size: 1rem; margin-bottom: 0.5rem; }
+        .online-box .box-title { color: #2b6cb0; }
+        .offline-box .box-title { color: #c53030; }
+    </style>
+    <script defer src="../../js/code-copy.js"></script>
+</head>
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="book-title"><a href="../../index.html" style="text-decoration:none;color:inherit;">运筹智能</a></div>
+            <nav>
+                <ul>
+                <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
+                <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
+                <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html" class="active">10.3 离线强化学习</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>10.3 离线强化学习</h1>
+
+            <p>第五章介绍的 DQN、PPO、SAC 等深度强化学习算法都有一个共同的前提：智能体可以在训练过程中<strong>持续与环境交互</strong>，每执行一步动作就立即观察到反馈，再据此更新策略。这种模式称为<strong>在线强化学习</strong>（online RL）。然而，在许多管理科学场景中，这个前提并不成立。本节介绍一种不同的范式：<strong>离线强化学习</strong>（offline RL），也称为<strong>批量强化学习</strong>（batch RL），它允许智能体仅从一份固定的历史数据集中学习策略，无需与环境做任何额外交互。</p>
+
+            <!-- ==================== 为什么管理科学需要离线RL ==================== -->
+            <h2>为什么管理科学需要离线强化学习</h2>
+
+            <p>在线强化学习的核心循环是"执行动作 → 观察反馈 → 更新策略 → 执行新动作"。这个循环在仿真环境中运行得很好，但当我们考虑真实的管理系统时，问题立刻显现。</p>
+
+            <ul style="margin: 0.5rem 0 1rem 2rem; line-height: 2;">
+                <li><strong>在线试错的代价不可接受。</strong>一家航空公司不可能让一个初始随机的定价策略在真实航班上进行数千次探索性定价。一次定价失误可能导致数百万元的收入损失，或者严重损害品牌信誉。</li>
+                <li><strong>安全约束不容违反。</strong>医院的手术排程系统不允许"探索"一下把急诊手术延后会怎样。交通信号控制系统的随机探索可能导致严重的交通拥堵甚至事故。</li>
+                <li><strong>反馈周期长。</strong>供应链优化中，一个补货决策的效果可能在几周后才能完整显现。如果依赖在线交互，训练一个有效策略可能需要数年的运营时间。</li>
+            </ul>
+
+            <p>与此同时，管理科学中一个常被忽视的优势是：许多组织已经积累了<strong>大量的历史运营数据</strong>。</p>
+
+            <ul style="margin: 0.5rem 0 1rem 2rem; line-height: 2;">
+                <li>网约车平台记录了每一次派单决策、乘客等待时间、司机轨迹；</li>
+                <li>零售商的 ERP 系统保存了每天的库存水平、补货数量、实际需求和缺货记录；</li>
+                <li>医院的 HIS 系统中有多年的手术排程、床位分配、患者等待时间数据；</li>
+                <li>航空公司的收益管理系统记录了每一次定价决策和对应的上座率。</li>
+            </ul>
+
+            <p>这些数据就是一份份完整的"状态-动作-奖励-下一状态"转移记录。离线强化学习的目标就是：<strong>仅从这些历史数据中学出比当前运营策略更好的决策策略</strong>，而不需要在真实系统上做任何在线试验。</p>
+
+            <div class="comparison-highlight">
+                <div class="online-box">
+                    <div class="box-title">在线 RL（第五章）</div>
+                    <p style="margin:0.3rem 0; font-size:0.95rem;">智能体 ↔ 环境持续交互</p>
+                    <p style="margin:0.3rem 0; font-size:0.95rem;">可以主动探索未知区域</p>
+                    <p style="margin:0.3rem 0; font-size:0.95rem;">适合仿真环境中的训练</p>
+                </div>
+                <div class="offline-box">
+                    <div class="box-title">离线 RL（本节）</div>
+                    <p style="margin:0.3rem 0; font-size:0.95rem;">仅从固定数据集中学习</p>
+                    <p style="margin:0.3rem 0; font-size:0.95rem;">不能探索，只能利用已有经验</p>
+                    <p style="margin:0.3rem 0; font-size:0.95rem;">适合从历史运营数据中学习</p>
+                </div>
+            </div>
+
+            <!-- ==================== 问题设定 ==================== -->
+            <h2>问题设定</h2>
+
+            <p>离线强化学习的设定非常简洁。假设某个管理系统在过去一段时间内按照某个<strong>行为策略</strong>（behavior policy）$\beta(a \mid s)$ 运行，产生了一批历史数据。这个行为策略可以是人类专家的操作规则、某个启发式算法，或者多个不同决策者的混合行为。我们将这些数据收集为一个静态数据集：</p>
+
+            <div class="formula-block">
+                $$\mathcal{D} = \big\{(s_i, a_i, r_i, s_i')\big\}_{i=1}^{N} \tag{10.3-1}$$
+            </div>
+
+            <p>其中每条记录 $(s_i, a_i, r_i, s_i')$ 表示：在状态 $s_i$ 下执行了动作 $a_i$，获得了奖励 $r_i$，环境转移到了下一状态 $s_i'$。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">离线强化学习的目标</div>
+                <p>给定一个固定的数据集 $\mathcal{D}$（在学习过程中不再增长），找到一个策略 $\pi$ 使得期望累积折扣回报 $J(\pi) = \mathbb{E}_\pi[\sum_{t=0}^{\infty} \gamma^t R_t]$ 最大化。学习过程中<strong>不允许</strong>与环境做任何额外的交互。</p>
+            </div>
+
+            <p>这个设定与第五章的在线算法最大的区别在于：DQN 可以不断地 $\varepsilon$-greedy 采样新数据并存入经验回放缓冲区；SAC 每一步都向缓冲区存入新的转移。而在离线设定下，缓冲区就是 $\mathcal{D}$，容量固定、永远不会有新数据加入。</p>
+
+            <div class="note">
+                <strong>行为策略不需要已知。</strong>我们只需要数据集 $\mathcal{D}$ 本身，不需要知道 $\beta(a \mid s)$ 的显式形式。实际中，$\beta$ 可能是多个调度员在不同时期的混合操作记录，根本不存在一个统一的数学表达。
+            </div>
+
+            <!-- ==================== 分布偏移 ==================== -->
+            <h2>分布偏移：离线学习的核心困难</h2>
+
+            <p>初看之下，离线 RL 似乎很简单：3.1 节的 DQN 本来就从经验回放缓冲区中采样来训练，如果我们把整个历史数据集当作一个"预填充好的缓冲区"，直接运行 DQN 的训练循环不就行了吗？</p>
+
+            <p>答案是：<strong>不行</strong>。直接将在线算法应用于离线数据几乎总是会失败，问题的根源在于<strong>分布偏移</strong>（distribution shift），也称为<strong>外推误差</strong>（extrapolation error）。</p>
+
+            <h3>问题的数学描述</h3>
+
+            <p>考虑 DQN 的 TD 目标（公式 3.1-5）：</p>
+
+            $$y = r + \gamma \max_{a'} Q(s', a'; \theta^-)$$
+
+            <p>关键在于 $\max_{a'}$ 这一步。它会选择 $Q$ 网络认为在 $s'$ 下最好的动作 $a^* = \arg\max_{a'} Q(s', a'; \theta^-)$。但这个 $a^*$ 很可能是数据集 $\mathcal{D}$ 中<strong>从未出现过的动作</strong>。</p>
+
+            <p>在线 RL 中，这不是问题：如果 $a^*$ 的 Q 值被高估了，智能体会在后续的交互中真正执行 $a^*$，获得真实奖励，从而纠正这个估计偏差。但在离线设定下，智能体永远不会去执行 $a^*$，因此<strong>没有任何数据可以纠正这个高估</strong>。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">外推误差的恶性循环</div>
+                <p>在离线数据中，Q 网络对未见过的动作的估计本质上是<strong>外推</strong>（extrapolation），而非<strong>内插</strong>（interpolation）。神经网络在训练分布之外的外推没有任何保证——可能严重偏高，也可能严重偏低。当 $\max$ 运算持续选出被高估的动作时，这些虚假的高 Q 值通过贝尔曼方程向前传播，导致整个 Q 函数的估计越来越不可靠。这就是所谓的<strong>外推误差累积</strong>。</p>
+            </div>
+
+            <h3>一个具体的例子</h3>
+
+            <p>假设我们有一个库存管理系统的历史数据。数据中记录了调度员的补货决策，补货量通常在 $[15, 30]$ 之间。现在用 DQN 在这份数据上训练 Q 网络。</p>
+
+            <p>训练初期，Q 网络对补货量 $a = 45$（数据中从未出现）的 Q 值估计是随机初始化的值。由于没有训练样本对这个 (状态, 动作) 组合施加约束，$Q(s, 45; \theta)$ 的值纯粹由网络的随机权重和泛化特性决定。假如恰好 $Q(s, 45; \theta)$ 比数据中出现的任何动作的 Q 值都高，$\max$ 运算就会选择 $a' = 45$ 作为 TD 目标中的最优动作。</p>
+
+            <p>这个虚假的高 Q 值随后被用来更新其他状态的 Q 估计，进一步传播到更多的状态-动作对。几轮更新后，Q 网络可能对一系列从未在数据中出现的动作都给出了极高的 Q 值。最终学到的策略会选择这些"虚高"的动作，在实际部署时表现很差。</p>
+
+            <!-- 分布偏移示意图 -->
+            <div style="text-align:center; margin: 1.5rem 0 0.5rem 0;">
+                <svg width="560" height="220" viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;">
+                    <!-- 坐标轴 -->
+                    <line x1="60" y1="180" x2="520" y2="180" stroke="#4a5568" stroke-width="1.5"/>
+                    <line x1="60" y1="180" x2="60" y2="20" stroke="#4a5568" stroke-width="1.5"/>
+                    <text x="290" y="210" text-anchor="middle" font-size="13" fill="#4a5568" font-style="italic">动作 a</text>
+                    <text x="25" y="100" text-anchor="middle" font-size="13" fill="#4a5568" font-style="italic" transform="rotate(-90,25,100)">Q(s, a)</text>
+
+                    <!-- 数据覆盖区域 -->
+                    <rect x="140" y="30" width="200" height="150" rx="4" fill="#dbeafe" fill-opacity="0.3" stroke="#2b6cb0" stroke-width="1" stroke-dasharray="4,3"/>
+                    <text x="240" y="195" text-anchor="middle" font-size="11" fill="#2b6cb0" font-weight="600">数据覆盖区域</text>
+
+                    <!-- 真实Q值曲线 -->
+                    <path d="M 80 150 Q 140 120 200 80 Q 260 55 320 70 Q 380 90 440 130 Q 480 155 500 160" fill="none" stroke="#805ad5" stroke-width="2"/>
+                    <text x="505" y="155" font-size="11" fill="#805ad5">$Q^*$（真实）</text>
+
+                    <!-- 学到的Q值曲线 - 数据区域内接近真实 -->
+                    <path d="M 80 160 Q 120 145 160 100 Q 200 70 240 58 Q 280 50 320 65" fill="none" stroke="#2b6cb0" stroke-width="2"/>
+                    <!-- 学到的Q值曲线 - 数据区域外发散 -->
+                    <path d="M 320 65 Q 360 40 400 25 Q 440 20 480 18 Q 500 18 510 18" fill="none" stroke="#c53030" stroke-width="2.5"/>
+                    <text x="480" y="14" font-size="11" fill="#c53030" font-weight="600">$\hat{Q}$（外推发散）</text>
+
+                    <!-- 左侧数据外区域也有问题 -->
+                    <path d="M 80 160 Q 100 155 120 140 Q 140 115 160 100" fill="none" stroke="#c53030" stroke-width="2" stroke-dasharray="4,3"/>
+
+                    <!-- max选择标记 -->
+                    <line x1="490" y1="18" x2="490" y2="180" stroke="#c53030" stroke-width="1" stroke-dasharray="3,3"/>
+                    <text x="490" y="175" text-anchor="middle" font-size="10" fill="#c53030">$\arg\max$</text>
+
+                    <!-- 数据点散点 -->
+                    <circle cx="160" cy="100" r="3.5" fill="#2b6cb0"/>
+                    <circle cx="190" cy="78" r="3.5" fill="#2b6cb0"/>
+                    <circle cx="220" cy="65" r="3.5" fill="#2b6cb0"/>
+                    <circle cx="250" cy="58" r="3.5" fill="#2b6cb0"/>
+                    <circle cx="275" cy="55" r="3.5" fill="#2b6cb0"/>
+                    <circle cx="300" cy="62" r="3.5" fill="#2b6cb0"/>
+                    <circle cx="320" cy="68" r="3.5" fill="#2b6cb0"/>
+                </svg>
+            </div>
+            <div class="fig-caption">图 10.3-1　分布偏移的示意。蓝色区域是数据覆盖的动作范围，蓝色实线是 Q 网络在该范围内的估计（接近真实值 $Q^*$）。红色实线是 Q 网络在数据范围之外的外推，由于缺乏训练数据的约束，Q 值可能远高于真实值。$\arg\max$ 运算选中了外推区域中被严重高估的动作。</div>
+
+            <!-- ==================== 行为克隆 ==================== -->
+            <h2>行为克隆：最简单的基线</h2>
+
+            <p>在介绍专门的离线 RL 算法之前，先看一个最朴素的方案：直接模仿数据中的行为策略，完全不做值函数估计。这就是<strong>行为克隆</strong>（Behavior Cloning, BC）。</p>
+
+            <p>行为克隆将离线 RL 问题简化为一个标准的<strong>监督学习</strong>问题：用数据集 $\mathcal{D}$ 中的 $(s_i, a_i)$ 对作为训练样本，学一个策略网络 $\pi_\theta(a \mid s)$ 去拟合行为策略的动作选择。</p>
+
+            <p>对于离散动作空间，行为克隆的损失函数是交叉熵：</p>
+
+            $$L_{\text{BC}}(\theta) = -\frac{1}{N}\sum_{i=1}^{N} \log \pi_\theta(a_i \mid s_i) \tag{10.3-2}$$
+
+            <p>对于连续动作空间（如高斯策略），损失函数是负对数似然或均方误差：</p>
+
+            $$L_{\text{BC}}(\theta) = \frac{1}{N}\sum_{i=1}^{N} \big\|a_i - \mu_\theta(s_i)\big\|^2 \tag{10.3-3}$$
+
+            <p>行为克隆完全不涉及贝尔曼方程或 TD 学习，因此<strong>不受外推误差的影响</strong>。它的实现极其简单，训练也非常稳定。</p>
+
+            <div class="note">
+                <strong>行为克隆的适用条件。</strong>如果数据集中的行为策略 $\beta$ 本身已经相当好（例如经验丰富的调度员的操作记录），行为克隆可以有效地将人类专家的知识"蒸馏"到一个神经网络中，使其能够自动执行类似的决策。在一些管理科学应用中，行为克隆就足以提供有价值的自动化决策。
+            </div>
+
+            <p>行为克隆的<strong>根本局限</strong>也很明显：它的性能<strong>无法超越数据中的行为策略</strong>。学到的策略充其量是行为策略的一个近似复制，如果行为策略本身是次优的，行为克隆也只能学到一个次优策略。离线 RL 的真正价值在于：利用数据中不同决策者的经验，"拼接"出一个比任何单一决策者都更好的策略，而这需要进行值函数估计和策略优化。</p>
+
+            <table class="trans-table" style="width:100%;">
+                <thead>
+                    <tr><th>方法</th><th>目标</th><th>能否超越行为策略</th><th>外推误差风险</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>行为克隆</td><td>模仿 $\beta$</td><td>不能</td><td>无</td></tr>
+                    <tr><td>在线 RL（DQN/SAC）直接应用</td><td>最大化回报</td><td>理论上能，实际常失败</td><td>严重</td></tr>
+                    <tr><td>离线 RL（CQL 等）</td><td>保守地最大化回报</td><td>能</td><td>受控</td></tr>
+                </tbody>
+            </table>
+
+            <!-- ==================== CQL ==================== -->
+            <h2>保守Q学习（Conservative Q-Learning）</h2>
+
+            <p>既然分布偏移的本质是 Q 值在数据范围之外被高估，一个自然的思路是：在训练 Q 网络时，显式地<strong>压低</strong>那些不在数据中的动作的 Q 值。这就是 Kumar 等人（2020）提出的<strong>保守 Q 学习</strong>（Conservative Q-Learning, CQL）的核心思想。</p>
+
+            <h3>核心思想：学习 Q 值的下界</h3>
+
+            <p>CQL 在标准的 TD 损失之上添加了一个<strong>正则化项</strong>，它惩罚 Q 网络对当前策略所选动作的 Q 值，同时鼓励 Q 网络对数据中实际出现的动作给出较高的 Q 值。</p>
+
+            <p>具体而言，CQL 的损失函数由两部分组成：</p>
+
+            <div class="formula-block">
+                $$L_{\text{CQL}}(\theta) = \underbrace{\alpha_{\text{cql}} \left(\mathbb{E}_{s \sim \mathcal{D}}\!\left[\log \sum_{a} \exp\big(Q_\theta(s, a)\big)\right] - \mathbb{E}_{(s,a) \sim \mathcal{D}}\!\left[Q_\theta(s, a)\right]\right)}_{\text{CQL 正则化项}} + \underbrace{\frac{1}{2}\,\mathbb{E}_{(s,a,r,s') \sim \mathcal{D}}\!\left[\big(Q_\theta(s, a) - y\big)^2\right]}_{\text{标准 TD 损失}} \tag{10.3-4}$$
+            </div>
+
+            <p>其中 $y = r + \gamma \max_{a'} Q_{\theta^-}(s', a')$ 是通常的 TD 目标，$\alpha_{\text{cql}} > 0$ 控制保守程度。</p>
+
+            <h3>正则化项的直觉</h3>
+
+            <p>CQL 正则化项的第一部分 $\log \sum_{a} \exp(Q_\theta(s, a))$ 是所有动作 Q 值的"软最大值"（log-sum-exp），它是 $\max_a Q_\theta(s, a)$ 的平滑上界。最小化这一项会压低所有动作的 Q 值，尤其是那些 Q 值偏高的动作。</p>
+
+            <p>第二部分 $\mathbb{E}_{(s,a) \sim \mathcal{D}}[Q_\theta(s, a)]$ 是数据集中实际出现的 (状态, 动作) 对的平均 Q 值。最大化这一项（因为整体是最小化，所以它前面有负号）会拉高数据中动作的 Q 值。</p>
+
+            <p>两者结合的净效果是：</p>
+            <ul>
+                <li>数据中出现过的动作：Q 值基本保持准确（被拉高的力和被压低的力大致平衡）；</li>
+                <li>数据中<strong>未出现</strong>的动作：Q 值被系统性地压低（只有压低的力，没有拉高的力）。</li>
+            </ul>
+
+            <div class="concept-card">
+                <div class="concept-name">CQL 学习的是 Q 值的下界</div>
+                <p>可以证明（Kumar et al., 2020），在一定条件下，CQL 学到的 Q 函数满足：</p>
+                $$\mathbb{E}_\pi\big[Q_\theta(s, a)\big] \leq Q^\pi(s, a) \tag{10.3-5}$$
+                <p>即对于学到的策略 $\pi$ 选出的动作，CQL 的 Q 值估计是真实 Q 值的<strong>下界</strong>。这意味着 CQL 对策略性能的评估是<strong>保守的</strong>（pessimistic）：如果 CQL 认为某个策略好，那它实际上至少和 CQL 评估的一样好，甚至更好。这种保守性正是离线 RL 所需要的安全保障。</p>
+            </div>
+
+            <h3>连续动作空间中的 CQL</h3>
+
+            <p>公式(10.3-4)中的 $\log \sum_a \exp(Q(s,a))$ 要求对所有动作求和，这对离散动作空间是可行的，但对连续动作空间则需要用采样来近似。实践中常用的做法是：从当前策略 $\pi_\theta$ 和均匀分布中各采样一批动作，用这些样本来近似 log-sum-exp 项。具体而言，采样 $M$ 个动作 $\{a^{(j)}\}_{j=1}^M$（一半来自当前策略，一半来自均匀分布），计算：</p>
+
+            $$\log \sum_{a} \exp\big(Q_\theta(s, a)\big) \approx \log \frac{1}{M}\sum_{j=1}^{M} \exp\big(Q_\theta(s, a^{(j)})\big) \tag{10.3-6}$$
+
+            <h3>CQL 算法</h3>
+
+            <p>CQL 可以建立在 DQN 或 SAC 的架构之上，唯一的改动是在损失函数中添加正则化项。以基于 SAC 框架的 CQL 为例（这是连续动作空间中最常用的组合），完整算法如下：</p>
+
+            <div class="algo-box">
+                <div class="algo-title">算法：CQL（基于 SAC 框架）</div>
+                <ol>
+                    <li>初始化策略网络 $\pi_\phi$、Q 网络 $Q_{\theta_1}, Q_{\theta_2}$、目标网络 $Q_{\bar{\theta}_1}, Q_{\bar{\theta}_2}$</li>
+                    <li>加载离线数据集 $\mathcal{D}$</li>
+                    <li>对每个训练步：
+                        <ol type="a">
+                            <li>从 $\mathcal{D}$ 中随机采样小批量 $\{(s, a, r, s')\}$</li>
+                            <li>对每个 Q 网络 $i = 1, 2$，计算 CQL 损失：
+                                $$L_i = \alpha_{\text{cql}} \left(\mathbb{E}_s\Big[\log \sum_{a'} \exp Q_{\theta_i}(s, a')\Big] - \mathbb{E}_{(s,a)}[Q_{\theta_i}(s, a)]\right) + \frac{1}{2}\,\mathbb{E}\big[(Q_{\theta_i}(s,a) - y)^2\big]$$
+                                其中 $y = r + \gamma \big(\min_i Q_{\bar{\theta}_i}(s', \tilde{a}') - \alpha \log \pi_\phi(\tilde{a}'|s')\big)$，$\tilde{a}' \sim \pi_\phi(\cdot|s')$
+                            </li>
+                            <li>梯度下降更新 $\theta_1, \theta_2$</li>
+                            <li>更新策略网络 $\phi$（与 SAC 相同，最大化期望软 Q 值）</li>
+                            <li>软更新目标网络：$\bar{\theta}_i \leftarrow \tau \theta_i + (1-\tau)\bar{\theta}_i$</li>
+                        </ol>
+                    </li>
+                </ol>
+                <div class="algo-note">与 SAC 的唯一区别在于步骤 (b)：Q 网络的损失中多了 CQL 正则化项。超参数 $\alpha_{\text{cql}}$ 通常取 $1.0$ 到 $5.0$，控制保守程度。</div>
+            </div>
+
+            <p>可以看到，CQL 并非一个全新的算法框架，而是一个可以"插入"任何基于值函数的 RL 算法的正则化技术。在 DQN 上加 CQL 正则化就得到 CQL-DQN；在 SAC 上加 CQL 正则化就得到 CQL-SAC。</p>
+
+            <div class="result-box">
+                <strong>CQL = 在线 RL 算法 + 保守正则化项</strong><br>
+                核心改动：在 Q 网络的损失函数中，压低数据之外动作的 Q 值，确保 Q 值估计是下界。
+            </div>
+
+            <!-- ==================== 其他离线RL方法 ==================== -->
+            <details class="optional-reading">
+                <summary>选读：其他离线 RL 方法</summary>
+                <p style="margin-top:0.5rem;">CQL 是通过正则化 Q 值来实现保守估计的。除此之外，还有几种不同思路的离线 RL 方法：</p>
+                <ul style="margin: 0.5rem 0 0.5rem 1.5rem; line-height: 2;">
+                    <li><strong>BCQ（Batch-Constrained Q-learning，Fujimoto et al., 2019）</strong>：不直接压低 Q 值，而是限制策略只能选择"与数据中的动作相似"的动作。具体做法是训练一个生成模型（如 VAE）来拟合数据中的动作分布 $\beta(a \mid s)$，然后只在这个分布的支撑集上做 $\max$。</li>
+                    <li><strong>IQL（Implicit Q-Learning，Kostrikov et al., 2022）</strong>：完全避免在训练中查询数据外的动作。它使用分位数回归来学习 Q 值，使得 TD 目标中只涉及数据集中的动作，从根本上消除了外推误差。</li>
+                    <li><strong>Decision Transformer（Chen et al., 2021）</strong>：将 RL 问题完全转化为序列建模问题。把轨迹 $(R, s_0, a_0, R-r_0, s_1, a_1, \ldots)$ 当作一个序列，用 Transformer（第 2.3 节）来建模。在推理时，给定一个期望的回报值，Transformer 自回归地生成动作序列。这种方法完全不需要贝尔曼方程或 TD 学习。</li>
+                </ul>
+                <p>在管理科学应用中，CQL 和 IQL 是目前最常用的选择。CQL 的优势在于实现简单（在现有 DQN/SAC 代码上只需添加几行正则化），效果也比较稳定。</p>
+            </details>
+
+            <!-- ==================== 例子 ==================== -->
+            <h2>例子：从历史调度数据学习派单策略</h2>
+
+            <p>考虑一个简化的网约车派单场景，延续第一章的三区域设定（市中心 $c$、郊区 $b$、机场 $a$）。假设某平台过去一年的运营数据记录了调度员在不同状态下的派单决策。</p>
+
+            <div class="scenario-box">
+                <div class="scenario-title">数据来源</div>
+                <p>平台在过去一年使用了一个基于规则的派单策略 $\beta$：</p>
+                <ul style="margin: 0.3rem 0 0.3rem 1.5rem; line-height: 1.8;">
+                    <li>当司机在市中心 $c$ 时：$80\%$ 的概率接单，$20\%$ 的概率空驶去机场</li>
+                    <li>当司机在郊区 $b$ 时：$50\%$ 的概率接单，$50\%$ 的概率空驶去市中心</li>
+                    <li>当司机在机场 $a$ 时：$90\%$ 的概率接单，$10\%$ 的概率空驶去市中心</li>
+                </ul>
+                <p>这个策略是人类调度员根据经验设定的，并非最优。数据集中一共记录了 $N = 50000$ 条转移。</p>
+            </div>
+
+            <p>我们的目标是从这 50000 条历史记录中学出一个更好的派单策略，而不需要在真实平台上做任何在线实验。</p>
+
+            <p><strong>行为克隆的结果。</strong>行为克隆会学到与 $\beta$ 非常接近的策略，在郊区仍然有 $50\%$ 的概率接单。但回顾第一章的分析，我们知道在郊区接单是低效的（接单奖励低且大概率留在郊区），最优策略应该在郊区空驶去市中心。行为克隆无法发现这一点，因为它只是模仿数据中的动作。</p>
+
+            <p><strong>直接用 DQN 的结果。</strong>如果将 50000 条数据放入经验回放缓冲区，直接运行 DQN 训练循环（但不再采集新数据），Q 网络很可能会对数据中较少出现的 (状态, 动作) 组合给出不可靠的 Q 值。例如，在郊区空驶去机场这个动作在数据中几乎没有出现（$\beta$ 中没有这个选项），DQN 可能对它给出虚假的高 Q 值，导致学到一个荒谬的策略。</p>
+
+            <p><strong>CQL 的结果。</strong>CQL 会保守地估计 Q 值：对数据中频繁出现的 (状态, 动作) 对给出较准确的 Q 值，对罕见的组合给出偏低的 Q 值。由于数据中确实包含了一些"在郊区空驶去市中心"的转移（$\beta$ 中有 $50\%$ 的概率执行这个动作），CQL 能够可靠地估计这个动作的 Q 值，并发现它优于在郊区接单。最终学到的策略会在郊区更倾向于空驶去市中心，接近最优策略，同时不会对数据中未出现的动作（如在郊区空驶去机场）给出虚假的高评估。</p>
+
+            <div class="note">
+                <strong>数据覆盖的重要性。</strong>注意 CQL 能够发现"在郊区空驶去市中心优于接单"，是因为数据中<strong>确实包含了这两种动作的样本</strong>。如果行为策略 $\beta$ 在郊区 $100\%$ 接单、从未空驶，那么任何离线 RL 方法都无法可靠地评估空驶动作的价值。离线 RL 的性能<strong>取决于数据的覆盖度</strong>：数据中覆盖的 (状态, 动作) 对越多样，学到的策略越可能超越行为策略。
+            </div>
+
+            <!-- ==================== 实践建议 ==================== -->
+            <h2>离线强化学习的实践建议</h2>
+
+            <h3>数据质量比算法选择更重要</h3>
+
+            <p>在离线 RL 中，数据集的质量和覆盖度对最终性能的影响远大于算法的选择。以下几点在准备数据时需要特别注意：</p>
+
+            <ul style="margin: 0.5rem 0 1rem 2rem; line-height: 2;">
+                <li><strong>动作多样性。</strong>数据中应包含足够多样的动作选择。如果所有历史记录都来自同一个固定策略，离线 RL 能学到的信息非常有限。理想情况是数据来自多个不同的决策者或不同时期的策略（例如，不同调度员的操作记录，或策略在不同阶段的调整记录）。</li>
+                <li><strong>状态覆盖。</strong>数据应覆盖目标任务可能遇到的各种状态。如果训练数据只包含正常工作日的记录，但部署时需要处理节假日的特殊需求，学到的策略在节假日可能表现很差。</li>
+                <li><strong>奖励信号的准确性。</strong>在构建离线数据集时，需要确保奖励的计算方式与目标一致。如果历史数据中只记录了收入但没有记录客户满意度，而目标函数需要考虑满意度，就需要在预处理阶段补全这些信息。</li>
+            </ul>
+
+            <h3>离线评估的困难</h3>
+
+            <p>在线 RL 中，评估一个策略的好坏很简单：让它在环境中跑几个回合，计算平均回报。但在离线设定下，我们无法让策略与环境交互来评估。这个问题称为<strong>离策略评估</strong>（off-policy evaluation, OPE），它本身就是一个活跃的研究领域。</p>
+
+            <p>实践中常用的评估方式有两种：</p>
+
+            <ul style="margin: 0.5rem 0 1rem 2rem; line-height: 2;">
+                <li><strong>仿真器评估。</strong>如果有一个可靠的仿真器（第七章的内容），可以在仿真器中运行离线学到的策略来评估性能。这是最可靠的方式。</li>
+                <li><strong>重要性采样评估。</strong>利用数据中的轨迹和行为策略 $\beta$ 的已知概率，通过重要性权重来估计新策略 $\pi$ 的期望回报。这种方法的方差通常很大，尤其当 $\pi$ 和 $\beta$ 差异较大时。</li>
+            </ul>
+
+            <div class="warning">
+                <strong>不要过度信任 Q 值。</strong>在离线 RL 中，Q 网络估计的值（即使使用了 CQL 的保守估计）与策略的真实性能之间可能存在较大差距。不要仅因为 Q 值看起来很高就认为策略一定好。如果条件允许，务必在仿真器中或通过小规模在线实验来验证策略的实际表现。
+            </div>
+
+            <h3>离线预训练 + 在线微调</h3>
+
+            <p>在许多管理科学场景中，最实用的方案不是纯粹的离线 RL，而是<strong>离线预训练加在线微调</strong>（offline-to-online）的两阶段方法：</p>
+
+            <ol>
+                <li><strong>离线阶段：</strong>在历史数据上用 CQL 等算法训练一个初始策略。这个策略虽然可能不是最优的，但已经是一个合理的起点，远好于随机初始化。</li>
+                <li><strong>在线阶段：</strong>将离线学到的策略部署到仿真环境（或在安全约束下部署到真实环境），用 SAC 或 PPO 进行少量的在线微调。由于起点已经很好，在线阶段所需的探索量大大减少，训练效率显著提高。</li>
+            </ol>
+
+            <p>这种两阶段方法结合了离线 RL 的安全性（初始策略不是随机的）和在线 RL 的适应性（可以根据实际环境反馈继续优化），是将 RL 应用于实际管理系统时最推荐的路径。</p>
+
+            <!-- ==================== 小结 ==================== -->
+            <h2>小结</h2>
+
+            <p>本节介绍了离线强化学习的动机、核心困难和解决方案。下表将本章的所有算法从在线/离线的角度做一个完整的梳理：</p>
+
+            <table class="trans-table" style="width:100%;">
+                <thead>
+                    <tr><th>维度</th><th>DQN / SAC（在线）</th><th>行为克隆（离线）</th><th>CQL（离线）</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>数据来源</strong></td>
+                        <td>在线交互 + 经验回放</td>
+                        <td>固定数据集</td>
+                        <td>固定数据集</td>
+                    </tr>
+                    <tr>
+                        <td><strong>是否需要环境交互</strong></td>
+                        <td>是</td>
+                        <td>否</td>
+                        <td>否</td>
+                    </tr>
+                    <tr>
+                        <td><strong>能否超越行为策略</strong></td>
+                        <td>能（通过探索发现更好策略）</td>
+                        <td>不能（只能模仿）</td>
+                        <td>能（通过保守值估计）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>核心技术</strong></td>
+                        <td>经验回放 + 目标网络</td>
+                        <td>监督学习（交叉熵/MSE）</td>
+                        <td>TD 学习 + Q 值正则化</td>
+                    </tr>
+                    <tr>
+                        <td><strong>主要风险</strong></td>
+                        <td>在线探索的安全性和成本</td>
+                        <td>无法超越数据质量</td>
+                        <td>依赖数据覆盖度</td>
+                    </tr>
+                    <tr>
+                        <td><strong>适用场景</strong></td>
+                        <td>仿真环境中训练</td>
+                        <td>行为策略已经较好</td>
+                        <td>有历史数据、需要策略优化</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="result-box">
+                <strong>核心要点：</strong>离线 RL 使得"从数据中学习决策"成为可能，是将强化学习应用于管理科学实际问题的关键桥梁。分布偏移是核心挑战，CQL 通过保守的 Q 值估计提供了有效的解决方案。实践中，离线预训练 + 在线微调的两阶段路径通常是最稳健的选择。
+            </div>
+
+            <div class="chapter-nav">
+                <a href="../ch10/10.2.html">&larr; 10.2 从仿真到实际部署的迁移</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

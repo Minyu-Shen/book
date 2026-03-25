@@ -3,13 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>7.3 需求响应公交调度优化 - 运筹智能</title>
+    <title>7.3 基于时间步的仿真逻辑 - 运筹智能</title>
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
     <script defer src="../../js/code-copy.js"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .fig-caption { text-align:center; font-size:0.9rem; color:#718096; margin-top:0.5rem; margin-bottom:1.5rem; }
+        .note { background: var(--highlight-color); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .warning { background: #fffbeb; border-left: 4px solid #d69e2e; padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .algo-box { background: #f7fafc; border: 2px solid var(--accent-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .algo-box .algo-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .algo-box ol { margin: 0.3rem 0 0.3rem 1.5rem; line-height: 2; }
+        .dt-table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; }
+        .dt-table th, .dt-table td { border: 1px solid var(--border-color); padding: 0.5rem 1rem; text-align: center; }
+        .dt-table th { background: var(--sidebar-bg); font-weight: 600; }
+    </style>
 </head>
 <body>
     <div class="page-wrapper">
@@ -20,60 +36,443 @@
                 <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
                 <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
                 <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
-                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
-                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
-                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.3.html">1.5.3 SARSA与Q-learning</a></li>
-                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
-                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
-                <li class="sidebar-chapter">第二章 深度学习基础</li>
-                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
-                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
-                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
-                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
-                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
-                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
-                <li><a href="../ch03/3.2.html">3.2 Policy Gradient与PPO</a></li>
-                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
-                <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
-                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
-                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
-                <li><a href="../ch04/4.2.html">4.2 时域建模与回合定义</a></li>
-                <li><a href="../ch04/4.3.html">4.3 状态空间、动作空间与奖励函数的设计</a></li>
-                <li><a href="../ch04/4.4.html">4.4 决策时机与决策频率的建模</a></li>
-                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
-                <li class="sidebar-chapter">第五章 仿真器搭建</li>
-                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
-                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
-                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
-                <li><a href="../ch05/5.4.html">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
-                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
-                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
-                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
-                <li><a href="../ch07/7.2.html">7.2 公交串车控制</a></li>
-                <li><a href="../ch07/7.3.html" class="active">7.3 需求响应公交调度优化</a></li>
-                <li class="sidebar-chapter">第八章 进阶话题</li>
-                <li><a href="../ch08/8.1.html">8.1 多智能体强化学习</a></li>
-                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html" class="active">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
                 </ul>
             </nav>
         </aside>
 
         <main class="main-content">
-            <h1>7.3 需求响应公交调度优化</h1>
+            <h1>7.3 基于时间步的仿真逻辑</h1>
 
-            <p>（内容待补充）</p>
+            <!-- ==================== 仿真时钟 ==================== -->
+
+            <p>5.2 节介绍了如何用面向对象的方式定义仿真中的实体。有了实体类之后，下一个问题是：如何让这些实体在时间维度上运动起来？这正是<strong>仿真循环</strong>的职责。仿真循环是任何仿真器的核心骨架，它驱动仿真时钟一步步前进，在每一步更新所有实体的状态，并在适当的时刻请求决策算法给出动作。</p>
+
+            <p>在基于时间步的仿真中，仿真器维护一个全局时钟 $t$，从初始时刻 $t = 0$ 出发，以固定步长 $\Delta t$ 向前推进：</p>
+
+            $$t = 0, \; \Delta t, \; 2\Delta t, \; 3\Delta t, \; \ldots$$
+
+            <p>每推进一步，仿真器依次完成若干子任务：更新物理状态、处理逻辑事件、请求决策、执行动作、计算奖励。当时钟到达终止时刻 $T_{\text{end}}$ 时，一个回合结束。从 MDP 的视角看，仿真循环正是<strong>转移函数</strong> $P(s' \mid s, a)$ 的计算实现：给定当前状态 $s$ 和动作 $a$，通过一次循环迭代，仿真器生成下一个状态 $s'$ 和对应的奖励 $r$。</p>
+
+            <!-- ==================== 仿真循环结构 ==================== -->
+
+            <h2>仿真循环的基本结构</h2>
+
+            <p>一个完整的仿真循环在每个时间步内执行以下四个阶段：</p>
+
+            <div class="algo-box">
+                <div class="algo-title">仿真循环伪代码</div>
+                <ol>
+                    <li><strong>物理更新</strong>：根据运动学方程移动车辆，更新位置和速度。</li>
+                    <li><strong>逻辑更新</strong>：检测到达事件、生成新需求、更新实体状态标记。</li>
+                    <li><strong>决策请求</strong>：将当前环境状态传给决策算法，获取动作。</li>
+                    <li><strong>执行与奖励</strong>：执行调度决策，计算该时间步的即时奖励。</li>
+                </ol>
+                <p style="margin-top:0.5rem;">时钟推进：$t \leftarrow t + \Delta t$，若 $t \geq T_{\text{end}}$ 则终止。</p>
+            </div>
+
+            <p>下面的示意图展示了单个时间步内各阶段的执行顺序。</p>
+
+            <!-- ===== 图 7.3-1: 单时间步执行流程 ===== -->
+            <div style="text-align:center; margin: 1.5rem 0 0.5rem;">
+                <svg width="520" height="480" viewBox="0 0 520 480" xmlns="http://www.w3.org/2000/svg" style="max-width:100%; height:auto;">
+                    <!-- 时间步标题 -->
+                    <rect x="140" y="15" width="240" height="36" rx="6" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="1.5"/>
+                    <foreignObject x="140" y="15" width="240" height="36">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:15px;font-weight:600;color:#2d3748;">
+                            单个时间步 (tick)
+                        </div>
+                    </foreignObject>
+
+                    <!-- 阶段1: 物理更新 -->
+                    <rect x="120" y="80" width="280" height="64" rx="8" fill="#dbeafe" stroke="#2b6cb0" stroke-width="2"/>
+                    <foreignObject x="120" y="80" width="280" height="64">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;">
+                            <div style="font-size:15px;font-weight:700;color:#2b6cb0;">1. 物理更新</div>
+                            <div style="font-size:12.5px;color:#4a5568;margin-top:3px;">移动车辆、更新位置与速度</div>
+                        </div>
+                    </foreignObject>
+
+                    <!-- 连线 1→2 -->
+                    <line x1="260" y1="144" x2="260" y2="175" stroke="#4a5568" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="260" cy="175" r="3" fill="#4a5568"/>
+
+                    <!-- 阶段2: 逻辑更新 -->
+                    <rect x="120" y="180" width="280" height="64" rx="8" fill="#f0fff4" stroke="#48bb78" stroke-width="2"/>
+                    <foreignObject x="120" y="180" width="280" height="64">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;">
+                            <div style="font-size:15px;font-weight:700;color:#38a169;">2. 逻辑更新</div>
+                            <div style="font-size:12.5px;color:#4a5568;margin-top:3px;">检测到达、生成需求、更新状态标记</div>
+                        </div>
+                    </foreignObject>
+
+                    <!-- 连线 2→3 -->
+                    <line x1="260" y1="244" x2="260" y2="275" stroke="#4a5568" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="260" cy="275" r="3" fill="#4a5568"/>
+
+                    <!-- 阶段3: 决策请求 -->
+                    <rect x="120" y="280" width="280" height="64" rx="8" fill="#fed7d7" stroke="#c53030" stroke-width="2"/>
+                    <foreignObject x="120" y="280" width="280" height="64">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;">
+                            <div style="font-size:15px;font-weight:700;color:#c53030;">3. 决策请求</div>
+                            <div style="font-size:12.5px;color:#4a5568;margin-top:3px;">观测状态、调用调度算法、返回动作</div>
+                        </div>
+                    </foreignObject>
+
+                    <!-- 连线 3→4 -->
+                    <line x1="260" y1="344" x2="260" y2="375" stroke="#4a5568" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="260" cy="375" r="3" fill="#4a5568"/>
+
+                    <!-- 阶段4: 执行与奖励 -->
+                    <rect x="120" y="380" width="280" height="64" rx="8" fill="#faf5ff" stroke="#805ad5" stroke-width="2"/>
+                    <foreignObject x="120" y="380" width="280" height="64">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;">
+                            <div style="font-size:15px;font-weight:700;color:#805ad5;">4. 执行与奖励</div>
+                            <div style="font-size:12.5px;color:#4a5568;margin-top:3px;">执行调度决策、计算即时奖励</div>
+                        </div>
+                    </foreignObject>
+
+                    <!-- 左侧标注 -->
+                    <foreignObject x="5" y="80" width="110" height="64">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:12px;color:#718096;text-align:center;">
+                            环境动力学
+                        </div>
+                    </foreignObject>
+                    <line x1="112" y1="112" x2="120" y2="112" stroke="#b0b8c4" stroke-width="1" stroke-linecap="round" stroke-dasharray="3,3"/>
+
+                    <foreignObject x="5" y="180" width="110" height="64">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:12px;color:#718096;text-align:center;">
+                            状态转移
+                        </div>
+                    </foreignObject>
+                    <line x1="112" y1="212" x2="120" y2="212" stroke="#b0b8c4" stroke-width="1" stroke-linecap="round" stroke-dasharray="3,3"/>
+
+                    <!-- 右侧标注 -->
+                    <foreignObject x="405" y="280" width="110" height="64">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:12px;color:#718096;text-align:center;">
+                            智能体策略
+                        </div>
+                    </foreignObject>
+                    <line x1="400" y1="312" x2="408" y2="312" stroke="#b0b8c4" stroke-width="1" stroke-linecap="round" stroke-dasharray="3,3"/>
+
+                    <foreignObject x="405" y="380" width="110" height="64">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:12px;color:#718096;text-align:center;">
+                            奖励信号
+                        </div>
+                    </foreignObject>
+                    <line x1="400" y1="412" x2="408" y2="412" stroke="#b0b8c4" stroke-width="1" stroke-linecap="round" stroke-dasharray="3,3"/>
+                </svg>
+            </div>
+            <div class="fig-caption">图 7.3-1 &nbsp; 单个时间步内的四阶段执行流程。左右两侧标注了各阶段在 MDP 框架中的对应角色。</div>
+
+            <!-- ==================== 简单仿真器：库存管理 ==================== -->
+
+            <h2>简单示例：库存管理仿真器</h2>
+
+            <p>在展示复杂的多服务仿真引擎之前，先用一个简单的例子来理解仿真循环的基本结构。以 5.1 节的库存管理问题为例，下面的代码直接实现了仿真循环，而不依赖任何第三方框架。</p>
+
+            <p>库存管理仿真器维护两个状态变量：当前库存量 $I_t$ 和时间步 $t$。在每个时间步，仿真器依次执行补货、需求采样、奖励计算和库存更新。即时奖励的计算公式为：</p>
+
+            $$R_t = 10 \cdot \min(I_t, D_t) - 1 \cdot \max(I_t - D_t, 0) - 5 \cdot \max(D_t - I_t, 0) - 2 \cdot a_t \tag{7.3-2}$$
+
+            <p>其中 $D_t \sim \text{Poisson}(\lambda = 5)$ 是随机需求，$a_t$ 是补货量，四项分别对应销售收入、持有成本、缺货惩罚和补货成本。</p>
+
+<pre><code class="language-python">import numpy as np
+
+class InventorySimulator:
+    def __init__(self, horizon=30, max_inventory=20, seed=None):
+        self.horizon = horizon
+        self.max_inventory = max_inventory
+        self.rng = np.random.default_rng(seed)
+
+    def reset(self):
+        """重置仿真：初始库存为 10，时间步归零。"""
+        self.inventory = 10
+        self.time = 0
+        return self._get_state()
+
+    def step(self, action):
+        """执行一个时间步。action 为补货量。"""
+        # 1. 补货（库存不超过上限）
+        self.inventory = min(self.inventory + action, self.max_inventory)
+
+        # 2. 随机需求
+        demand = self.rng.poisson(lam=5)
+
+        # 3. 计算奖励
+        sold = min(self.inventory, demand)
+        holding = max(self.inventory - demand, 0)
+        shortage = max(demand - self.inventory, 0)
+        reward = 10.0 * sold - 1.0 * holding - 5.0 * shortage - 2.0 * action
+
+        # 4. 状态转移
+        self.inventory = max(self.inventory - demand, 0)
+        self.time += 1
+        done = (self.time &gt;= self.horizon)
+        return self._get_state(), reward, done
+
+    def _get_state(self):
+        return {"inventory": self.inventory, "time": self.time}
+</code></pre>
+
+            <p>这段代码虽然简短，但已经体现了仿真循环的完整结构。<code>step</code> 方法中的四个步骤（补货、需求、奖励、转移）对应图 7.3-1 中的四个阶段。使用时只需在外层编写循环：</p>
+
+<pre><code class="language-python">sim = InventorySimulator(seed=42)
+state = sim.reset()
+total_reward = 0.0
+
+while True:
+    action = 5  # 简单策略：每步补货 5 件
+    state, reward, done = sim.step(action)
+    total_reward += reward
+    if done:
+        break
+
+print(f"累计奖励: {total_reward:.1f}")
+</code></pre>
+
+            <!-- ==================== 复杂仿真器：车队调度 ==================== -->
+
+            <h2>复杂示例：车队调度仿真引擎</h2>
+
+            <p>库存管理的仿真循环足够简单，一个 <code>step</code> 方法就能容纳所有逻辑。但在车队调度这类复杂场景中，物理更新（车辆移动）、逻辑更新（到达检测、需求生成）、决策控制（派单算法）涉及大量代码，如果全部塞进一个方法会导致维护困难。更好的做法是将各阶段拆分为独立的<strong>服务</strong>（Service），由仿真引擎按固定顺序逐一调用。</p>
+
+<pre><code class="language-python">class SimulationEngine:
+    def __init__(self, config):
+        self.time = 0.0
+        self.end_time = config["end_time"]
+        self.delta_t = config["delta_t"]  # 例如 1.0 秒
+
+        # 初始化各服务（5.4 节会详细介绍分层架构）
+        self.physics_service = VehiclePhysicsService(self.delta_t)
+        self.demand_service = DemandService(config["demand_data"])
+        self.vehicle_state_service = VehicleStateService()
+        self.dispatch_controller = DispatchController()
+
+        self.vehicles = []  # 由外部注入车辆实体列表
+
+    def run(self):
+        """主循环：驱动仿真从起始时刻运行到终止时刻。"""
+        while self.time &lt; self.end_time:
+            self._tick()
+            self.time += self.delta_t
+
+    def _tick(self):
+        """单个时间步：按固定顺序调用各服务。"""
+        # 1. 物理更新：移动车辆
+        self.physics_service.update(self.vehicles, self.time)
+
+        # 2. 逻辑更新：检测到达、生成新需求
+        self.demand_service.update(self.time)
+        self.vehicle_state_service.update(self.vehicles, self.time)
+
+        # 3. 控制决策：调度算法做决策
+        decisions = self.dispatch_controller.update(
+            self.vehicles, self.demand_service.pending_orders, self.time
+        )
+
+        # 4. 执行决策
+        self._apply_decisions(decisions)
+</code></pre>
+
+            <p>与库存管理的单方法实现相比，仿真引擎的 <code>_tick</code> 方法更像一个调度器：它本身不包含具体的业务逻辑，只负责按正确的顺序调用各服务的 <code>update</code> 方法。各服务内部独立管理自己的状态，引擎只关心调用顺序。这种设计使得修改某个服务（例如更换需求模型）不会影响其他服务的代码。5.4 节将进一步讨论这种分层架构的设计原则。</p>
+
+            <!-- ==================== 执行顺序的重要性 ==================== -->
+
+            <h2>执行顺序的重要性</h2>
+
+            <p>仿真循环中各阶段的执行顺序不是随意的，颠倒顺序可能引入难以发现的 bug。下面通过一个具体场景说明这一点。</p>
+
+            <p>假设某辆车在 $t = 100\text{s}$ 时距离目的地还有 $5\text{m}$，而 $\Delta t = 1\text{s}$，车速为 $10\text{m/s}$。在正确的执行顺序下：</p>
+
+            <ol>
+                <li><strong>物理更新</strong>先执行：车辆前进 $10\text{m}$，抵达目的地。</li>
+                <li><strong>逻辑更新</strong>检测到到达事件，将车辆标记为空闲。</li>
+                <li><strong>决策阶段</strong>看到一辆空闲车辆，可以将它分配给新订单。</li>
+            </ol>
+
+            <p>如果颠倒前两步的顺序：</p>
+
+            <ol>
+                <li><strong>逻辑更新</strong>先执行：车辆还在距目的地 $5\text{m}$ 处，未到达，不标记空闲。</li>
+                <li><strong>物理更新</strong>执行：车辆前进 $10\text{m}$，抵达目的地。</li>
+                <li><strong>决策阶段</strong>看不到空闲车辆（因为逻辑更新已经结束），导致新订单无法被及时分配。</li>
+            </ol>
+
+            <p>这辆车要等到下一个时间步才会被标记为空闲，白白浪费了一个 $\Delta t$ 的调度窗口。在高峰期，这种延迟会显著降低服务质量。</p>
+
+            <div class="warning">
+                <strong>常见陷阱</strong> &nbsp; 仿真循环内各阶段的执行顺序必须固定且合理。经验法则是：先让物理世界前进（物理更新），再检测物理变化带来的逻辑后果（逻辑更新），最后基于最新的世界状态做决策（决策请求）。颠倒顺序不会导致程序报错，但会产生<strong>时序偏差</strong>，使仿真结果系统性地偏离预期。
+            </div>
+
+            <!-- ==================== 时间步长的选择 ==================== -->
+
+            <h2>时间步长 $\Delta t$ 的选择</h2>
+
+            <p>时间步长 $\Delta t$ 是仿真器最重要的超参数之一。它直接影响仿真的精度和计算速度。整个仿真的总步数为：</p>
+
+            $$N_{\text{steps}} = \frac{T_{\text{end}} - T_{\text{start}}}{\Delta t} \tag{7.3-1}$$
+
+            <p>以一个持续 4 小时（14400 秒）的仿真为例，不同的 $\Delta t$ 对应的步数差异如下表所示。</p>
+
+            <table class="dt-table">
+                <thead>
+                    <tr><th>$\Delta t$</th><th>总步数</th><th>适用场景</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>$1\text{s}$</td><td>14,400</td><td>需要精确模拟车辆运动轨迹</td></tr>
+                    <tr><td>$10\text{s}$</td><td>1,440</td><td>兼顾精度与速度的常用选择</td></tr>
+                    <tr><td>$60\text{s}$</td><td>240</td><td>宏观调度策略的快速验证</td></tr>
+                </tbody>
+            </table>
+
+            <p>$\Delta t$ 的选择需要在两个方面做权衡。</p>
+
+            <p><strong>精度方面</strong>，$\Delta t$ 应当小于仿真中最快动态过程的特征时间。例如，如果路网中最短的路段行驶时间是 10 秒，那么 $\Delta t$ 应当远小于 10 秒，否则车辆可能在一个时间步内直接跳过中间的路段节点，产生不合理的位置跳变。</p>
+
+            <p><strong>速度方面</strong>，每个时间步都需要遍历所有实体并更新状态。$\Delta t$ 减半意味着步数翻倍，仿真所需的计算时间也大致翻倍。在 RL 训练中，仿真器需要反复运行数千乃至数万个回合，仿真速度直接影响训练效率。</p>
+
+            <div class="note">
+                <strong>实践建议</strong> &nbsp; 可以先用较小的 $\Delta t$ 建立一个高精度的参考仿真，然后逐步增大 $\Delta t$，观察关键指标（如平均等待时间、车辆利用率）的变化。当指标的偏差在可接受范围内时，就找到了合适的 $\Delta t$。
+            </div>
+
+            <!-- ==================== 仿真时间步与决策时间步 ==================== -->
+
+            <h2>仿真时间步与决策时间步</h2>
+
+            <p>在复杂仿真中，RL 智能体不需要在每个仿真时间步都做决策。仿真引擎的 <code>step</code> 方法可以在内部推进多个仿真时间步，直到遇到一个需要决策的时刻才返回。</p>
+
+<pre><code class="language-python">class FleetSimulator:
+    def step(self, action):
+        # 将 RL 动作传入调度控制器
+        self.dispatch_controller.set_action(action)
+
+        # 推进仿真到下一个决策时刻
+        reward = 0.0
+        while not self._needs_decision():
+            self._tick()
+            self.time += self.delta_t
+            reward += self._get_step_reward()
+            if self._is_done():
+                break
+
+        state = self._get_state()
+        done = self._is_done()
+        return state, reward, done
+
+    def _needs_decision(self):
+        """判断当前是否需要 RL 智能体介入决策。"""
+        return (self.dispatch_controller.has_pending_orders()
+                or self._is_done())
+</code></pre>
+
+            <p>这种设计的关键在于：RL 智能体的一次动作可能跨越多个仿真时间步，奖励在此期间累加。这符合第 4.3 节讨论的事件触发型决策：智能体不必在每个时间步都介入，只需要在有意义的时刻（例如有新订单到达或有车辆变为空闲时）做决策。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">仿真时间步与决策时间步的区别</div>
+                <p style="margin:0;line-height:1.7;">仿真时间步由 $\Delta t$ 决定，是仿真器内部的物理时钟粒度。决策时间步由业务逻辑决定，对应 RL 算法的一次 <code>step</code> 调用。两者的比值可以是动态的：在事件密集的时段，决策间隔可能只有 $1 \cdot \Delta t$；在空闲时段，可能相隔 $100 \cdot \Delta t$。</p>
+            </div>
+
+            <!-- ==================== 确定性重放 ==================== -->
+
+            <h2>确定性重放与随机种子</h2>
+
+            <p>仿真器中的随机性来源于需求生成、行驶时间扰动等多个环节。在调试和实验对比中，<strong>确定性重放</strong>是一项不可或缺的能力：给定相同的随机种子和相同的动作序列，仿真器必须产生完全一致的轨迹。</p>
+
+            <p>实现确定性重放的关键是统一管理随机数生成器。常见做法是在仿真引擎的 <code>reset</code> 方法中接受一个种子参数，并用它初始化一个全局的随机数生成器 <code>rng</code>。所有需要随机数的服务都从这个 <code>rng</code> 派生子生成器，而不是各自调用 <code>random</code> 或 <code>np.random</code> 的全局状态。</p>
+
+<pre><code class="language-python">class SimulationEngine:
+    def reset(self, seed=None):
+        """重置仿真状态，初始化随机数生成器。"""
+        self.rng = np.random.default_rng(seed)
+        self.time = 0.0
+
+        # 为各服务分配独立的子生成器
+        self.demand_service.rng = self.rng.spawn(1)[0]
+        self.physics_service.rng = self.rng.spawn(1)[0]
+
+        # 重置各服务状态
+        self.demand_service.reset()
+        self.physics_service.reset()
+        self.vehicle_state_service.reset()
+</code></pre>
+
+            <p>NumPy 的 <code>default_rng</code> 提供了 <code>spawn</code> 方法，可以从一个父生成器派生出多个相互独立的子生成器。这样即使各服务消耗随机数的顺序发生变化（例如新增了一个服务），也不会影响其他服务收到的随机数序列。</p>
+
+            <div class="note">
+                <strong>调试技巧</strong> &nbsp; 当 RL 训练出现异常时，可以记录出问题的回合所使用的种子和动作序列，然后用确定性重放逐步检查仿真状态。这比在随机环境中反复重跑要高效得多。
+            </div>
+
+            <!-- ==================== 本节小结 ==================== -->
+
+            <h2>本节小结</h2>
+
+            <p>本节介绍了基于时间步的仿真循环的核心逻辑，要点如下：</p>
+
+            <ul style="line-height:2;">
+                <li>仿真循环是 MDP 转移函数 $P(s' \mid s, a)$ 的计算实现。每个时间步依次执行物理更新、逻辑更新、决策请求和动作执行四个阶段。</li>
+                <li>各阶段的执行顺序必须固定且合理（先物理、再逻辑、后决策），颠倒顺序会引入时序偏差。</li>
+                <li>时间步长 $\Delta t$ 需要在仿真精度和计算速度之间做权衡，应小于系统中最快动态过程的特征时间。</li>
+                <li>仿真器的 <code>step</code> 方法可以跨越多个仿真时间步，在下一个决策时刻才返回，从而支持事件触发型决策。</li>
+                <li>通过统一管理随机种子，仿真器可以实现确定性重放，这对调试和实验复现至关重要。</li>
+            </ul>
+
+            <p>到目前为止，我们已经知道如何定义仿真实体（5.2 节）以及如何驱动它们在时间维度上演化（本节）。下一节将进一步讨论如何将仿真器组织为清晰的分层架构，使得算法层、逻辑层和物理层各司其职、互不耦合。</p>
 
             <div class="chapter-nav">
-                <a href="../ch07/7.2.html">&larr; 7.2 公交串车控制</a>
-                <a href="../ch08/8.1.html">8.1 多智能体强化学习 &rarr;</a>
+                <a href="../ch07/7.2.html">&larr; 7.2 面向对象编程与智能体建模</a>
+                <a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构 &rarr;</a>
             </div>
         </main>
     </div>

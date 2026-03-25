@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>1.7.2 REINFORCE算法 - 运筹智能</title>
+    <title>3.3.2 REINFORCE算法 - 运筹智能</title>
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -39,63 +39,69 @@
                 <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
                 <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
                 <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
-                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
-                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
-                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
-                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.6.1.html">1.6.1 SARSA</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.6.2.html">1.6.2 Q-learning</a></li>
-                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.7.1.html">1.7.1 策略梯度定理</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.7.2.html" class="active">1.7.2 REINFORCE算法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.7.3.html">1.7.3 Actor-Critic框架</a></li>
-                <li class="sidebar-chapter">第二章 深度学习基础</li>
-                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
-                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
-                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
-                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
-                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
-                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
-                <li><a href="../ch03/3.2.html">3.2 Policy Gradient与PPO</a></li>
-                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
-                <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
-                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
-                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
-                <li><a href="../ch04/4.2.html">4.2 时域建模与回合定义</a></li>
-                <li><a href="../ch04/4.3.html">4.3 状态空间、动作空间与奖励函数的设计</a></li>
-                <li><a href="../ch04/4.4.html">4.4 决策时机与决策频率的建模</a></li>
-                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
-                <li class="sidebar-chapter">第五章 仿真器搭建</li>
-                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
-                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
-                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
-                <li><a href="../ch05/5.4.html">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
-                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
-                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
-                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
-                <li><a href="../ch07/7.2.html">7.2 公交串车控制</a></li>
-                <li><a href="../ch07/7.3.html">7.3 需求响应公交调度优化</a></li>
-                <li class="sidebar-chapter">第八章 进阶话题</li>
-                <li><a href="../ch08/8.1.html">8.1 多智能体强化学习</a></li>
-                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html" class="active">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
                 </ul>
             </nav>
         </aside>
 
         <main class="main-content">
-            <h1>1.7.2 REINFORCE算法</h1>
+            <h1>3.3.2 REINFORCE算法</h1>
 
             <!-- ==================== 回顾策略梯度定理 ==================== -->
             <h2>回顾策略梯度定理</h2>
 
-            <p>上一节的策略梯度定理(1.7-3)给出了目标函数 $J(\theta)$ 关于参数 $\theta$ 的梯度：</p>
+            <p>上一节的策略梯度定理(3.3-3)给出了目标函数 $J(\theta)$ 关于参数 $\theta$ 的梯度：</p>
 
             $$\nabla_\theta J(\theta) = \frac{1}{1-\gamma}\,\mathbb{E}_{S \sim d^{\pi_\theta}}\!\bigg[\mathbb{E}_{A \sim \pi_\theta(\cdot|S)}\!\Big[\nabla_\theta \ln \pi_\theta(A \mid S) \cdot Q^{\pi_\theta}(S, A)\Big]\bigg]$$
 
@@ -116,61 +122,57 @@
 
             <h3>第二步：用轨迹采样代替期望</h3>
 
-            <p>策略梯度定理中的双重期望 $\mathbb{E}_{S \sim d^{\pi_\theta}}\mathbb{E}_{A \sim \pi_\theta}[\cdot]$ 是在稳态分布下对所有状态和动作的平均。在实践中，我们让智能体按策略 $\pi_\theta$ 与环境交互，生成一条轨迹 $S_0, A_0, R_1, S_1, A_1, R_2, \ldots$。轨迹上各时刻提供了来自正确分布的样本，因此可以用轨迹上的经验平均来近似期望。考虑折扣因子 $\gamma^t$ 对不同时刻的加权，单条轨迹的梯度估计为：</p>
+            <p>策略梯度定理中的双重期望 $\mathbb{E}_{S \sim d^{\pi_\theta}}\mathbb{E}_{A \sim \pi_\theta}[\cdot]$ 是对稳态分布下所有状态和动作的平均。让智能体按策略 $\pi_\theta$ 与环境交互，生成一条轨迹 $S_0, A_0, R_1, S_1, A_1, R_2, \ldots$。2.1.3节指出，在策略 $\pi_\theta$ 下马尔可夫链的状态分布收敛到 $d^{\pi_\theta}$，因此轨迹上每个状态 $S_t$ 近似是 $d^{\pi_\theta}$ 的一个样本；而每个动作 $A_t$ 是按 $\pi_\theta(\cdot \mid S_t)$ 采样的。这样，轨迹上的每一对 $(S_t, A_t)$ 都为双重期望贡献一个样本。将所有时刻的贡献求和，就得到单条轨迹的梯度估计：</p>
 
             $$\nabla_\theta J(\theta) \approx \sum_{t=0}^{T-1} \gamma^t \, \nabla_\theta \ln \pi_\theta(A_t \mid S_t) \cdot G_t$$
 
-            <p>其中 $\gamma^t$ 确保早期时刻的贡献更大，因为早期决策对总回报的影响更显著。前面的常数 $\frac{1}{1-\gamma}$ 只影响梯度大小不影响方向，被吸收进学习率 $\alpha$。</p>
+            <p>注意求和遍历了轨迹上的<strong>每个时刻</strong>：不只是起始状态 $S_0$，而是 $S_0, S_1, \ldots, S_{T-1}$ 中的每一个都参与更新，各自以自己时刻的 $G_t$ 和折扣权重 $\gamma^t$ 加权。$\gamma^t$ 确保早期时刻的贡献更大，因为早期决策对总回报的影响更显著。前面的常数 $\frac{1}{1-\gamma}$ 只影响梯度大小不影响方向，被吸收进学习率 $\alpha$。</p>
 
             <h3>得到更新规则</h3>
 
             <p>将上述梯度估计代入梯度上升 $\theta \leftarrow \theta + \alpha \nabla_\theta J$，对轨迹中每个时刻 $t$ 分别更新：</p>
 
-            $$\theta \leftarrow \theta + \alpha \cdot \gamma^t \cdot G_t \cdot \nabla_\theta \ln \pi_\theta(A_t \mid S_t) \tag{1.7-4}$$
+            $$\theta \leftarrow \theta + \alpha \cdot \gamma^t \cdot G_t \cdot \nabla_\theta \ln \pi_\theta(A_t \mid S_t) \tag{3.3-4}$$
 
             <p>这个更新规则的直觉很清晰。$\nabla_\theta \ln \pi_\theta(A_t \mid S_t)$ 指向增大动作 $A_t$ 概率的方向，$G_t$ 衡量这个动作之后的实际回报。两者相乘意味着：如果 $G_t$ 较大（这次经历回报高），就沿梯度方向迈一大步，显著增大选择该动作的概率；如果 $G_t$ 较小，更新幅度也相应减小。</p>
 
-            <!-- ==================== 实现细节 ==================== -->
-            <h2>从公式到实现</h2>
+            <!-- ==================== 采样与梯度计算 ==================== -->
+            <h2>采样动作与计算对数策略梯度</h2>
 
-            <p>更新公式(1.7-4)中，$G_t$ 的计算已经在1.5.1节介绍过（从后向前递推 $G_t = R_{t+1} + \gamma\,G_{t+1}$）。剩下的关键问题是如何按策略概率采样动作，以及如何计算 $\nabla_\theta \ln \pi_\theta(A_t \mid S_t)$。下面以1.7.1节的softmax线性参数化为例说明。</p>
+            <p>更新公式(3.3-4)中，$G_t$ 的计算已经在3.1.1节介绍过（从后向前递推 $G_t = R_{t+1} + \gamma\,G_{t+1}$）。剩下的关键问题是如何按策略概率采样动作，以及如何计算 $\nabla_\theta \ln \pi_\theta(A_t \mid S_t)$。两者都取决于策略的具体参数化形式。</p>
 
-            <h3>按策略概率采样动作</h3>
+            <p>回忆3.3.1节的softmax参数化：对每个动作计算分数 $f_\theta(s,a)$，通过softmax映射为概率：</p>
 
-            <p>给定状态 $s$，动作选择分三步：</p>
-            <ol style="margin:0.5rem 0 1rem 2rem; line-height:2;">
-                <li>对每个动作 $a$，计算分数 $f_\theta(s,a) = \theta^\top \phi(s,a)$。在网约车例子中 $\phi$ 是 one-hot 特征，所以 $f_\theta(s,a) = \theta_{s,a}$，直接查表。</li>
-                <li>通过softmax将分数转化为概率：$\pi_\theta(a \mid s) = \frac{\exp(f_\theta(s,a))}{\sum_{a'} \exp(f_\theta(s,a'))}$。</li>
-                <li>按概率分布 $\{\pi_\theta(a \mid s)\}_a$ 随机采样一个动作执行。</li>
-            </ol>
+            $$\pi_\theta(a \mid s) = \frac{\exp\!\big(f_\theta(s,a)\big)}{\sum_{a'} \exp\!\big(f_\theta(s,a')\big)}$$
 
-            <p>在网约车例子中，每个状态有2个动作。假设当前 $\theta_{b,\text{接单}} = 0.3$，$\theta_{b,\text{空驶}} = 0.8$，那么 softmax 给出 $\pi_\theta(\text{接单} \mid b) = 0.38$，$\pi_\theta(\text{空驶} \mid b) = 0.62$。采样时，有 $62\%$ 的概率选择空驶。</p>
+            <p><strong>采样动作</strong>很直接：给定状态 $s$，计算所有动作的 $\pi_\theta(a \mid s)$，然后按此概率分布随机抽取一个动作执行。</p>
 
-            <h3>计算对数策略梯度 $\nabla_\theta \ln \pi_\theta$</h3>
+            <p><strong>计算 $\nabla_\theta \ln \pi_\theta$</strong> 的具体形式取决于 $f_\theta$ 的选择。当 $f_\theta$ 是神经网络时，$\nabla_\theta \ln \pi_\theta$ 没有解析表达式，但可以通过反向传播自动计算，第五章将介绍。下面以本章使用的线性形式 $f_\theta(s,a) = \theta^\top \phi(s,a)$ 为例，手动推导。</p>
 
-            <p>对于线性参数化 $f_\theta(s,a) = \theta^\top \phi(s,a)$，softmax 策略为：</p>
+            <p>代入后：</p>
 
             $$\pi_\theta(a \mid s) = \frac{\exp\!\big(\theta^\top \phi(s,a)\big)}{\sum_{a'} \exp\!\big(\theta^\top \phi(s,a')\big)}$$
 
-            <p>取对数，将分式拆为分子减分母：</p>
+            <p>取对数，分式拆为分子减分母：</p>
 
             $$\ln \pi_\theta(a \mid s) = \theta^\top \phi(s,a) - \ln \sum_{a'} \exp\!\big(\theta^\top \phi(s,a')\big)$$
 
-            <p>对 $\theta$ 求梯度。第一项直接得到 $\phi(s,a)$。第二项的形式是 $\ln g(\theta)$，其中 $g(\theta) = \sum_{a'} \exp\!\big(\theta^\top \phi(s,a')\big)$。对任意可微正值函数，对数的链式法则给出 $\nabla_\theta \ln g = \frac{\nabla_\theta g}{g}$，这个恒等式称为 <strong>log-derivative trick</strong>。代入计算：</p>
+            <details class="optional-reading">
+                <summary>推导 $\nabla_\theta \ln \pi_\theta$（线性 softmax）</summary>
+                <p>对 $\theta$ 求梯度。第一项 $\theta^\top \phi(s,a)$ 是 $\theta$ 的线性函数，梯度就是系数向量本身：$\nabla_\theta\!\big(\theta^\top \phi(s,a)\big) = \phi(s,a)$。第二项的形式是 $\ln g(\theta)$，其中 $g(\theta) = \sum_{a'} \exp\!\big(\theta^\top \phi(s,a')\big)$。对数的链式法则给出 $\nabla_\theta \ln g = \frac{\nabla_\theta g}{g}$，代入计算：</p>
 
-            $$\nabla_\theta \ln \sum_{a'} e^{\theta^\top \phi(s,a')} = \frac{\sum_{a'} e^{\theta^\top \phi(s,a')} \cdot \phi(s,a')}{\sum_{a'} e^{\theta^\top \phi(s,a')}} = \sum_{a'} \pi_\theta(a' \mid s)\,\phi(s,a')$$
+                $$\nabla_\theta \ln \sum_{a'} \exp\!\big(\theta^\top \phi(s,a')\big) = \frac{\sum_{a'} \exp\!\big(\theta^\top \phi(s,a')\big) \cdot \phi(s,a')}{\sum_{a'} \exp\!\big(\theta^\top \phi(s,a')\big)} = \sum_{a'} \pi_\theta(a' \mid s)\,\phi(s,a')$$
 
-            <p>最后一个等号是因为每个 $\frac{e^{\theta^\top \phi(s,a')}}{\sum_{a''} e^{\theta^\top \phi(s,a'')}}$ 恰好就是 $\pi_\theta(a' \mid s)$ 的定义。两项相减，得到：</p>
+                <p>最后一个等号是因为每个 $\frac{\exp(\theta^\top \phi(s,a'))}{\sum_{a''} \exp(\theta^\top \phi(s,a''))}$ 恰好就是 $\pi_\theta(a' \mid s)$ 的定义。两项相减，得到：</p>
 
-            $$\nabla_\theta \ln \pi_\theta(a \mid s) = \phi(s,a) - \sum_{a'} \pi_\theta(a' \mid s) \, \phi(s,a')$$
+                $$\nabla_\theta \ln \pi_\theta(a \mid s) = \phi(s,a) - \sum_{a'} \pi_\theta(a' \mid s) \, \phi(s,a')$$
 
-            <p>即被选中动作的特征 $\phi(s,a)$，减去策略下的期望特征 $\mathbb{E}_{A \sim \pi_\theta}[\phi(s,A)]$。当 $\phi$ 是 one-hot 特征时（如网约车例子），这退化为对同一状态下各动作参数的分量形式：</p>
+                <p>即被选中动作的特征 $\phi(s,a)$，减去策略下的期望特征 $\mathbb{E}_{A \sim \pi_\theta}[\phi(s,A)]$。当 $\phi$ 是 one-hot 特征时（如网约车例子），这退化为分量形式：</p>
 
-            $$\frac{\partial \ln \pi_\theta(a \mid s)}{\partial \theta_{s,a'}} = \begin{cases} 1 - \pi_\theta(a \mid s), & \text{if } a' = a \\ -\pi_\theta(a' \mid s), & \text{if } a' \neq a \end{cases}$$
+                $$\frac{\partial \ln \pi_\theta(a \mid s)}{\partial \theta_{s,a'}} = \begin{cases} 1 - \pi_\theta(a \mid s), & \text{if } a' = a \\ -\pi_\theta(a' \mid s), & \text{if } a' \neq a \end{cases}$$
 
-            <p>这意味着每次更新会同时改变同一状态下所有动作的参数：被选中的动作参数增大，增幅为 $1 - \pi_\theta(a \mid s)$（概率越小增幅越大，因为有更多提升空间）；未被选中动作的参数减小，减幅为 $\pi_\theta(a' \mid s)$。所有变化量由 $\alpha \gamma^t G_t$ 统一缩放。</p>
-
-            <p>Log-derivative trick 对任意参数化策略 $\pi_\theta$ 都成立，不依赖 softmax 的特殊结构（1.7.1节策略梯度定理的证明中，将 $\nabla_\theta \pi$ 改写为 $\pi \cdot \nabla_\theta \ln \pi$，用的正是这个恒等式）。当 $f_\theta$ 是神经网络时，$\nabla_\theta \ln \pi_\theta$ 没有上面那样的解析形式，但仍然可以通过反向传播自动计算，第三章将介绍。</p>
+                <p>即被选中的动作参数增大，增幅为 $1 - \pi_\theta(a \mid s)$（概率越小增幅越大）；未被选中动作的参数减小，减幅为 $\pi_\theta(a' \mid s)$。所有变化量由 $\alpha \gamma^t G_t$ 统一缩放。</p>
+            </details>
 
             <!-- ==================== 算法框 ==================== -->
             <div class="algo-box">
@@ -186,7 +188,7 @@
                         </ol>
                     </li>
                 </ol>
-                <div class="algo-note">REINFORCE需要等到回合结束才能更新，因为 $G_t$ 的计算依赖整条轨迹的奖励。这与1.5.1节的蒙特卡洛方法一致：两者都使用完整回报 $G_t$，区别在于MC更新的是值函数，REINFORCE更新的是策略参数。</div>
+                <div class="algo-note">REINFORCE需要等到回合结束才能更新，因为 $G_t$ 的计算依赖整条轨迹的奖励。这与3.1.1节的蒙特卡洛方法一致：两者都使用完整回报 $G_t$，区别在于MC更新的是值函数，REINFORCE更新的是策略参数。</div>
             </div>
 
             <!-- ==================== 例子 ==================== -->
@@ -278,8 +280,8 @@ for s in states:
             <div style="border:2px solid var(--border-color); border-radius:8px; padding:1.2rem; margin:1.5rem 0; background:#fafafa;">
                 <div style="font-weight:700; color:var(--accent-color); margin-bottom:0.6rem; font-size:1.05rem;">交互演示：REINFORCE 学习策略概率</div>
                 <div class="rl-ctrl">
-                    <button onclick="_rfStep()">更新100条轨迹</button>
-                    <button onclick="_rfFast()">快进5000条</button>
+                    <button onclick="_rfStep()">更新5条轨迹</button>
+                    <button onclick="_rfFast()">快进500条</button>
                     <button onclick="_rfReset()">重置</button>
                 </div>
                 <table class="trans-table">
@@ -298,15 +300,15 @@ for s in states:
             <!-- ==================== 高方差问题 ==================== -->
             <h2>高方差问题</h2>
 
-            <p>REINFORCE使用完整回报 $G_t$ 作为梯度估计中的信号，这与1.5.1节的蒙特卡洛方法面临同样的问题：$G_t$ 的方差很大。一条轨迹中，$G_t$ 取决于从时刻 $t$ 到回合结束的所有奖励和状态转移，其中每一步都引入随机性。这些随机性逐步累积，使得不同轨迹的 $G_t$ 差异悬殊。在网约车例子中，同样从郊区 $b$ 出发、选择相同的动作，一条轨迹可能因为连续接到高价订单得到 $G_t = 70$，另一条可能因为反复在郊区循环而只有 $G_t = 15$。</p>
+            <p>REINFORCE使用完整回报 $G_t$ 作为梯度估计中的信号，这与3.1.1节的蒙特卡洛方法面临同样的问题：$G_t$ 的方差很大。一条轨迹中，$G_t$ 取决于从时刻 $t$ 到回合结束的所有奖励和状态转移，其中每一步都引入随机性。这些随机性逐步累积，使得不同轨迹的 $G_t$ 差异悬殊。在网约车例子中，同样从郊区 $b$ 出发、选择相同的动作，一条轨迹可能因为连续接到高价订单得到 $G_t = 70$，另一条可能因为反复在郊区循环而只有 $G_t = 15$。</p>
 
             <p>高方差意味着每次梯度更新的方向波动剧烈，需要大量轨迹才能使平均梯度收敛到正确方向。在上面的交互演示中，你可能已经注意到策略概率在训练过程中并非平稳上升，而是有明显的波动。在更复杂的问题中，这种方差会成为严重的瓶颈。</p>
 
-            <p>一个自然的想法是借鉴1.5.2节的时序差分思想：不等到回合结束再用 $G_t$，而是用TD目标 $R_{t+1} + \gamma \, V(S_{t+1})$ 来替代 $G_t$，用一步的实际奖励加上后续状态的值函数估计来降低方差。这正是下一节将要介绍的 Actor-Critic 方法的核心思想。</p>
+            <p>一个自然的想法是借鉴3.1.2节的时序差分思想：不等到回合结束再用 $G_t$，而是用TD目标 $R_{t+1} + \gamma \, V(S_{t+1})$ 来替代 $G_t$，用一步的实际奖励加上后续状态的值函数估计来降低方差。这正是下一节将要介绍的 Actor-Critic 方法的核心思想。</p>
 
             <div class="chapter-nav">
-                <a href="../ch01/1.7.1.html">&larr; 1.7.1 策略梯度定理</a>
-                <a href="../ch01/1.7.3.html">1.7.3 Actor-Critic框架 &rarr;</a>
+                <a href="../ch03/3.3.1.html">&larr; 3.3.1 策略梯度定理</a>
+                <a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架 &rarr;</a>
             </div>
         </main>
     </div>
@@ -405,11 +407,11 @@ for s in states:
         }
 
         window._rfStep = function() {
-            for (var i = 0; i < 100; i++) { runEpisode(); episodes++; }
+            for (var i = 0; i < 5; i++) { runEpisode(); episodes++; }
             updateDisplay();
         };
         window._rfFast = function() {
-            for (var i = 0; i < 5000; i++) { runEpisode(); episodes++; }
+            for (var i = 0; i < 500; i++) { runEpisode(); episodes++; }
             updateDisplay();
         };
         window._rfReset = function() {

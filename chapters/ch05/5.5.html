@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3.4 训练实践：超参数调优、奖励函数设计与训练稳定性 - 运筹智能</title>
+    <title>5.5 训练实践：超参数调优、奖励函数设计与训练稳定性 - 运筹智能</title>
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -54,54 +54,64 @@
                 <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
                 <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
                 <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
-                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
-                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
-                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.3.html">1.5.3 SARSA与Q-learning</a></li>
-                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
-                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
-                <li class="sidebar-chapter">第二章 深度学习基础</li>
-                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
-                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
-                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
-                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
-                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
-                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
-                <li><a href="../ch03/3.2.html">3.2 Policy Gradient与PPO</a></li>
-                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
-                <li><a href="../ch03/3.4.html" class="active">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
-                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
-                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
-                <li><a href="../ch04/4.2.html">4.2 时域建模与回合定义</a></li>
-                <li><a href="../ch04/4.3.html">4.3 状态空间、动作空间与奖励函数的设计</a></li>
-                <li><a href="../ch04/4.4.html">4.4 决策时机与决策频率的建模</a></li>
-                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
-                <li class="sidebar-chapter">第五章 仿真器搭建</li>
-                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
-                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
-                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
-                <li><a href="../ch05/5.4.html">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
-                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
-                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
-                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
-                <li><a href="../ch07/7.2.html">7.2 公交串车控制</a></li>
-                <li><a href="../ch07/7.3.html">7.3 需求响应公交调度优化</a></li>
-                <li class="sidebar-chapter">第八章 进阶话题</li>
-                <li><a href="../ch08/8.1.html">8.1 多智能体强化学习</a></li>
-                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.5.html" class="active">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
                 </ul>
             </nav>
         </aside>
 
         <main class="main-content">
-            <h1>3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</h1>
+            <h1>5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</h1>
 
             <p>前面三节介绍了 DQN、PPO 和 SAC 三种主流深度强化学习算法的原理。然而，从理解算法到在实际管理科学问题上训练出有效的智能体，中间还有一段不短的距离。许多初学者在复现论文结果时会遇到这样的困惑：代码没有bug，算法也正确，但智能体就是学不到好策略。问题往往出在三个方面：超参数选取不当、奖励函数设计有缺陷、训练过程不稳定。本节针对这三个方面提供系统性的实践指导。</p>
 
@@ -115,7 +125,7 @@
             <p>学习率 $\alpha$（或写作 $\mathrm{lr}$）是影响训练效果的最重要超参数，没有之一。它控制每次梯度更新的步长：</p>
 
             <div class="formula-block">
-                $$\theta_{t+1} = \theta_t - \alpha \, \nabla_\theta \mathcal{L}(\theta_t) \tag{3.4-1}$$
+                $$\theta_{t+1} = \theta_t - \alpha \, \nabla_\theta \mathcal{L}(\theta_t) \tag{5.5-1}$$
             </div>
 
             <p>学习率过大，参数在每次更新时跳跃幅度过大，Q值或策略可能剧烈震荡甚至发散；学习率过小，训练进展极其缓慢，可能需要百万级别的时间步才能看到效果，且容易困在局部最优。对于大多数管理科学问题，建议从 $3 \times 10^{-4}$ 开始尝试，这是 Adam 优化器的默认值，也是被大量实验验证过的合理起点。</p>
@@ -155,7 +165,7 @@
             <ul>
                 <li><strong>DQN 的 $\varepsilon$ 衰减策略：</strong>$\varepsilon$-greedy 中的 $\varepsilon$ 通常从 $1.0$ 线性衰减到 $0.01$ 或 $0.05$，衰减步数约占总训练步数的 $10\%$ 到 $20\%$。衰减过快导致探索不足，过慢则训练效率低下。</li>
                 <li><strong>PPO 的熵系数：</strong>PPO 的目标函数中有一项熵奖励 $c_2 \, H[\pi(\cdot \mid s)]$，系数 $c_2$ 鼓励策略保持一定随机性。典型值为 $0.01$，如果智能体过早收敛到确定性策略，可以增大到 $0.05$。</li>
-                <li><strong>SAC 的温度参数 $\alpha$：</strong>SAC 通过自动调节温度来平衡探索与利用（参见3.3节），一般使用自动调节机制即可，目标熵设为 $-\dim(\mathcal{A})$（连续动作空间的维度取负）。</li>
+                <li><strong>SAC 的温度参数 $\alpha$：</strong>SAC 通过自动调节温度来平衡探索与利用（参见5.3节），一般使用自动调节机制即可，目标熵设为 $-\dim(\mathcal{A})$（连续动作空间的维度取负）。</li>
             </ul>
 
             <h3>超参数推荐汇总</h3>
@@ -271,7 +281,7 @@
             <p>以一个库存管理问题为例。假设我们希望智能体在满足服务水平（缺货率低于 $5\%$）的前提下最小化总成本。如果奖励函数设计为：</p>
 
             <div class="formula-block">
-                $$r_t = -c_h \cdot I_t^+ - c_s \cdot I_t^- \tag{3.4-2}$$
+                $$r_t = -c_h \cdot I_t^+ - c_s \cdot I_t^- \tag{5.5-2}$$
             </div>
 
             <p>其中 $I_t^+ = \max(I_t, 0)$ 是正库存（持有成本系数 $c_h$），$I_t^- = \max(-I_t, 0)$ 是缺货量（缺货惩罚系数 $c_s$）。如果 $c_s$ 设得不够大，智能体可能学到一个"聪明"的策略：极少补货以避免持有成本，代价是频繁缺货。从奖励数值上看，这个策略确实最大化了奖励，但完全违背了服务水平约束。</p>
@@ -337,7 +347,7 @@
             <p>梯度裁剪（gradient clipping）是防止单次梯度更新幅度过大的最直接手段。它将梯度向量的范数限制在阈值 $g_{\max}$ 以内：</p>
 
             <div class="formula-block">
-                $$\tilde{\mathbf{g}} = \begin{cases} \mathbf{g}, & \text{if } \|\mathbf{g}\| \le g_{\max} \\ g_{\max} \cdot \dfrac{\mathbf{g}}{\|\mathbf{g}\|}, & \text{if } \|\mathbf{g}\| > g_{\max} \end{cases} \tag{3.4-3}$$
+                $$\tilde{\mathbf{g}} = \begin{cases} \mathbf{g}, & \text{if } \|\mathbf{g}\| \le g_{\max} \\ g_{\max} \cdot \dfrac{\mathbf{g}}{\|\mathbf{g}\|}, & \text{if } \|\mathbf{g}\| > g_{\max} \end{cases} \tag{5.5-3}$$
             </div>
 
             <p>PPO 默认使用 $g_{\max} = 0.5$，DQN 和 SAC 中常用 $g_{\max} = 1.0$。梯度裁剪几乎没有副作用，建议在所有训练中默认开启。</p>
@@ -448,7 +458,7 @@
                     选择场景并点击"开始"以观察训练曲线。
                 </div>
             </div>
-            <div class="fig-caption">图 3.4-1 训练监控面板：四种典型训练场景的曲线特征</div>
+            <div class="fig-caption">图 5.5-1 训练监控面板：四种典型训练场景的曲线特征</div>
 
             <!-- ==================== 3.4.5 常见陷阱与排查清单 ==================== -->
             <h2>常见陷阱与排查清单</h2>
@@ -526,7 +536,7 @@
             <!-- ==================== 3.4.6 从训练到部署 ==================== -->
             <h2>从训练到部署</h2>
 
-            <p>当智能体在仿真环境中达到满意的性能后，下一步是将其应用到真实场景。然而，仿真环境与真实世界之间总存在差距（sim-to-real gap），在仿真中表现优异的策略未必能直接在真实环境中运行。这涉及模型鲁棒性、安全约束、在线微调等一系列问题，我们将在<a href="../ch08/8.2.html">第 8.2 节</a>专门讨论从仿真到实际部署的迁移技术。</p>
+            <p>当智能体在仿真环境中达到满意的性能后，下一步是将其应用到真实场景。然而，仿真环境与真实世界之间总存在差距（sim-to-real gap），在仿真中表现优异的策略未必能直接在真实环境中运行。这涉及模型鲁棒性、安全约束、在线微调等一系列问题，我们将在<a href="../ch10/10.2.html">第 8.2 节</a>专门讨论从仿真到实际部署的迁移技术。</p>
 
             <p>在此之前，有两个简单的"烟雾测试"可以初步评估策略的鲁棒性：</p>
 
@@ -551,8 +561,8 @@
             </ol>
 
             <div class="chapter-nav">
-                <a href="../ch03/3.3.html">&larr; 3.3 Soft Actor-Critic</a>
-                <a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP &rarr;</a>
+                <a href="../ch05/5.4.html">&larr; 5.4 基于模型的深度强化学习</a>
+                <a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP &rarr;</a>
             </div>
         </main>
     </div>

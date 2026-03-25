@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10.2 从仿真到实际部署的迁移 - 运筹智能</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <script defer src="../../js/code-copy.js"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .fig-caption { text-align:center; font-size:0.92rem; color:#718096; margin-top:0.5rem; margin-bottom:1.5rem; }
+        .deploy-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.95rem; }
+        .deploy-table th, .deploy-table td { border: 1px solid var(--border-color); padding: 0.6rem 0.9rem; text-align: left; }
+        .deploy-table th { background: var(--sidebar-bg); color: var(--primary-color); font-weight: 700; }
+        .deploy-table tr:nth-child(even) { background: #f7fafc; }
+        .optional-reading { background:#fafafa; border:1px solid #e2e8f0; border-left:4px solid #a0aec0; border-radius:0 8px 8px 0; margin:2.5rem 0; }
+        .optional-reading summary { padding:1rem 1.5rem; cursor:pointer; font-weight:700; color:#4a5568; font-size:1.1rem; list-style:none; }
+        .optional-reading summary::-webkit-details-marker { display:none; }
+        .optional-reading summary::before { content:'▶ '; font-size:0.8em; margin-right:0.3rem; }
+        .optional-reading[open] summary::before { content:'▼ '; }
+        .optional-reading[open] summary { border-bottom:1px solid #e2e8f0; }
+        .optional-reading .opt-body { padding:1.2rem 1.5rem; }
+        .optional-reading .opt-body h3 { color:var(--primary-color); margin-top:1.8rem; margin-bottom:0.6rem; font-size:1.15rem; }
+        .optional-reading .opt-body h3:first-child { margin-top:0.5rem; }
+        .stage-list { list-style: none; padding: 0; margin: 1.5rem 0; }
+        .stage-list li { position: relative; padding: 0.8rem 1rem 0.8rem 3.5rem; margin-bottom: 0.8rem; background: var(--sidebar-bg); border-radius: 6px; border-left: 3px solid var(--accent-color); }
+        .stage-list li .stage-num { position: absolute; left: 0.8rem; top: 0.8rem; width: 2rem; height: 2rem; background: var(--accent-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; }
+        .safety-box { background: #fffbeb; border: 1px solid #d69e2e; border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .safety-box .safety-title { font-weight: 700; color: #b7791f; font-size: 1.05rem; margin-bottom: 0.6rem; }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="book-title"><a href="../../index.html" style="text-decoration:none;color:inherit;">运筹智能</a></div>
+            <nav>
+                <ul>
+                <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
+                <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
+                <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html" class="active">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>10.2 从仿真到实际部署的迁移</h1>
+
+            <p>第7章讨论了如何为管理科学问题搭建仿真器，第8、9章在仿真环境中训练并验证了RL策略。一个自然的问题是：在仿真器中表现优秀的策略，能否直接用于真实系统？答案往往是否定的。仿真器是对现实的简化，而现实总比模型更复杂。本节讨论如何缩小仿真与现实之间的差距，安全地将RL策略部署到真实管理场景中。</p>
+
+            <!-- ===== 10.2.1 仿真与现实的鸿沟 ===== -->
+            <h2>仿真与现实的鸿沟</h2>
+
+            <p>仿真器再精细，也无法完美复现真实世界的全部复杂性。一个在仿真中取得高回报的策略，部署到真实环境后可能出现严重的性能退化。造成这种落差的原因可以归纳为三类。</p>
+
+            <p><strong>模型失配（model mismatch）</strong>：仿真器的状态转移概率 $P_{\text{sim}}(s'|s,a)$ 与真实环境的转移概率 $P_{\text{real}}(s'|s,a)$ 不同。例如，网约车仿真中假设乘客到达服从泊松过程，但真实的到达模式受天气、节假日、突发事件等因素影响，分布形态可能与泊松过程有明显偏差。</p>
+
+            <p><strong>观测噪声（observation noise）</strong>：仿真器通常提供精确的状态信息，而真实系统的传感器和数据采集链路会引入噪声和延迟。GPS定位有误差，交通流量计数存在漏检，订单信息可能到达不及时。策略在仿真中从未接触过这些噪声，部署后可能对不精确的输入做出不合理的决策。</p>
+
+            <p><strong>分布偏移（distribution shift）</strong>：真实环境中的需求模式、用户行为、外部条件等，可能与仿真器所使用的历史数据分布不同。例如，用2023年的出行数据校准仿真器，到2024年城市新开了一条地铁线路，出行需求的空间分布发生了结构性变化。</p>
+
+            <p>这三类问题统称为<strong>仿真-现实差距</strong>（sim-to-real gap）。缩小这个差距，是将RL从研究原型推向实际应用的核心挑战。下面依次介绍几种应对策略。</p>
+
+            <!-- SVG: Sim-to-Real Pipeline -->
+            <svg viewBox="0 0 760 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:760px;display:block;margin:1.5rem auto;">
+                <!-- Background -->
+                <rect x="0" y="0" width="760" height="320" fill="white" rx="8"/>
+
+                <!-- Stage 1: Simulator -->
+                <rect x="30" y="40" width="140" height="80" rx="10" fill="#dbeafe" stroke="#2b6cb0" stroke-width="2"/>
+                <foreignObject x="30" y="55" width="140" height="50">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:14px;color:#2d3748;font-weight:600;">仿真器训练</div>
+                </foreignObject>
+                <foreignObject x="30" y="80" width="140" height="30">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:11px;color:#718096;">校准 + 验证</div>
+                </foreignObject>
+
+                <!-- Arrow 1→2 -->
+                <line x1="170" y1="80" x2="210" y2="80" stroke="#4a5568" stroke-width="2" stroke-linecap="round"/>
+                <line x1="202" y1="74" x2="210" y2="80" stroke="#4a5568" stroke-width="2" stroke-linecap="round"/>
+                <line x1="202" y1="86" x2="210" y2="80" stroke="#4a5568" stroke-width="2" stroke-linecap="round"/>
+
+                <!-- Stage 2: Domain Randomization -->
+                <rect x="210" y="40" width="140" height="80" rx="10" fill="#fed7d7" stroke="#c53030" stroke-width="2"/>
+                <foreignObject x="210" y="55" width="140" height="50">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:14px;color:#2d3748;font-weight:600;">域随机化</div>
+                </foreignObject>
+                <foreignObject x="210" y="80" width="140" height="30">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:11px;color:#718096;">多环境训练</div>
+                </foreignObject>
+
+                <!-- Arrow 2→3 -->
+                <line x1="350" y1="80" x2="390" y2="80" stroke="#4a5568" stroke-width="2" stroke-linecap="round"/>
+                <line x1="382" y1="74" x2="390" y2="80" stroke="#4a5568" stroke-width="2" stroke-linecap="round"/>
+                <line x1="382" y1="86" x2="390" y2="80" stroke="#4a5568" stroke-width="2" stroke-linecap="round"/>
+
+                <!-- Stage 3: Offline Evaluation -->
+                <rect x="390" y="40" width="140" height="80" rx="10" fill="#fefcbf" stroke="#d69e2e" stroke-width="2"/>
+                <foreignObject x="390" y="55" width="140" height="50">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:14px;color:#2d3748;font-weight:600;">离线评估</div>
+                </foreignObject>
+                <foreignObject x="390" y="80" width="140" height="30">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:11px;color:#718096;">历史数据验证</div>
+                </foreignObject>
+
+                <!-- Arrow 3→4 -->
+                <line x1="530" y1="80" x2="570" y2="80" stroke="#4a5568" stroke-width="2" stroke-linecap="round"/>
+                <line x1="562" y1="74" x2="570" y2="80" stroke="#4a5568" stroke-width="2" stroke-linecap="round"/>
+                <line x1="562" y1="86" x2="570" y2="80" stroke="#4a5568" stroke-width="2" stroke-linecap="round"/>
+
+                <!-- Stage 4: Staged Deployment -->
+                <rect x="570" y="40" width="160" height="80" rx="10" fill="#f0fff4" stroke="#48bb78" stroke-width="2"/>
+                <foreignObject x="570" y="55" width="160" height="50">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:14px;color:#2d3748;font-weight:600;">渐进式部署</div>
+                </foreignObject>
+                <foreignObject x="570" y="80" width="160" height="30">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:11px;color:#718096;">影子模式 → 生产</div>
+                </foreignObject>
+
+                <!-- Gap sources below -->
+                <text x="100" y="170" text-anchor="middle" fill="#2d3748" font-size="13" font-weight="600">仿真-现实差距的来源</text>
+
+                <!-- Three gap boxes -->
+                <rect x="30" y="190" width="220" height="100" rx="8" fill="white" stroke="#c53030" stroke-width="1.5" stroke-dasharray="4 2"/>
+                <foreignObject x="38" y="198" width="204" height="85">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#2d3748;">
+                        <div style="font-weight:600;color:#c53030;margin-bottom:4px;">模型失配</div>
+                        <div style="font-size:11px;color:#4a5568;line-height:1.5;">转移概率不准确；奖励函数与现实偏差；忽略关键动态因素</div>
+                    </div>
+                </foreignObject>
+
+                <rect x="270" y="190" width="220" height="100" rx="8" fill="white" stroke="#d69e2e" stroke-width="1.5" stroke-dasharray="4 2"/>
+                <foreignObject x="278" y="198" width="204" height="85">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#2d3748;">
+                        <div style="font-weight:600;color:#d69e2e;margin-bottom:4px;">观测噪声</div>
+                        <div style="font-size:11px;color:#4a5568;line-height:1.5;">传感器精度有限；数据延迟和丢失；状态信息不完整</div>
+                    </div>
+                </foreignObject>
+
+                <rect x="510" y="190" width="220" height="100" rx="8" fill="white" stroke="#805ad5" stroke-width="1.5" stroke-dasharray="4 2"/>
+                <foreignObject x="518" y="198" width="204" height="85">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#2d3748;">
+                        <div style="font-weight:600;color:#805ad5;margin-bottom:4px;">分布偏移</div>
+                        <div style="font-size:11px;color:#4a5568;line-height:1.5;">需求模式变化；用户行为漂移；外部环境突变</div>
+                    </div>
+                </foreignObject>
+            </svg>
+            <div class="fig-caption">图 10.2-1　从仿真到部署的完整流程以及仿真-现实差距的三类来源</div>
+
+            <!-- ===== 10.2.2 仿真器校准 ===== -->
+            <h2>仿真器校准</h2>
+
+            <p>缩小sim-to-real gap最直接的方法是让仿真器尽可能接近真实环境。这就是<strong>仿真器校准</strong>（simulator calibration）：利用历史数据调整仿真器的参数，使仿真输出的统计特征与真实数据吻合。</p>
+
+            <h3>数据驱动的参数拟合</h3>
+
+            <p>假设仿真器由一组参数 $\phi$ 控制，例如到达率、服务时间分布的参数、转移概率矩阵等。校准的目标是找到使仿真输出与真实数据之间差异最小的 $\phi$。设 $\mathcal{D}_{\text{real}}$ 为真实历史数据，$\mathcal{D}_{\text{sim}}(\phi)$ 为在参数 $\phi$ 下仿真生成的数据，校准可形式化为</p>
+
+            $$\phi^* = \arg\min_{\phi}\; d\big(\mathcal{D}_{\text{real}},\; \mathcal{D}_{\text{sim}}(\phi)\big) \tag{10.2-1}$$
+
+            <p>其中 $d(\cdot, \cdot)$ 是某种度量两组数据分布差异的函数，例如均值和方差的加权差、KL散度或Wasserstein距离。在实践中，常用的做法是将 $d$ 分解为若干关键统计量的加权和，例如</p>
+
+            $$d = w_1 \cdot |\bar{x}_{\text{real}} - \bar{x}_{\text{sim}}| + w_2 \cdot |\sigma_{\text{real}}^2 - \sigma_{\text{sim}}^2| + w_3 \cdot \|\rho_{\text{real}} - \rho_{\text{sim}}\|$$
+
+            <p>其中 $\bar{x}$ 为均值，$\sigma^2$ 为方差，$\rho$ 为时间序列的自相关函数。</p>
+
+            <h3>验证与保留测试</h3>
+
+            <p>校准完成后，必须在<strong>独立的验证数据</strong>上检验仿真器的质量。标准做法是将历史数据按时间划分：前80%用于校准（训练集），后20%用于验证（测试集）。验证时不看单个数值是否吻合，而是检查仿真器能否复现真实数据的关键分布特征，包括边际分布形状、高峰时段的出现时间、空间相关性等。</p>
+
+            <div class="note">
+                <strong>保真度与计算速度的权衡：</strong>更精细的仿真器（例如逐秒模拟每辆车的运动）更接近现实，但运行速度慢，训练RL策略所需的总计算量大幅增加。粗粒度的仿真器（例如每15分钟更新一次区域级供需状态）运行快，但可能丢失重要的短时动态。实践中需要在保真度和训练效率之间找到平衡点。一种常见策略是先在粗粒度仿真器上快速筛选有潜力的策略，再在高保真仿真器上精调。
+            </div>
+
+            <!-- ===== 10.2.3 域随机化 ===== -->
+            <h2>域随机化</h2>
+
+            <p>即使经过仔细校准，仿真器也不可能完美匹配现实。域随机化（Domain Randomization）采用了一种不同的思路：与其追求一个完美的仿真器，不如在<strong>许多不同配置的仿真器</strong>上训练策略。如果策略在各种仿真变体下都能取得良好表现，那么面对真实环境（可以视为又一个新的变体）时，也更可能保持鲁棒性。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">域随机化（Domain Randomization）</div>
+                <p>域随机化的核心思想是：将仿真器的参数 $\xi$（如转移概率、需求分布、噪声水平等）视为随机变量，从一个参数分布 $\mathcal{P}(\Xi)$ 中采样。在训练过程中，每个回合（或每隔若干回合）从 $\mathcal{P}(\Xi)$ 中抽取一组新的 $\xi$，在对应的仿真环境 $\text{env}(\xi)$ 中采集轨迹并更新策略。最终策略需要在整个参数分布上最大化期望回报。</p>
+            </div>
+
+            <p>形式化地，域随机化的优化目标为</p>
+
+            $$\max_\theta \; \mathbb{E}_{\xi \sim \mathcal{P}(\Xi)}\Big[\mathbb{E}_{\pi_\theta}\big[\textstyle\sum_{t=0}^{\infty} \gamma^t R_{t+1} \;\big|\; \text{env}(\xi)\big]\Big] \tag{10.2-2}$$
+
+            <p>其中 $\theta$ 为策略参数，$\xi$ 为环境参数。外层期望对环境配置 $\xi$ 取平均，内层期望对策略 $\pi_\theta$ 在该环境中产生的轨迹取平均。</p>
+
+            <p>在网约车调度的例子中，可以随机化的参数包括：各区域的乘客到达率（在基准值上下浮动 $\pm 30\%$）、行程时间的方差（模拟交通拥堵的不确定性）、乘客取消概率（不同时段差异较大）等。</p>
+
+            <h3>域随机化的实现</h3>
+
+            <p>实现域随机化只需对标准训练循环做很小的修改。在每个回合开始时，从预设的参数范围中采样一组环境参数，然后在该环境中正常采集轨迹和更新策略。以PPO为例，伪代码如下：</p>
+
+            <p><strong>第1步：</strong>指定每个环境参数 $\xi_i$ 的采样范围，例如到达率 $\lambda \sim \text{Uniform}(0.7\lambda_0, 1.3\lambda_0)$，行程时间噪声 $\sigma \sim \text{Uniform}(0.5\sigma_0, 2.0\sigma_0)$。</p>
+            <p><strong>第2步：</strong>每个训练回合开始时，采样 $\xi \sim \mathcal{P}(\Xi)$，用 $\xi$ 重置仿真器。</p>
+            <p><strong>第3步：</strong>在当前仿真器中运行策略 $\pi_\theta$，收集轨迹数据。</p>
+            <p><strong>第4步：</strong>用收集到的轨迹按标准PPO算法更新 $\theta$。</p>
+            <p><strong>第5步：</strong>重复第2-4步，直到收敛。</p>
+
+            <p>域随机化的关键在于参数分布 $\mathcal{P}(\Xi)$ 的选择。如果随机化范围太窄，策略仍可能对仿真器参数过拟合；如果范围太宽，训练目标变得过于模糊，策略可能变得过于保守。理想情况下，随机化范围应覆盖真实环境可能落入的参数区间。</p>
+
+            <details class="optional-reading">
+                <summary>选读：自适应域随机化</summary>
+                <div class="opt-body">
+                    <p>手动选择随机化范围可能不够理想。<strong>自适应域随机化</strong>（Automatic Domain Randomization, ADR）是一种改进方法：从较小的随机化范围开始训练，随着策略在当前范围内的表现达到阈值，自动扩大随机化范围。这样策略能循序渐进地适应越来越大的环境变化。</p>
+
+                    <p>具体来说，设 $[\xi_i^{\text{lo}}, \xi_i^{\text{hi}}]$ 为第 $i$ 个参数的当前随机化范围。当策略在该范围内的平均回报超过阈值 $\eta$ 时，将范围向两端扩展：</p>
+
+                    $$\xi_i^{\text{lo}} \leftarrow \xi_i^{\text{lo}} - \Delta_i, \quad \xi_i^{\text{hi}} \leftarrow \xi_i^{\text{hi}} + \Delta_i$$
+
+                    <p>其中 $\Delta_i$ 为预设步长。OpenAI在训练机器人灵巧手操作魔方的工作中使用了这一技术，成功将仿真中训练的策略迁移到了物理机器人上。</p>
+                </div>
+            </details>
+
+            <!-- ===== 10.2.4 渐进式部署 ===== -->
+            <h2>渐进式部署</h2>
+
+            <p>即使策略在仿真中通过了域随机化的考验，也不应直接全量部署到生产系统。管理科学问题涉及真实的资源配置和用户体验，贸然切换决策逻辑可能造成不可逆的损失。正确的做法是<strong>渐进式部署</strong>：分阶段、小步骤地将RL策略引入实际系统。</p>
+
+            <!-- SVG: Staged Deployment -->
+            <svg viewBox="0 0 720 380" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;display:block;margin:1.5rem auto;">
+                <rect x="0" y="0" width="720" height="380" fill="white" rx="8"/>
+
+                <!-- Vertical timeline line -->
+                <line x1="80" y1="30" x2="80" y2="350" stroke="#cbd5e0" stroke-width="3" stroke-linecap="round"/>
+
+                <!-- Stage 1 -->
+                <circle cx="80" cy="50" r="16" fill="#2b6cb0" stroke="white" stroke-width="2"/>
+                <text x="80" y="55" text-anchor="middle" fill="white" font-size="12" font-weight="700">1</text>
+                <rect x="120" y="30" width="570" height="42" rx="6" fill="#dbeafe" stroke="#2b6cb0" stroke-width="1.5"/>
+                <foreignObject x="130" y="34" width="550" height="34">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#2d3748;line-height:1.6;">
+                        <strong style="color:#2b6cb0;">仿真训练</strong>　在校准后的仿真器中训练策略，结合域随机化增强鲁棒性
+                    </div>
+                </foreignObject>
+
+                <!-- Stage 2 -->
+                <circle cx="80" cy="110" r="16" fill="#2b6cb0" stroke="white" stroke-width="2"/>
+                <text x="80" y="115" text-anchor="middle" fill="white" font-size="12" font-weight="700">2</text>
+                <rect x="120" y="90" width="570" height="42" rx="6" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="1.5"/>
+                <foreignObject x="130" y="94" width="550" height="34">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#2d3748;line-height:1.6;">
+                        <strong style="color:#2b6cb0;">影子模式</strong>　RL与现有系统并行运行，记录RL的决策但不执行，对比两者的差异
+                    </div>
+                </foreignObject>
+
+                <!-- Stage 3 -->
+                <circle cx="80" cy="170" r="16" fill="#d69e2e" stroke="white" stroke-width="2"/>
+                <text x="80" y="175" text-anchor="middle" fill="white" font-size="12" font-weight="700">3</text>
+                <rect x="120" y="150" width="570" height="42" rx="6" fill="#fefcbf" stroke="#d69e2e" stroke-width="1.5"/>
+                <foreignObject x="130" y="154" width="550" height="34">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#2d3748;line-height:1.6;">
+                        <strong style="color:#b7791f;">小比例试运行</strong>　将一小部分流量（如5%）切换至RL决策，其余仍使用原系统
+                    </div>
+                </foreignObject>
+
+                <!-- Stage 4 -->
+                <circle cx="80" cy="230" r="16" fill="#d69e2e" stroke="white" stroke-width="2"/>
+                <text x="80" y="235" text-anchor="middle" fill="white" font-size="12" font-weight="700">4</text>
+                <rect x="120" y="210" width="570" height="42" rx="6" fill="#fefcbf" stroke="#d69e2e" stroke-width="1.5"/>
+                <foreignObject x="130" y="214" width="550" height="34">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#2d3748;line-height:1.6;">
+                        <strong style="color:#b7791f;">逐步扩量</strong>　根据KPI监控结果逐步提高RL的流量比例：5% → 20% → 50% → 100%
+                    </div>
+                </foreignObject>
+
+                <!-- Stage 5 -->
+                <circle cx="80" cy="290" r="16" fill="#48bb78" stroke="white" stroke-width="2"/>
+                <text x="80" y="295" text-anchor="middle" fill="white" font-size="12" font-weight="700">5</text>
+                <rect x="120" y="270" width="570" height="42" rx="6" fill="#f0fff4" stroke="#48bb78" stroke-width="1.5"/>
+                <foreignObject x="130" y="274" width="550" height="34">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#2d3748;line-height:1.6;">
+                        <strong style="color:#276749;">全量部署</strong>　RL策略全面上线，保留安全护栏和人工回退机制
+                    </div>
+                </foreignObject>
+
+                <!-- Risk label -->
+                <foreignObject x="120" y="330" width="570" height="40">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#718096;text-align:center;">
+                        每个阶段均需监控关键指标，若出现异常则回退至上一阶段
+                    </div>
+                </foreignObject>
+            </svg>
+            <div class="fig-caption">图 10.2-2　渐进式部署的五个阶段</div>
+
+            <p>这五个阶段中，<strong>影子模式</strong>（shadow mode）尤为重要。在影子模式下，RL策略接收真实环境的状态，输出决策，但这些决策并不被执行。实际系统仍然按原有规则运行。通过记录RL的决策并与原系统的决策对比，可以在不承担任何风险的情况下，评估RL策略在真实环境中的行为是否合理。</p>
+
+            <p>影子模式需要关注的指标包括：RL与原系统的决策一致率、RL决策中是否出现异常行为（例如将所有车辆调向同一区域）、RL的预测回报与原系统实际回报的对比等。只有当这些指标令人满意时，才进入下一阶段。</p>
+
+            <p>进入小比例试运行后，采用<strong>A/B测试</strong>的方式：将请求随机分为实验组（使用RL决策）和对照组（使用原系统决策），对比两组在关键业务指标上的表现。统计检验（如t检验）用于判断差异是否显著，避免因随机波动产生的误判。</p>
+
+            <!-- ===== 10.2.5 安全约束与人机协作 ===== -->
+            <h2>安全约束与人机协作</h2>
+
+            <p>管理科学中的决策直接影响运营效率和用户体验，安全性不容忽视。RL策略可能因训练不充分或遇到未见过的状态而产生不合理的决策。因此，部署时必须设置多层安全机制。</p>
+
+            <div class="safety-box">
+                <div class="safety-title">部署安全保障机制</div>
+                <p><strong>动作过滤（action masking）</strong>：在策略输出之后、执行之前，检查动作是否满足硬约束。例如网约车调度中，不允许将车辆派到超出运营范围的区域；库存管理中，不允许订购负数的商品。不合法的动作直接被屏蔽，策略在合法动作中重新选择。</p>
+                <p style="margin-top:0.5rem;"><strong>约束满足</strong>：将安全要求形式化为约束MDP（Constrained MDP, CMDP）中的约束条件。策略在最大化回报的同时，需满足约束 $\mathbb{E}[\sum_t c_i(s_t, a_t)] \leq d_i$，其中 $c_i$ 为第 $i$ 个约束的代价函数，$d_i$ 为预算上界。</p>
+                <p style="margin-top:0.5rem;"><strong>人工否决</strong>：运营人员可以实时监控RL的决策，对不合理的决策进行否决。系统提供可视化面板，显示RL的实时决策及其预期影响。</p>
+                <p style="margin-top:0.5rem;"><strong>回退策略（fallback policy）</strong>：当RL决策与基准策略的差异超过预设阈值时，自动切换为基准策略。设基准策略为 $\pi_{\text{base}}$，RL策略为 $\pi_{\text{RL}}$，若 $\|a_{\text{RL}} - a_{\text{base}}\| > \epsilon$，则执行 $a_{\text{base}}$。这防止RL在异常状态下做出过于激进的决策。</p>
+            </div>
+
+            <p>约束MDP的优化目标可以写为</p>
+
+            $$\max_\theta \; \mathbb{E}_{\pi_\theta}\Big[\sum_{t=0}^{\infty} \gamma^t R_{t+1}\Big] \quad \text{s.t.} \quad \mathbb{E}_{\pi_\theta}\Big[\sum_{t=0}^{\infty} \gamma^t c_i(S_t, A_t)\Big] \leq d_i, \quad i = 1, \ldots, m \tag{10.2-3}$$
+
+            <p>常用的求解方法是拉格朗日方法：引入乘子 $\lambda_i \geq 0$，将约束问题转化为无约束的极大极小问题</p>
+
+            $$\max_\theta \min_{\lambda \geq 0} \; \mathbb{E}_{\pi_\theta}\Big[\sum_{t=0}^{\infty} \gamma^t R_{t+1}\Big] - \sum_{i=1}^{m} \lambda_i \Big(\mathbb{E}_{\pi_\theta}\Big[\sum_{t=0}^{\infty} \gamma^t c_i(S_t, A_t)\Big] - d_i\Big) \tag{10.2-4}$$
+
+            <p>在实际训练中，策略参数 $\theta$ 和拉格朗日乘子 $\lambda_i$ 交替更新：$\theta$ 沿梯度上升方向更新以提升回报，$\lambda_i$ 沿梯度上升方向更新以惩罚约束违反。</p>
+
+            <!-- ===== 10.2.6 离线策略评估 ===== -->
+            <h2>离线策略评估</h2>
+
+            <p>在将策略部署到真实系统之前，能否利用已有的历史数据预先评估其性能？这正是<strong>离线策略评估</strong>（Off-Policy Evaluation, OPE）要解决的问题。OPE的目标是：给定由行为策略 $\beta$ 收集的历史数据，估计另一个目标策略 $\pi$ 的期望回报 $J(\pi)$，而无需让 $\pi$ 与环境交互。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">离线策略评估（Off-Policy Evaluation）</div>
+                <p>假设我们有 $N$ 条由行为策略 $\beta$ 生成的轨迹 $\{(s_0^{(i)}, a_0^{(i)}, r_1^{(i)}, s_1^{(i)}, a_1^{(i)}, r_2^{(i)}, \ldots)\}_{i=1}^{N}$。目标是估计新策略 $\pi$ 的期望回报 $J(\pi) = \mathbb{E}_\pi[\sum_t \gamma^t R_{t+1}]$，而不实际运行 $\pi$。这在部署前的风险评估中至关重要：如果OPE显示新策略的预期表现不如当前策略，则不应上线。</p>
+            </div>
+
+            <h3>重要性采样方法</h3>
+
+            <p>最基本的OPE方法是<strong>重要性采样</strong>（Importance Sampling, IS）。其核心思想是：虽然数据是由 $\beta$ 生成的，但可以通过对每条轨迹赋予一个权重，将 $\beta$ 下的期望转换为 $\pi$ 下的期望。权重为两个策略在该轨迹上的概率比，即</p>
+
+            $$w^{(i)} = \prod_{t=0}^{T} \frac{\pi(a_t^{(i)} | s_t^{(i)})}{\beta(a_t^{(i)} | s_t^{(i)})} \tag{10.2-5}$$
+
+            <p>重要性采样估计为</p>
+
+            $$\hat{J}_{\text{IS}}(\pi) = \frac{1}{N}\sum_{i=1}^{N} w^{(i)} \cdot G^{(i)} \tag{10.2-6}$$
+
+            <p>其中 $G^{(i)} = \sum_{t=0}^{T} \gamma^t r_{t+1}^{(i)}$ 为第 $i$ 条轨迹的累计折扣回报。这个估计是无偏的，但存在严重的<strong>高方差</strong>问题：权重 $w^{(i)}$ 是 $T+1$ 个比率的连乘积，当 $T$ 较大时，$w^{(i)}$ 的取值范围可能跨越多个数量级。少数几条轨迹可能获得极大的权重，导致估计极不稳定。</p>
+
+            <h3>方差缩减</h3>
+
+            <p>为缓解高方差问题，一种常用的改进是<strong>加权重要性采样</strong>（Weighted Importance Sampling, WIS）：</p>
+
+            $$\hat{J}_{\text{WIS}}(\pi) = \frac{\sum_{i=1}^{N} w^{(i)} \cdot G^{(i)}}{\sum_{i=1}^{N} w^{(i)}} \tag{10.2-7}$$
+
+            <p>WIS用归一化的权重代替了均匀的 $1/N$。虽然这引入了少量偏差，但大幅降低了方差，在实践中通常更可靠。</p>
+
+            <p>另一个实用技巧是<strong>按步重要性采样</strong>（per-decision IS）：不对整条轨迹计算一个权重，而是对每个时间步分别计算截断到该步的累积权重，减少后续动作对早期奖励估计的干扰。</p>
+
+            <div class="note">
+                <strong>OPE的局限性：</strong>当目标策略 $\pi$ 与行为策略 $\beta$ 差异较大时（即 $\pi$ 在 $\beta$ 很少选择的动作上有较高概率），重要性权重会非常极端，OPE的结果不可靠。因此，OPE更适合评估与历史策略相近的候选策略。对于差异较大的策略，仍需依赖仿真评估或小规模在线实验。
+            </div>
+
+            <!-- ===== 10.2.7 部署策略对比 ===== -->
+            <h2>部署策略对比</h2>
+
+            <p>下表汇总了从仿真到部署过程中各种策略的适用场景、优势和限制。</p>
+
+            <table class="deploy-table">
+                <thead>
+                    <tr>
+                        <th>策略</th>
+                        <th>核心思想</th>
+                        <th>优势</th>
+                        <th>限制</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>仿真器校准</td>
+                        <td>用历史数据拟合仿真参数</td>
+                        <td>直接缩小模型失配</td>
+                        <td>依赖历史数据质量；无法消除系统性偏差</td>
+                    </tr>
+                    <tr>
+                        <td>域随机化</td>
+                        <td>在多种仿真配置上训练</td>
+                        <td>增强鲁棒性，不依赖单一仿真器</td>
+                        <td>随机化范围需精心设计；可能过于保守</td>
+                    </tr>
+                    <tr>
+                        <td>离线策略评估</td>
+                        <td>用历史数据估计新策略性能</td>
+                        <td>部署前的低成本风险评估</td>
+                        <td>策略差异大时方差极高；需要行为策略已知</td>
+                    </tr>
+                    <tr>
+                        <td>影子模式</td>
+                        <td>并行运行但不执行RL决策</td>
+                        <td>零风险地观察RL在真实环境中的表现</td>
+                        <td>无法评估RL决策的实际后果</td>
+                    </tr>
+                    <tr>
+                        <td>A/B测试</td>
+                        <td>小比例流量使用RL决策</td>
+                        <td>真实评估策略效果</td>
+                        <td>有一定风险；需足够样本量</td>
+                    </tr>
+                    <tr>
+                        <td>约束MDP</td>
+                        <td>在满足安全约束下优化</td>
+                        <td>将安全要求显式纳入优化</td>
+                        <td>约束设计需要领域知识；增加训练难度</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="fig-caption">表 10.2-1　从仿真到部署的各策略对比</div>
+
+            <p>在实际项目中，这些策略往往是<strong>组合使用</strong>的：先校准仿真器，再用域随机化训练鲁棒策略，通过OPE初筛不合格的候选策略，然后在影子模式中观察，最后通过A/B测试逐步上线。整个流程构成一条从仿真到生产的完整流水线。</p>
+
+            <!-- ===== 10.2.8 管理科学中的部署案例 ===== -->
+            <h2>管理科学中的部署案例</h2>
+
+            <p>RL在管理科学中的实际部署已有若干成功案例，以下简要介绍几个代表性的工作。</p>
+
+            <h3>网约车派单优化</h3>
+
+            <p>滴滴出行将RL应用于实时派单调度。系统需要在每秒数万笔订单中为司机和乘客做最优匹配。部署过程严格遵循渐进式策略：先在离线仿真器中训练和评估，然后在影子模式下运行数周，确认RL的匹配方案质量后，分城市逐步上线。上线后，订单应答率和司机收入均有显著提升。部署中的关键工程挑战包括：在线推理延迟必须控制在毫秒级别，以及处理实时供需的快速变化。</p>
+
+            <h3>库存管理优化</h3>
+
+            <p>阿里巴巴在仓储物流中使用RL优化库存补货决策。与传统的 $(s, S)$ 策略相比，RL能更好地利用需求预测、促销计划等上下文信息。部署时采用了A/B测试框架，将RL管理的商品与传统规则管理的商品对比，在缺货率和库存周转率两个维度上评估效果。安全机制包括：补货量不超过仓容上限（动作过滤），以及当RL建议的补货量偏离需求预测太多时自动回退到基准策略。</p>
+
+            <h3>交通信号控制</h3>
+
+            <p>多个城市开展了RL控制交通信号灯的试点项目。在这一场景中，sim-to-real gap尤为突出，因为交通仿真器（如SUMO）难以精确刻画驾驶员的异质行为。域随机化在这里发挥了重要作用：通过随机化驾驶员跟车模型的参数和车辆到达模式，训练出的RL信号控制策略在实际路口部署时仍能有效降低车辆平均延误。安全约束方面，RL必须保证最短绿灯时间和清空时间等交通工程硬性要求。</p>
+
+            <div class="note">
+                <strong>部署是系统工程：</strong>上述案例共同表明，RL的实际部署不仅是算法问题，更是系统工程问题。模型服务的延迟与可靠性、数据管道的实时性、监控报警体系的完备性、回退机制的可靠性，这些工程要素的质量决定了RL系统在生产环境中能否稳定运行。
+            </div>
+
+            <h2>小结</h2>
+
+            <p>从仿真到实际部署的迁移，是RL在管理科学中落地的关键一步。仿真器校准、域随机化、离线策略评估、渐进式部署和安全约束，构成了一套系统化的方法论。这些方法的共同目标是：在控制风险的前提下，将仿真中学到的好策略安全地转化为实际收益。下一节将讨论另一个密切相关的话题：当我们拥有大量历史数据但无法进行在线交互时，如何直接从数据中学习策略。</p>
+
+            <div class="chapter-nav">
+                <a href="../ch10/10.1.html">&larr; 10.1 多智能体强化学习</a>
+                <a href="../ch10/10.3.html">10.3 离线强化学习 &rarr;</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

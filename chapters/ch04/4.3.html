@@ -3,35 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>4.3 状态空间、动作空间与奖励函数的设计 - 运筹智能</title>
+    <title>4.3 Attention机制与Transformer架构 - 运筹智能</title>
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <script defer src="../../js/code-copy.js"></script>
     <style>
         .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
         .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
-        .optional-reading { background:#fafafa; border:1px solid #e2e8f0; border-left:4px solid #a0aec0; border-radius:0 8px 8px 0; margin:2.5rem 0; }
-        .optional-reading summary { padding:1rem 1.5rem; cursor:pointer; font-weight:700; color:#4a5568; font-size:1.1rem; list-style:none; }
-        .optional-reading summary::-webkit-details-marker { display:none; }
-        .optional-reading summary::before { content:'▶ '; font-size:0.8em; margin-right:0.3rem; }
-        .optional-reading[open] summary::before { content:'▼ '; }
-        .optional-reading[open] summary { border-bottom:1px solid #e2e8f0; }
-        .optional-reading .opt-body { padding:1.2rem 1.5rem; }
-        .compare-box { display: flex; gap: 1.5rem; flex-wrap: wrap; margin: 1.5rem 0; }
-        .compare-box > div { flex: 1; min-width: 220px; background: var(--sidebar-bg); padding: 1rem 1.2rem; border-radius: 8px; border-top: 3px solid var(--accent-color); }
-        .compare-box > div h4 { margin: 0 0 0.5rem 0; color: var(--primary-color); }
-        .compare-box > div.compare-red { border-top-color: #c53030; }
-        .compare-box > div.compare-red h4 { color: #c53030; }
-        .state-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.95rem; }
-        .state-table th, .state-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: left; }
-        .state-table th { background: var(--primary-color); color: white; font-size: 0.9rem; }
-        .state-table tr:nth-child(even) { background: var(--sidebar-bg); }
-        .state-table code { font-size: 0.85em; background: #edf2f7; padding: 0.1rem 0.3rem; border-radius: 3px; }
-        .fig-caption { text-align:center; font-size:0.9rem; color:#718096; margin-top:0.5rem; }
+        .trans-table { width: auto; border-collapse: collapse; margin: 1rem auto; font-size: 0.95rem; }
+        .trans-table th, .trans-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: center; }
+        .trans-table th { background: var(--primary-color); color: white; }
+        .trans-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .note { background: var(--highlight-color); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .formula-block { background: var(--code-bg); padding: 1.2rem 1.5rem; margin: 1.5rem 0; border-radius: 6px; overflow-x: auto; text-align: center; }
+        .fig-caption { text-align: center; font-size: 0.92rem; color: #718096; margin-top: 0.5rem; margin-bottom: 1.5rem; }
+        .optional-reading { background: #fafafa; border: 1px solid #e2e8f0; border-left: 4px solid #a0aec0; border-radius: 0 8px 8px 0; margin: 2.5rem 0; }
+        .optional-reading summary { padding: 1rem 1.5rem; cursor: pointer; font-weight: 700; color: #4a5568; font-size: 1.1rem; list-style: none; }
+        .optional-reading summary::-webkit-details-marker { display: none; }
+        .optional-reading summary::before { content: '▶ '; font-size: 0.8em; margin-right: 0.3rem; }
+        .optional-reading[open] summary::before { content: '▼ '; }
+        .optional-reading[open] summary { border-bottom: 1px solid #e2e8f0; }
+        .optional-reading .opt-body { padding: 1.2rem 1.5rem; }
+        .optional-reading .opt-body h3 { color: var(--primary-color); margin-top: 1.8rem; margin-bottom: 0.6rem; font-size: 1.15rem; }
+        .optional-reading .opt-body h3:first-child { margin-top: 0.5rem; }
+        .app-box { background: #f0fff4; border: 1px solid #c6f6d5; border-left: 4px solid #48bb78; border-radius: 0 8px 8px 0; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .app-box .app-title { font-weight: 700; color: #276749; font-size: 1.05rem; margin-bottom: 0.6rem; }
+        .insight-box { background: #ebf4ff; border: 2px solid #2b6cb0; border-radius: 8px; padding: 1.2rem 1.5rem; margin: 2rem 0; }
+        .insight-box .insight-title { font-weight: 700; color: #2b6cb0; font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .arch-block { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem 1.5rem; margin: 1rem 0; font-size: 0.95rem; line-height: 2.0; text-align: center; }
     </style>
-    <script defer src="../../js/code-copy.js"></script>
 </head>
 <body>
     <div class="page-wrapper">
@@ -42,318 +48,592 @@
                 <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
                 <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
                 <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
-                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
-                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
-                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.3.html">1.5.3 SARSA与Q-learning</a></li>
-                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
-                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
-                <li class="sidebar-chapter">第二章 深度学习基础</li>
-                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
-                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
-                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
-                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
-                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
-                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
-                <li><a href="../ch03/3.2.html">3.2 Policy Gradient与PPO</a></li>
-                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
-                <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
-                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
-                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
-                <li><a href="../ch04/4.2.html">4.2 时域建模与回合定义</a></li>
-                <li><a href="../ch04/4.3.html" class="active">4.3 状态空间、动作空间与奖励函数的设计</a></li>
-                <li><a href="../ch04/4.4.html">4.4 决策时机与决策频率的建模</a></li>
-                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
-                <li class="sidebar-chapter">第五章 仿真器搭建</li>
-                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
-                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
-                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
-                <li><a href="../ch05/5.4.html">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
-                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
-                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
-                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
-                <li><a href="../ch07/7.2.html">7.2 公交串车控制</a></li>
-                <li><a href="../ch07/7.3.html">7.3 需求响应公交调度优化</a></li>
-                <li class="sidebar-chapter">第八章 进阶话题</li>
-                <li><a href="../ch08/8.1.html">8.1 多智能体强化学习</a></li>
-                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html" class="active">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
                 </ul>
             </nav>
         </aside>
 
         <main class="main-content">
-            <h1>4.3 状态空间、动作空间与奖励函数的设计</h1>
+            <h1>4.3 Attention机制与Transformer架构</h1>
 
-            <p>4.1 节介绍了将管理科学问题抽象为 MDP 的五要素清单。在这五个要素中，状态空间 $\mathcal{S}$、动作空间 $\mathcal{A}$ 和奖励函数 $R$ 的设计对学习效果影响最大，也是研究者花费精力最多的环节。状态空间决定了智能体能<strong>看到</strong>什么信息，动作空间决定了它能<strong>做</strong>什么操作，奖励函数则告诉它什么是<strong>好</strong>的行为。本节将逐一讨论这三个要素的设计原则与常见技巧。</p>
+            <!-- ==================== Part 1: 为什么需要注意力机制 ==================== -->
+            <h2>为什么需要注意力机制</h2>
 
-            <!-- ===== Part 1: 状态空间设计 ===== -->
-            <h2>一、状态空间设计</h2>
+            <p>在管理科学的许多问题中，决策者面对的并非一个固定大小的输入，而是一个<strong>数量可变的实体集合</strong>。考虑以下两个场景。</p>
 
-            <h3>Markov 性的实际含义</h3>
+            <p><strong>场景一：网约车派单。</strong>某一时刻，平台有 5 辆空闲车辆和 12 个待匹配的乘客请求；下一时刻，可能变成 20 辆车和 3 个请求。平台需要判断每一对车辆-请求的匹配兼容性：车辆离乘客多远？乘客的目的地是否在车辆的热区方向？乘客愿意等待多久？这些判断需要对每一对实体进行比较，而实体的数量在每个决策时刻都不同。</p>
 
-            <p>在第一章中，我们了解到 MDP 的核心假设是 <strong>Markov 性</strong>：给定当前状态 $S_t$，未来的状态和奖励与过去的历史无关。用公式表达：</p>
+            <p><strong>场景二：车辆路径规划（VRP）。</strong>一辆配送车已经访问了 3 个客户，还有 15 个客户待访问。智能体需要选择下一个访问哪个客户。这里的状态包含所有未访问客户的位置、需求量和时间窗，构成一个<strong>变长的集合</strong>。哪些客户与当前车辆位置更近？哪些客户的时间窗即将关闭、需要优先处理？智能体需要根据当前路径状态评估每个候选客户的相关性。</p>
 
-            $$P(S_{t+1}, R_{t+1} \mid S_t, A_t) = P(S_{t+1}, R_{t+1} \mid S_0, A_0, \ldots, S_t, A_t)$$
+            <h3>全连接网络、CNN 和 RNN 的局限</h3>
 
-            <p>这个性质在实际建模中的含义是：<strong>状态必须包含足够的信息，使得智能体仅凭当前状态就能做出好的决策，无需回溯历史。</strong>换一种角度来说，设计状态空间的核心问题是：为了做出当前这个决策，智能体需要看到哪些信息？</p>
+            <p>在 2.1 节和 2.2 节中，我们介绍了全连接网络（FC）、卷积神经网络（CNN）和循环神经网络（RNN）。这三种架构在处理上述场景时都面临困难：</p>
 
-            <p>在管理科学问题中，信息不足和信息冗余都会带来问题。信息不足会破坏 Markov 性，导致同一状态在不同历史下需要不同的决策，智能体无法学到一致的策略。信息冗余则会增大状态空间的维度，既增加神经网络的输入规模，也可能引入噪声，减慢学习速度。</p>
-
-            <h3>状态特征的三个层次</h3>
-
-            <p>对于管理科学中的复杂系统，我们可以将状态信息分为三个层次来组织。</p>
-
-            <div class="concept-card">
-                <div class="concept-name">状态特征的三个层次</div>
-                <p><strong>实体特征</strong>（Entity Features）：描述系统中单个实体的属性。例如一辆车的位置、载客量、剩余容量。</p>
-                <p><strong>关系特征</strong>（Relational Features）：描述实体之间的关系。例如某辆车到某个请求起点的距离、当前订单在车辆行程计划中的插入位置。</p>
-                <p><strong>上下文特征</strong>（Context Features）：描述全局环境状态。例如当前时刻、需求预测、车队整体利用率。</p>
-            </div>
-
-            <p>以需求响应公交（DRT）调度为例，当一个新的乘客请求到达时，智能体需要决定将该请求分配给哪辆车。此时状态可以组织为如下结构：</p>
-
-            <table class="state-table">
-                <thead>
-                    <tr><th>层次</th><th>特征</th><th>说明</th></tr>
-                </thead>
-                <tbody>
-                    <tr><td rowspan="4">实体特征（车辆）</td><td>$(\text{lat}, \text{lon})$</td><td>车辆当前经纬度</td></tr>
-                    <tr><td>$\text{load} / \text{capacity}$</td><td>当前载客量与总容量之比</td></tr>
-                    <tr><td>$n_{\text{pending}}$</td><td>待完成任务数</td></tr>
-                    <tr><td>$\mathbb{1}_{\text{idle}}$</td><td>是否处于空闲状态</td></tr>
-                    <tr><td rowspan="3">实体特征（请求）</td><td>$(\text{olat}, \text{olon})$</td><td>请求起点经纬度</td></tr>
-                    <tr><td>$(\text{dlat}, \text{dlon})$</td><td>请求终点经纬度</td></tr>
-                    <tr><td>$w$</td><td>乘客已等待时间</td></tr>
-                    <tr><td rowspan="2">关系特征</td><td>$d_{vr}$</td><td>车辆到请求起点的距离</td></tr>
-                    <tr><td>$\Delta t_{vr}$</td><td>车辆到达请求起点的预计时间</td></tr>
-                    <tr><td rowspan="3">上下文特征</td><td>$t / T$</td><td>时间进度（当前时刻占运营周期的比例）</td></tr>
-                    <tr><td>$u_{\text{fleet}}$</td><td>车队整体利用率</td></tr>
-                    <tr><td>$\hat{D}$</td><td>未来短期需求预测</td></tr>
-                </tbody>
-            </table>
-            <p class="fig-caption">表 4.3-1 &nbsp; DRT 调度问题的状态特征示例</p>
-
-            <p>三个层次的划分不是绝对的，而是帮助研究者系统地梳理信息。一个常见的遗漏是只关注实体特征而忽略上下文特征：例如在车辆调度中，如果状态中不包含当前时刻，智能体就无法区分早高峰和深夜，从而无法根据需求模式调整策略。</p>
-
-            <h3>归一化与缩放</h3>
-
-            <p>神经网络对输入的数值范围很敏感。如果不同特征的量纲差异很大（如经度范围在 $[103, 105]$，等待时间范围在 $[0, 30]$ 分钟），梯度更新会在不同维度上严重失衡，导致训练不稳定。因此，将所有特征缩放到相近的数值范围是必要的预处理步骤。</p>
-
-            <p>最常用的做法是对每个特征进行中心化和缩放：</p>
-
-            $$\tilde{x} = \frac{x - x_{\text{center}}}{x_{\text{scale}}} \tag{4.3-1}$$
-
-            <p>其中 $x_{\text{center}}$ 和 $x_{\text{scale}}$ 的选取取决于具体特征。例如：坐标特征可以用城市中心和城市半径来归一化；时间特征用运营周期长度来缩放；比例型特征（如 $\text{load}/\text{capacity}$）本身就在 $[0, 1]$ 范围内，无需额外处理。</p>
-
-            <h3>变长输入的处理</h3>
-
-            <p>管理科学问题中一个常见的挑战是：系统中实体的数量可能随时间变化。例如，在 DRT 调度中，当前正在运营的车辆数、待分配的请求数在不同时刻都不相同。然而，神经网络通常要求固定维度的输入向量。</p>
-
-            <p>处理这种变长输入有几种典型方案：</p>
-            <ul>
-                <li><strong>填充与掩码</strong>（Padding + Masking）：设定一个最大数量 $N_{\max}$，不足的部分用零向量填充，同时用一个掩码向量标记哪些位置是真实实体。简单直接，但当实际数量远小于 $N_{\max}$ 时会浪费计算资源。</li>
-                <li><strong>集合编码</strong>（Set Encoding）：将每个实体通过同一个网络映射为固定维度的嵌入向量，再对所有嵌入做池化（如求和或取平均），得到固定维度的表示。</li>
-                <li><strong>注意力机制</strong>（Attention）：用 Transformer 等架构处理变长序列，通过注意力权重自动选择重要的实体信息。</li>
+            <ul style="margin:0.3rem 0 1rem 2rem;">
+                <li><strong>全连接网络</strong>要求固定大小的输入向量。当实体数量变化时，需要将输入填充（padding）到最大长度或截断到固定长度，这不仅浪费计算资源，还丢失了结构信息</li>
+                <li><strong>CNN</strong> 擅长捕捉局部空间模式，但管理科学中的实体关系往往不是局部的。网约车派单中，一辆位于城市东侧的车可能恰好适合接送一位前往东侧机场的乘客，尽管两者在输入序列中相距甚远</li>
+                <li><strong>RNN</strong> 可以处理变长序列，但它按顺序逐个处理元素，长程依赖难以保持。在 VRP 中，第 1 个客户的信息经过 15 步传播后可能已被严重衰减。更重要的是，RNN 隐含假设输入有先后顺序，而很多管理科学问题中的实体是一个<strong>集合</strong>，没有天然的顺序</li>
             </ul>
 
-            <p>这些方案涉及网络架构的选择，将在 4.5 节中详细展开。此处的关键认识是：状态空间的设计与网络架构的选择紧密相关。状态中包含哪些信息是建模层面的决策，如何将这些信息编码为网络输入是架构层面的决策，两者需要协同考虑。</p>
+            <p>我们需要一种能够自然处理变长输入、直接建模实体间两两关系，并且不依赖顺序假设的机制。这正是<strong>注意力机制</strong>（Attention Mechanism）。</p>
 
-            <!-- ===== Part 2: 动作空间设计 ===== -->
-            <h2>二、动作空间设计</h2>
+            <!-- ==================== Part 2: 注意力机制 ==================== -->
+            <h2>注意力机制</h2>
 
-            <h3>离散动作与连续动作</h3>
+            <h3>Query-Key-Value 框架</h3>
 
-            <p>动作空间的性质直接决定了可以使用哪类算法。管理科学问题中的动作空间大致分为两类。</p>
+            <p>注意力机制的核心思想可以用一个简单的类比来理解。想象你走进一家图书馆找资料：</p>
+            <ul style="margin:0.3rem 0 1rem 2rem;">
+                <li>你心中有一个<strong>查询</strong>（Query）：你想找关于车辆调度优化的书</li>
+                <li>图书馆中每本书有一个<strong>索引标签</strong>（Key）：运筹学、组合优化、交通工程 ...</li>
+                <li>每本书有实际的<strong>内容</strong>（Value）：具体的知识和方法</li>
+            </ul>
 
-            <div class="compare-box">
-                <div>
-                    <h4>离散动作空间</h4>
-                    <p>智能体从有限集合中选择一个动作。</p>
-                    <p><strong>典型场景：</strong></p>
-                    <ul>
-                        <li>库存管理：订货量从 $\{0, 10, 20, \ldots, 100\}$ 中选取</li>
-                        <li>车辆调度：选择哪辆车服务当前请求</li>
-                        <li>路径选择：从若干候选路线中选取一条</li>
-                    </ul>
-                    <p><strong>适用算法：</strong>DQN、PPO（离散版本）</p>
-                </div>
-                <div class="compare-red">
-                    <h4>连续动作空间</h4>
-                    <p>动作取值为连续区间上的实数或实向量。</p>
-                    <p><strong>典型场景：</strong></p>
-                    <ul>
-                        <li>动态定价：价格在 $[p_{\min}, p_{\max}]$ 内连续取值</li>
-                        <li>车速控制：加速度在 $[-a_{\max}, a_{\max}]$ 内连续取值</li>
-                        <li>资源分配比例：将预算按比例分配到各渠道</li>
-                    </ul>
-                    <p><strong>适用算法：</strong>PPO（连续版本）、SAC</p>
-                </div>
+            <p>你将自己的查询与每本书的索引标签进行匹配，匹配度越高的书你会投入越多精力阅读。最终你获得的知识是所有书籍内容的加权组合，权重由匹配度决定。</p>
+
+            <p>在网约车派单的语境下，这个类比变得更加具体：</p>
+            <ul style="margin:0.3rem 0 1rem 2rem;">
+                <li><strong>Query</strong>：某辆空闲车辆，携带其位置、车型等信息</li>
+                <li><strong>Key</strong>：每个乘客请求的特征摘要，如出发地、目的地方向等</li>
+                <li><strong>Value</strong>：每个乘客请求的详细信息，如具体坐标、预估费用等</li>
+            </ul>
+            <p>注意力权重衡量了每辆车与每个乘客请求之间的兼容性。权重越大，说明这对车辆-请求越匹配。</p>
+
+            <h3>Scaled Dot-Product Attention</h3>
+
+            <p>将上述直觉形式化。设 Query 矩阵 $Q \in \mathbb{R}^{n_q \times d_k}$，Key 矩阵 $K \in \mathbb{R}^{n_k \times d_k}$，Value 矩阵 $V \in \mathbb{R}^{n_k \times d_v}$。其中 $n_q$ 是查询的数量，$n_k$ 是键值对的数量，$d_k$ 是键向量的维度，$d_v$ 是值向量的维度。Scaled Dot-Product Attention 定义为：</p>
+
+            <div class="formula-block">
+                $$\text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right) V \tag{4.3-1}$$
             </div>
 
-            <p>实际问题中，动作空间的离散与连续有时是建模选择而非问题固有性质。例如，动态定价的价格可以是连续的，也可以被离散化为几个档位。离散化会损失精度但简化学习；保持连续则精度高但需要更复杂的算法。具体的权衡取决于问题的特点和对精度的要求。</p>
+            <p>公式 (4.3-1) 的计算分为三步：</p>
+            <ol style="margin:0.3rem 0 1rem 2rem;">
+                <li><strong>计算相似度</strong>：$QK^\top \in \mathbb{R}^{n_q \times n_k}$，第 $(i,j)$ 个元素是第 $i$ 个查询与第 $j$ 个键的点积，衡量两者的匹配程度</li>
+                <li><strong>缩放与归一化</strong>：除以 $\sqrt{d_k}$ 防止点积过大，然后对每一行做 $\text{softmax}$，使权重归一化到 $[0,1]$ 且每行求和为 1</li>
+                <li><strong>加权求和</strong>：用归一化的权重对 Value 矩阵的行做加权求和，得到输出 $\in \mathbb{R}^{n_q \times d_v}$</li>
+            </ol>
 
-            <h3>组合动作空间与层次分解</h3>
+            <p>用一个具体例子来理解。假设有 3 辆空闲车辆（Query）和 4 个乘客请求（Key/Value），每个用 $d_k = 4$ 维向量表示。经过计算和 $\text{softmax}$ 归一化后，得到如下的注意力权重矩阵：</p>
 
-            <p>在许多管理科学问题中，一个决策步需要同时做出多个相关的选择，这会导致动作空间呈组合爆炸增长。例如在 DRT 调度中，如果有 $M$ 辆车和 $N$ 个待分配请求，将所有请求同时分配给车辆的方案数为 $M^N$，即使 $M = 10$、$N = 5$，也已经有 $10^5 = 100{,}000$ 种可能。</p>
+            <table class="trans-table">
+                <thead>
+                    <tr><th></th><th>车辆 1</th><th>车辆 2</th><th>车辆 3</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>请求 A</td><td>0.10</td><td><strong>0.70</strong></td><td>0.05</td></tr>
+                    <tr><td>请求 B</td><td><strong>0.60</strong></td><td>0.10</td><td>0.15</td></tr>
+                    <tr><td>请求 C</td><td>0.20</td><td>0.10</td><td><strong>0.70</strong></td></tr>
+                    <tr><td>请求 D</td><td>0.10</td><td>0.10</td><td>0.10</td></tr>
+                </tbody>
+            </table>
+            <div class="fig-caption">图 4.3-1&emsp;注意力权重矩阵示意（经 $\text{softmax}$ 归一化后）。每一列代表一辆车辆对四个请求的注意力分布。车辆 1 主要关注请求 B，车辆 2 主要关注请求 A，车辆 3 主要关注请求 C。加粗的数值表示最高权重。</div>
 
-            <div class="concept-card">
-                <div class="concept-name">层次化动作分解</div>
-                <p>面对组合动作空间，一种有效的策略是将一个复杂决策分解为多个顺序执行的子决策。例如，在车辆调度问题中，不是同时分配所有请求，而是逐个处理每个请求。对于每个请求 $r$，分解为两步：</p>
-                <p><strong>第一步</strong>：从 $M$ 辆车中选择一辆车 $v$ 来服务该请求。</p>
-                <p><strong>第二步</strong>：在选定车辆 $v$ 的行程计划中，选择一个插入位置 $k$。</p>
-                <p>联合策略可以写成条件概率的乘积形式：</p>
-                $$\pi(v, k \mid s, r) = \pi_1(v \mid s, r) \cdot \pi_2(k \mid s, r, v) \tag{4.3-2}$$
-                <p>这样，每步的选择空间分别为 $O(M)$ 和 $O(K)$（$K$ 为最大插入位置数），总复杂度从 $O(M^N)$ 降低到 $O(N \cdot (M + K))$。</p>
-            </div>
-
-            <p>层次化分解不仅降低了动作空间的规模，还为每一级的策略网络提供了更明确的学习目标：$\pi_1$ 专注于选择车辆，$\pi_2$ 专注于选择插入位置。这种分而治之的思路在组合优化与运筹学中由来已久，RL 中的层次化动作设计可以看作这一思想在策略学习框架中的自然延伸。</p>
-
-            <h3>动作掩码</h3>
-
-            <p>在大多数管理科学问题中，并非所有动作在每个状态下都可行。例如，一辆满载的车辆无法接受新的乘客请求；库存订货量不能超过仓库剩余容量。如果智能体在训练中反复尝试这些不可行动作并收到惩罚，学习效率会很低。</p>
-
-            <p>更好的做法是使用<strong>动作掩码</strong>（Action Masking），在策略网络输出概率之前，直接将不可行动作的概率设为零。具体实现中，对策略网络输出的 logits $\ell_a$ 加上一个掩码值 $m_a$：</p>
-
-            $$\pi(a \mid s) = \text{softmax}(\ell_a + m_a), \quad m_a = \begin{cases} 0 & \text{若 } a \text{ 可行} \\ -\infty & \text{若 } a \text{ 不可行} \end{cases} \tag{4.3-3}$$
-
-            <p>由于 $e^{-\infty} = 0$，不可行动作在 softmax 之后的概率为零，智能体永远不会选择它们。这既保证了每一步输出的都是合法动作，也让策略网络只需在可行动作之间学习区分，大幅提高了样本效率。</p>
+            <p>这个权重矩阵就是一个<strong>兼容性矩阵</strong>。它可以直接告诉我们车辆与请求之间的匹配程度。注意力机制的输出是每辆车对所有请求信息的加权汇总，权重反映了相关性。</p>
 
             <div class="note">
-                <strong>实现提示：</strong>在代码中，$-\infty$ 通常用一个足够大的负数（如 $-10^9$）代替，以避免数值溢出。掩码向量可以由仿真环境在每一步返回，与状态一起传递给策略网络。
+                <strong>为什么要除以 $\sqrt{d_k}$？</strong> 假设 $Q$ 和 $K$ 中的元素独立采样自均值为 0、方差为 1 的分布，那么它们的点积 $q^\top k = \sum_{i=1}^{d_k} q_i k_i$ 的均值为 0，方差为 $d_k$。当维度 $d_k$ 较大时，点积的绝对值会很大，$\text{softmax}$ 的输出会趋近于 one-hot 向量（几乎全部权重集中在一个位置），梯度接近于零，训练将难以进行。除以 $\sqrt{d_k}$ 将方差标准化到 1，保持 $\text{softmax}$ 在梯度敏感的区间内工作。
             </div>
 
-            <!-- ===== Part 3: 奖励函数设计 ===== -->
-            <h2>三、奖励函数设计</h2>
+            <h3>Self-Attention：实体间的自我比较</h3>
 
-            <h3>稀疏奖励与稠密奖励</h3>
+            <p>在很多场景下，我们不需要两组不同的实体做交叉比较，而是希望同一组实体<strong>互相比较</strong>。例如在 VRP 中，所有未访问客户构成一个集合，我们希望每个客户都能根据其他客户的信息来丰富自己的表示：距离近的客户可能适合连续访问，需求量大的客户可能需要优先考虑。</p>
 
-            <p>奖励函数的设计是 RL 建模中最微妙也最关键的环节。一个核心的设计选择是奖励信号的<strong>密度</strong>。</p>
+            <p>Self-Attention 就是让 Query、Key、Value 都来自同一组输入。设输入矩阵 $X \in \mathbb{R}^{n \times d}$，其中 $n$ 是实体数量，$d$ 是特征维度。通过三个可学习的投影矩阵 $W^Q, W^K \in \mathbb{R}^{d \times d_k}$ 和 $W^V \in \mathbb{R}^{d \times d_v}$，计算：</p>
 
-            <div class="compare-box">
-                <div>
-                    <h4>稀疏奖励</h4>
-                    <p>只有在特定时刻（通常是任务结束时）才给出非零奖励。</p>
-                    <p><strong>示例：</strong>所有请求分配完毕后，根据总服务质量给一个分数。</p>
-                    <p><strong>优点：</strong>定义简洁，不容易引入偏差。</p>
-                    <p><strong>缺点：</strong>信号延迟大，智能体难以判断哪些中间决策起了作用，学习速度慢。</p>
-                </div>
-                <div class="compare-red">
-                    <h4>稠密奖励</h4>
-                    <p>每个决策步都给出即时反馈。</p>
-                    <p><strong>示例：</strong>每分配一个请求，立即反馈该请求的等待时间和绕行时间。</p>
-                    <p><strong>优点：</strong>信号频繁，学习效率高。</p>
-                    <p><strong>缺点：</strong>需要仔细设计，不恰当的中间奖励可能诱导智能体追求局部利益而损害全局目标。</p>
-                </div>
+            <div class="formula-block">
+                $$Q = XW^Q, \quad K = XW^K, \quad V = XW^V$$
             </div>
 
-            <p>在管理科学问题中，稠密奖励通常是更实用的选择。大多数运筹问题都有自然的阶段性反馈：每服务一个请求、每完成一次配送、每度过一个计费周期，都可以计算出相应的绩效指标。关键在于确保这些阶段性奖励与最终优化目标一致。</p>
+            <div class="formula-block">
+                $$\text{SelfAttn}(X) = \text{softmax}\!\left(\frac{(XW^Q)(XW^K)^\top}{\sqrt{d_k}}\right)(XW^V) \tag{4.3-2}$$
+            </div>
 
-            <h3>奖励塑形</h3>
-
-            <p>即使选择了稠密奖励，有时信号仍然不够清晰。例如，在车辆调度的早期阶段，车辆的位置分布还没有影响到服务质量，所有动作获得的奖励都差不多，智能体缺乏有效的学习信号。</p>
-
-            <p><strong>奖励塑形</strong>（Reward Shaping）通过在原始奖励上添加额外的引导信号来缓解这个问题。其一般形式为：</p>
-
-            $$R'(s, a, s') = R(s, a, s') + F(s, a, s') \tag{4.3-4}$$
-
-            <p>其中 $F(s, a, s')$ 是人为添加的塑形项。一个自然的担忧是：添加的额外奖励是否会改变最优策略？Ng 等人（1999）证明了一个重要结论：当塑形项具有<strong>势函数</strong>（potential-based）形式时，最优策略保持不变。</p>
+            <p>Self-Attention 的输出仍然是一个 $n \times d_v$ 的矩阵，每一行对应一个实体的新表示。关键性质在于：每个实体的新表示融合了它与所有其他实体的关系信息。</p>
 
             <div class="concept-card">
-                <div class="concept-name">势函数奖励塑形</div>
-                <p>定义一个势函数 $\Phi : \mathcal{S} \to \mathbb{R}$，令塑形项为：</p>
-                $$F(s, a, s') = \gamma \,\Phi(s') - \Phi(s) \tag{4.3-5}$$
-                <p>那么在塑形奖励 $R' = R + F$ 下学习得到的最优策略，与在原始奖励 $R$ 下的最优策略完全一致。直觉上，势函数 $\Phi(s)$ 衡量状态 $s$ 离目标有多近，而 $\gamma\,\Phi(s') - \Phi(s)$ 对朝目标前进的行为给予正反馈。由于势函数只依赖状态本身，它不会偏好某个特定的动作序列，而只是加速了值函数的收敛。</p>
+                <div class="concept-name">Self-Attention 的置换等变性</div>
+                <p>如果我们打乱输入实体的顺序（即对 $X$ 的行做置换），Self-Attention 的输出也会做相同的置换。换句话说，Self-Attention 不关心实体的排列顺序，只关心实体间的关系。这个性质称为<strong>置换等变性</strong>（permutation equivariance）。对于管理科学中许多以集合为输入的问题（客户集合、车辆集合、订单集合），这恰好是我们想要的性质：对客户重新编号不应该改变最优路线。</p>
             </div>
 
-            <p>在车辆调度问题中，一个自然的势函数选择是：$\Phi(s) = -\sum_i d_i(s)$，其中 $d_i(s)$ 是第 $i$ 个待服务请求到最近车辆的距离。这样，当车辆向待服务区域移动时，$\Phi(s')$ 增大，智能体获得正的塑形奖励，即使此刻还没有完成任何服务。</p>
+            <h3>Multi-Head Attention</h3>
 
+            <p>单一的注意力头只能学习一种关系模式。但在实际问题中，实体之间的关系往往是多维度的。以 VRP 中的客户为例：</p>
+            <ul style="margin:0.3rem 0 1rem 2rem;">
+                <li>一个注意力头可能学习<strong>地理距离</strong>关系：距离近的客户注意力权重高</li>
+                <li>另一个注意力头可能学习<strong>需求量</strong>关系：需求量相近的客户注意力权重高</li>
+                <li>还有一个注意力头可能学习<strong>时间窗兼容性</strong>：时间窗有重叠的客户注意力权重高</li>
+            </ul>
+
+            <p>Multi-Head Attention 让模型同时维护 $h$ 个注意力头，每个头有独立的投影矩阵，最后将所有头的输出拼接并做线性变换：</p>
+
+            <div class="formula-block">
+                $$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h)\, W^O \tag{4.3-3}$$
+            </div>
+
+            <p>其中每个头的计算为：</p>
+
+            <div class="formula-block">
+                $$\text{head}_i = \text{Attention}(QW_i^Q,\; KW_i^K,\; VW_i^V)$$
+            </div>
+
+            <p>这里 $W_i^Q \in \mathbb{R}^{d \times d_k}$，$W_i^K \in \mathbb{R}^{d \times d_k}$，$W_i^V \in \mathbb{R}^{d \times d_v}$，$W^O \in \mathbb{R}^{hd_v \times d}$。通常取 $d_k = d_v = d/h$，使得多头注意力的总计算量与单头注意力（使用完整 $d$ 维）相当。</p>
+
+            <p>每个头在一个低维子空间中独立地学习注意力模式，拼接后的输出通过 $W^O$ 融合所有子空间的信息。这种设计让模型能同时关注不同类型的实体关系。</p>
+
+            <!-- ==================== Part 3: Transformer 架构 ==================== -->
+            <h2>Transformer 架构</h2>
+
+            <p>注意力机制是一个计算模块，而 Transformer 是将多个这样的模块组装成完整网络架构的方式。Transformer 由 Vaswani 等人在 2017 年提出，最初用于机器翻译，现已成为深度学习中最广泛使用的架构之一。</p>
+
+            <h3>编码器（Encoder）</h3>
+
+            <p>Transformer 编码器由 $N$ 个相同的层堆叠而成。每一层包含两个子模块：</p>
+
+            <ol style="margin:0.3rem 0 1rem 2rem;">
+                <li><strong>Multi-Head Self-Attention</strong>：让每个实体关注所有其他实体</li>
+                <li><strong>逐位置前馈网络</strong>（Position-wise Feed-Forward Network, FFN）：对每个实体独立做非线性变换</li>
+            </ol>
+
+            <p>每个子模块都配有<strong>残差连接</strong>（Residual Connection）和<strong>层归一化</strong>（Layer Normalization）。单层编码器的完整计算流程如下：</p>
+
+            <div class="arch-block">
+                输入 $X$<br>
+                ↓<br>
+                $X' = \text{LayerNorm}\!\big(X + \text{MultiHead}(X, X, X)\big)$<br>
+                ↓<br>
+                $\text{Output} = \text{LayerNorm}\!\big(X' + \text{FFN}(X')\big)$<br>
+                ↓<br>
+                以上过程重复 $N$ 次
+            </div>
+            <div class="fig-caption">图 4.3-2&emsp;Transformer 编码器单层结构。输入先经过多头自注意力，再经过前馈网络，每步都有残差连接和层归一化。</div>
+
+            <p>其中前馈网络 $\text{FFN}$ 对每个位置独立作用，通常包含两个线性变换和一个激活函数：</p>
+
+            <div class="formula-block">
+                $$\text{FFN}(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$$
+            </div>
+
+            <p>这里有两个关键设计。<strong>残差连接</strong>将子模块的输入直接加到输出上（即 $X + f(X)$ 而非 $f(X)$），使梯度能直接从后层传回前层，极大地缓解了深层网络的训练困难。<strong>层归一化</strong>将每个样本的特征归一化到均值为 0、方差为 1，稳定训练过程。这两个技巧并非 Transformer 的独创，但在 Transformer 的多层堆叠结构中尤为重要。</p>
+
+            <h3>位置编码（Positional Encoding）</h3>
+
+            <p>Self-Attention 具有置换等变性，这意味着它无法区分输入元素的顺序。对于集合输入（如 VRP 的客户集合），这是一个优点。但对于序列输入（如文本、时间序列），顺序信息不可忽略。</p>
+
+            <p>Transformer 通过<strong>位置编码</strong>向输入中注入位置信息。原始论文采用正弦/余弦函数：</p>
+
+            <div class="formula-block">
+                $$PE_{(\text{pos},\, 2i)} = \sin\!\left(\frac{\text{pos}}{10000^{2i/d}}\right) \tag{4.3-4}$$
+            </div>
+            <div class="formula-block">
+                $$PE_{(\text{pos},\, 2i+1)} = \cos\!\left(\frac{\text{pos}}{10000^{2i/d}}\right) \tag{4.3-5}$$
+            </div>
+
+            <p>其中 $\text{pos}$ 是元素在序列中的位置，$i$ 是维度索引，$d$ 是嵌入维度。位置编码与输入嵌入逐元素相加后送入编码器。不同维度使用不同频率的正弦/余弦函数，低维度对应低频（变化缓慢，编码全局位置），高维度对应高频（变化快速，编码局部位置）。这种设计使模型能够通过线性组合表达相对位置关系。</p>
+
+            <div class="note">
+                <strong>管理科学中的重要提示。</strong>对于以集合为输入的问题（如匹配、装箱、调度），位置编码通常<strong>不需要</strong>添加。Self-Attention 天然的置换等变性意味着模型对输入顺序不敏感，这正好符合集合问题的对称性。只有当输入具有有意义的顺序（如生产线上的工序序列、时间序列数据）时，才需要位置编码。
+            </div>
+
+            <h3>解码器（Decoder）</h3>
+
+            <p>Transformer 解码器同样由 $N$ 层堆叠，但每层包含三个子模块：</p>
+
+            <ol style="margin:0.3rem 0 1rem 2rem;">
+                <li><strong>Masked Multi-Head Self-Attention</strong>：对解码器中已生成的输出序列做自注意力，但通过掩码（mask）确保位置 $t$ 只能关注位置 $1, \ldots, t$，不能看到未来的输出</li>
+                <li><strong>Cross-Attention</strong>：以解码器的输出作为 Query，以编码器的输出作为 Key 和 Value，让解码器从输入序列中检索相关信息</li>
+                <li><strong>逐位置前馈网络</strong>：与编码器相同</li>
+            </ol>
+
+            <p>解码器以<strong>自回归</strong>（autoregressive）方式工作：每一步生成一个输出，将其作为下一步的输入，逐步构建完整的输出序列。在管理科学的应用中，这种自回归生成方式天然适合<strong>构造式启发算法</strong>（construction heuristic），例如逐步选择下一个要访问的客户来构建 VRP 路径。</p>
+
+            <div class="arch-block">
+                编码器输出 $\text{Enc}(X)$ &emsp;+&emsp;已生成序列 $(y_1, \ldots, y_{t-1})$<br>
+                ↓<br>
+                $H = \text{MaskedSelfAttn}(y_1, \ldots, y_{t-1})$ &emsp;← 只看过去<br>
+                ↓<br>
+                $H' = \text{CrossAttn}\!\big(\underbrace{H}_{\text{Query}},\; \underbrace{\text{Enc}(X)}_{\text{Key, Value}}\big)$ &emsp;← 查看输入<br>
+                ↓<br>
+                $\text{Output} = \text{FFN}(H')$ → 预测 $y_t$
+            </div>
+            <div class="fig-caption">图 4.3-3&emsp;Transformer 解码器的工作流程。每一步先对已生成序列做带掩码的自注意力，再通过交叉注意力从编码器输出中提取信息，最后经前馈网络生成下一个输出。</div>
+
+            <!-- ==================== Part 4: 管理科学中的应用 ==================== -->
+            <h2>管理科学中的应用</h2>
+
+            <p>Attention 机制和 Transformer 在管理科学中有广泛的应用前景。与通用的深度学习应用不同，管理科学问题通常具有明确的实体结构（车辆、客户、机器、工件），注意力机制恰好提供了建模实体间关系的自然方式。以下介绍三类典型应用。</p>
+
+            <h3>应用一：组合优化问题</h3>
+
+            <div class="app-box">
+                <div class="app-title">车辆路径问题（VRP）中的 Attention Model</div>
+                <p>以 Kool 等人（2019）提出的 Attention Model 为代表，基于注意力机制求解 VRP 的框架包含两个阶段：</p>
+                <p><strong>编码阶段。</strong>将所有 $n$ 个客户的特征（位置坐标 $(x_i, y_i)$、需求量 $d_i$）通过 Transformer 编码器处理。经过多层自注意力后，每个客户的嵌入向量不仅包含自身信息，还融合了与其他客户的空间关系、需求分布等全局信息。编码器输出的是 $n$ 个 $d$ 维向量 $\{h_1, \ldots, h_n\}$。</p>
+                <p><strong>解码阶段。</strong>自回归地构建路线。在每一步 $t$，解码器以当前车辆状态（位置、剩余容量）作为 Query，以所有未访问客户的编码 $\{h_j : j \notin \text{visited}\}$ 作为 Key 和 Value，计算注意力权重。这些权重经 $\text{softmax}$ 归一化后直接作为选择下一个客户的概率分布。已访问的客户通过掩码排除。</p>
+                <p>整个模型端到端可训练。以路径总长度（取负值）作为奖励信号，策略网络的参数通过 REINFORCE 算法更新。</p>
+            </div>
+
+            <p>这种基于注意力的构造式方法具有几个重要优势：</p>
+            <ul style="margin:0.3rem 0 1rem 2rem;">
+                <li><strong>自然处理变长输入</strong>：客户数量 $n$ 不需要固定，同一个训练好的模型可以处理不同规模的实例</li>
+                <li><strong>全局信息建模</strong>：Self-Attention 让每个客户的表示包含全局结构信息，而非仅依赖局部特征</li>
+                <li><strong>快速推理</strong>：训练完成后，对新实例的求解只需一次前向传播（加上自回归的 $n$ 步解码），远快于传统的元启发式算法需要的大量迭代</li>
+            </ul>
+
+            <div class="app-box">
+                <div class="app-title">作业车间调度（Job Shop Scheduling）</div>
+                <p>在作业车间调度中，$n$ 个工件需要在 $m$ 台机器上按指定顺序加工。每个工件的加工路线和各工序的加工时间已知，目标是最小化总完工时间（makespan）。</p>
+                <p>Attention 机制在此问题中的作用是对工件集合和机器集合做交叉注意力：每台机器通过注意力机制评估各待加工工件的优先级（考虑加工时间、后续工序的紧迫性），每个工件通过注意力机制评估各机器的可用时间和排队状况。这种双向交叉注意力自然地建模了工件-机器的匹配关系。</p>
+            </div>
+
+            <div class="app-box">
+                <div class="app-title">装箱问题（Bin Packing）</div>
+                <p>在线装箱问题中，物品逐个到达，需要决定放入哪个箱子。注意力机制让当前物品（Query）关注所有已打开箱子的状态（Key/Value），包括剩余容量、已装物品的构成等信息。当箱子数量动态增长时，注意力机制无需修改网络结构，只需在 Key/Value 集合中增加新的条目。</p>
+            </div>
+
+            <h3>应用二：匹配与分配问题</h3>
+
+            <div class="app-box">
+                <div class="app-title">网约车实时派单</div>
+                <p>平台需要在每个决策时刻将 $m$ 辆空闲车辆匹配到 $n$ 个乘客请求。设车辆特征矩阵为 $D \in \mathbb{R}^{m \times d}$（包含位置、车型、历史评分等），乘客特征矩阵为 $R \in \mathbb{R}^{n \times d}$（包含出发地、目的地、等待时间等）。</p>
+                <p>使用 Cross-Attention，以车辆为 Query、乘客为 Key/Value，得到每辆车对各乘客的注意力权重。这些权重构成一个 $m \times n$ 的兼容性矩阵，可以直接用于派单决策。反向地，以乘客为 Query、车辆为 Key/Value，可以得到每位乘客对各车辆的偏好分布。</p>
+                <p>$m$ 和 $n$ 可以在每个时刻变化，模型无需重新训练或调整结构。</p>
+            </div>
+
+            <div class="app-box">
+                <div class="app-title">任务分配（Task Assignment）</div>
+                <p>在仓储物流中，需要将拣货任务分配给仓库工人。工人有不同的技能水平、当前位置和疲劳度；任务有不同的物品类型、存放位置和紧急程度。注意力机制让每个工人（Query）评估所有待分配任务（Key/Value）的适配程度，同时通过 Self-Attention 让工人之间互相感知（避免多个工人被分配到同一区域）。</p>
+            </div>
+
+            <h3>应用三：变长序贯决策</h3>
+
+            <div class="app-box">
+                <div class="app-title">订单批处理（Order Batching）</div>
+                <p>电商仓库在每个时间窗口收到数量不等的订单。系统需要将这些订单分批（batch），使得同批订单的拣货路径尽可能短。每个时间窗口的订单数量从几十到几百不等。Transformer 编码器可以处理任意数量的订单，通过自注意力学习订单间的相似性（存放位置相近的订单适合同批处理），输出每个订单的嵌入表示用于后续的分批决策。</p>
+            </div>
+
+            <div class="app-box">
+                <div class="app-title">异质产品动态定价</div>
+                <p>一家航空公司同时销售多条航线的机票，航线数量随季节调整。每条航线可以被视为一个 token，其特征包括剩余座位数、出发日期、历史售价等。Transformer 编码器让每条航线通过注意力机制关注其他航线的销售状态（竞争航线降价可能影响本航线的需求），输出的嵌入表示供定价策略网络使用。</p>
+            </div>
+
+            <div class="app-box">
+                <div class="app-title">投资组合管理</div>
+                <p>基金经理管理的资产池可能随时间变化（新资产上市、旧资产退市）。每个资产作为一个 token，其特征包括历史收益率、波动率、行业标签等。Self-Attention 捕捉资产间的相关性（如同行业股票的联动、利率与债券的反向关系），为每个资产生成考虑了全局市场结构的表示。</p>
+            </div>
+
+            <div class="insight-box">
+                <div class="insight-title">核心洞察</div>
+                <p>Attention 机制不仅仅是一种神经网络架构，它是一种<strong>表示实体间关系</strong>的通用方法。管理科学中的许多核心问题本质上是关于实体关系的：哪个司机匹配哪个乘客，哪个工件在哪台机器上加工，哪个物品放入哪个箱子。Attention 提供了一种可学习、可微分的方式来计算这些关系，使得端到端的优化成为可能。</p>
+            </div>
+
+            <!-- ==================== Part 5: 与强化学习的结合 ==================== -->
+            <h2>与强化学习的结合</h2>
+
+            <p>在强化学习中，策略网络 $\pi_\theta(a \mid s)$ 和值函数网络 $V_\theta(s)$ 都需要将状态 $s$ 编码为向量表示。当状态包含可变数量的实体时，Transformer 是一种自然的编码器选择。</p>
+
+            <h3>变长状态编码</h3>
+
+            <p>考虑一个车队管理的 RL 问题：在每个时间步 $t$，状态 $S_t$ 包含当前所有车辆的位置和状态（空闲/载客/充电），以及所有待处理的乘客请求。车辆和请求的数量随时间变化。</p>
+
+            <p>用 Transformer 编码这个状态的流程如下：</p>
+            <ol style="margin:0.3rem 0 1rem 2rem;">
+                <li>将每辆车辆和每个请求分别通过嵌入层映射为 $d$ 维向量（可以用不同的嵌入层区分车辆和请求这两种实体类型）</li>
+                <li>将所有实体的嵌入拼成一个序列，送入 Transformer 编码器</li>
+                <li>编码器通过 Self-Attention 让每个实体感知其他所有实体的信息</li>
+                <li>编码器的输出可以通过全局池化（如对所有输出向量取平均）得到固定维度的状态表示，作为值函数网络 $V_\theta(s)$ 的输入；也可以保留每个实体的输出向量，用于策略网络的动作选择</li>
+            </ol>
+
+            <h3>变长动作空间与 Pointer Network</h3>
+
+            <p>Attention 机制还可以用于处理<strong>变长的动作空间</strong>。在 VRP 中，可选的下一个客户数量随已访问客户的增加而减少。传统方法需要对固定大小的输出层做掩码，而基于注意力的方法更加优雅：策略网络的解码器以当前状态表示为 Query，以所有候选动作（未访问客户）的编码为 Key，计算注意力权重。这些权重归一化后直接作为动作的选择概率。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">Pointer Network 的基本思想</div>
+                <p>传统的 seq2seq 模型从固定大小的词表中选择输出。但在组合优化中，输出是输入元素的某种排列或子集，输出空间的大小取决于输入的规模。Pointer Network 使用注意力机制直接在输入序列上定义概率分布，解决了输出空间与输入耦合的问题。设解码器在时间步 $t$ 的隐藏状态为 $h_t$，输入序列的编码为 $\{e_1, \ldots, e_n\}$，则选择第 $j$ 个输入元素的概率为：</p>
+                <div class="formula-block">
+                    $$p(j \mid h_t) = \frac{\exp\!\big(h_t^\top e_j / \sqrt{d}\big)}{\sum_{k \in \mathcal{A}_t} \exp\!\big(h_t^\top e_k / \sqrt{d}\big)} \tag{4.3-6}$$
+                </div>
+                <p>其中 $\mathcal{A}_t$ 是时间步 $t$ 的可行动作集合（例如未访问客户的索引集合）。这种机制被称为 Pointer Network（指针网络），因为网络通过注意力权重"指向"输入集合中的某个元素。</p>
+            </div>
+
+            <h3>Decision Transformer</h3>
+
+            <p>一个更为激进的思路是将强化学习本身重新表述为<strong>序列建模</strong>问题。Decision Transformer（Chen 等人，2021）将 RL 的轨迹表示为一个 token 序列：</p>
+
+            <div class="formula-block">
+                $$\tau = (\hat{R}_0,\, S_0,\, A_0,\, \hat{R}_1,\, S_1,\, A_1,\, \ldots) \tag{4.3-7}$$
+            </div>
+
+            <p>其中 $\hat{R}_t = \sum_{t'=t}^{T} r_{t'}$ 是从时间步 $t$ 开始的<strong>目标回报</strong>（return-to-go），即希望获得的未来累计奖励。Transformer 将这个序列作为输入，通过因果掩码（causal mask）确保每个位置只能看到之前的 token，以自回归方式预测下一个动作 $A_t$。</p>
+
+            <p>这种方法的独特之处在于：它不需要值函数估计或策略梯度，直接通过监督学习（在离线数据集上预测动作序列）来训练。在测试时，设定一个较高的目标回报 $\hat{R}_0$，模型会生成试图达成该目标的动作序列。Decision Transformer 在离线强化学习（offline RL）任务中表现出色，是将 Transformer 与 RL 结合的一个重要方向。我们将在第十章进一步讨论离线强化学习的相关话题。</p>
+
+            <!-- ==================== 选读 ==================== -->
             <details class="optional-reading">
-                <summary>选读：势函数奖励塑形保持最优策略不变的证明思路</summary>
+                <summary>选读：Scaled Dot-Product Attention 的完整数值计算</summary>
                 <div class="opt-body">
-                    <p>令 $Q^*$ 和 ${Q'}^*$ 分别为原始奖励和塑形奖励下的最优动作值函数。考虑塑形后的贝尔曼最优方程：</p>
+                    <h3>一个完整的数值例子</h3>
 
-                    $${Q'}^*(s, a) = \mathbb{E}\left[R(s,a,s') + \gamma\,\Phi(s') - \Phi(s) + \gamma \max_{a'} {Q'}^*(s', a')\right]$$
+                    <p>为了帮助读者建立直觉，我们用一个最简化的例子走一遍 Attention 的完整计算流程。设维度 $d_k = d_v = 2$，有 $n_q = 2$ 个查询和 $n_k = 3$ 个键值对：</p>
 
-                    <p>定义 ${Q'}^*(s,a) = Q^*(s,a) - \Phi(s)$，代入上式可以验证等式成立：</p>
+                    <div class="formula-block">
+                        $$Q = \begin{pmatrix} 1 & 0 \\ 0 & 1 \end{pmatrix}, \quad K = \begin{pmatrix} 1 & 0 \\ 0 & 1 \\ 1 & 1 \end{pmatrix}, \quad V = \begin{pmatrix} 10 & 0 \\ 0 & 10 \\ 5 & 5 \end{pmatrix}$$
+                    </div>
 
-                    $$Q^*(s,a) - \Phi(s) = \mathbb{E}\left[R(s,a,s') + \gamma\,\Phi(s') - \Phi(s) + \gamma \big(Q^*(s',a^*) - \Phi(s')\big)\right]$$
+                    <p><strong>第一步：计算 $QK^\top$。</strong></p>
+                    <div class="formula-block">
+                        $$QK^\top = \begin{pmatrix} 1 & 0 \\ 0 & 1 \end{pmatrix} \begin{pmatrix} 1 & 0 & 1 \\ 0 & 1 & 1 \end{pmatrix} = \begin{pmatrix} 1 & 0 & 1 \\ 0 & 1 & 1 \end{pmatrix}$$
+                    </div>
 
-                    <p>整理后右边的 $\gamma\,\Phi(s')$ 与 $-\gamma\,\Phi(s')$ 恰好相消，回到原始的贝尔曼最优方程。因此 ${Q'}^*(s,a) = Q^*(s,a) - \Phi(s)$，而 $\Phi(s)$ 对所有动作 $a$ 相同，不影响 $\arg\max_a$ 的结果。详见 Ng, Harada, and Russell (1999)。</p>
+                    <p><strong>第二步：缩放。</strong>除以 $\sqrt{d_k} = \sqrt{2} \approx 1.414$：</p>
+                    <div class="formula-block">
+                        $$\frac{QK^\top}{\sqrt{d_k}} \approx \begin{pmatrix} 0.707 & 0 & 0.707 \\ 0 & 0.707 & 0.707 \end{pmatrix}$$
+                    </div>
+
+                    <p><strong>第三步：对每一行做 $\text{softmax}$。</strong>以第一行为例：$e^{0.707} \approx 2.028$，$e^{0} = 1$，$e^{0.707} \approx 2.028$，求和约为 $5.056$。归一化后：</p>
+                    <div class="formula-block">
+                        $$\alpha = \begin{pmatrix} 0.401 & 0.198 & 0.401 \\ 0.198 & 0.401 & 0.401 \end{pmatrix}$$
+                    </div>
+
+                    <p>第一行：查询 1（方向 $(1, 0)$）与键 1（方向 $(1, 0)$）和键 3（方向 $(1, 1)$）都有较高的匹配度，因此权重较大。查询 1 与键 2（方向 $(0, 1)$）正交，匹配度最低。</p>
+
+                    <p><strong>第四步：加权求和。</strong></p>
+                    <div class="formula-block">
+                        $$\text{Output} = \alpha V = \begin{pmatrix} 0.401 & 0.198 & 0.401 \\ 0.198 & 0.401 & 0.401 \end{pmatrix} \begin{pmatrix} 10 & 0 \\ 0 & 10 \\ 5 & 5 \end{pmatrix} = \begin{pmatrix} 6.02 & 3.98 \\ 3.98 & 6.02 \end{pmatrix}$$
+                    </div>
+
+                    <p>查询 1 的输出 $(6.02, 3.98)$ 偏向第一个分量，因为它从值向量 $(10, 0)$（键 1）和 $(5, 5)$（键 3）中获取了较多信息。查询 2 的输出 $(3.98, 6.02)$ 偏向第二个分量，因为它更关注键 2 和键 3。注意力权重控制了信息的流向。</p>
                 </div>
             </details>
 
-            <h3>从绝对指标到相对指标</h3>
+            <details class="optional-reading">
+                <summary>选读：Attention 的计算复杂度与高效变体</summary>
+                <div class="opt-body">
+                    <h3>标准 Attention 的复杂度</h3>
 
-            <p>奖励函数设计中一个容易被忽视的问题是：奖励信号应当反映<strong>决策质量</strong>，而非问题的固有难度。</p>
+                    <p>标准 Scaled Dot-Product Attention 的时间和空间复杂度均为 $O(n^2 d)$，其中 $n$ 是序列长度，$d$ 是特征维度。$QK^\top$ 的计算产生一个 $n \times n$ 的注意力矩阵，这是二次复杂度的来源。</p>
 
-            <p>以车辆调度为例，假设用乘客的总行程时间 $t_{\text{trip}}$ 作为奖励信号（取负值）：一个从城市东端到西端的长途请求，即使被完美地服务，其行程时间也远大于一个短途请求。这意味着长途请求总是带来更大的惩罚，但这并不是调度决策的问题，而是请求本身的特点。智能体可能因此学会回避长途请求，这显然不是我们期望的行为。</p>
+                    <p>对于管理科学中的典型问题规模（几十到几百个实体），$O(n^2)$ 通常不构成瓶颈。但当实体数量达到数千（如大规模 VRP 实例有上千个客户节点），计算和内存开销变得不可忽视。</p>
 
-            <div class="concept-card">
-                <div class="concept-name">使用相对指标作为奖励</div>
-                <p>奖励函数应当度量实际结果与理想基线之间的差距。以车辆调度为例，用<strong>绕行时间</strong>（实际行程时间减去直达时间）代替总行程时间：</p>
-                $$R = -(t_{\text{trip}} - t_{\text{direct}}) \tag{4.3-6}$$
-                <p>这样，无论请求的起终点距离多远，只有调度导致的额外绕行才会被计入惩罚。一个被高效服务的长途请求与一个被高效服务的短途请求获得相同的评价（绕行时间均接近零），而一个路线安排不合理的短途请求反而会收到更大的惩罚。</p>
-            </div>
+                    <h3>高效注意力变体</h3>
 
-            <p>类似的思路适用于许多场景。在库存管理中，可以用实际成本与最优 newsvendor 成本之差作为奖励；在动态定价中，可以用实际收益与静态最优定价收益之比来衡量。核心原则是：<strong>去除问题固有难度的影响，让奖励信号仅反映决策的好坏。</strong></p>
+                    <p>研究者提出了多种降低注意力复杂度的方法：</p>
+                    <ul style="margin:0.3rem 0 1rem 2rem;">
+                        <li><strong>稀疏注意力</strong>（Sparse Attention）：只计算部分位置对的注意力权重，如局部窗口内或按固定模式采样，复杂度可降至 $O(n\sqrt{n})$</li>
+                        <li><strong>线性注意力</strong>（Linear Attention）：用核函数近似 $\text{softmax}$，利用矩阵乘法的结合律将 $\text{softmax}(QK^\top)V$ 改写为 $\phi(Q)(\phi(K)^\top V)$，将复杂度降至 $O(nd^2)$</li>
+                        <li><strong>分层注意力</strong>：先在局部子集内做注意力，再在子集间做注意力，类似分治策略</li>
+                    </ul>
 
-            <h3>多目标与权重</h3>
+                    <p>在管理科学的应用中，问题的结构往往可以指导稀疏模式的选择。例如在 VRP 中，距离很远的客户之间的注意力权重通常很小，可以只保留 $k$ 近邻的注意力连接，将复杂度从 $O(n^2)$ 降至 $O(nk)$。</p>
+                </div>
+            </details>
 
-            <p>现实中的管理问题往往需要同时兼顾多个目标。例如在 DRT 调度中，运营方既想缩短乘客等待时间，又想提高车辆利用率、减少空驶里程。这些目标之间通常存在冲突：提升服务质量往往需要投入更多的运力，而节省运力则可能牺牲响应速度。</p>
+            <!-- ==================== 代码示例 ==================== -->
+            <h2>代码示例：PyTorch 中的 Attention</h2>
 
-            <p>最简单的处理方式是<strong>线性标量化</strong>，将多个奖励分量加权求和：</p>
+            <p>下面的代码展示了如何用 PyTorch 实现 Scaled Dot-Product Attention 和 Multi-Head Attention。这段代码的重点是帮助读者理解计算流程，实际使用时可以直接调用 PyTorch 内置的 <code>torch.nn.MultiheadAttention</code>。</p>
 
-            $$R = w_1 R_{\text{wait}} + w_2 R_{\text{detour}} + w_3 R_{\text{empty}} \tag{4.3-7}$$
+<pre><code class="language-python">import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import math
 
-            <p>其中 $w_1, w_2, w_3$ 是人为设定的权重。这种方法简单易用，但有两点需要注意。</p>
 
-            <p>第一，不同分量的量纲和数值范围可能差异很大。在求和之前，应当先将各分量归一化到相近的尺度，否则权重的实际效果会被数值范围的差异所掩盖。</p>
+class ScaledDotProductAttention(nn.Module):
+    """公式 (4.3-1) 的实现"""
 
-            <p>第二，权重的选择对最终策略有显著影响，且没有通用的最优权重。实践中通常需要通过实验对比不同权重组合下的策略表现，观察各指标的 Pareto 曲线来做出取舍。</p>
+    def forward(self, Q, K, V, mask=None):
+        # Q: (batch, n_q, d_k)
+        # K: (batch, n_k, d_k)
+        # V: (batch, n_k, d_v)
+        d_k = Q.size(-1)
 
-            <h3>奖励归一化</h3>
+        # 第一步：计算注意力分数
+        scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
+        # scores: (batch, n_q, n_k)
 
-            <p>RL 算法中，奖励的绝对大小会影响值函数的尺度，进而影响梯度更新的幅度。如果奖励尺度在训练过程中发生剧烈变化（例如，随着智能体策略改善，每步奖励从 $-100$ 逐渐变为 $-10$），固定的学习率可能在前期过小（学得慢）或在后期过大（不稳定）。</p>
+        # 可选：掩码（将不可用位置的分数设为 -inf）
+        if mask is not None:
+            scores = scores.masked_fill(mask == 0, float('-inf'))
 
-            <p><strong>在线奖励归一化</strong>是一种简单有效的应对方法。其基本思路是维护奖励的滑动均值 $\bar{R}$ 和方差 $\sigma_R^2$，将每个奖励标准化为：</p>
+        # 第二步：Softmax 归一化
+        attn_weights = F.softmax(scores, dim=-1)
+        # attn_weights: (batch, n_q, n_k)
 
-            $$\hat{R} = \frac{R - \bar{R}}{\sigma_R + \epsilon} \tag{4.3-8}$$
+        # 第三步：加权求和
+        output = torch.matmul(attn_weights, V)
+        # output: (batch, n_q, d_v)
 
-            <p>其中 $\epsilon$ 是一个小常数（如 $10^{-8}$），防止除以零。均值和方差可以使用 Welford 算法在线更新，几乎不增加计算开销。许多 RL 库（如 Stable-Baselines3）内置了这一功能。</p>
+        return output, attn_weights
 
-            <div class="warning">
-                <strong>注意：</strong>奖励归一化改变了值函数的数值含义，因此在评估策略性能时应使用原始（未归一化的）奖励来计算指标。归一化仅是训练阶段的辅助手段。
-            </div>
 
-            <!-- ===== 小结 ===== -->
+class MultiHeadAttention(nn.Module):
+    """公式 (4.3-3) 的实现"""
+
+    def __init__(self, d_model, n_heads):
+        super().__init__()
+        assert d_model % n_heads == 0
+        self.d_k = d_model // n_heads
+        self.n_heads = n_heads
+
+        # 投影矩阵 W_i^Q, W_i^K, W_i^V（合并为一个大矩阵）
+        self.W_Q = nn.Linear(d_model, d_model)
+        self.W_K = nn.Linear(d_model, d_model)
+        self.W_V = nn.Linear(d_model, d_model)
+        self.W_O = nn.Linear(d_model, d_model)
+
+        self.attention = ScaledDotProductAttention()
+
+    def forward(self, Q, K, V, mask=None):
+        batch_size = Q.size(0)
+
+        # 线性投影并拆分为多头
+        # (batch, seq_len, d_model) -> (batch, n_heads, seq_len, d_k)
+        Q = self.W_Q(Q).view(batch_size, -1, self.n_heads, self.d_k).transpose(1, 2)
+        K = self.W_K(K).view(batch_size, -1, self.n_heads, self.d_k).transpose(1, 2)
+        V = self.W_V(V).view(batch_size, -1, self.n_heads, self.d_k).transpose(1, 2)
+
+        # 各头独立计算注意力
+        out, attn = self.attention(Q, K, V, mask)
+
+        # 拼接多头输出: (batch, n_heads, seq_len, d_k) -> (batch, seq_len, d_model)
+        out = out.transpose(1, 2).contiguous().view(batch_size, -1, self.n_heads * self.d_k)
+
+        # 最终线性变换 W^O
+        return self.W_O(out)</code></pre>
+
+            <p>在 VRP 等组合优化问题中使用时，只需将客户特征矩阵作为输入。Self-Attention 会输出融合了全局关系信息的客户嵌入：</p>
+
+<pre><code class="language-python"># 示例：对 VRP 客户集合做 Self-Attention
+d_model = 128     # 嵌入维度
+n_heads = 8       # 注意力头数
+n_customers = 50  # 客户数量（可变！）
+
+mha = MultiHeadAttention(d_model, n_heads)
+
+# 假设客户特征已经过嵌入层，得到 (batch=1, n_customers, d_model) 的张量
+customer_embeddings = torch.randn(1, n_customers, d_model)
+
+# Self-Attention: Q = K = V = 客户嵌入
+enriched = mha(customer_embeddings, customer_embeddings, customer_embeddings)
+# enriched 形状: (1, 50, 128)
+# 每个客户的 128 维表示现在融合了与其他 49 个客户的关系信息
+
+# 如果客户数量变为 100，无需修改任何代码：
+customer_embeddings_large = torch.randn(1, 100, d_model)
+enriched_large = mha(customer_embeddings_large, customer_embeddings_large, customer_embeddings_large)
+# enriched_large 形状: (1, 100, 128)，同一个模型，不同的输入规模</code></pre>
+
+            <!-- ==================== 小结 ==================== -->
             <h2>小结</h2>
 
-            <p>状态空间、动作空间和奖励函数的设计是将管理科学问题转化为可学习的 MDP 的核心工程。表 4.3-2 总结了本节的要点。</p>
+            <p>本节介绍了 Attention 机制与 Transformer 架构。核心内容总结如下：</p>
 
-            <table>
+            <table class="trans-table">
                 <thead>
-                    <tr><th>设计要素</th><th>核心问题</th><th>关键技巧</th></tr>
+                    <tr><th>概念</th><th>要点</th><th>管理科学关联</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td>状态空间</td><td>智能体需要看到什么信息？</td><td>三层特征（实体/关系/上下文）、归一化、变长输入处理</td></tr>
-                    <tr><td>动作空间</td><td>智能体能做什么操作？</td><td>层次化分解降低组合复杂度、动作掩码排除不可行动作</td></tr>
-                    <tr><td>奖励函数</td><td>什么是好的决策？</td><td>稠密优于稀疏、势函数塑形、相对指标、多目标权重、在线归一化</td></tr>
+                    <tr>
+                        <td>Scaled Dot-Product Attention</td>
+                        <td>通过 Query-Key 的点积计算匹配度，加权汇总 Value</td>
+                        <td>计算车辆-请求的兼容性矩阵</td>
+                    </tr>
+                    <tr>
+                        <td>Self-Attention</td>
+                        <td>同一集合内的实体互相比较，具有置换等变性</td>
+                        <td>客户间空间关系、资产间相关性</td>
+                    </tr>
+                    <tr>
+                        <td>Multi-Head Attention</td>
+                        <td>多个头并行捕捉不同类型的关系</td>
+                        <td>同时建模距离、需求、时间窗等多种因素</td>
+                    </tr>
+                    <tr>
+                        <td>Transformer 编码器</td>
+                        <td>Self-Attention + FFN + 残差连接 + LayerNorm</td>
+                        <td>将变长实体集合编码为信息丰富的表示</td>
+                    </tr>
+                    <tr>
+                        <td>位置编码</td>
+                        <td>为有序序列注入位置信息</td>
+                        <td>有序序列需要；集合问题不需要</td>
+                    </tr>
+                    <tr>
+                        <td>Transformer 解码器</td>
+                        <td>Masked Self-Attention + Cross-Attention + FFN</td>
+                        <td>自回归构建 VRP 路径、调度序列</td>
+                    </tr>
+                    <tr>
+                        <td>Pointer Network</td>
+                        <td>用注意力权重从输入集合中选择元素</td>
+                        <td>在变长动作空间中选择下一个客户/任务</td>
+                    </tr>
+                    <tr>
+                        <td>Decision Transformer</td>
+                        <td>将 RL 轨迹视为 token 序列，用 Transformer 建模</td>
+                        <td>离线数据驱动的序贯决策</td>
+                    </tr>
                 </tbody>
             </table>
-            <p class="fig-caption">表 4.3-2 &nbsp; 三大设计要素的核心问题与关键技巧</p>
 
-            <p>这些设计选择之间是相互关联的。状态空间的结构决定了网络架构的选择（将在 4.5 节展开），动作空间的特性决定了算法的选择（第三章已有讨论），奖励函数的密度和形状影响学习效率和收敛性。下一节将讨论另一个重要但常被忽视的设计维度：决策时机与决策频率的建模。</p>
+            <p>对于管理科学的研究者而言，Attention 机制最重要的意义在于：它提供了一种通用的、可微分的方式来表示实体间的关系，使得涉及匹配、排序、选择等决策的问题可以用端到端的方式训练神经网络来求解。下一节将介绍图神经网络（GNN），另一种专门处理结构化关系数据的架构。</p>
 
             <div class="chapter-nav">
-                <a href="../ch04/4.2.html">&larr; 4.2 时域建模与回合定义</a>
-                <a href="../ch04/4.4.html">4.4 决策时机与决策频率的建模 &rarr;</a>
+                <a href="../ch04/4.2.html">&larr; 4.2 卷积神经网络与循环神经网络</a>
+                <a href="../ch04/4.4.html">4.4 图神经网络 &rarr;</a>
             </div>
         </main>
     </div>
