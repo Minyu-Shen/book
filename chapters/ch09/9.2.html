@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>9.2 公交串车控制 - 运筹智能</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <script defer src="../../js/code-copy.js"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .fig-caption { text-align:center; font-size:0.9rem; color:#718096; margin-top:0.5rem; margin-bottom:1.5rem; }
+        .note { background: var(--highlight-color); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .warning { background: #fffbeb; border-left: 4px solid #d69e2e; padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .result-table { width: auto; margin: 1rem auto; border-collapse: collapse; font-size: 0.95rem; }
+        .result-table th, .result-table td { border: 1px solid var(--border-color); padding: 0.5rem 1rem; text-align: center; }
+        .result-table th { background: var(--sidebar-bg); font-weight: 700; color: var(--primary-color); }
+        .result-table .highlight { background: #fed7d7; }
+        .result-table .good { background: #f0fff4; }
+        .scenario-box { background: var(--sidebar-bg); border: 2px solid var(--border-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .scenario-box .scenario-title { font-weight: 700; color: var(--primary-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .algorithm-box { background: #fafafa; border: 2px solid var(--accent-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .algorithm-box .algorithm-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+        .algorithm-box ol { margin: 0.3rem 0 0 1.5rem; line-height: 2; }
+        .algorithm-box .algo-comment { color: #718096; font-style: italic; }
+        .compare-card { display: flex; gap: 1.5rem; margin: 1.5rem 0; }
+        .compare-card .card { flex: 1; border: 2px solid var(--border-color); border-radius: 8px; padding: 1rem 1.2rem; }
+        .compare-card .card-title { font-weight: 700; font-size: 1rem; margin-bottom: 0.5rem; }
+        .compare-card .card-sync { border-color: #2b6cb0; }
+        .compare-card .card-sync .card-title { color: #2b6cb0; }
+        .compare-card .card-async { border-color: #c53030; }
+        .compare-card .card-async .card-title { color: #c53030; }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="book-title"><a href="../../index.html" style="text-decoration:none;color:inherit;">运筹智能</a></div>
+            <nav>
+                <ul>
+                <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
+                <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
+                <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html" class="active">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>9.2 公交串车控制</h1>
+
+            <p>公交线路运营中最棘手的问题之一是<strong>串车</strong>（bus bunching）：原本应当均匀分布在线路上的公交车逐渐聚集成簇，导致部分乘客长时间等车，另一部分乘客却看到两三辆车接踵而至。这一现象的根源是一个正反馈循环，而强化学习为打破这一循环提供了新的思路。本节将介绍如何将公交串车控制建模为 MDP，重点讨论两个建模难点：<strong>异步决策</strong>和<strong>图神经网络</strong>的引入。</p>
+
+            <!-- ==================== 串车现象 ==================== -->
+            <h2>公交串车现象</h2>
+
+            <p>考虑一条环形公交线路上均匀分布的 $N$ 辆公交车。在理想情况下，相邻车辆之间的<strong>车头时距</strong>（headway）相等，乘客的平均等待时间最短。然而，这种均匀状态是不稳定的。假设某辆车因红灯、乘客上下车缓慢等原因略有延误，一个自我强化的恶性循环就会启动。</p>
+
+            <p>设第 $i$ 辆车与前车的车头时距为 $h_i$。当 $h_i$ 增大时，站台上积累的等候乘客更多，上下车时间（dwell time）更长，进而使 $h_i$ 继续增大。同时，紧随其后的第 $i+1$ 辆车发现站台上几乎没有乘客（前车刚走），停站时间很短，速度加快，$h_{i+1}$ 不断缩小。最终，第 $i+1$ 辆车追上第 $i$ 辆车，形成串车。</p>
+
+            <p>这一正反馈机制可以简单表述为：</p>
+
+            $$h_i \uparrow \;\Longrightarrow\; \text{站台等候人数} \uparrow \;\Longrightarrow\; \text{停站时间} \uparrow \;\Longrightarrow\; h_i \uparrow\uparrow \tag{9.2-1}$$
+
+            <p>图 9.2-1 展示了这一过程。上半部分是均匀分布的理想状态，下半部分是串车发生后的状态。</p>
+
+            <!-- SVG: 串车现象示意图 -->
+            <div style="text-align:center; margin:1.5rem 0;">
+            <svg width="680" height="340" viewBox="0 0 680 340" style="max-width:100%;">
+                <!-- 理想状态 -->
+                <foreignObject x="10" y="8" width="200" height="28"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px;color:#2b6cb0;font-weight:700;">理想状态：均匀分布</div></foreignObject>
+
+                <!-- 线路 -->
+                <line x1="60" y1="65" x2="620" y2="65" stroke="#cbd5e0" stroke-width="3" stroke-linecap="round"/>
+                <!-- 站点 -->
+                <rect x="105" y="55" width="10" height="20" rx="2" fill="#4a5568"/>
+                <rect x="215" y="55" width="10" height="20" rx="2" fill="#4a5568"/>
+                <rect x="325" y="55" width="10" height="20" rx="2" fill="#4a5568"/>
+                <rect x="435" y="55" width="10" height="20" rx="2" fill="#4a5568"/>
+                <rect x="545" y="55" width="10" height="20" rx="2" fill="#4a5568"/>
+
+                <!-- 公交车（均匀分布） -->
+                <rect x="148" y="44" width="36" height="20" rx="4" fill="#2b6cb0"/>
+                <foreignObject x="148" y="44" width="36" height="20"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#fff;text-align:center;line-height:20px;">Bus 1</div></foreignObject>
+                <rect x="258" y="44" width="36" height="20" rx="4" fill="#2b6cb0"/>
+                <foreignObject x="258" y="44" width="36" height="20"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#fff;text-align:center;line-height:20px;">Bus 2</div></foreignObject>
+                <rect x="368" y="44" width="36" height="20" rx="4" fill="#2b6cb0"/>
+                <foreignObject x="368" y="44" width="36" height="20"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#fff;text-align:center;line-height:20px;">Bus 3</div></foreignObject>
+                <rect x="478" y="44" width="36" height="20" rx="4" fill="#2b6cb0"/>
+                <foreignObject x="478" y="44" width="36" height="20"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#fff;text-align:center;line-height:20px;">Bus 4</div></foreignObject>
+
+                <!-- 车头时距标注 -->
+                <line x1="184" y1="88" x2="258" y2="88" stroke="#48bb78" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="184" y1="84" x2="184" y2="92" stroke="#48bb78" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="258" y1="84" x2="258" y2="92" stroke="#48bb78" stroke-width="1.5" stroke-linecap="round"/>
+                <foreignObject x="196" y="92" width="70" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#48bb78;text-align:center;">$h \approx h^*$</div></foreignObject>
+
+                <line x1="294" y1="88" x2="368" y2="88" stroke="#48bb78" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="294" y1="84" x2="294" y2="92" stroke="#48bb78" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="368" y1="84" x2="368" y2="92" stroke="#48bb78" stroke-width="1.5" stroke-linecap="round"/>
+                <foreignObject x="306" y="92" width="70" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#48bb78;text-align:center;">$h \approx h^*$</div></foreignObject>
+
+                <!-- 分隔线 -->
+                <line x1="60" y1="140" x2="620" y2="140" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="6,4"/>
+
+                <!-- 串车状态 -->
+                <foreignObject x="10" y="155" width="260" height="28"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px;color:#c53030;font-weight:700;">串车状态：正反馈导致聚集</div></foreignObject>
+
+                <!-- 线路 -->
+                <line x1="60" y1="210" x2="620" y2="210" stroke="#cbd5e0" stroke-width="3" stroke-linecap="round"/>
+                <!-- 站点 -->
+                <rect x="105" y="200" width="10" height="20" rx="2" fill="#4a5568"/>
+                <rect x="215" y="200" width="10" height="20" rx="2" fill="#4a5568"/>
+                <rect x="325" y="200" width="10" height="20" rx="2" fill="#4a5568"/>
+                <rect x="435" y="200" width="10" height="20" rx="2" fill="#4a5568"/>
+                <rect x="545" y="200" width="10" height="20" rx="2" fill="#4a5568"/>
+
+                <!-- 等候乘客（站点3积累很多） -->
+                <circle cx="320" cy="195" r="3" fill="#d69e2e"/>
+                <circle cx="328" cy="193" r="3" fill="#d69e2e"/>
+                <circle cx="336" cy="195" r="3" fill="#d69e2e"/>
+                <circle cx="324" cy="188" r="3" fill="#d69e2e"/>
+                <circle cx="332" cy="186" r="3" fill="#d69e2e"/>
+                <circle cx="316" cy="189" r="3" fill="#d69e2e"/>
+
+                <!-- 公交车（串车） -->
+                <rect x="138" y="189" width="36" height="20" rx="4" fill="#2b6cb0"/>
+                <foreignObject x="138" y="189" width="36" height="20"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#fff;text-align:center;line-height:20px;">Bus 1</div></foreignObject>
+                <rect x="178" y="189" width="36" height="20" rx="4" fill="#c53030"/>
+                <foreignObject x="178" y="189" width="36" height="20"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#fff;text-align:center;line-height:20px;">Bus 2</div></foreignObject>
+
+                <rect x="420" y="189" width="36" height="20" rx="4" fill="#2b6cb0"/>
+                <foreignObject x="420" y="189" width="36" height="20"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#fff;text-align:center;line-height:20px;">Bus 3</div></foreignObject>
+                <rect x="460" y="189" width="36" height="20" rx="4" fill="#c53030"/>
+                <foreignObject x="460" y="189" width="36" height="20"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#fff;text-align:center;line-height:20px;">Bus 4</div></foreignObject>
+
+                <!-- 串车间距标注 -->
+                <line x1="174" y1="233" x2="178" y2="233" stroke="#c53030" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="174" y1="229" x2="174" y2="237" stroke="#c53030" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="178" y1="229" x2="178" y2="237" stroke="#c53030" stroke-width="1.5" stroke-linecap="round"/>
+                <foreignObject x="148" y="238" width="60" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#c53030;text-align:center;">$h \approx 0$</div></foreignObject>
+
+                <!-- 大间距标注 -->
+                <line x1="214" y1="233" x2="420" y2="233" stroke="#c53030" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="214" y1="229" x2="214" y2="237" stroke="#c53030" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="420" y1="229" x2="420" y2="237" stroke="#c53030" stroke-width="1.5" stroke-linecap="round"/>
+                <foreignObject x="278" y="238" width="80" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#c53030;text-align:center;">$h \gg h^*$</div></foreignObject>
+
+                <!-- 反馈循环示意 -->
+                <rect x="120" y="275" width="440" height="50" rx="8" fill="#fed7d7" fill-opacity="0.4" stroke="#c53030" stroke-width="1.5"/>
+                <foreignObject x="130" y="278" width="420" height="44"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#c53030;text-align:center;line-height:1.6;">延误 $\rightarrow$ 等候人数增多 $\rightarrow$ 停站时间增长 $\rightarrow$ 进一步延误（正反馈循环）</div></foreignObject>
+            </svg>
+            </div>
+            <div class="fig-caption">图 9.2-1　公交串车现象。上方为理想的均匀分布状态，车头时距 $h$ 接近目标值 $h^*$；下方为串车状态，车辆两两聚集，间距极不均匀。黄色圆点表示站台等候的乘客。</div>
+
+            <p>串车的后果是双重的。对乘客而言，等待时间的<strong>方差</strong>急剧增大：在大间距区间内等车的乘客等待时间远超平均值，而串车区间内的乘客虽然等待时间短，但车辆几乎是空驶。对运营方而言，串车意味着运力浪费，因为两辆紧挨的车实际上只发挥了一辆车的作用。</p>
+
+            <!-- ==================== 控制手段 ==================== -->
+            <h2>控制手段</h2>
+
+            <p>运营者可以采取多种手段来干预串车。最常见的三种是：</p>
+
+            <ul style="margin:0.5rem 0 1rem 2rem;">
+                <li><strong>站点驻留</strong>（holding）：让到站的公交车在站点额外等待一段时间再出发，以拉开与后车的距离。这是最常用的控制手段，因为它不影响已上车乘客的目的地。</li>
+                <li><strong>跳站</strong>（skip-stopping）：让公交车跳过某些站点不停靠，以加速追赶目标车头时距。代价是被跳过站点的乘客需要等待下一辆车。</li>
+                <li><strong>速度调节</strong>（speed adjustment）：在站间区段调整车速。比驻留更平滑，但受限于交通条件和安全约束。</li>
+            </ul>
+
+            <p>本节重点讨论<strong>站点驻留</strong>策略。传统做法是基于阈值的规则，例如：若实际车头时距 $h_i$ 超过目标时距 $h^*$ 的 $1.5$ 倍，则驻留 $\delta$ 秒。这种规则简单易实现，但有两个根本缺陷。</p>
+
+            <p>第一，阈值规则只关注<strong>局部信息</strong>，即当前车辆与前车的时距，而忽略了线路上其他车辆的状态。控制一辆车的行为会级联地影响所有后续车辆，局部规则无法协调全局。第二，固定阈值缺乏<strong>适应性</strong>，无法针对不同的客流模式和线路条件做出灵活调整。</p>
+
+            <!-- ==================== MDP 建模 ==================== -->
+            <h2>MDP 建模</h2>
+
+            <p>将公交串车控制建模为 MDP，需要明确五个要素。设线路上有 $N$ 辆公交车，编号为 $1, 2, \ldots, N$，共 $M$ 个站点。</p>
+
+            <div class="scenario-box">
+                <div class="scenario-title">MDP 五要素</div>
+                <ul style="margin:0.3rem 0 0 1.2rem; line-height:2;">
+                    <li><strong>状态</strong>：当某辆车 $i$ 到达站点时，系统状态包括所有 $N$ 辆车的位置（当前所在站点或站间位置）、车头时距向量 $\mathbf{h} = (h_1, \ldots, h_N)$、各车的车载乘客数，以及当前站点的等候乘客数。</li>
+                    <li><strong>动作</strong>：到站车辆 $i$ 的驻留时间 $a_i \in [0, a_{\max}]$。可以将连续动作离散化为 $\{0, 10, 20, \ldots, 60\}$ 秒。</li>
+                    <li><strong>转移</strong>：驻留 $a_i$ 秒后，车辆 $i$ 出发驶向下一站。站间行驶时间受随机交通条件影响，到达下一站的时间为 $\tau_i + a_i + d_i + t_{\text{travel}}$，其中 $d_i$ 为上下客时间，$t_{\text{travel}}$ 为随机行驶时间。</li>
+                    <li><strong>奖励</strong>：负的车头时距方差（鼓励均匀分布）。具体地，每次决策时的即时奖励为：</li>
+                </ul>
+            </div>
+
+            $$R = -\sum_{i=1}^{N} (h_i - \bar{h})^2 \tag{9.2-2}$$
+
+            <p>其中 $\bar{h} = \frac{1}{N}\sum_{i=1}^{N} h_i$ 是当前平均车头时距。这个奖励函数的含义清晰：车头时距越均匀，奖励越高（越接近零）。</p>
+
+            <p>另一种常见的奖励设计是直接使用乘客等待时间：</p>
+
+            $$R = -\sum_{j \in \mathcal{S}} w_j \tag{9.2-3}$$
+
+            <p>其中 $\mathcal{S}$ 是所有站点的集合，$w_j$ 是站点 $j$ 的乘客平均等待时间。两种奖励高度相关，因为均匀的车头时距自然对应较短的乘客等待时间。公式 (9.2-2) 在实现上更方便，因为只需要车辆位置信息就能计算。</p>
+
+            <!-- ==================== 异步决策 ==================== -->
+            <h2>异步决策建模</h2>
+
+            <p>公交串车控制的一个核心建模难点在于<strong>决策时机不同步</strong>。在 6.4 节中，我们讨论了事件驱动与时间驱动两种决策模式。公交控制天然适合事件驱动模式：每当一辆车到达某个站点，就需要为它决定驻留时间。不同车辆到达站点的时刻各不相同，因此决策是异步发生的。</p>
+
+            <p>这与许多标准多智能体 RL 设定不同。在交通信号控制、棋盘游戏等场景中，所有智能体在同一时刻做出决策。而在公交控制中，任何一个时刻通常只有一辆车需要做决策。</p>
+
+            <div class="compare-card">
+                <div class="card card-sync">
+                    <div class="card-title">同步决策</div>
+                    <p style="font-size:0.93rem;line-height:1.7;margin:0;">所有智能体在相同时间步 $t = 0, 1, 2, \ldots$ 同时选择动作。状态转移后，所有智能体同时观测新状态。<br><strong>适用场景：</strong>交通信号控制、多人棋盘游戏。</p>
+                </div>
+                <div class="card card-async">
+                    <div class="card-title">异步决策</div>
+                    <p style="font-size:0.93rem;line-height:1.7;margin:0;">不同智能体在不同时刻做出决策，由各自的事件触发。MDP 的时间步 $k$ 对应第 $k$ 次决策事件，而非物理时钟。<br><strong>适用场景：</strong>公交控制、电梯调度、分布式任务分配。</p>
+                </div>
+            </div>
+
+            <p>为了在标准 RL 框架中处理异步决策，我们采用<strong>事件驱动的时间步</strong>定义。设 $e_k$ 表示第 $k$ 个决策事件，对应某辆车 $i_k$ 到达某个站点 $m_k$。MDP 的时间步 $k = 0, 1, 2, \ldots$ 对应的是这些事件的序列，而非均匀的物理时间。在事件 $e_k$ 发生时：</p>
+
+            <ol style="margin:0.5rem 0 1rem 2rem;">
+                <li>观测全局状态 $S_k$，包含所有 $N$ 辆车的位置和车头时距。</li>
+                <li>为到站车辆 $i_k$ 选择驻留时间 $a_k$。</li>
+                <li>仿真推进到下一个事件 $e_{k+1}$（即下一辆车到达某站点），得到新状态 $S_{k+1}$ 和奖励 $R_{k+1}$。</li>
+            </ol>
+
+            <p>关键观察是：虽然每次只控制一辆车，但状态 $S_k$ 包含<strong>所有车辆</strong>的信息。这使得策略可以根据全局态势做出决策，例如当前车与前后车的时距不均衡时采取不同的驻留策略。</p>
+
+            <div class="note">
+                <strong>与 6.4 节的联系</strong> &nbsp; 6.4 节指出，事件驱动模式下相邻时间步的物理间隔不等距，这会影响折扣因子 $\gamma$ 的含义。在公交控制中，一种处理方式是使用基于物理时间的折扣 $\gamma^{\Delta t_k}$，其中 $\Delta t_k$ 是事件 $e_k$ 与 $e_{k+1}$ 之间的物理时间间隔。另一种更简单的做法是将一个运营周期（如早高峰 2 小时）定义为一个回合，在回合内不折扣（$\gamma = 1$），直接最小化累积的车头时距方差。
+            </div>
+
+            <!-- ==================== 图神经网络 ==================== -->
+            <h2>图神经网络建模</h2>
+
+            <p>确定了 MDP 的状态和动作后，下一个问题是如何设计策略网络。一个简单的做法是将所有车辆的状态拼接成一个长向量，输入全连接网络（MLP）。这种做法有两个问题：输入维度随车辆数 $N$ 线性增长，使得网络难以迁移到不同规模的车队；而且全连接网络无法捕捉相邻车辆之间的空间关系。</p>
+
+            <p>公交线路上的车辆具有天然的<strong>图结构</strong>：每辆车是一个节点，相邻车辆之间有边。这正是 4.4 节介绍的图神经网络（GNN）的用武之地。</p>
+
+            <h3>图的构建</h3>
+
+            <p>将线路上的 $N$ 辆车构造为一个有向图 $\mathcal{G} = (\mathcal{V}, \mathcal{E})$。节点集 $\mathcal{V} = \{1, 2, \ldots, N\}$ 对应每辆车，边集 $\mathcal{E}$ 连接相邻车辆。对于环形线路，每辆车 $i$ 的邻居为前车 $i-1$ 和后车 $i+1$（模 $N$）。</p>
+
+            <p>每个节点 $i$ 的特征向量为：</p>
+
+            $$\mathbf{x}_i = \big[\, p_i,\; h_i^{\text{front}},\; h_i^{\text{rear}},\; l_i,\; q_i,\; \mathbb{1}[i = i_k] \,\big]^\top \tag{9.2-4}$$
+
+            <p>其中 $p_i$ 是车辆 $i$ 在线路上的归一化位置（$0$ 到 $1$），$h_i^{\text{front}}$ 和 $h_i^{\text{rear}}$ 分别是与前车和后车的车头时距，$l_i$ 是车载乘客数，$q_i$ 是最近经过站点的等候人数，$\mathbb{1}[i = i_k]$ 是指示变量，标记当前需要做决策的车辆。</p>
+
+            <h3>消息传递机制</h3>
+
+            <p>GNN 通过多轮消息传递（message passing）让每个节点聚合邻居的信息。第 $l$ 层的更新规则为：</p>
+
+            $$\mathbf{h}_i^{(l+1)} = \sigma\!\left( \mathbf{W}^{(l)} \mathbf{h}_i^{(l)} + \sum_{j \in \mathcal{N}(i)} \mathbf{U}^{(l)} \mathbf{h}_j^{(l)} + \mathbf{b}^{(l)} \right) \tag{9.2-5}$$
+
+            <p>其中 $\mathbf{h}_i^{(0)} = \mathbf{x}_i$ 是节点 $i$ 的初始特征，$\mathcal{N}(i) = \{i-1, i+1\}$ 是车辆 $i$ 的邻居集合，$\mathbf{W}^{(l)}$ 和 $\mathbf{U}^{(l)}$ 分别是自连接和邻居连接的可学习权重矩阵，$\sigma$ 是激活函数（如 ReLU）。</p>
+
+            <p>经过 $L$ 层消息传递后，需要做决策的车辆 $i_k$ 的节点表示 $\mathbf{h}_{i_k}^{(L)}$ 已经融合了邻居（甚至更远车辆）的信息。最终，将 $\mathbf{h}_{i_k}^{(L)}$ 输入一个输出头来得到动作：</p>
+
+            $$a_k = f_{\text{out}}\!\left(\mathbf{h}_{i_k}^{(L)}\right) \tag{9.2-6}$$
+
+            <p>对于离散动作空间，$f_{\text{out}}$ 输出各驻留时间的概率分布；对于连续动作空间，$f_{\text{out}}$ 输出驻留时间的均值和方差。</p>
+
+            <p>图 9.2-2 展示了这一 GNN 策略网络的结构。</p>
+
+            <!-- SVG: GNN 架构图 -->
+            <div style="text-align:center; margin:1.5rem 0;">
+            <svg width="660" height="380" viewBox="0 0 660 380" style="max-width:100%;">
+                <!-- 输入层标签 -->
+                <foreignObject x="5" y="28" width="60" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#718096;">输入特征</div></foreignObject>
+
+                <!-- 节点 1 -->
+                <circle cx="140" cy="40" r="22" fill="#dbeafe" stroke="#2b6cb0" stroke-width="2"/>
+                <foreignObject x="118" y="28" width="44" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#1e40af;text-align:center;">$\mathbf{x}_1$</div></foreignObject>
+                <!-- 节点 2 -->
+                <circle cx="280" cy="40" r="22" fill="#dbeafe" stroke="#2b6cb0" stroke-width="2"/>
+                <foreignObject x="258" y="28" width="44" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#1e40af;text-align:center;">$\mathbf{x}_2$</div></foreignObject>
+                <!-- 节点 3 (决策车辆) -->
+                <circle cx="420" cy="40" r="22" fill="#fed7d7" stroke="#c53030" stroke-width="2.5"/>
+                <foreignObject x="398" y="28" width="44" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#c53030;text-align:center;font-weight:600;">$\mathbf{x}_3$</div></foreignObject>
+                <!-- 节点 4 -->
+                <circle cx="560" cy="40" r="22" fill="#dbeafe" stroke="#2b6cb0" stroke-width="2"/>
+                <foreignObject x="538" y="28" width="44" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#1e40af;text-align:center;">$\mathbf{x}_4$</div></foreignObject>
+
+                <!-- 边（输入层） -->
+                <line x1="162" y1="40" x2="258" y2="40" stroke="#b0b8c4" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="302" y1="40" x2="398" y2="40" stroke="#b0b8c4" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="442" y1="40" x2="538" y2="40" stroke="#b0b8c4" stroke-width="1.5" stroke-linecap="round"/>
+
+                <!-- 消息传递层 1 标签 -->
+                <foreignObject x="5" y="118" width="80" height="40"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#718096;">GNN 层 1</div></foreignObject>
+
+                <!-- 下箭头线 -->
+                <line x1="140" y1="62" x2="140" y2="108" stroke="#b0b8c4" stroke-width="1.2" stroke-linecap="round"/>
+                <line x1="280" y1="62" x2="280" y2="108" stroke="#b0b8c4" stroke-width="1.2" stroke-linecap="round"/>
+                <line x1="420" y1="62" x2="420" y2="108" stroke="#b0b8c4" stroke-width="1.2" stroke-linecap="round"/>
+                <line x1="560" y1="62" x2="560" y2="108" stroke="#b0b8c4" stroke-width="1.2" stroke-linecap="round"/>
+
+                <!-- 层1节点 -->
+                <circle cx="140" cy="130" r="22" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                <foreignObject x="113" y="118" width="56" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#1e40af;text-align:center;">$\mathbf{h}_1^{(1)}$</div></foreignObject>
+                <circle cx="280" cy="130" r="22" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                <foreignObject x="253" y="118" width="56" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#1e40af;text-align:center;">$\mathbf{h}_2^{(1)}$</div></foreignObject>
+                <circle cx="420" cy="130" r="22" fill="#fff5f5" stroke="#c53030" stroke-width="2.5"/>
+                <foreignObject x="393" y="118" width="56" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#c53030;text-align:center;font-weight:600;">$\mathbf{h}_3^{(1)}$</div></foreignObject>
+                <circle cx="560" cy="130" r="22" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                <foreignObject x="533" y="118" width="56" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#1e40af;text-align:center;">$\mathbf{h}_4^{(1)}$</div></foreignObject>
+
+                <!-- 层1边 -->
+                <line x1="162" y1="130" x2="258" y2="130" stroke="#b0b8c4" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="302" y1="130" x2="398" y2="130" stroke="#b0b8c4" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="442" y1="130" x2="538" y2="130" stroke="#b0b8c4" stroke-width="1.5" stroke-linecap="round"/>
+
+                <!-- 消息传递层 2 标签 -->
+                <foreignObject x="5" y="208" width="80" height="40"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#718096;">GNN 层 2</div></foreignObject>
+
+                <!-- 下箭头线 -->
+                <line x1="140" y1="152" x2="140" y2="198" stroke="#b0b8c4" stroke-width="1.2" stroke-linecap="round"/>
+                <line x1="280" y1="152" x2="280" y2="198" stroke="#b0b8c4" stroke-width="1.2" stroke-linecap="round"/>
+                <line x1="420" y1="152" x2="420" y2="198" stroke="#b0b8c4" stroke-width="1.2" stroke-linecap="round"/>
+                <line x1="560" y1="152" x2="560" y2="198" stroke="#b0b8c4" stroke-width="1.2" stroke-linecap="round"/>
+
+                <!-- 层2节点 -->
+                <circle cx="140" cy="220" r="22" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                <foreignObject x="113" y="208" width="56" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#1e40af;text-align:center;">$\mathbf{h}_1^{(2)}$</div></foreignObject>
+                <circle cx="280" cy="220" r="22" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                <foreignObject x="253" y="208" width="56" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#1e40af;text-align:center;">$\mathbf{h}_2^{(2)}$</div></foreignObject>
+                <circle cx="420" cy="220" r="22" fill="#fff5f5" stroke="#c53030" stroke-width="2.5"/>
+                <foreignObject x="393" y="208" width="56" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#c53030;text-align:center;font-weight:600;">$\mathbf{h}_3^{(2)}$</div></foreignObject>
+                <circle cx="560" cy="220" r="22" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                <foreignObject x="533" y="208" width="56" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#1e40af;text-align:center;">$\mathbf{h}_4^{(2)}$</div></foreignObject>
+
+                <!-- 层2边 -->
+                <line x1="162" y1="220" x2="258" y2="220" stroke="#b0b8c4" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="302" y1="220" x2="398" y2="220" stroke="#b0b8c4" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="442" y1="220" x2="538" y2="220" stroke="#b0b8c4" stroke-width="1.5" stroke-linecap="round"/>
+
+                <!-- 消息传递示意弧线 (层1→层2, 从邻居到节点3) -->
+                <path d="M280,148 Q350,185 415,200" fill="none" stroke="#805ad5" stroke-width="1.5" stroke-dasharray="5,3" stroke-linecap="round"/>
+                <path d="M560,148 Q490,185 425,200" fill="none" stroke="#805ad5" stroke-width="1.5" stroke-dasharray="5,3" stroke-linecap="round"/>
+                <foreignObject x="290" y="168" width="120" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#805ad5;text-align:center;">消息传递</div></foreignObject>
+
+                <!-- 输出层：只取决策节点 -->
+                <line x1="420" y1="242" x2="420" y2="290" stroke="#c53030" stroke-width="2" stroke-linecap="round"/>
+
+                <rect x="360" y="295" width="120" height="36" rx="6" fill="#f0fff4" stroke="#48bb78" stroke-width="2"/>
+                <foreignObject x="362" y="298" width="116" height="30"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#2d3748;text-align:center;">$f_{\text{out}}(\mathbf{h}_3^{(2)})$</div></foreignObject>
+
+                <line x1="420" y1="331" x2="420" y2="360" stroke="#48bb78" stroke-width="2" stroke-linecap="round"/>
+                <foreignObject x="370" y="353" width="100" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px;color:#48bb78;text-align:center;font-weight:600;">驻留时间 $a_k$</div></foreignObject>
+
+                <!-- 决策车辆标注 -->
+                <foreignObject x="395" y="2" width="80" height="20"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#c53030;text-align:center;">决策车辆</div></foreignObject>
+            </svg>
+            </div>
+            <div class="fig-caption">图 9.2-2　基于 GNN 的策略网络结构。每辆公交车为一个节点，经过两层消息传递后，决策车辆（红色节点，Bus 3）的表示融合了邻居信息，最终输出驻留时间。紫色虚线表示邻居节点向决策节点传递的消息。</div>
+
+            <h3>GNN 的优势</h3>
+
+            <p>与全连接网络相比，GNN 策略有三个显著优势：</p>
+
+            <ul style="margin:0.5rem 0 1rem 2rem;">
+                <li><strong>参数共享。</strong>公式 (9.2-5) 中的权重 $\mathbf{W}^{(l)}$ 和 $\mathbf{U}^{(l)}$ 在所有节点间共享。无论线路上有 6 辆车还是 20 辆车，模型参数量不变。</li>
+                <li><strong>规模泛化。</strong>训练时使用 $N = 8$ 辆车的场景，部署时可以直接应用于 $N = 12$ 辆车的线路，因为 GNN 不依赖于固定的输入维度。</li>
+                <li><strong>归纳偏置。</strong>消息传递机制天然编码了公交控制的核心结构：一辆车的最优驻留决策主要取决于与<strong>相邻车辆</strong>的关系，而不是某辆远处车辆的状态。多层 GNN 可以将信息传播范围逐步扩大，$L$ 层 GNN 让每个节点看到 $L$ 跳以内的邻居信息。</li>
+            </ul>
+
+            <div class="concept-card">
+                <div class="concept-name">为什么不用全连接网络</div>
+                <p style="margin:0;line-height:1.7;">假设一个全连接策略网络接受所有 $N$ 辆车的特征拼接作为输入。当 $N$ 从 $8$ 变为 $12$ 时，输入维度从 $8 \times 6 = 48$ 变为 $12 \times 6 = 72$，网络结构必须重新设计和训练。更根本的问题是，全连接网络对输入顺序敏感：将车辆 $1$ 和车辆 $2$ 的特征交换位置会产生不同的输出，但在公交控制中，重要的是车辆之间的<strong>相对关系</strong>，而非绝对排列顺序。GNN 通过邻居聚合自然地捕捉这种相对关系。</p>
+            </div>
+
+            <!-- ==================== 训练流程 ==================== -->
+            <h2>训练流程</h2>
+
+            <p>将上述 MDP 建模和 GNN 策略网络结合起来，整体训练流程如下。我们使用 PPO 算法（5.2 节），因为它在连续和离散动作空间中都有稳定的表现。</p>
+
+            <div class="algorithm-box">
+                <div class="algorithm-title">算法 9.2-1　事件驱动的公交控制 RL 训练</div>
+                <p style="margin:0 0 0.5rem 0;"><strong>输入：</strong>公交仿真器 $\text{Env}$，GNN 策略网络 $\pi_\theta$，价值网络 $V_\phi$，回合数 $E$</p>
+                <ol>
+                    <li><strong>for</strong> 回合 $e = 1, 2, \ldots, E$ <strong>do</strong></li>
+                    <li>&emsp;初始化仿真器，$N$ 辆车均匀分布在线路上</li>
+                    <li>&emsp;$\mathcal{D} \leftarrow \emptyset$ <span class="algo-comment">// 经验缓冲区</span></li>
+                    <li>&emsp;<strong>while</strong> 运营周期未结束 <strong>do</strong></li>
+                    <li>&emsp;&emsp;仿真推进至下一个到站事件 $e_k$：车辆 $i_k$ 到达站点 $m_k$</li>
+                    <li>&emsp;&emsp;构建图 $\mathcal{G}_k$，计算所有节点特征 $\{\mathbf{x}_i\}_{i=1}^N$</li>
+                    <li>&emsp;&emsp;通过 GNN 得到 $a_k \sim \pi_\theta(\cdot \mid \mathcal{G}_k, i_k)$ <span class="algo-comment">// 仅为到站车辆选择动作</span></li>
+                    <li>&emsp;&emsp;执行驻留 $a_k$ 秒，观测奖励 $R_{k+1}$ 和下一状态</li>
+                    <li>&emsp;&emsp;$\mathcal{D} \leftarrow \mathcal{D} \cup \{(S_k, a_k, R_{k+1}, S_{k+1})\}$</li>
+                    <li>&emsp;<strong>end while</strong></li>
+                    <li>&emsp;用 $\mathcal{D}$ 中的数据，按 PPO 更新 $\theta$ 和 $\phi$</li>
+                    <li><strong>end for</strong></li>
+                </ol>
+            </div>
+
+            <p>算法的核心在第 5-9 行。与标准 RL 训练循环不同的是，仿真器不是按固定时间步推进，而是<strong>跳跃到下一个到站事件</strong>。两个事件之间可能间隔几十秒到几分钟，在此期间仿真器内部按小时间步推进车辆移动和乘客到达，但不触发 RL 决策。这种事件驱动的仿真方式显著减少了决策步数，提高了训练效率。</p>
+
+            <!-- ==================== 策略对比 ==================== -->
+            <h2>控制策略对比</h2>
+
+            <p>下表对比了四种控制策略在一条典型公交线路上的表现。仿真设定为 $N = 8$ 辆车、$M = 20$ 个站点的环形线路，运营周期为早高峰 2 小时。</p>
+
+            <table class="result-table">
+                <thead>
+                    <tr>
+                        <th>控制策略</th>
+                        <th>车头时距标准差（秒）</th>
+                        <th>乘客平均等待时间（秒）</th>
+                        <th>是否可泛化到不同 $N$</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="highlight">
+                        <td>无控制</td>
+                        <td>$185$</td>
+                        <td>$312$</td>
+                        <td>--</td>
+                    </tr>
+                    <tr>
+                        <td>阈值规则</td>
+                        <td>$98$</td>
+                        <td>$187$</td>
+                        <td>需重新调参</td>
+                    </tr>
+                    <tr>
+                        <td>MLP 策略</td>
+                        <td>$62$</td>
+                        <td>$134$</td>
+                        <td>否（输入维度固定）</td>
+                    </tr>
+                    <tr class="good">
+                        <td>GNN 策略</td>
+                        <td>$55$</td>
+                        <td>$121$</td>
+                        <td>是</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="fig-caption">表 9.2-1　四种控制策略的对比。数值为 50 次仿真的平均值。GNN 策略在 $N = 8$ 上训练，直接应用于 $N = 8$ 的评估。</div>
+
+            <p>几个值得关注的要点：</p>
+
+            <ul style="margin:0.5rem 0 1rem 2rem;">
+                <li><strong>无控制 vs. 阈值规则。</strong>即使是简单的阈值规则，也能将车头时距标准差降低约 47%。这说明串车问题的核心不在于缺乏复杂算法，而在于<strong>是否进行干预</strong>。</li>
+                <li><strong>阈值规则 vs. RL 策略。</strong>RL 策略（无论 MLP 还是 GNN）进一步将标准差降低了 37%--44%。改善主要来自对全局状态的利用：RL 策略能够根据前后车的距离动态调整驻留时间，而非套用固定规则。</li>
+                <li><strong>MLP vs. GNN。</strong>在相同车队规模下，GNN 的性能优势不算突出（$55$ vs. $62$）。GNN 的核心优势在最后一列：当车队规模变化时，GNN 策略可以<strong>零迁移</strong>地应用，而 MLP 需要重新训练。</li>
+            </ul>
+
+            <div class="warning">
+                <strong>关于数值的说明</strong> &nbsp; 上表中的数值来自一个简化的仿真场景，用于说明不同策略的相对表现趋势，而非某一特定城市线路的绝对性能。实际效果受线路长度、站点间距、客流模式、交通信号等因素影响，需要针对具体场景进行仿真验证。
+            </div>
+
+            <!-- ==================== 小结 ==================== -->
+            <h2>小结</h2>
+
+            <ol style="margin: 0.5rem 0 1rem 2rem;">
+                <li>公交串车源于正反馈循环：延误导致更多乘客积压，进一步加剧延误。站点驻留是最常用的控制手段。</li>
+                <li>公交控制的 MDP 建模需要处理<strong>异步决策</strong>：不同车辆在不同时刻到达站点。事件驱动的时间步定义（6.4 节）自然地适配这一特点，每个时间步对应一次到站事件。</li>
+                <li>线路上车辆的天然图结构使得 GNN 成为理想的策略网络架构。GNN 通过消息传递机制（公式 (9.2-5)）让每辆车融合邻居信息，且参数量不随车队规模增长。</li>
+                <li>GNN 策略的核心优势在于<strong>规模泛化</strong>：在一种车队规模下训练的策略可以直接部署到不同规模的线路上，这在实际运营中具有重要价值。</li>
+            </ol>
+
+            <div class="chapter-nav">
+                <a href="../ch09/9.1.html">&larr; 9.1 网约车派单优化</a>
+                <a href="../ch09/9.3.html">9.3 需求响应公交调度优化 &rarr;</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

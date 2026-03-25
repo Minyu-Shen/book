@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>1.7.3 Actor-Critic框架 - 运筹智能</title>
+    <title>3.3.3 Actor-Critic框架 - 运筹智能</title>
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
@@ -43,63 +43,69 @@
                 <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
                 <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
                 <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
-                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
-                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
-                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
-                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.6.1.html">1.6.1 SARSA</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.6.2.html">1.6.2 Q-learning</a></li>
-                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.7.1.html">1.7.1 策略梯度定理</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.7.2.html">1.7.2 REINFORCE算法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.7.3.html" class="active">1.7.3 Actor-Critic框架</a></li>
-                <li class="sidebar-chapter">第二章 深度学习基础</li>
-                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
-                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
-                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
-                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
-                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
-                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
-                <li><a href="../ch03/3.2.html">3.2 Policy Gradient与PPO</a></li>
-                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
-                <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
-                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
-                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
-                <li><a href="../ch04/4.2.html">4.2 时域建模与回合定义</a></li>
-                <li><a href="../ch04/4.3.html">4.3 状态空间、动作空间与奖励函数的设计</a></li>
-                <li><a href="../ch04/4.4.html">4.4 决策时机与决策频率的建模</a></li>
-                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
-                <li class="sidebar-chapter">第五章 仿真器搭建</li>
-                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
-                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
-                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
-                <li><a href="../ch05/5.4.html">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
-                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
-                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
-                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
-                <li><a href="../ch07/7.2.html">7.2 公交串车控制</a></li>
-                <li><a href="../ch07/7.3.html">7.3 需求响应公交调度优化</a></li>
-                <li class="sidebar-chapter">第八章 进阶话题</li>
-                <li><a href="../ch08/8.1.html">8.1 多智能体强化学习</a></li>
-                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html" class="active">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
                 </ul>
             </nav>
         </aside>
 
         <main class="main-content">
-            <h1>1.7.3 Actor-Critic框架</h1>
+            <h1>3.3.3 Actor-Critic框架</h1>
 
             <!-- ==================== 从广义策略迭代的视角 ==================== -->
             <h2>从广义策略迭代的视角</h2>
 
-            <p>回顾1.4节的策略迭代算法：它交替进行两个步骤，策略评估（给定策略，计算值函数）和策略改进（根据值函数，更新策略）。事实上，本章介绍的所有方法都可以看作这一<strong>广义策略迭代</strong>（Generalized Policy Iteration, GPI）框架的不同实例。区别仅在于评估和改进各自使用什么手段：</p>
+            <p>回顾2.2节的策略迭代算法：它交替进行两个步骤，策略评估（给定策略，计算值函数）和策略改进（根据值函数，更新策略）。本章的大多数控制算法都具有类似的交替结构，称为<strong>广义策略迭代</strong>（Generalized Policy Iteration, GPI）。下表展示了各算法如何实现评估和改进这两个环节：</p>
 
             <table class="trans-table" style="width:100%;">
                 <thead>
@@ -114,25 +120,20 @@
                 </tbody>
             </table>
 
-            <p>从表中可以看出，Actor-Critic结合了两方面的优势：它像TD方法一样用自举（bootstrapping）来评估值函数，避免了蒙特卡洛方法等到回合结束才能更新的缺点（1.5.2节已分析了这一点）；同时它像REINFORCE一样直接通过梯度上升优化参数化策略，保留了策略梯度方法的灵活性。</p>
+            <p>从表中可以看出，Actor-Critic结合了两方面的优势。评估方面，它用TD自举替代了蒙特卡洛回报，显著降低了梯度估计的方差（3.1.2节已分析了MC与TD在方差上的差异），同时也不必等到回合结束才能更新。改进方面，它直接通过梯度上升优化参数化策略 $\pi_\theta$，可以学习随机策略；这一框架在第五章与神经网络结合后，能自然地处理连续动作空间等1.5–3.2节基于 $\arg\max_a Q(s,a)$ 的方法难以应对的场景。</p>
 
             <!-- ==================== 基线与优势函数 ==================== -->
             <h2>基线与优势函数</h2>
 
-            <p>1.7.2节的REINFORCE算法使用蒙特卡洛回报 $G_t$ 作为策略梯度的估计信号。正如1.5.2节在预测问题中所分析的，MC回报的方差很高：即使从同一个状态出发，不同轨迹的 $G_t$ 可能相差甚远。方差大意味着梯度估计噪声大，策略参数的更新方向不稳定，收敛速度慢。</p>
+            <p>3.3.2节的REINFORCE算法使用蒙特卡洛回报 $G_t$ 作为策略梯度的估计信号。正如3.1.2节在预测问题中所分析的，MC回报的方差很高：即使从同一个状态出发，不同轨迹的 $G_t$ 可能相差甚远。方差大意味着梯度估计噪声大，策略参数的更新方向不稳定，收敛速度慢。</p>
 
             <p>一个有效的降方差技巧是引入<strong>基线</strong>（baseline）。策略梯度定理告诉我们，从 $G_t$ 中减去任何仅依赖于状态 $S_t$ 的函数 $b(S_t)$，都不会改变梯度的期望值：</p>
 
-            $$\nabla_\theta J(\theta) = \mathbb{E}_\pi\left[\sum_{t=0}^{T-1} \big(G_t - b(S_t)\big) \,\nabla_\theta \ln \pi_\theta(A_t \mid S_t)\right] \tag{1.7-5}$$
+            $$\nabla_\theta J(\theta) = \mathbb{E}_\pi\left[\sum_{t=0}^{T-1} \big(G_t - b(S_t)\big) \,\nabla_\theta \ln \pi_\theta(A_t \mid S_t)\right] \tag{3.3-5}$$
 
-            <details class="optional-reading">
-                <summary>为什么减去基线不改变梯度期望？（选读）</summary>
-                <p>对于任意仅依赖 $S_t$ 的基线 $b(S_t)$，考虑被减去的项：</p>
-                $$\mathbb{E}_\pi\!\left[b(S_t)\,\nabla_\theta \ln \pi_\theta(A_t \mid S_t)\right] = \sum_s d^\pi(s)\, b(s) \sum_a \nabla_\theta \pi_\theta(a\mid s)$$
-                <p>由于 $\sum_a \pi_\theta(a \mid s) = 1$ 对所有 $\theta$ 成立，对 $\theta$ 求导得到 $\sum_a \nabla_\theta \pi_\theta(a \mid s) = 0$。因此，减去的这一项期望为零，不影响梯度的期望方向。</p>
-            </details>
+            <p>虽然减去 $b(S_t)$ 不改变期望，但它会改变方差。用网约车的例子来建立直觉：假设从市中心 $c$ 出发，不同轨迹的 $G_t$ 在 $40$ 到 $80$ 之间波动。如果不减基线，梯度信号始终为正（因为 $G_t > 0$），所有动作都被强化，只是强度不同，需要大量采样才能分辨好坏。如果减去一个接近平均水平的基线（比如 $b = 60$），梯度信号变为 $G_t - 60$，好的轨迹（$G_t > 60$）给出正信号、差的轨迹给出负信号，好坏对比鲜明，方差自然降低。</p>
 
-            <p>虽然减去 $b(S_t)$ 不改变期望，但它会改变方差。最优的基线（使方差最小的那个）接近于状态值函数 $V^\pi(S_t)$。直觉上，$V^\pi(S_t)$ 代表从状态 $S_t$ 出发的平均回报；用 $G_t - V^\pi(S_t)$ 作为梯度信号，衡量的是这次具体经历比平均水平好了多少（或差了多少），而非绝对回报的大小。</p>
+            <p>什么样的基线最好？直觉上，基线应该接近 $G_t$ 的期望值，这样 $G_t - b$ 才能在零附近波动，而非偏向一侧。从状态 $S_t$ 出发、按策略 $\pi_\theta$ 行动的期望回报，恰好就是状态值函数 $V^\pi(S_t)$。因此 $V^\pi(S_t)$ 是一个很好的基线选择。用 $G_t - V^\pi(S_t)$ 作为梯度信号，衡量的是这次具体经历比该状态的平均水平好了多少（或差了多少），而非绝对回报的大小。</p>
 
             <div class="concept-card">
                 <div class="concept-name">优势函数（Advantage Function）</div>
@@ -141,11 +142,11 @@
                 <p>$A^\pi(s,a) > 0$ 表示动作 $a$ 优于当前策略的平均表现，$A^\pi(s,a) < 0$ 则相反。</p>
             </div>
 
-            <p>在实践中，我们并不需要同时维护 $Q^\pi$ 和 $V^\pi$ 来计算优势函数。注意到 $Q^\pi(S_t, A_t)$ 的一个无偏样本就是 $R_t + \gamma V^\pi(S_{t+1})$（这正是1.5.2节TD目标的含义），因此：</p>
+            <p>在实践中，我们并不需要同时维护 $Q^\pi$ 和 $V^\pi$ 来计算优势函数。注意到 $Q^\pi(S_t, A_t)$ 的一个无偏样本就是 $R_t + \gamma V^\pi(S_{t+1})$（这正是3.1.2节TD目标的含义），因此：</p>
 
-            $$A^\pi(S_t, A_t) \approx R_t + \gamma\, V^\pi(S_{t+1}) - V^\pi(S_t) = \delta_t \tag{1.7-6}$$
+            $$A^\pi(S_t, A_t) \approx R_t + \gamma\, V^\pi(S_{t+1}) - V^\pi(S_t) = \delta_t \tag{3.3-6}$$
 
-            <p>其中 $\delta_t$ 正是1.5.2节介绍的<strong>TD误差</strong>。这个联系非常自然：TD误差衡量的是实际获得的即时奖励加上后继状态的估值与当前状态估值之差，它恰好是优势函数的一步采样估计。当 $\delta_t > 0$，说明这一步的表现好于预期，应当增加选择该动作的概率；反之则降低。</p>
+            <p>其中 $\delta_t$ 正是3.1.2节介绍的<strong>TD误差</strong>。这个联系非常自然：TD误差衡量的是实际获得的即时奖励加上后继状态的估值与当前状态估值之差，它恰好是优势函数的一步采样估计。当 $\delta_t > 0$，说明这一步的表现好于预期，应当增加选择该动作的概率；反之则降低。</p>
 
             <!-- ==================== Actor-Critic算法 ==================== -->
             <h2>Actor-Critic算法</h2>
@@ -157,7 +158,7 @@
                     <h4>Critic（评论家）</h4>
                     <p>维护状态值函数 $V(s)$，用TD(0)更新：</p>
                     $$V(S_t) \leftarrow V(S_t) + \alpha_w \cdot \delta_t$$
-                    <p style="font-size:0.9rem; color:#718096;">与1.5.2节的TD(0)完全相同。</p>
+                    <p style="font-size:0.9rem; color:#718096;">与3.1.2节的TD(0)完全相同。</p>
                 </div>
                 <div>
                     <h4>Actor（演员）</h4>
@@ -169,7 +170,7 @@
 
             <p>其中TD误差为：</p>
 
-            $$\delta_t = R_t + \gamma\, V(S_{t+1}) - V(S_t) \tag{1.7-7}$$
+            $$\delta_t = R_t + \gamma\, V(S_{t+1}) - V(S_t) \tag{3.3-7}$$
 
             <div class="algo-box">
                 <div class="algo-title">Actor-Critic 算法</div>
@@ -191,13 +192,13 @@
                         </ol>
                     </li>
                 </ol>
-                <div class="algo-note">与REINFORCE不同，Actor-Critic<strong>每步</strong>都更新（像TD一样），无需等到回合结束。Critic的更新与1.5.2节的TD(0)完全相同；Actor使用TD误差 $\delta_t$ 替代MC回报 $G_t$，方差显著降低。</div>
+                <div class="algo-note">与REINFORCE不同，Actor-Critic<strong>每步</strong>都更新（像TD一样），无需等到回合结束。Critic的更新与3.1.2节的TD(0)完全相同；Actor使用TD误差 $\delta_t$ 替代MC回报 $G_t$，方差显著降低。</div>
             </div>
 
             <!-- ==================== 例子：网约车 Actor-Critic ==================== -->
             <h2>例子：网约车司机的Actor-Critic</h2>
 
-            <p>继续使用网约车MDP（$\gamma = 0.9$），用Actor-Critic从零开始学习。策略采用softmax参数化（与1.7.2节相同）：对每个状态 $s$ 和动作 $a$，维护参数 $\theta_{s,a}$，策略概率为</p>
+            <p>继续使用网约车MDP（$\gamma = 0.9$），用Actor-Critic从零开始学习。策略采用softmax参数化（与3.3.2节相同）：对每个状态 $s$ 和动作 $a$，维护参数 $\theta_{s,a}$，策略概率为</p>
 
             $$\pi_\theta(a \mid s) = \frac{\exp(\theta_{s,a})}{\sum_{a'} \exp(\theta_{s,a'})}$$
 
@@ -272,7 +273,7 @@ for s in states:
 
             <div class="result-box">
                 <strong>Actor-Critic得到的最优策略：</strong>市中心→接单，郊区→空驶去市中心，机场→接单<br>
-                与1.4节动态规划和1.6.2节Q-learning得到的结果一致。
+                与2.2节动态规划和3.2.2节Q-learning得到的结果一致。
             </div>
 
             <!-- ==================== 交互演示 ==================== -->
@@ -307,12 +308,12 @@ for s in states:
                 <line x1="51" y1="90" x2="58" y2="90" stroke="#cbd5e0"/><text x="46" y="94" text-anchor="end" font-size="12" fill="#718096">0.8</text>
                 <line x1="51" y1="50" x2="58" y2="50" stroke="#cbd5e0"/><text x="46" y="54" text-anchor="end" font-size="12" fill="#718096">1.0</text>
 
-                <!-- X轴刻度: 0, 500, 1000, 1500, 2000 -->
+                <!-- X轴刻度: 0, 125, 250, 375, 500 -->
                 <text x="55" y="272" text-anchor="middle" font-size="12" fill="#718096">0</text>
-                <text x="166" y="272" text-anchor="middle" font-size="12" fill="#718096">500</text>
-                <text x="278" y="272" text-anchor="middle" font-size="12" fill="#718096">1000</text>
-                <text x="389" y="272" text-anchor="middle" font-size="12" fill="#718096">1500</text>
-                <text x="500" y="272" text-anchor="middle" font-size="12" fill="#718096">2000</text>
+                <text x="166" y="272" text-anchor="middle" font-size="12" fill="#718096">125</text>
+                <text x="278" y="272" text-anchor="middle" font-size="12" fill="#718096">250</text>
+                <text x="389" y="272" text-anchor="middle" font-size="12" fill="#718096">375</text>
+                <text x="500" y="272" text-anchor="middle" font-size="12" fill="#718096">500</text>
 
                 <!-- 轴标签 -->
                 <foreignObject x="220" y="282" width="120" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#718096;text-align:center;">回合数</div></foreignObject>
@@ -337,11 +338,13 @@ for s in states:
 
             <div class="rl-info" id="ac-info">点击"运行仿真"开始</div>
 
-            <p style="text-align:center; font-size:0.9rem; color:#718096; margin-top:0.3rem;">图 1.7-1 &nbsp; REINFORCE（虚线）与Actor-Critic（实线）在网约车例子中的收敛对比。纵轴为郊区($b$)选择空驶去市中心的概率，横轴为训练回合数（$\alpha = 0.01$）。</p>
+            <p style="text-align:center; font-size:0.9rem; color:#718096; margin-top:0.3rem;">图 3.3-1 &nbsp; REINFORCE（虚线）与Actor-Critic（实线）在网约车例子中的收敛对比。纵轴为郊区 ($b$) 选择空驶去市中心的概率，横轴为训练回合数（$\alpha = 0.01$，共 500 回合）。</p>
+
+            <p>多次点击"运行仿真"可以观察到：Actor-Critic（实线）每次都能稳定地将概率推向 $1$，虽然速度有快有慢，但方向始终正确。REINFORCE（虚线）则不稳定得多——有时能收敛到正确策略，有时概率却跌向 $0$（收敛到了错误策略）。这是因为 REINFORCE 用整条轨迹的回报 $G_t$ 作为梯度信号，$G_t$ 的方差很大，早期的几条轨迹可能恰好强化了错误的动作，随后概率越来越低，正确动作被采样到的机会也越来越少，形成恶性循环。Actor-Critic 用 TD 误差 $\delta_t$ 替代 $G_t$，每步都更新，信号的方差小得多，因此学习过程更加稳健。</p>
 
             <script>
 (function(){
-    var GM=0.9, AL=0.01, H=200, N_EP=2000;
+    var GM=0.9, AL=0.01, H=200, N_EP=500;
     var T={c:{a0:{c:[.5,5],b:[.3,8],a:[.2,12]},a1:{a:[1,-4]}},b:{a0:{c:[.1,5],b:[.8,1],a:[.1,8]},a1:{c:[1,-3]}},a:{a0:{c:[.6,14],b:[.4,10]},a1:{c:[1,-5]}}};
     var STS=['c','b','a'];
 
@@ -448,11 +451,18 @@ for s in states:
                 </tbody>
             </table>
 
-            <p>至此，我们用一个只有3个状态的网约车例子，完整地展示了强化学习的核心算法族谱。这些方法共同的局限是：它们都基于表格表示，状态和动作必须是有限且可枚举的。当状态空间很大或连续时（如有成百上千个区域的网约车调度、连续变化的库存水平），表格方法不再可行。解决方案是用函数近似（如神经网络）来表示值函数或策略。第二章将介绍深度学习基础，第三章将把本章的表格算法升级为深度强化学习：DQN（Q-learning + 神经网络）、PPO（策略梯度 + 神经网络）、SAC（Actor-Critic + 神经网络）。</p>
+            <p>至此，我们用一个只有3个状态的网约车例子，完整地展示了强化学习的核心算法族谱。这些方法共同的局限是：它们都基于表格表示，状态和动作必须是有限且可枚举的。当状态空间很大或连续时（如有成百上千个区域的网约车调度、连续变化的库存水平），表格方法不再可行。解决方案是用函数近似（如神经网络）来表示值函数或策略。第四章将介绍深度学习基础，第五章将把本章的表格算法升级为深度强化学习：DQN（Q-learning + 神经网络）、PPO（策略梯度 + 神经网络）、SAC（Actor-Critic + 神经网络）。</p>
+
+            <details class="optional-reading">
+                <summary>选读：为什么减去基线不改变梯度期望？</summary>
+                <p>对于任意仅依赖 $S_t$ 的基线 $b(S_t)$，考虑被减去的项：</p>
+                $$\mathbb{E}_\pi\!\left[b(S_t)\,\nabla_\theta \ln \pi_\theta(A_t \mid S_t)\right] = \sum_s d^\pi(s)\, b(s) \sum_a \nabla_\theta \pi_\theta(a\mid s)$$
+                <p>由于 $\sum_a \pi_\theta(a \mid s) = 1$ 对所有 $\theta$ 成立，对 $\theta$ 求导得到 $\sum_a \nabla_\theta \pi_\theta(a \mid s) = 0$。因此，减去的这一项期望为零，不影响梯度的期望方向。</p>
+            </details>
 
             <div class="chapter-nav">
-                <a href="../ch01/1.7.2.html">&larr; 1.7.2 REINFORCE算法</a>
-                <a href="../ch02/2.1.html">2.1 从线性回归到神经网络 &rarr;</a>
+                <a href="../ch03/3.3.2.html">&larr; 3.3.2 REINFORCE算法</a>
+                <a href="../ch04/4.1.html">4.1 从线性回归到神经网络 &rarr;</a>
             </div>
         </main>
     </div>

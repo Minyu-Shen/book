@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>4.5 从问题特征到网络架构的选择 - 运筹智能</title>
+    <title>6.5 从问题特征到网络架构的选择 - 运筹智能</title>
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -63,60 +63,70 @@
                 <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
                 <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
                 <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
-                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
-                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
-                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.3.html">1.5.3 SARSA与Q-learning</a></li>
-                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
-                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
-                <li class="sidebar-chapter">第二章 深度学习基础</li>
-                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
-                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
-                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
-                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
-                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
-                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
-                <li><a href="../ch03/3.2.html">3.2 Policy Gradient与PPO</a></li>
-                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
-                <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
-                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
-                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
-                <li><a href="../ch04/4.2.html">4.2 时域建模与回合定义</a></li>
-                <li><a href="../ch04/4.3.html">4.3 状态空间、动作空间与奖励函数的设计</a></li>
-                <li><a href="../ch04/4.4.html">4.4 决策时机与决策频率的建模</a></li>
-                <li><a href="../ch04/4.5.html" class="active">4.5 从问题特征到网络架构的选择</a></li>
-                <li class="sidebar-chapter">第五章 仿真器搭建</li>
-                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
-                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
-                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
-                <li><a href="../ch05/5.4.html">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
-                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
-                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
-                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
-                <li><a href="../ch07/7.2.html">7.2 公交串车控制</a></li>
-                <li><a href="../ch07/7.3.html">7.3 需求响应公交调度优化</a></li>
-                <li class="sidebar-chapter">第八章 进阶话题</li>
-                <li><a href="../ch08/8.1.html">8.1 多智能体强化学习</a></li>
-                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html" class="active">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
                 </ul>
             </nav>
         </aside>
 
         <main class="main-content">
-            <h1>4.5 从问题特征到网络架构的选择</h1>
+            <h1>6.5 从问题特征到网络架构的选择</h1>
 
             <!-- ==================== 引言 ==================== -->
 
             <p>在前几节中，我们依次解决了建模管道的核心问题：如何将管理科学问题抽象为MDP（4.1），如何确定时域建模与回合定义（4.2），如何设计状态空间、动作空间与奖励函数（4.3），以及如何确定决策时机与频率（4.4）。至此，MDP的数学框架已经搭建完毕。剩下最后一个问题：用什么样的神经网络来表示策略 $\pi_\theta$ 和值函数 $V_\phi$？</p>
 
-            <p>第二章介绍了多种神经网络架构，从最基础的多层感知机（MLP，2.1节）到卷积神经网络（CNN）和循环神经网络（RNN，2.2节），再到Attention机制与Transformer（2.3节）以及图神经网络（GNN，2.4节）。这些架构并非可以随意替换的模块。每种架构都有其擅长处理的数据结构，选择的依据在于问题本身的状态与动作特征。</p>
+            <p>第四章介绍了多种神经网络架构，从最基础的多层感知机（MLP，4.1节）到卷积神经网络（CNN）和循环神经网络（RNN，4.2节），再到Attention机制与Transformer（4.3节）以及图神经网络（GNN，4.4节）。这些架构并非可以随意替换的模块。每种架构都有其擅长处理的数据结构，选择的依据在于问题本身的状态与动作特征。</p>
 
             <p>本节提供一个从问题特征到架构选择的决策框架。核心原则很简单：<strong>让网络架构匹配数据的内在结构</strong>。如果状态是一张网格图，就用擅长提取空间特征的CNN；如果状态是一组变长的实体集合，就用能处理变长输入的Attention机制。用错了架构，不仅浪费算力，还可能让模型难以学到有效策略。</p>
 
@@ -229,11 +239,11 @@
 
             <p>以网约车派单为例：当一个新请求 $r$ 到达时，需要从 $N$ 辆可用车辆中选择一辆去服务。设车辆 $i$ 的嵌入为 $v_i$，请求的嵌入为 $r$，通过注意力打分计算每辆车的匹配度：</p>
 
-            $$\text{score}(v_i, r) = \frac{(W_Q \, r)^\top (W_K \, v_i)}{\sqrt{d}} \tag{4.5-1}$$
+            $$\text{score}(v_i, r) = \frac{(W_Q \, r)^\top (W_K \, v_i)}{\sqrt{d}} \tag{6.5-1}$$
 
             <p>其中 $W_Q$ 和 $W_K$ 分别是查询（query）和键（key）的投影矩阵，$d$ 是嵌入维度。然后通过softmax加上可行性掩码得到动作概率：</p>
 
-            $$\pi(v_i \mid s, r) = \frac{\exp(\text{score}(v_i, r)) \cdot m_i}{\sum_{j=1}^{N} \exp(\text{score}(v_j, r)) \cdot m_j} \tag{4.5-2}$$
+            $$\pi(v_i \mid s, r) = \frac{\exp(\text{score}(v_i, r)) \cdot m_i}{\sum_{j=1}^{N} \exp(\text{score}(v_j, r)) \cdot m_j} \tag{6.5-2}$$
 
             <p>其中 $m_i = 1$ 表示车辆 $i$ 可被派遣，$m_i = 0$ 表示车辆 $i$ 不可用（例如正在执行其他任务）。掩码确保了策略只会选择可行的动作，这对于满足约束条件至关重要。</p>
 
@@ -249,7 +259,7 @@
                 <div class="concept-name">残差策略（Residual Policy）</div>
                 <p>与其让神经网络从零学习完整策略，不如让它在已有的启发式基线上学习<strong>修正量</strong>。具体做法是：将每个动作的打分拆分为启发式部分和学习部分的加权和。</p>
                 <p>设实体 $i$ 的启发式打分为 $\ell_i^{\text{baseline}}$（例如按距离排序的得分），神经网络输出的修正打分为 $\ell_i^{\text{learned}}$，最终打分为：</p>
-                $$\ell_i = \ell_i^{\text{baseline}} + \alpha \cdot \ell_i^{\text{learned}} \tag{4.5-3}$$
+                $$\ell_i = \ell_i^{\text{baseline}} + \alpha \cdot \ell_i^{\text{learned}} \tag{6.5-3}$$
                 <p>其中 $\alpha$ 是一个可学习的温度参数，控制神经网络修正的幅度。</p>
                 <p>这样做有三个好处。第一，策略从训练一开始就具备接近启发式的性能，不会出现随机探索阶段的糟糕表现。第二，网络只需要学习启发式策略的不足之处，学习负担大大减轻。第三，通过对比 $\ell_i^{\text{baseline}}$ 和 $\alpha \cdot \ell_i^{\text{learned}}$，可以直观地看到RL在哪些情况下修正了启发式的决策，增强了可解释性。</p>
             </div>
@@ -306,7 +316,7 @@
                     </foreignObject>
                 </svg>
             </div>
-            <div class="fig-caption">图 4.5-1　Actor-Critic共享编码器架构。底层的共享编码器处理状态特征并提取潜在表示，上层的Actor头和Critic头分别输出动作分布和值估计。</div>
+            <div class="fig-caption">图 6.5-1　Actor-Critic共享编码器架构。底层的共享编码器处理状态特征并提取潜在表示，上层的Actor头和Critic头分别输出动作分布和值估计。</div>
 
             <p>参数共享有两方面的好处。首先，特征编码只需计算一次就能同时服务于策略和值函数，节省了计算开销。其次，共享编码器能让两个任务的梯度信号相互补充，起到正则化的效果，有助于学到更好的状态表示。</p>
 
@@ -337,13 +347,13 @@
             <!-- ==================== 本章小结 ==================== -->
             <h2>本章小结</h2>
 
-            <p>本章围绕一个核心问题展开：<strong>如何将一个管理科学问题转化为可以用强化学习求解的形式</strong>。我们沿着建模管道依次讨论了四个步骤。4.1节讨论了如何将实际问题抽象为MDP，确定智能体、环境和交互边界。4.2节讨论了时域建模与回合定义，确定问题的时间结构。4.3节讨论了状态空间、动作空间和奖励函数的设计，将问题的关键信息编码为MDP的语言。4.4节讨论了决策时机和频率的建模，确定智能体在什么时间点做决策。本节（4.5节）讨论了如何根据问题的状态和动作特征选择合适的网络架构，完成了从问题到模型的最后一步。</p>
+            <p>本章围绕一个核心问题展开：<strong>如何将一个管理科学问题转化为可以用强化学习求解的形式</strong>。我们沿着建模管道依次讨论了四个步骤。6.1节讨论了如何将实际问题抽象为MDP，确定智能体、环境和交互边界。6.2节讨论了时域建模与回合定义，确定问题的时间结构。6.3节讨论了状态空间、动作空间和奖励函数的设计，将问题的关键信息编码为MDP的语言。6.4节讨论了决策时机和频率的建模，确定智能体在什么时间点做决策。本节（6.5节）讨论了如何根据问题的状态和动作特征选择合适的网络架构，完成了从问题到模型的最后一步。</p>
 
-            <p>有了这套完整的建模工具，下一步就是搭建仿真环境来训练和评估RL策略。这正是第五章将要解决的问题。</p>
+            <p>有了这套完整的建模工具，下一步就是搭建仿真环境来训练和评估RL策略。这正是第七章将要解决的问题。</p>
 
             <div class="chapter-nav">
-                <a href="../ch04/4.4.html">&larr; 4.4 决策时机与决策频率的建模</a>
-                <a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器 &rarr;</a>
+                <a href="../ch06/6.4.html">&larr; 6.4 决策时机与决策频率的建模</a>
+                <a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器 &rarr;</a>
             </div>
         </main>
     </div>

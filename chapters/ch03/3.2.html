@@ -3,39 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3.2 Policy Gradient与PPO - 运筹智能</title>
+    <title>3.2 控制问题（一）：基于值函数的方法 - 运筹智能</title>
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
     <style>
-        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
-        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
-        .trans-table { width: auto; border-collapse: collapse; margin: 1rem auto; font-size: 0.95rem; }
-        .trans-table th, .trans-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: center; }
-        .trans-table th { background: var(--primary-color); color: white; }
-        .trans-table tr:nth-child(even) { background: var(--sidebar-bg); }
-        .result-box { background: var(--highlight-color); border: 2px solid var(--accent-color); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; text-align: center; }
-        .algo-box { background: #f7fafc; border: 2px solid var(--accent-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
-        .algo-box .algo-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
-        .algo-box ol { margin: 0.3rem 0 0.3rem 1.5rem; line-height: 2; }
-        .algo-box .algo-note { font-size: 0.9rem; color: #718096; margin-top: 0.5rem; }
-        .note { background: var(--highlight-color); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
-        .formula-block { background: var(--code-bg); padding: 1.2rem 1.5rem; margin: 1.5rem 0; border-radius: 6px; overflow-x: auto; text-align: center; }
-        .derivation { background: #fffbeb; border-left: 3px solid #d69e2e; padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
-        .derivation .deriv-title { font-weight: 600; color: #975a16; margin-bottom: 0.5rem; }
-        .optional-reading { background: #f0fff4; border-left: 4px solid #38a169; padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
-        .optional-reading .opt-title { font-weight: 700; color: #276749; margin-bottom: 0.5rem; }
-        .rl-ctrl { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; margin-bottom:0.8rem; font-size:0.88rem; }
-        .rl-ctrl button { padding:0.3rem 0.7rem; border:1px solid #2b6cb0; background:white; color:#2b6cb0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.84rem; transition:all 0.15s; }
-        .rl-ctrl button:hover { background:#2b6cb0; color:white; }
-        .rl-ctrl label { font-size:0.85rem; color:#4a5568; }
-        .rl-ctrl input[type="range"] { width:100px; vertical-align:middle; }
-        .rl-info { background:#ebf4ff; border-radius:6px; padding:0.4rem 0.8rem; font-size:0.88rem; margin-top:0.6rem; }
-        .demo-canvas-wrap { display:flex; gap:1.5rem; flex-wrap:wrap; justify-content:center; margin:0.8rem 0; }
-        .demo-canvas-wrap canvas { border:1px solid var(--border-color); border-radius:4px; background:white; }
-        .fig-caption { text-align:center; font-size:0.9rem; color:#718096; margin-top:0.5rem; margin-bottom:1.5rem; }
+        .section-list { list-style: none; padding: 0; margin: 2rem 0; }
+        .section-list li { margin-bottom: 1rem; }
+        .section-list a { display: block; padding: 1.2rem 1.5rem; background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); border-radius: 0 8px 8px 0; text-decoration: none; color: var(--text-color); transition: all 0.2s; }
+        .section-list a:hover { background: var(--highlight-color); border-left-color: var(--primary-color); }
+        .section-list .sec-title { font-weight: 700; font-size: 1.05rem; color: var(--primary-color); }
+        .section-list .sec-desc { font-size: 0.9rem; color: #718096; margin-top: 0.3rem; }
     </style>
     <script defer src="../../js/code-copy.js"></script>
 </head>
@@ -48,669 +28,87 @@
                 <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
                 <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
                 <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
-                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
-                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
-                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.3.html">1.5.3 SARSA与Q-learning</a></li>
-                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
-                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
-                <li class="sidebar-chapter">第二章 深度学习基础</li>
-                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
-                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
-                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
-                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
-                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
-                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
-                <li><a href="../ch03/3.2.html" class="active">3.2 Policy Gradient与PPO</a></li>
-                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
-                <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
-                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
-                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
-                <li><a href="../ch04/4.2.html">4.2 时域建模与回合定义</a></li>
-                <li><a href="../ch04/4.3.html">4.3 状态空间、动作空间与奖励函数的设计</a></li>
-                <li><a href="../ch04/4.4.html">4.4 决策时机与决策频率的建模</a></li>
-                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
-                <li class="sidebar-chapter">第五章 仿真器搭建</li>
-                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
-                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
-                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
-                <li><a href="../ch05/5.4.html">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
-                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
-                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
-                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
-                <li><a href="../ch07/7.2.html">7.2 公交串车控制</a></li>
-                <li><a href="../ch07/7.3.html">7.3 需求响应公交调度优化</a></li>
-                <li class="sidebar-chapter">第八章 进阶话题</li>
-                <li><a href="../ch08/8.1.html">8.1 多智能体强化学习</a></li>
-                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li><a href="../ch03/3.2.html" class="active">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
                 </ul>
             </nav>
         </aside>
 
         <main class="main-content">
-            <h1>3.2 Policy Gradient与PPO</h1>
+            <h1>3.2 控制问题（一）：基于值函数的方法</h1>
 
-            <!-- ==================== 为什么直接优化策略 ==================== -->
-            <h2>为什么直接优化策略</h2>
+            <p>3.1节解决了策略评估（预测）问题：给定一个策略，如何从经验中估计其值函数。本节解决策略优化（控制）问题：如何从经验中直接找到最优策略。关键转变是从学习状态值函数 $V$ 转向学习动作值函数 $Q$。一旦智能体掌握了 $Q(s,a)$，它无需知道环境的转移概率就能直接选择动作，只需在每个状态下选取 $Q$ 值最大的动作即可。</p>
 
-            <p>3.1节介绍的DQN沿用了Q-learning的思路：先学习一个动作值函数 $Q_\theta(s,a)$，再从中推导出策略 $\pi(s) = \arg\max_a Q_\theta(s,a)$。这种<strong>基于值函数的方法</strong>用神经网络替代了Q-table，但核心逻辑没有改变，策略始终是从值函数间接得到的。</p>
-
-            <p>这种间接方式在很多场景下效果很好，但也存在局限性：</p>
-
-            <ul>
-                <li><strong>连续动作空间</strong>。当动作是连续值时（例如设定补货数量、调整信号灯配时的秒数），$\arg\max_a Q(s,a)$ 需要对一个连续空间做优化，这本身就是一个困难的子问题。DQN只能处理离散且有限的动作集合。</li>
-                <li><strong>随机策略</strong>。有时最优策略本身就是随机的。例如在博弈论场景中，混合策略优于任何确定性策略。$\arg\max$ 只能给出确定性策略。</li>
-                <li><strong>策略更平滑</strong>。值函数的微小变化可能导致 $\arg\max$ 对应的动作发生突变。直接参数化策略则可以实现更平滑、更稳定的更新。</li>
+            <ul class="section-list">
+                <li>
+                    <a href="3.2.1.html">
+                        <div class="sec-title">3.2.1 SARSA</div>
+                        <div class="sec-desc">将TD思想从 $V$ 值扩展到 $Q$ 值，引入 $\varepsilon$-greedy 探索。SARSA是 on-policy 算法：学到的 $Q$ 值对应当前探索策略的期望回报。</div>
+                    </a>
+                </li>
+                <li>
+                    <a href="3.2.2.html">
+                        <div class="sec-title">3.2.2 Q-learning</div>
+                        <div class="sec-desc">Off-policy TD 控制。更新时直接取 $\max$，学到的 $Q$ 值对应最优策略，与探索策略无关。</div>
+                    </a>
+                </li>
             </ul>
-
-            <p>回忆1.4.1节的<strong>策略迭代</strong>算法：它始终显式地维护一个策略 $\pi$，通过交替进行策略评估（计算 $V^\pi$）和策略改进（贪心更新 $\pi$）来逼近最优策略。策略梯度方法继承了这个思想，但做了两个关键改变：</p>
-
-            <ol>
-                <li>用参数 $\theta$ 表示策略 $\pi_\theta$，使策略空间变为连续的；</li>
-                <li>用<strong>梯度上升</strong>替代贪心改进，沿着目标函数增长最快的方向调整参数。</li>
-            </ol>
-
-            <div class="note">
-                <strong>与策略迭代的对照</strong><br>
-                策略迭代（1.4.1节）：评估 $\pi$ $\to$ 贪心改进 $\to$ 重复<br>
-                策略梯度：估计 $\nabla_\theta J(\theta)$ $\to$ 梯度上升 $\theta \leftarrow \theta + \alpha \nabla_\theta J(\theta)$ $\to$ 重复<br>
-                两者都在"理解当前策略有多好"与"让策略变得更好"之间交替迭代。区别在于：策略梯度使用基于梯度的连续优化，而非离散的贪心切换。
-            </div>
-
-            <!-- ==================== 策略参数化 ==================== -->
-            <h2>策略参数化</h2>
-
-            <p>为了使用梯度方法优化策略，首先需要将策略表示为参数 $\theta$ 的可微函数 $\pi_\theta(a \mid s)$。根据动作空间的类型，有两种常见的参数化方式。</p>
-
-            <h3>离散动作：Softmax策略</h3>
-
-            <p>当动作空间 $\mathcal{A}$ 是有限离散集合时，策略网络输出每个动作的偏好值 $h_\theta(s,a)$，再通过softmax函数转化为概率分布：</p>
-
-            $$\pi_\theta(a \mid s) = \frac{\exp\bigl(h_\theta(s, a)\bigr)}{\displaystyle\sum_{a' \in \mathcal{A}} \exp\bigl(h_\theta(s, a')\bigr)} \tag{3.2-1}$$
-
-            <p>其中 $h_\theta(s,a)$ 可以由神经网络计算。例如，一个简单的线性策略令 $h_\theta(s,a) = \theta^\top \phi(s,a)$，其中 $\phi(s,a)$ 是状态-动作的特征向量。更一般地，$h_\theta$ 可以是一个深度神经网络，输入状态 $s$，输出 $|\mathcal{A}|$ 维向量，每一维对应一个动作的偏好值。</p>
-
-            <h3>连续动作：高斯策略</h3>
-
-            <p>当动作 $a \in \mathbb{R}^d$ 是连续值时，常见做法是让策略输出一个高斯分布的均值和标准差：</p>
-
-            $$\pi_\theta(a \mid s) = \mathcal{N}\bigl(a \;\big|\; \mu_\theta(s),\, \sigma_\theta(s)^2\bigr) \tag{3.2-2}$$
-
-            <p>其中 $\mu_\theta(s)$ 和 $\sigma_\theta(s)$ 都由神经网络输出。在执行时，从这个高斯分布中采样得到具体的动作值。这种参数化天然地支持连续动作空间，而且采样和求导都很方便。</p>
-
-            <div class="note">
-                在管理科学的应用中，离散动作（如选择哪条路线、是否补货）和连续动作（如补货数量、定价水平）都很常见。策略梯度方法能够统一处理这两类问题，这是它相比DQN的重要优势。
-            </div>
-
-            <!-- ==================== 策略梯度定理 ==================== -->
-            <h2>策略梯度定理</h2>
-
-            <p>有了参数化的策略 $\pi_\theta$，接下来需要定义优化目标。我们希望找到参数 $\theta$，使得策略的<strong>期望累计回报</strong>最大：</p>
-
-            $$J(\theta) = \mathbb{E}_{\pi_\theta}\left[\sum_{t=0}^{T} \gamma^t R_t\right] \tag{3.2-3}$$
-
-            <p>其中期望是对策略 $\pi_\theta$ 产生的轨迹 $(S_0, A_0, R_0, S_1, A_1, R_1, \ldots)$ 取的。为了用梯度上升优化 $J(\theta)$，我们需要计算 $\nabla_\theta J(\theta)$。关键困难在于：改变 $\theta$ 不仅改变了每步选择动作的概率，还改变了后续访问各状态的概率分布。这使得直接求导非常复杂。</p>
-
-            <p><strong>策略梯度定理</strong>（Sutton et al., 2000）给出了一个优雅的结果，它将梯度表达为一个可以用采样估计的期望：</p>
-
-            <div class="formula-block">
-            $$\nabla_\theta J(\theta) = \mathbb{E}_{\pi_\theta}\left[\sum_{t=0}^{T} \nabla_\theta \log \pi_\theta(A_t \mid S_t) \cdot G_t\right] \tag{3.2-4}$$
-            </div>
-
-            <p>其中 $G_t = \sum_{k=0}^{T-t} \gamma^k R_{t+k}$ 是从时间步 $t$ 开始的折扣回报。</p>
-
-            <div class="derivation">
-                <div class="deriv-title">直觉理解</div>
-                <p>公式(3.2-4)的含义非常直观。对于轨迹中的每一步 $(S_t, A_t)$：</p>
-                <ul style="margin:0.5rem 0 0.5rem 1.5rem; line-height:2;">
-                    <li>$\nabla_\theta \log \pi_\theta(A_t \mid S_t)$ 是使动作 $A_t$ 在状态 $S_t$ 下的概率增大的参数调整方向；</li>
-                    <li>$G_t$ 是执行 $A_t$ 之后获得的实际回报，衡量这个动作有多好。</li>
-                </ul>
-                <p>两者的乘积告诉我们：如果 $G_t$ 较大（动作带来了高回报），就增大该动作的概率；如果 $G_t$ 较小（动作带来了低回报），就减小该动作的概率。这正是<strong>试错学习</strong>的数学表达：好的行为被强化，差的行为被抑制。</p>
-            </div>
-
-            <div class="optional-reading">
-                <div class="opt-title">选读：策略梯度定理的推导</div>
-                <p>考虑一条完整轨迹 $\tau = (S_0, A_0, R_0, \ldots, S_T, A_T, R_T)$，其在策略 $\pi_\theta$ 下的概率为：</p>
-                $$P(\tau \mid \theta) = p(S_0) \prod_{t=0}^{T} \pi_\theta(A_t \mid S_t) \cdot P(S_{t+1} \mid S_t, A_t)$$
-                <p>目标函数可写为 $J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[R(\tau)]$，其中 $R(\tau) = \sum_{t=0}^T \gamma^t R_t$。对 $\theta$ 求导：</p>
-                $$\nabla_\theta J(\theta) = \nabla_\theta \sum_\tau P(\tau \mid \theta) R(\tau) = \sum_\tau P(\tau \mid \theta) \frac{\nabla_\theta P(\tau \mid \theta)}{P(\tau \mid \theta)} R(\tau) = \mathbb{E}_{\tau \sim \pi_\theta}\!\left[\nabla_\theta \log P(\tau \mid \theta) \cdot R(\tau)\right]$$
-                <p>这里用了 $\nabla \log f = \nabla f / f$ 这一恒等式（称为<strong>对数导数技巧</strong>，log-derivative trick）。由于转移概率 $P(S_{t+1} \mid S_t, A_t)$ 和初始分布 $p(S_0)$ 都与 $\theta$ 无关，取对数后求导只剩下策略的部分：</p>
-                $$\nabla_\theta \log P(\tau \mid \theta) = \sum_{t=0}^{T} \nabla_\theta \log \pi_\theta(A_t \mid S_t)$$
-                <p>进一步利用因果性（$t$ 时刻的动作不影响之前的奖励），可以将 $R(\tau)$ 替换为 $G_t$，得到公式(3.2-4)。</p>
-            </div>
-
-            <!-- ==================== REINFORCE算法 ==================== -->
-            <h2>REINFORCE算法</h2>
-
-            <p>有了策略梯度定理，最直接的算法就是用蒙特卡洛采样来估计梯度。这就是Williams（1992）提出的<strong>REINFORCE</strong>算法：运行策略 $\pi_\theta$ 生成一条完整轨迹，用实际的回报 $G_t$ 代入公式(3.2-4)进行梯度更新。</p>
-
-            <div class="algo-box">
-                <div class="algo-title">REINFORCE 算法</div>
-                <ol>
-                    <li>初始化策略参数 $\theta$</li>
-                    <li>对每个回合（episode）：
-                        <ol type="a">
-                            <li>使用策略 $\pi_\theta$ 生成一条完整轨迹：$S_0, A_0, R_0, S_1, A_1, R_1, \ldots, S_T, A_T, R_T$</li>
-                            <li>对每个时间步 $t = 0, 1, \ldots, T$：
-                                <ol type="i">
-                                    <li>计算回报 $G_t = \sum_{k=0}^{T-t} \gamma^k R_{t+k}$</li>
-                                    <li>更新参数 $\theta \leftarrow \theta + \alpha \gamma^t \nabla_\theta \log \pi_\theta(A_t \mid S_t) \cdot G_t$</li>
-                                </ol>
-                            </li>
-                        </ol>
-                    </li>
-                </ol>
-                <div class="algo-note">REINFORCE是蒙特卡洛方法：必须等一个回合结束后才能计算 $G_t$ 并更新参数。</div>
-            </div>
-
-            <p>REINFORCE算法简洁且理论上能保证收敛到局部最优，但它有一个突出的问题：<strong>方差大</strong>。由于 $G_t$ 是单条轨迹的实际回报，它受到环境随机性和策略随机性的双重影响，不同轨迹之间的 $G_t$ 可能差异巨大。高方差意味着梯度估计的噪声很大，需要大量的样本才能让参数朝着正确的方向更新，训练效率低下。</p>
-
-            <!-- ==================== 基线与方差缩减 ==================== -->
-            <h2>基线与方差缩减</h2>
-
-            <p>缓解REINFORCE高方差问题的核心技巧是引入一个<strong>基线函数</strong> $b(s)$。将策略梯度公式中的 $G_t$ 替换为 $G_t - b(S_t)$：</p>
-
-            $$\nabla_\theta J(\theta) = \mathbb{E}_{\pi_\theta}\left[\sum_{t=0}^{T} \nabla_\theta \log \pi_\theta(A_t \mid S_t) \cdot \bigl(G_t - b(S_t)\bigr)\right] \tag{3.2-5}$$
-
-            <p>为什么减去基线不会引入偏差？因为对任何只依赖于状态的函数 $b(s)$，有：</p>
-
-            $$\mathbb{E}_{A_t \sim \pi_\theta(\cdot \mid S_t)}\!\left[\nabla_\theta \log \pi_\theta(A_t \mid S_t) \cdot b(S_t)\right] = b(S_t) \sum_{a} \nabla_\theta \pi_\theta(a \mid S_t) = b(S_t) \cdot \nabla_\theta 1 = 0 \tag{3.2-6}$$
-
-            <p>这里利用了 $\sum_a \pi_\theta(a \mid s) = 1$ 对 $\theta$ 求导等于零的事实。因此，减去 $b(S_t)$ 不改变梯度的期望值，但可以显著减小方差。</p>
-
-            <p>最常用的基线是状态值函数 $V(S_t)$，即从状态 $S_t$ 出发的平均回报。这时 $G_t - V(S_t)$ 衡量的是在状态 $S_t$ 下执行动作 $A_t$ 所获得的回报相对于平均水平的差异，这就是<strong>优势函数</strong>（advantage function）：</p>
-
-            $$A_t = G_t - V(S_t) \tag{3.2-7}$$
-
-            <div class="concept-card">
-                <div class="concept-name">优势函数的直觉</div>
-                <p>$A_t > 0$ 表示动作 $A_t$ 比平均水平好，应该增大其概率；$A_t < 0$ 表示动作 $A_t$ 比平均水平差，应该减小其概率。与原始的 $G_t$ 相比，优势函数去除了"状态本身好坏"的干扰——一个好状态下的普通动作不会因为 $G_t$ 碰巧较大而被不当强化，一个差状态下的好动作也不会因为 $G_t$ 整体较小而被忽视。</p>
-            </div>
-
-            <!-- ==================== Actor-Critic ==================== -->
-            <h2>Actor-Critic</h2>
-
-            <p>使用基线 $V(S_t)$ 需要知道状态值函数，但我们一般不知道真实的 $V^\pi(s)$。解决办法是：像策略一样，也用一个参数化的函数来近似它。这就引出了 <strong>Actor-Critic</strong> 框架，它同时维护两个组件：</p>
-
-            <ul>
-                <li><strong>Actor（演员）</strong>：策略网络 $\pi_\theta(a \mid s)$，负责选择动作。</li>
-                <li><strong>Critic（评论家）</strong>：值函数网络 $V_\phi(s)$，负责评估当前状态的好坏。</li>
-            </ul>
-
-            <p>Actor根据Critic提供的评价来改进策略，Critic则根据Actor产生的经验来更新自己对值函数的估计。</p>
-
-            <div class="note">
-                <strong>再看策略迭代的对应</strong><br>
-                回忆1.4.1节的策略迭代：策略评估阶段计算 $V^\pi$，策略改进阶段用 $V^\pi$ 贪心地更新 $\pi$。Actor-Critic正是这个思想的深度学习版本：Critic做策略评估（学习 $V_\phi \approx V^{\pi_\theta}$），Actor做策略改进（利用 $V_\phi$ 计算优势，梯度上升更新 $\pi_\theta$）。不同之处在于两者同时学习、同时更新，而非严格地交替到收敛。
-            </div>
-
-            <p>Critic不仅提供基线，还让我们不必等到回合结束才更新。利用TD思想，可以用<strong>TD误差</strong>来近似优势函数：</p>
-
-            $$\delta_t = R_t + \gamma V_\phi(S_{t+1}) - V_\phi(S_t) \tag{3.2-8}$$
-
-            <p>$\delta_t$ 是优势函数 $A_t$ 的无偏估计（在Critic准确时）。它只需要一步转移 $(S_t, A_t, R_t, S_{t+1})$，无需等到回合结束。</p>
-
-            <div class="algo-box">
-                <div class="algo-title">Actor-Critic 算法（单步版本）</div>
-                <ol>
-                    <li>初始化策略参数 $\theta$（Actor）和值函数参数 $\phi$（Critic）</li>
-                    <li>对每个回合：
-                        <ol type="a">
-                            <li>初始化状态 $S_0$</li>
-                            <li>对每个时间步 $t = 0, 1, 2, \ldots$：
-                                <ol type="i">
-                                    <li>根据 $\pi_\theta(\cdot \mid S_t)$ 采样动作 $A_t$</li>
-                                    <li>执行 $A_t$，观察 $R_t$ 和 $S_{t+1}$</li>
-                                    <li>计算TD误差 $\delta_t = R_t + \gamma V_\phi(S_{t+1}) - V_\phi(S_t)$</li>
-                                    <li>更新Critic：$\phi \leftarrow \phi - \alpha_\phi \nabla_\phi \bigl(V_\phi(S_t) - (R_t + \gamma V_\phi(S_{t+1}))\bigr)^2$</li>
-                                    <li>更新Actor：$\theta \leftarrow \theta + \alpha_\theta \nabla_\theta \log \pi_\theta(A_t \mid S_t) \cdot \delta_t$</li>
-                                </ol>
-                            </li>
-                        </ol>
-                    </li>
-                </ol>
-                <div class="algo-note">Actor和Critic可以共享神经网络的底层特征提取部分，只在输出层分叉：一个输出动作概率，一个输出状态值。</div>
-            </div>
-
-            <p>Actor-Critic融合了策略梯度（直接优化策略）和值函数估计（减小方差）的优点，成为现代深度强化学习算法的基础框架。接下来介绍的PPO就是Actor-Critic的一个重要改进。</p>
-
-            <!-- ==================== PPO ==================== -->
-            <h2>PPO：近端策略优化</h2>
-
-            <p>Actor-Critic虽然比REINFORCE更高效，但在实际训练中仍然面临一个棘手的问题：<strong>步长的选择</strong>。学习率太大，策略可能在一次更新后急剧变差，导致后续采集的数据质量下降，形成恶性循环；学习率太小，训练速度又过慢。</p>
-
-            <h3>信任区域的思想</h3>
-
-            <p>直觉上，我们希望每次更新都在一个"安全范围"内进行：新策略不要偏离旧策略太远。TRPO（Trust Region Policy Optimization，Schulman et al., 2015）将此想法形式化为一个带约束的优化问题，但其实现涉及二阶优化，计算成本较高。</p>
-
-            <p><strong>PPO</strong>（Proximal Policy Optimization，Schulman et al., 2017）提供了一种更简洁的方案：通过裁剪目标函数来限制策略更新的幅度，无需显式的约束或二阶计算。</p>
-
-            <h3>重要性采样比率</h3>
-
-            <p>PPO的关键思想是重用旧策略 $\pi_{\theta_{\text{old}}}$ 收集的数据来更新新策略 $\pi_\theta$。为此引入<strong>重要性采样比率</strong>：</p>
-
-            $$r_t(\theta) = \frac{\pi_\theta(A_t \mid S_t)}{\pi_{\theta_{\text{old}}}(A_t \mid S_t)} \tag{3.2-9}$$
-
-            <p>当 $\theta = \theta_{\text{old}}$ 时，$r_t(\theta) = 1$。如果新策略增大了动作 $A_t$ 的概率，则 $r_t > 1$；反之 $r_t < 1$。</p>
-
-            <p>用 $r_t(\theta)$ 可以将策略梯度目标改写为：</p>
-
-            $$L^{IS}(\theta) = \mathbb{E}\left[r_t(\theta) \cdot A_t\right] \tag{3.2-10}$$
-
-            <p>这个目标允许我们用旧数据来估计新策略的性能。但如果不加限制地最大化它，$r_t(\theta)$ 可能变得很大，导致更新过于激进。</p>
-
-            <h3>PPO-Clip目标函数</h3>
-
-            <p>PPO通过裁剪 $r_t(\theta)$ 来解决这个问题：</p>
-
-            <div class="formula-block">
-            $$L^{\text{CLIP}}(\theta) = \mathbb{E}\left[\min\!\Big(r_t(\theta)\, A_t,\;\; \text{clip}\big(r_t(\theta),\; 1-\epsilon,\; 1+\epsilon\big)\, A_t\Big)\right] \tag{3.2-11}$$
-            </div>
-
-            <p>其中 $\epsilon$ 是裁剪参数，通常取 $0.1$ 到 $0.2$。$\text{clip}(r, 1-\epsilon, 1+\epsilon)$ 将比率限制在 $[1-\epsilon, 1+\epsilon]$ 范围内。</p>
-
-            <p>取 $\min$ 的效果是：</p>
-            <ul>
-                <li>当 $A_t > 0$（动作比平均好）：目标函数鼓励增大 $r_t$（即增大该动作的概率），但一旦 $r_t > 1+\epsilon$，裁剪使得目标不再增长，阻止过度增大。</li>
-                <li>当 $A_t < 0$（动作比平均差）：目标函数鼓励减小 $r_t$（即减小该动作的概率），但一旦 $r_t < 1-\epsilon$，裁剪使得目标不再增长，阻止过度减小。</li>
-            </ul>
-
-            <p>这样，PPO-Clip在不使用二阶优化的前提下，实现了类似信任区域的效果：每次更新的幅度被自动限制在 $\epsilon$ 的范围内。</p>
-
-            <!-- PPO-Clip 分段图示 -->
-            <div style="margin:1.5rem 0;">
-                <svg viewBox="0 0 660 280" style="width:100%;max-width:660px;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
-                    <!-- 背景 -->
-                    <rect width="660" height="280" fill="#fafafa" rx="8"/>
-
-                    <!-- 左图：A>0 -->
-                    <g transform="translate(30,20)">
-                        <text x="130" y="15" text-anchor="middle" font-size="14" font-weight="bold" fill="#1a365d">
-                            当优势 A &gt; 0
-                        </text>
-                        <!-- 坐标轴 -->
-                        <line x1="30" y1="200" x2="270" y2="200" stroke="#4a5568" stroke-width="1.5"/>
-                        <line x1="30" y1="30" x2="30" y2="210" stroke="#4a5568" stroke-width="1.5"/>
-                        <!-- x轴标签 -->
-                        <text x="150" y="235" text-anchor="middle" font-size="12" fill="#4a5568" font-style="italic">r</text>
-                        <text x="30" y="245" text-anchor="middle" font-size="11" fill="#718096">0</text>
-                        <!-- 1-ε 和 1+ε 标记 -->
-                        <line x1="110" y1="195" x2="110" y2="205" stroke="#4a5568" stroke-width="1"/>
-                        <text x="110" y="220" text-anchor="middle" font-size="10" fill="#718096">1-&#949;</text>
-                        <line x1="170" y1="195" x2="170" y2="205" stroke="#4a5568" stroke-width="1"/>
-                        <text x="170" y="220" text-anchor="middle" font-size="10" fill="#718096">1+&#949;</text>
-                        <line x1="140" y1="198" x2="140" y2="203" stroke="#4a5568" stroke-width="1"/>
-                        <text x="140" y="220" text-anchor="middle" font-size="10" fill="#718096">1</text>
-                        <!-- y轴标签 -->
-                        <text x="15" y="120" text-anchor="middle" font-size="12" fill="#4a5568" font-style="italic" transform="rotate(-90,15,120)">L</text>
-                        <!-- 未裁剪线 (r*A，斜线) -->
-                        <line x1="30" y1="180" x2="250" y2="60" stroke="#a0aec0" stroke-width="1.5" stroke-dasharray="4,3"/>
-                        <text x="255" y="58" font-size="10" fill="#a0aec0" font-style="italic">rA</text>
-                        <!-- PPO-Clip线 -->
-                        <polyline points="30,180 110,136 170,103 170,103 250,103" fill="none" stroke="#2b6cb0" stroke-width="2.5"/>
-                        <!-- 裁剪水平线区域着色 -->
-                        <rect x="170" y="100" width="80" height="6" fill="#ebf4ff" opacity="0.7"/>
-                        <text x="220" y="95" font-size="10" fill="#2b6cb0" font-weight="600">裁剪区</text>
-                    </g>
-
-                    <!-- 右图：A<0 -->
-                    <g transform="translate(350,20)">
-                        <text x="130" y="15" text-anchor="middle" font-size="14" font-weight="bold" fill="#1a365d">
-                            当优势 A &lt; 0
-                        </text>
-                        <!-- 坐标轴 -->
-                        <line x1="30" y1="200" x2="270" y2="200" stroke="#4a5568" stroke-width="1.5"/>
-                        <line x1="30" y1="30" x2="30" y2="210" stroke="#4a5568" stroke-width="1.5"/>
-                        <!-- x轴标签 -->
-                        <text x="150" y="235" text-anchor="middle" font-size="12" fill="#4a5568" font-style="italic">r</text>
-                        <text x="30" y="245" text-anchor="middle" font-size="11" fill="#718096">0</text>
-                        <!-- 1-ε 和 1+ε 标记 -->
-                        <line x1="110" y1="195" x2="110" y2="205" stroke="#4a5568" stroke-width="1"/>
-                        <text x="110" y="220" text-anchor="middle" font-size="10" fill="#718096">1-&#949;</text>
-                        <line x1="170" y1="195" x2="170" y2="205" stroke="#4a5568" stroke-width="1"/>
-                        <text x="170" y="220" text-anchor="middle" font-size="10" fill="#718096">1+&#949;</text>
-                        <line x1="140" y1="198" x2="140" y2="203" stroke="#4a5568" stroke-width="1"/>
-                        <text x="140" y="220" text-anchor="middle" font-size="10" fill="#718096">1</text>
-                        <!-- y轴标签 -->
-                        <text x="15" y="120" text-anchor="middle" font-size="12" fill="#4a5568" font-style="italic" transform="rotate(-90,15,120)">L</text>
-                        <!-- 未裁剪线 (r*A，因为A<0所以斜率为负 => 上升线因为r负时值更高) -->
-                        <line x1="30" y1="80" x2="250" y2="180" stroke="#a0aec0" stroke-width="1.5" stroke-dasharray="4,3"/>
-                        <text x="255" y="183" font-size="10" fill="#a0aec0" font-style="italic">rA</text>
-                        <!-- PPO-Clip线 -->
-                        <polyline points="30,107 110,107 110,138 250,180" fill="none" stroke="#2b6cb0" stroke-width="2.5"/>
-                        <!-- 裁剪水平线区域着色 -->
-                        <rect x="30" y="104" width="80" height="6" fill="#ebf4ff" opacity="0.7"/>
-                        <text x="70" y="99" font-size="10" fill="#2b6cb0" font-weight="600">裁剪区</text>
-                    </g>
-                </svg>
-                <div class="fig-caption">图 3.2-1：PPO-Clip目标函数的示意图。蓝色实线是 $L^{\text{CLIP}}$，灰色虚线是未裁剪的 $rA$。裁剪区域内目标函数不再随 $r$ 变化，阻止策略更新过大。</div>
-            </div>
-
-            <div class="algo-box">
-                <div class="algo-title">PPO-Clip 算法</div>
-                <ol>
-                    <li>初始化策略参数 $\theta$（Actor）和值函数参数 $\phi$（Critic）</li>
-                    <li>对每次迭代：
-                        <ol type="a">
-                            <li>用当前策略 $\pi_{\theta_{\text{old}}}$ 收集一批轨迹数据</li>
-                            <li>对每条轨迹中的每步，计算优势估计 $\hat{A}_t$（通常使用GAE，见下文）</li>
-                            <li>对收集到的数据进行 $K$ 轮（epoch）小批量梯度更新：
-                                <ol type="i">
-                                    <li>计算 $r_t(\theta) = \pi_\theta(A_t \mid S_t) / \pi_{\theta_{\text{old}}}(A_t \mid S_t)$</li>
-                                    <li>计算裁剪目标 $L^{\text{CLIP}}(\theta)$（公式(3.2-11)）</li>
-                                    <li>更新Actor：$\theta \leftarrow \theta + \alpha_\theta \nabla_\theta L^{\text{CLIP}}(\theta)$</li>
-                                    <li>更新Critic：最小化 $\bigl(V_\phi(S_t) - G_t\bigr)^2$</li>
-                                </ol>
-                            </li>
-                            <li>令 $\theta_{\text{old}} \leftarrow \theta$</li>
-                        </ol>
-                    </li>
-                </ol>
-                <div class="algo-note">PPO对同一批数据进行多轮更新（通常 $K=3 \sim 10$），大幅提高了数据利用率。裁剪机制保证即使多轮更新，策略也不会偏离太远。</div>
-            </div>
-
-            <h3>广义优势估计（GAE）</h3>
-
-            <p>PPO实践中通常使用<strong>广义优势估计</strong>（Generalized Advantage Estimation, GAE, Schulman et al., 2016）来计算 $\hat{A}_t$。GAE是不同步数TD误差的指数加权平均，通过一个参数 $\lambda \in [0, 1]$ 控制偏差-方差的平衡：</p>
-
-            $$\hat{A}_t^{\text{GAE}} = \sum_{l=0}^{T-t} (\gamma\lambda)^l \delta_{t+l} \tag{3.2-12}$$
-
-            <p>其中 $\delta_t = R_t + \gamma V_\phi(S_{t+1}) - V_\phi(S_t)$。当 $\lambda = 0$ 时，GAE退化为单步TD误差 $\delta_t$（低方差、高偏差）；当 $\lambda = 1$ 时，GAE等价于蒙特卡洛回报减去基线（高方差、低偏差）。实践中 $\lambda = 0.95$ 是常见的选择。</p>
-
-            <h3>为什么PPO是默认选择</h3>
-
-            <p>PPO自2017年提出以来，迅速成为学术研究和工程实践中最常用的策略优化算法。它的核心优势在于：</p>
-
-            <ul>
-                <li><strong>实现简洁</strong>。相比TRPO需要共轭梯度法和线搜索，PPO只需在标准的随机梯度上升中加入一个裁剪操作，几行代码即可实现。</li>
-                <li><strong>训练稳定</strong>。裁剪机制提供了隐式的信任区域，避免了策略的突然崩溃。超参数（$\epsilon$, $K$, $\lambda$）在大部分任务中使用默认值就能取得不错的效果。</li>
-                <li><strong>数据效率</strong>。通过重要性采样和多轮更新，PPO可以对一批数据进行多次利用，比REINFORCE等纯在策略方法高效得多。</li>
-                <li><strong>适用范围广</strong>。PPO对离散和连续动作空间都适用，在Atari游戏、机器人控制、大语言模型对齐（RLHF）以及各种管理科学场景中都有成功应用。</li>
-            </ul>
-
-            <!-- ==================== 交互演示 ==================== -->
-            <h2>交互演示：REINFORCE训练过程</h2>
-
-            <p>下面的演示展示了一个简单的两动作决策问题。假设一位网约车司机在市中心接到订单后，面临两个选择：走<strong>快速路</strong>（动作 $a_0$）或走<strong>普通路</strong>（动作 $a_1$）。</p>
-
-            <ul>
-                <li>快速路：奖励服从 $\mathcal{N}(6, 4)$（均值6，标准差2），即大多数时候收益较好，但有波动。</li>
-                <li>普通路：奖励服从 $\mathcal{N}(3, 1)$（均值3，标准差1），收益稳定但较低。</li>
-            </ul>
-
-            <p>策略 $\pi_\theta$ 使用softmax参数化：$\pi_\theta(a_0) = \frac{e^{\theta_0}}{e^{\theta_0}+e^{\theta_1}}$。REINFORCE会逐渐学到增大选择快速路的概率。观察训练过程中策略概率的演化和累计回报的变化。</p>
-
-            <div style="border:2px solid var(--border-color); border-radius:8px; padding:1.2rem; margin:1.5rem 0; background:#fafafa;">
-                <div style="font-weight:700; color:var(--accent-color); margin-bottom:0.6rem; font-size:1.05rem;">交互演示：REINFORCE 学习两动作策略</div>
-                <div class="rl-ctrl">
-                    <button onclick="_pgStep1()">训练1个episode</button>
-                    <button onclick="_pgStep100()">快进100 episodes</button>
-                    <button onclick="_pgReset()">重置</button>
-                    <label>学习率 $\alpha$: <input type="range" id="pg-lr" min="1" max="50" value="10"> <span id="pg-lr-val">0.10</span></label>
-                </div>
-                <!-- 策略概率柱状图 -->
-                <div class="demo-canvas-wrap">
-                    <canvas id="pg-bar" width="240" height="180"></canvas>
-                    <canvas id="pg-curve" width="380" height="180"></canvas>
-                </div>
-                <div class="rl-info" id="pg-info">已训练 <strong>0</strong> 个episode，最近回报：<strong>—</strong></div>
-            </div>
-            <div class="fig-caption">图 3.2-2：REINFORCE训练演示。左图为策略概率（柱状图），右图为每个episode的累计回报曲线。拖动学习率滑块可观察收敛速度的变化。</div>
-
-            <!-- ==================== 小结 ==================== -->
-            <h2>小结</h2>
-
-            <p>本节从"为什么直接优化策略"出发，沿着策略参数化、策略梯度定理、REINFORCE、基线与优势函数、Actor-Critic、PPO这条主线，建立了一套完整的策略优化算法体系。下表将本节内容与前面介绍的基于值函数的方法进行对比：</p>
-
-            <table class="trans-table" style="width:100%;">
-                <thead>
-                    <tr><th>比较维度</th><th>DQN（值方法）</th><th>REINFORCE（策略方法）</th><th>PPO（Actor-Critic）</th></tr>
-                </thead>
-                <tbody>
-                    <tr><td>与第一章的对应</td><td>值迭代（1.4.2）</td><td>策略梯度（1.6）</td><td>策略迭代（1.4.1）</td></tr>
-                    <tr><td>学习对象</td><td>$Q_\theta(s,a)$</td><td>$\pi_\theta(a \mid s)$</td><td>$\pi_\theta$（Actor）+ $V_\phi$（Critic）</td></tr>
-                    <tr><td>策略导出方式</td><td>$\arg\max_a Q_\theta(s,a)$</td><td>直接从 $\pi_\theta$ 采样</td><td>直接从 $\pi_\theta$ 采样</td></tr>
-                    <tr><td>动作空间</td><td>离散</td><td>离散或连续</td><td>离散或连续</td></tr>
-                    <tr><td>更新方式</td><td>最小化TD误差</td><td>梯度上升（蒙特卡洛）</td><td>裁剪目标 + 值函数损失</td></tr>
-                    <tr><td>数据利用</td><td>离策略（经验回放）</td><td>在策略（用完即弃）</td><td>多轮复用同批数据</td></tr>
-                    <tr><td>方差</td><td>较低（自举）</td><td>高（蒙特卡洛回报）</td><td>较低（优势 + GAE）</td></tr>
-                    <tr><td>典型应用</td><td>离散决策（Atari）</td><td>简单任务、教学</td><td>通用首选（机器人、RLHF、调度）</td></tr>
-                </tbody>
-            </table>
-
-            <div class="result-box">
-                <strong>核心要点：</strong>DQN通过学习值函数间接得到策略，适合离散动作；策略梯度方法直接优化策略，天然支持连续动作和随机策略；PPO结合了两者的优势，通过Actor-Critic框架和裁剪目标实现了高效、稳定的训练，是目前最常用的深度强化学习算法之一。
-            </div>
 
             <div class="chapter-nav">
-                <a href="../ch03/3.1.html">&larr; 3.1 Deep Q-Network</a>
-                <a href="../ch03/3.3.html">3.3 Soft Actor-Critic &rarr;</a>
+                <a href="../ch03/3.1.3.html">&larr; 3.1.3 蒙特卡洛与时序差分的比较</a>
+                <a href="../ch03/3.2.1.html">3.2.1 SARSA &rarr;</a>
             </div>
         </main>
     </div>
-
-    <!-- ==================== REINFORCE 交互演示 JS ==================== -->
-    <script>
-    (function(){
-        /* --- 环境参数 --- */
-        var MU = [6, 3], SIG = [2, 1];          // 两个动作的奖励分布 N(mu, sig^2)
-        var HORIZON = 10;                         // 每个episode的步数
-        var GAMMA = 0.99;
-
-        /* --- 策略参数 --- */
-        var th, ep, returns, alphaScale;
-
-        /* --- DOM --- */
-        function $(id){ return document.getElementById(id); }
-        var barCvs = $('pg-bar'), barCtx = barCvs.getContext('2d');
-        var curveCvs = $('pg-curve'), curveCtx = curveCvs.getContext('2d');
-
-        /* --- 工具函数 --- */
-        function randn(){ var u=0,v=0; while(u===0) u=Math.random(); while(v===0) v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
-        function softmax(t){ var e0=Math.exp(t[0]-Math.max(t[0],t[1])), e1=Math.exp(t[1]-Math.max(t[0],t[1])); var s=e0+e1; return [e0/s, e1/s]; }
-
-        /* --- 训练一个episode --- */
-        function trainOne(){
-            var alpha = alphaScale;
-            var probs = softmax(th);
-            var totalR = 0;
-            var log_grads = [];  // 每步的 grad log pi * G_t
-            var rewards = [];
-
-            // 生成轨迹（单状态，每步独立）
-            for(var t=0; t<HORIZON; t++){
-                var r = Math.random();
-                var a = r < probs[0] ? 0 : 1;
-                var reward = MU[a] + SIG[a] * randn();
-                rewards.push(reward);
-                log_grads.push({a: a, probs: probs.slice()});
-            }
-
-            // 计算回报
-            var G = new Array(HORIZON);
-            G[HORIZON-1] = rewards[HORIZON-1];
-            for(var t=HORIZON-2; t>=0; t--){
-                G[t] = rewards[t] + GAMMA * G[t+1];
-            }
-            totalR = G[0];
-
-            // REINFORCE更新
-            for(var t=0; t<HORIZON; t++){
-                var a = log_grads[t].a;
-                var p = log_grads[t].probs;
-                // grad log pi_theta(a|s) 对于 softmax：
-                // 对 th[a]:  (1 - p[a])
-                // 对 th[!a]: -p[!a]    实际上等于 -p[other]
-                var gt = Math.pow(GAMMA, t) * G[t];
-                th[0] += alpha * gt * ((a===0 ? 1 : 0) - p[0]);
-                th[1] += alpha * gt * ((a===1 ? 1 : 0) - p[1]);
-            }
-
-            ep++;
-            returns.push(totalR);
-        }
-
-        /* --- 绘制柱状图 --- */
-        function drawBar(){
-            var W=barCvs.width, H=barCvs.height;
-            barCtx.clearRect(0,0,W,H);
-            var probs = softmax(th);
-            var labels = ['快速路 a₀', '普通路 a₁'];
-            var colors = ['#2b6cb0', '#e53e3e'];
-            var barW = 60, gap = 40;
-            var baseY = H - 30, maxH = H - 50;
-
-            // 标题
-            barCtx.fillStyle = '#4a5568';
-            barCtx.font = '12px sans-serif';
-            barCtx.textAlign = 'center';
-            barCtx.fillText('策略概率 π(a)', W/2, 16);
-
-            for(var i=0; i<2; i++){
-                var x = (W - 2*barW - gap)/2 + i*(barW+gap);
-                var h = probs[i] * maxH;
-                barCtx.fillStyle = colors[i];
-                barCtx.fillRect(x, baseY - h, barW, h);
-                // 概率值
-                barCtx.fillStyle = '#1a365d';
-                barCtx.font = 'bold 13px sans-serif';
-                barCtx.textAlign = 'center';
-                barCtx.fillText((probs[i]*100).toFixed(1)+'%', x+barW/2, baseY - h - 6);
-                // 标签
-                barCtx.fillStyle = '#4a5568';
-                barCtx.font = '11px sans-serif';
-                barCtx.fillText(labels[i], x+barW/2, baseY + 16);
-            }
-        }
-
-        /* --- 绘制回报曲线 --- */
-        function drawCurve(){
-            var W=curveCvs.width, H=curveCvs.height;
-            curveCtx.clearRect(0,0,W,H);
-            if(returns.length < 2) {
-                curveCtx.fillStyle = '#a0aec0';
-                curveCtx.font = '12px sans-serif';
-                curveCtx.textAlign = 'center';
-                curveCtx.fillText('累计回报曲线（训练后显示）', W/2, H/2);
-                return;
-            }
-
-            var padL=45, padR=15, padT=25, padB=30;
-            var plotW = W-padL-padR, plotH = H-padT-padB;
-
-            // 取最近500个点显示
-            var data = returns.length > 500 ? returns.slice(-500) : returns;
-            var n = data.length;
-
-            // 计算移动平均（窗口20）
-            var winSize = Math.min(20, Math.floor(n/2));
-            var smooth = [];
-            for(var i=0; i<n; i++){
-                var s=0, c=0;
-                for(var j=Math.max(0,i-winSize); j<=i; j++){ s+=data[j]; c++; }
-                smooth.push(s/c);
-            }
-
-            var mn = Infinity, mx = -Infinity;
-            for(var i=0; i<n; i++){
-                if(data[i]<mn) mn=data[i];
-                if(data[i]>mx) mx=data[i];
-            }
-            if(mx===mn) mx=mn+1;
-            var range = mx-mn;
-            mn -= range*0.05; mx += range*0.05;
-
-            // 坐标轴
-            curveCtx.strokeStyle = '#4a5568';
-            curveCtx.lineWidth = 1;
-            curveCtx.beginPath();
-            curveCtx.moveTo(padL, padT);
-            curveCtx.lineTo(padL, H-padB);
-            curveCtx.lineTo(W-padR, H-padB);
-            curveCtx.stroke();
-
-            // 标签
-            curveCtx.fillStyle = '#4a5568';
-            curveCtx.font = '11px sans-serif';
-            curveCtx.textAlign = 'center';
-            curveCtx.fillText('Episode', W/2, H-4);
-            curveCtx.textAlign = 'right';
-            curveCtx.fillText(mx.toFixed(0), padL-4, padT+8);
-            curveCtx.fillText(mn.toFixed(0), padL-4, H-padB);
-
-            // 标题
-            curveCtx.textAlign = 'center';
-            curveCtx.font = '12px sans-serif';
-            curveCtx.fillText('每episode回报', W/2, 14);
-
-            function xPos(i){ return padL + (i/(n-1))*plotW; }
-            function yPos(v){ return padT + (1-(v-mn)/(mx-mn))*plotH; }
-
-            // 原始数据点（灰色小点）
-            curveCtx.fillStyle = 'rgba(160,174,192,0.35)';
-            for(var i=0; i<n; i++){
-                curveCtx.beginPath();
-                curveCtx.arc(xPos(i), yPos(data[i]), 1.5, 0, 2*Math.PI);
-                curveCtx.fill();
-            }
-
-            // 平滑曲线（蓝色）
-            curveCtx.strokeStyle = '#2b6cb0';
-            curveCtx.lineWidth = 2;
-            curveCtx.beginPath();
-            for(var i=0; i<n; i++){
-                var x=xPos(i), y=yPos(smooth[i]);
-                if(i===0) curveCtx.moveTo(x,y);
-                else curveCtx.lineTo(x,y);
-            }
-            curveCtx.stroke();
-        }
-
-        /* --- 更新显示 --- */
-        function updateUI(){
-            drawBar();
-            drawCurve();
-            var lastR = returns.length > 0 ? returns[returns.length-1].toFixed(1) : '—';
-            $('pg-info').innerHTML = '已训练 <strong>' + ep + '</strong> 个episode，最近回报：<strong>' + lastR + '</strong>';
-        }
-
-        /* --- 初始化 --- */
-        function reset(){
-            th = [0, 0];
-            ep = 0;
-            returns = [];
-            alphaScale = parseFloat($('pg-lr').value) / 100;
-            updateUI();
-        }
-
-        /* --- 公开接口 --- */
-        window._pgStep1 = function(){
-            alphaScale = parseFloat($('pg-lr').value) / 100;
-            trainOne();
-            updateUI();
-        };
-        window._pgStep100 = function(){
-            alphaScale = parseFloat($('pg-lr').value) / 100;
-            for(var i=0; i<100; i++) trainOne();
-            updateUI();
-        };
-        window._pgReset = function(){ reset(); };
-
-        // 学习率滑块实时显示
-        $('pg-lr').addEventListener('input', function(){
-            $('pg-lr-val').textContent = (parseFloat(this.value)/100).toFixed(2);
-        });
-
-        reset();
-    })();
-    </script>
 </body>
 </html>

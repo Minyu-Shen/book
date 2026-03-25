@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6.3 状态空间、动作空间与奖励函数的设计 - 运筹智能</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .optional-reading { background:#fafafa; border:1px solid #e2e8f0; border-left:4px solid #a0aec0; border-radius:0 8px 8px 0; margin:2.5rem 0; }
+        .optional-reading summary { padding:1rem 1.5rem; cursor:pointer; font-weight:700; color:#4a5568; font-size:1.1rem; list-style:none; }
+        .optional-reading summary::-webkit-details-marker { display:none; }
+        .optional-reading summary::before { content:'▶ '; font-size:0.8em; margin-right:0.3rem; }
+        .optional-reading[open] summary::before { content:'▼ '; }
+        .optional-reading[open] summary { border-bottom:1px solid #e2e8f0; }
+        .optional-reading .opt-body { padding:1.2rem 1.5rem; }
+        .compare-box { display: flex; gap: 1.5rem; flex-wrap: wrap; margin: 1.5rem 0; }
+        .compare-box > div { flex: 1; min-width: 220px; background: var(--sidebar-bg); padding: 1rem 1.2rem; border-radius: 8px; border-top: 3px solid var(--accent-color); }
+        .compare-box > div h4 { margin: 0 0 0.5rem 0; color: var(--primary-color); }
+        .compare-box > div.compare-red { border-top-color: #c53030; }
+        .compare-box > div.compare-red h4 { color: #c53030; }
+        .state-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.95rem; }
+        .state-table th, .state-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: left; }
+        .state-table th { background: var(--primary-color); color: white; font-size: 0.9rem; }
+        .state-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .state-table code { font-size: 0.85em; background: #edf2f7; padding: 0.1rem 0.3rem; border-radius: 3px; }
+        .fig-caption { text-align:center; font-size:0.9rem; color:#718096; margin-top:0.5rem; }
+    </style>
+    <script defer src="../../js/code-copy.js"></script>
+</head>
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="book-title"><a href="../../index.html" style="text-decoration:none;color:inherit;">运筹智能</a></div>
+            <nav>
+                <ul>
+                <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
+                <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
+                <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html" class="active">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>6.3 状态空间、动作空间与奖励函数的设计</h1>
+
+            <p>4.1 节介绍了将管理科学问题抽象为 MDP 的五要素清单。在这五个要素中，状态空间 $\mathcal{S}$、动作空间 $\mathcal{A}$ 和奖励函数 $R$ 的设计对学习效果影响最大，也是研究者花费精力最多的环节。状态空间决定了智能体能<strong>看到</strong>什么信息，动作空间决定了它能<strong>做</strong>什么操作，奖励函数则告诉它什么是<strong>好</strong>的行为。本节将逐一讨论这三个要素的设计原则与常见技巧。</p>
+
+            <!-- ===== Part 1: 状态空间设计 ===== -->
+            <h2>一、状态空间设计</h2>
+
+            <h3>Markov 性的实际含义</h3>
+
+            <p>在第一章中，我们了解到 MDP 的核心假设是 <strong>Markov 性</strong>：给定当前状态 $S_t$，未来的状态和奖励与过去的历史无关。用公式表达：</p>
+
+            $$P(S_{t+1}, R_{t+1} \mid S_t, A_t) = P(S_{t+1}, R_{t+1} \mid S_0, A_0, \ldots, S_t, A_t)$$
+
+            <p>这个性质在实际建模中的含义是：<strong>状态必须包含足够的信息，使得智能体仅凭当前状态就能做出好的决策，无需回溯历史。</strong>换一种角度来说，设计状态空间的核心问题是：为了做出当前这个决策，智能体需要看到哪些信息？</p>
+
+            <p>在管理科学问题中，信息不足和信息冗余都会带来问题。信息不足会破坏 Markov 性，导致同一状态在不同历史下需要不同的决策，智能体无法学到一致的策略。信息冗余则会增大状态空间的维度，既增加神经网络的输入规模，也可能引入噪声，减慢学习速度。</p>
+
+            <h3>状态特征的三个层次</h3>
+
+            <p>对于管理科学中的复杂系统，我们可以将状态信息分为三个层次来组织。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">状态特征的三个层次</div>
+                <p><strong>实体特征</strong>（Entity Features）：描述系统中单个实体的属性。例如一辆车的位置、载客量、剩余容量。</p>
+                <p><strong>关系特征</strong>（Relational Features）：描述实体之间的关系。例如某辆车到某个请求起点的距离、当前订单在车辆行程计划中的插入位置。</p>
+                <p><strong>上下文特征</strong>（Context Features）：描述全局环境状态。例如当前时刻、需求预测、车队整体利用率。</p>
+            </div>
+
+            <p>以需求响应公交（DRT）调度为例，当一个新的乘客请求到达时，智能体需要决定将该请求分配给哪辆车。此时状态可以组织为如下结构：</p>
+
+            <table class="state-table">
+                <thead>
+                    <tr><th>层次</th><th>特征</th><th>说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td rowspan="4">实体特征（车辆）</td><td>$(\text{lat}, \text{lon})$</td><td>车辆当前经纬度</td></tr>
+                    <tr><td>$\text{load} / \text{capacity}$</td><td>当前载客量与总容量之比</td></tr>
+                    <tr><td>$n_{\text{pending}}$</td><td>待完成任务数</td></tr>
+                    <tr><td>$\mathbb{1}_{\text{idle}}$</td><td>是否处于空闲状态</td></tr>
+                    <tr><td rowspan="3">实体特征（请求）</td><td>$(\text{olat}, \text{olon})$</td><td>请求起点经纬度</td></tr>
+                    <tr><td>$(\text{dlat}, \text{dlon})$</td><td>请求终点经纬度</td></tr>
+                    <tr><td>$w$</td><td>乘客已等待时间</td></tr>
+                    <tr><td rowspan="2">关系特征</td><td>$d_{vr}$</td><td>车辆到请求起点的距离</td></tr>
+                    <tr><td>$\Delta t_{vr}$</td><td>车辆到达请求起点的预计时间</td></tr>
+                    <tr><td rowspan="3">上下文特征</td><td>$t / T$</td><td>时间进度（当前时刻占运营周期的比例）</td></tr>
+                    <tr><td>$u_{\text{fleet}}$</td><td>车队整体利用率</td></tr>
+                    <tr><td>$\hat{D}$</td><td>未来短期需求预测</td></tr>
+                </tbody>
+            </table>
+            <p class="fig-caption">表 4.3-1 &nbsp; DRT 调度问题的状态特征示例</p>
+
+            <p>三个层次的划分不是绝对的，而是帮助研究者系统地梳理信息。一个常见的遗漏是只关注实体特征而忽略上下文特征：例如在车辆调度中，如果状态中不包含当前时刻，智能体就无法区分早高峰和深夜，从而无法根据需求模式调整策略。</p>
+
+            <h3>归一化与缩放</h3>
+
+            <p>神经网络对输入的数值范围很敏感。如果不同特征的量纲差异很大（如经度范围在 $[103, 105]$，等待时间范围在 $[0, 30]$ 分钟），梯度更新会在不同维度上严重失衡，导致训练不稳定。因此，将所有特征缩放到相近的数值范围是必要的预处理步骤。</p>
+
+            <p>最常用的做法是对每个特征进行中心化和缩放：</p>
+
+            $$\tilde{x} = \frac{x - x_{\text{center}}}{x_{\text{scale}}} \tag{6.3-1}$$
+
+            <p>其中 $x_{\text{center}}$ 和 $x_{\text{scale}}$ 的选取取决于具体特征。例如：坐标特征可以用城市中心和城市半径来归一化；时间特征用运营周期长度来缩放；比例型特征（如 $\text{load}/\text{capacity}$）本身就在 $[0, 1]$ 范围内，无需额外处理。</p>
+
+            <h3>变长输入的处理</h3>
+
+            <p>管理科学问题中一个常见的挑战是：系统中实体的数量可能随时间变化。例如，在 DRT 调度中，当前正在运营的车辆数、待分配的请求数在不同时刻都不相同。然而，神经网络通常要求固定维度的输入向量。</p>
+
+            <p>处理这种变长输入有几种典型方案：</p>
+            <ul>
+                <li><strong>填充与掩码</strong>（Padding + Masking）：设定一个最大数量 $N_{\max}$，不足的部分用零向量填充，同时用一个掩码向量标记哪些位置是真实实体。简单直接，但当实际数量远小于 $N_{\max}$ 时会浪费计算资源。</li>
+                <li><strong>集合编码</strong>（Set Encoding）：将每个实体通过同一个网络映射为固定维度的嵌入向量，再对所有嵌入做池化（如求和或取平均），得到固定维度的表示。</li>
+                <li><strong>注意力机制</strong>（Attention）：用 Transformer 等架构处理变长序列，通过注意力权重自动选择重要的实体信息。</li>
+            </ul>
+
+            <p>这些方案涉及网络架构的选择，将在 4.5 节中详细展开。此处的关键认识是：状态空间的设计与网络架构的选择紧密相关。状态中包含哪些信息是建模层面的决策，如何将这些信息编码为网络输入是架构层面的决策，两者需要协同考虑。</p>
+
+            <!-- ===== Part 2: 动作空间设计 ===== -->
+            <h2>二、动作空间设计</h2>
+
+            <h3>离散动作与连续动作</h3>
+
+            <p>动作空间的性质直接决定了可以使用哪类算法。管理科学问题中的动作空间大致分为两类。</p>
+
+            <div class="compare-box">
+                <div>
+                    <h4>离散动作空间</h4>
+                    <p>智能体从有限集合中选择一个动作。</p>
+                    <p><strong>典型场景：</strong></p>
+                    <ul>
+                        <li>库存管理：订货量从 $\{0, 10, 20, \ldots, 100\}$ 中选取</li>
+                        <li>车辆调度：选择哪辆车服务当前请求</li>
+                        <li>路径选择：从若干候选路线中选取一条</li>
+                    </ul>
+                    <p><strong>适用算法：</strong>DQN、PPO（离散版本）</p>
+                </div>
+                <div class="compare-red">
+                    <h4>连续动作空间</h4>
+                    <p>动作取值为连续区间上的实数或实向量。</p>
+                    <p><strong>典型场景：</strong></p>
+                    <ul>
+                        <li>动态定价：价格在 $[p_{\min}, p_{\max}]$ 内连续取值</li>
+                        <li>车速控制：加速度在 $[-a_{\max}, a_{\max}]$ 内连续取值</li>
+                        <li>资源分配比例：将预算按比例分配到各渠道</li>
+                    </ul>
+                    <p><strong>适用算法：</strong>PPO（连续版本）、SAC</p>
+                </div>
+            </div>
+
+            <p>实际问题中，动作空间的离散与连续有时是建模选择而非问题固有性质。例如，动态定价的价格可以是连续的，也可以被离散化为几个档位。离散化会损失精度但简化学习；保持连续则精度高但需要更复杂的算法。具体的权衡取决于问题的特点和对精度的要求。</p>
+
+            <h3>组合动作空间与层次分解</h3>
+
+            <p>在许多管理科学问题中，一个决策步需要同时做出多个相关的选择，这会导致动作空间呈组合爆炸增长。例如在 DRT 调度中，如果有 $M$ 辆车和 $N$ 个待分配请求，将所有请求同时分配给车辆的方案数为 $M^N$，即使 $M = 10$、$N = 5$，也已经有 $10^5 = 100{,}000$ 种可能。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">层次化动作分解</div>
+                <p>面对组合动作空间，一种有效的策略是将一个复杂决策分解为多个顺序执行的子决策。例如，在车辆调度问题中，不是同时分配所有请求，而是逐个处理每个请求。对于每个请求 $r$，分解为两步：</p>
+                <p><strong>第一步</strong>：从 $M$ 辆车中选择一辆车 $v$ 来服务该请求。</p>
+                <p><strong>第二步</strong>：在选定车辆 $v$ 的行程计划中，选择一个插入位置 $k$。</p>
+                <p>联合策略可以写成条件概率的乘积形式：</p>
+                $$\pi(v, k \mid s, r) = \pi_1(v \mid s, r) \cdot \pi_2(k \mid s, r, v) \tag{6.3-2}$$
+                <p>这样，每步的选择空间分别为 $O(M)$ 和 $O(K)$（$K$ 为最大插入位置数），总复杂度从 $O(M^N)$ 降低到 $O(N \cdot (M + K))$。</p>
+            </div>
+
+            <p>层次化分解不仅降低了动作空间的规模，还为每一级的策略网络提供了更明确的学习目标：$\pi_1$ 专注于选择车辆，$\pi_2$ 专注于选择插入位置。这种分而治之的思路在组合优化与运筹学中由来已久，RL 中的层次化动作设计可以看作这一思想在策略学习框架中的自然延伸。</p>
+
+            <h3>动作掩码</h3>
+
+            <p>在大多数管理科学问题中，并非所有动作在每个状态下都可行。例如，一辆满载的车辆无法接受新的乘客请求；库存订货量不能超过仓库剩余容量。如果智能体在训练中反复尝试这些不可行动作并收到惩罚，学习效率会很低。</p>
+
+            <p>更好的做法是使用<strong>动作掩码</strong>（Action Masking），在策略网络输出概率之前，直接将不可行动作的概率设为零。具体实现中，对策略网络输出的 logits $\ell_a$ 加上一个掩码值 $m_a$：</p>
+
+            $$\pi(a \mid s) = \text{softmax}(\ell_a + m_a), \quad m_a = \begin{cases} 0 & \text{若 } a \text{ 可行} \\ -\infty & \text{若 } a \text{ 不可行} \end{cases} \tag{6.3-3}$$
+
+            <p>由于 $e^{-\infty} = 0$，不可行动作在 softmax 之后的概率为零，智能体永远不会选择它们。这既保证了每一步输出的都是合法动作，也让策略网络只需在可行动作之间学习区分，大幅提高了样本效率。</p>
+
+            <div class="note">
+                <strong>实现提示：</strong>在代码中，$-\infty$ 通常用一个足够大的负数（如 $-10^9$）代替，以避免数值溢出。掩码向量可以由仿真环境在每一步返回，与状态一起传递给策略网络。
+            </div>
+
+            <!-- ===== Part 3: 奖励函数设计 ===== -->
+            <h2>三、奖励函数设计</h2>
+
+            <h3>稀疏奖励与稠密奖励</h3>
+
+            <p>奖励函数的设计是 RL 建模中最微妙也最关键的环节。一个核心的设计选择是奖励信号的<strong>密度</strong>。</p>
+
+            <div class="compare-box">
+                <div>
+                    <h4>稀疏奖励</h4>
+                    <p>只有在特定时刻（通常是任务结束时）才给出非零奖励。</p>
+                    <p><strong>示例：</strong>所有请求分配完毕后，根据总服务质量给一个分数。</p>
+                    <p><strong>优点：</strong>定义简洁，不容易引入偏差。</p>
+                    <p><strong>缺点：</strong>信号延迟大，智能体难以判断哪些中间决策起了作用，学习速度慢。</p>
+                </div>
+                <div class="compare-red">
+                    <h4>稠密奖励</h4>
+                    <p>每个决策步都给出即时反馈。</p>
+                    <p><strong>示例：</strong>每分配一个请求，立即反馈该请求的等待时间和绕行时间。</p>
+                    <p><strong>优点：</strong>信号频繁，学习效率高。</p>
+                    <p><strong>缺点：</strong>需要仔细设计，不恰当的中间奖励可能诱导智能体追求局部利益而损害全局目标。</p>
+                </div>
+            </div>
+
+            <p>在管理科学问题中，稠密奖励通常是更实用的选择。大多数运筹问题都有自然的阶段性反馈：每服务一个请求、每完成一次配送、每度过一个计费周期，都可以计算出相应的绩效指标。关键在于确保这些阶段性奖励与最终优化目标一致。</p>
+
+            <h3>奖励塑形</h3>
+
+            <p>即使选择了稠密奖励，有时信号仍然不够清晰。例如，在车辆调度的早期阶段，车辆的位置分布还没有影响到服务质量，所有动作获得的奖励都差不多，智能体缺乏有效的学习信号。</p>
+
+            <p><strong>奖励塑形</strong>（Reward Shaping）通过在原始奖励上添加额外的引导信号来缓解这个问题。其一般形式为：</p>
+
+            $$R'(s, a, s') = R(s, a, s') + F(s, a, s') \tag{6.3-4}$$
+
+            <p>其中 $F(s, a, s')$ 是人为添加的塑形项。一个自然的担忧是：添加的额外奖励是否会改变最优策略？Ng 等人（1999）证明了一个重要结论：当塑形项具有<strong>势函数</strong>（potential-based）形式时，最优策略保持不变。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">势函数奖励塑形</div>
+                <p>定义一个势函数 $\Phi : \mathcal{S} \to \mathbb{R}$，令塑形项为：</p>
+                $$F(s, a, s') = \gamma \,\Phi(s') - \Phi(s) \tag{6.3-5}$$
+                <p>那么在塑形奖励 $R' = R + F$ 下学习得到的最优策略，与在原始奖励 $R$ 下的最优策略完全一致。直觉上，势函数 $\Phi(s)$ 衡量状态 $s$ 离目标有多近，而 $\gamma\,\Phi(s') - \Phi(s)$ 对朝目标前进的行为给予正反馈。由于势函数只依赖状态本身，它不会偏好某个特定的动作序列，而只是加速了值函数的收敛。</p>
+            </div>
+
+            <p>在车辆调度问题中，一个自然的势函数选择是：$\Phi(s) = -\sum_i d_i(s)$，其中 $d_i(s)$ 是第 $i$ 个待服务请求到最近车辆的距离。这样，当车辆向待服务区域移动时，$\Phi(s')$ 增大，智能体获得正的塑形奖励，即使此刻还没有完成任何服务。</p>
+
+            <details class="optional-reading">
+                <summary>选读：势函数奖励塑形保持最优策略不变的证明思路</summary>
+                <div class="opt-body">
+                    <p>令 $Q^*$ 和 ${Q'}^*$ 分别为原始奖励和塑形奖励下的最优动作值函数。考虑塑形后的贝尔曼最优方程：</p>
+
+                    $${Q'}^*(s, a) = \mathbb{E}\left[R(s,a,s') + \gamma\,\Phi(s') - \Phi(s) + \gamma \max_{a'} {Q'}^*(s', a')\right]$$
+
+                    <p>定义 ${Q'}^*(s,a) = Q^*(s,a) - \Phi(s)$，代入上式可以验证等式成立：</p>
+
+                    $$Q^*(s,a) - \Phi(s) = \mathbb{E}\left[R(s,a,s') + \gamma\,\Phi(s') - \Phi(s) + \gamma \big(Q^*(s',a^*) - \Phi(s')\big)\right]$$
+
+                    <p>整理后右边的 $\gamma\,\Phi(s')$ 与 $-\gamma\,\Phi(s')$ 恰好相消，回到原始的贝尔曼最优方程。因此 ${Q'}^*(s,a) = Q^*(s,a) - \Phi(s)$，而 $\Phi(s)$ 对所有动作 $a$ 相同，不影响 $\arg\max_a$ 的结果。详见 Ng, Harada, and Russell (1999)。</p>
+                </div>
+            </details>
+
+            <h3>从绝对指标到相对指标</h3>
+
+            <p>奖励函数设计中一个容易被忽视的问题是：奖励信号应当反映<strong>决策质量</strong>，而非问题的固有难度。</p>
+
+            <p>以车辆调度为例，假设用乘客的总行程时间 $t_{\text{trip}}$ 作为奖励信号（取负值）：一个从城市东端到西端的长途请求，即使被完美地服务，其行程时间也远大于一个短途请求。这意味着长途请求总是带来更大的惩罚，但这并不是调度决策的问题，而是请求本身的特点。智能体可能因此学会回避长途请求，这显然不是我们期望的行为。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">使用相对指标作为奖励</div>
+                <p>奖励函数应当度量实际结果与理想基线之间的差距。以车辆调度为例，用<strong>绕行时间</strong>（实际行程时间减去直达时间）代替总行程时间：</p>
+                $$R = -(t_{\text{trip}} - t_{\text{direct}}) \tag{6.3-6}$$
+                <p>这样，无论请求的起终点距离多远，只有调度导致的额外绕行才会被计入惩罚。一个被高效服务的长途请求与一个被高效服务的短途请求获得相同的评价（绕行时间均接近零），而一个路线安排不合理的短途请求反而会收到更大的惩罚。</p>
+            </div>
+
+            <p>类似的思路适用于许多场景。在库存管理中，可以用实际成本与最优 newsvendor 成本之差作为奖励；在动态定价中，可以用实际收益与静态最优定价收益之比来衡量。核心原则是：<strong>去除问题固有难度的影响，让奖励信号仅反映决策的好坏。</strong></p>
+
+            <h3>多目标与权重</h3>
+
+            <p>现实中的管理问题往往需要同时兼顾多个目标。例如在 DRT 调度中，运营方既想缩短乘客等待时间，又想提高车辆利用率、减少空驶里程。这些目标之间通常存在冲突：提升服务质量往往需要投入更多的运力，而节省运力则可能牺牲响应速度。</p>
+
+            <p>最简单的处理方式是<strong>线性标量化</strong>，将多个奖励分量加权求和：</p>
+
+            $$R = w_1 R_{\text{wait}} + w_2 R_{\text{detour}} + w_3 R_{\text{empty}} \tag{6.3-7}$$
+
+            <p>其中 $w_1, w_2, w_3$ 是人为设定的权重。这种方法简单易用，但有两点需要注意。</p>
+
+            <p>第一，不同分量的量纲和数值范围可能差异很大。在求和之前，应当先将各分量归一化到相近的尺度，否则权重的实际效果会被数值范围的差异所掩盖。</p>
+
+            <p>第二，权重的选择对最终策略有显著影响，且没有通用的最优权重。实践中通常需要通过实验对比不同权重组合下的策略表现，观察各指标的 Pareto 曲线来做出取舍。</p>
+
+            <h3>奖励归一化</h3>
+
+            <p>RL 算法中，奖励的绝对大小会影响值函数的尺度，进而影响梯度更新的幅度。如果奖励尺度在训练过程中发生剧烈变化（例如，随着智能体策略改善，每步奖励从 $-100$ 逐渐变为 $-10$），固定的学习率可能在前期过小（学得慢）或在后期过大（不稳定）。</p>
+
+            <p><strong>在线奖励归一化</strong>是一种简单有效的应对方法。其基本思路是维护奖励的滑动均值 $\bar{R}$ 和方差 $\sigma_R^2$，将每个奖励标准化为：</p>
+
+            $$\hat{R} = \frac{R - \bar{R}}{\sigma_R + \epsilon} \tag{6.3-8}$$
+
+            <p>其中 $\epsilon$ 是一个小常数（如 $10^{-8}$），防止除以零。均值和方差可以使用 Welford 算法在线更新，几乎不增加计算开销。许多 RL 库（如 Stable-Baselines3）内置了这一功能。</p>
+
+            <div class="warning">
+                <strong>注意：</strong>奖励归一化改变了值函数的数值含义，因此在评估策略性能时应使用原始（未归一化的）奖励来计算指标。归一化仅是训练阶段的辅助手段。
+            </div>
+
+            <!-- ===== 小结 ===== -->
+            <h2>小结</h2>
+
+            <p>状态空间、动作空间和奖励函数的设计是将管理科学问题转化为可学习的 MDP 的核心工程。表 4.3-2 总结了本节的要点。</p>
+
+            <table>
+                <thead>
+                    <tr><th>设计要素</th><th>核心问题</th><th>关键技巧</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>状态空间</td><td>智能体需要看到什么信息？</td><td>三层特征（实体/关系/上下文）、归一化、变长输入处理</td></tr>
+                    <tr><td>动作空间</td><td>智能体能做什么操作？</td><td>层次化分解降低组合复杂度、动作掩码排除不可行动作</td></tr>
+                    <tr><td>奖励函数</td><td>什么是好的决策？</td><td>稠密优于稀疏、势函数塑形、相对指标、多目标权重、在线归一化</td></tr>
+                </tbody>
+            </table>
+            <p class="fig-caption">表 4.3-2 &nbsp; 三大设计要素的核心问题与关键技巧</p>
+
+            <p>这些设计选择之间是相互关联的。状态空间的结构决定了网络架构的选择（将在 4.5 节展开），动作空间的特性决定了算法的选择（第五章已有讨论），奖励函数的密度和形状影响学习效率和收敛性。下一节将讨论另一个重要但常被忽视的设计维度：决策时机与决策频率的建模。</p>
+
+            <div class="chapter-nav">
+                <a href="../ch06/6.2.html">&larr; 6.2 时域建模与回合定义</a>
+                <a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模 &rarr;</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

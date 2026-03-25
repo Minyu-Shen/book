@@ -3,12 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>8.1 多智能体强化学习 - 运筹智能</title>
+    <title>8.1 机票动态定价 - 运筹智能</title>
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .fig-caption { text-align:center; font-size:0.9rem; color:#718096; margin-top:0.5rem; margin-bottom:1.5rem; }
+        .note { background: var(--highlight-color); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .warning { background: #fffbeb; border-left: 4px solid #d69e2e; padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .result-table { width: auto; margin: 1rem auto; border-collapse: collapse; font-size: 0.95rem; }
+        .result-table th, .result-table td { border: 1px solid var(--border-color); padding: 0.4rem 0.8rem; text-align: center; }
+        .result-table th { background: var(--sidebar-bg); font-weight: 700; color: var(--primary-color); }
+        .result-table .highlight { background: #fed7d7; }
+        .result-table .good { background: #f0fff4; }
+        .scenario-box { background: var(--sidebar-bg); border: 2px solid var(--border-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .scenario-box .scenario-title { font-weight: 700; color: var(--primary-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .policy-grid { margin: 1.5rem auto; border-collapse: collapse; font-size: 1rem; }
+        .policy-grid th, .policy-grid td { border: 2px solid var(--border-color); padding: 0.6rem 1.2rem; text-align: center; min-width: 90px; }
+        .policy-grid th { background: var(--sidebar-bg); font-weight: 700; color: var(--primary-color); }
+        .policy-grid .low-price { background: #dbeafe; color: #2b6cb0; font-weight: 700; }
+        .policy-grid .high-price { background: #fed7d7; color: #c53030; font-weight: 700; }
+    </style>
     <script defer src="../../js/code-copy.js"></script>
 </head>
 <body>
@@ -20,60 +42,268 @@
                 <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
                 <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
                 <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
-                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
-                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
-                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.3.html">1.5.3 SARSA与Q-learning</a></li>
-                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
-                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
-                <li class="sidebar-chapter">第二章 深度学习基础</li>
-                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
-                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
-                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
-                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
-                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
-                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
-                <li><a href="../ch03/3.2.html">3.2 Policy Gradient与PPO</a></li>
-                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
-                <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
-                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
-                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
-                <li><a href="../ch04/4.2.html">4.2 时域建模与回合定义</a></li>
-                <li><a href="../ch04/4.3.html">4.3 状态空间、动作空间与奖励函数的设计</a></li>
-                <li><a href="../ch04/4.4.html">4.4 决策时机与决策频率的建模</a></li>
-                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
-                <li class="sidebar-chapter">第五章 仿真器搭建</li>
-                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
-                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
-                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
-                <li><a href="../ch05/5.4.html">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
-                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
-                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
-                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
-                <li><a href="../ch07/7.2.html">7.2 公交串车控制</a></li>
-                <li><a href="../ch07/7.3.html">7.3 需求响应公交调度优化</a></li>
-                <li class="sidebar-chapter">第八章 进阶话题</li>
-                <li><a href="../ch08/8.1.html" class="active">8.1 多智能体强化学习</a></li>
-                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html" class="active">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
                 </ul>
             </nav>
         </aside>
 
         <main class="main-content">
-            <h1>8.1 多智能体强化学习</h1>
+            <h1>8.1 机票动态定价</h1>
 
-            <p>（内容待补充）</p>
+            <p>航空公司收益管理（revenue management）是有限时域 MDP 的经典应用场景。航班起飞时刻是不可延迟的硬截止，卖不出去的座位价值归零。在这个例子中，我们将看到最优定价策略如何同时依赖于剩余座位数和剩余时间，并讨论当顾客具有策略性等待行为时，单智能体 MDP 建模的局限性。</p>
+
+            <!-- ==================== 问题设定 ==================== -->
+            <h2>问题设定</h2>
+
+            <p>一个航班还有 $T = 3$ 个销售时段和 $C = 2$ 个座位。每个时段，航空公司选择票价 $p \in \{500, 200\}$（全价票或折扣票）。每个时段有 $\lambda = 0.7$ 的概率来一位潜在顾客，$0.3$ 的概率无人问津。到来的顾客分为两种类型：</p>
+
+            <ul style="margin:0.5rem 0 1rem 2rem;">
+                <li><strong>商务旅客</strong>：时间敏感，愿意支付全价 $500$。</li>
+                <li><strong>休闲旅客</strong>：价格敏感，最多接受折扣价 $200$。</li>
+            </ul>
+
+            <p>关键假设：越接近起飞，商务旅客的比例越高（临时出差需求增加）。设时段 $k$ 中到来的顾客是商务型的概率为 $\alpha_k$：</p>
+
+            <table class="result-table">
+                <thead><tr><th>时段</th><th>$k = 3$（28 天前）</th><th>$k = 2$（14 天前）</th><th>$k = 1$（起飞前一天）</th></tr></thead>
+                <tbody>
+                    <tr><td>商务旅客比例 $\alpha_k$</td><td>$0.1$</td><td>$0.5$</td><td>$0.9$</td></tr>
+                    <tr><td>每时段高价卖出概率</td><td>$\lambda \alpha_k = 0.07$</td><td>$0.35$</td><td>$0.63$</td></tr>
+                </tbody>
+            </table>
+
+            <!-- ==================== MDP 建模 ==================== -->
+            <h2>MDP 建模</h2>
+
+            <div class="scenario-box">
+                <div class="scenario-title">MDP 五要素</div>
+                <ul style="margin:0.3rem 0 0 1.2rem; line-height:2;">
+                    <li><strong>状态</strong>：$(c, k)$，其中 $c$ 为剩余座位数，$k$ 为剩余时段数。</li>
+                    <li><strong>动作</strong>：票价 $p \in \{500, 200\}$。</li>
+                    <li><strong>转移</strong>：定价 $p = 500$ 时，仅商务旅客购买，卖出概率 $\lambda \alpha_k$；定价 $p = 200$ 时，两类顾客均购买，卖出概率 $\lambda$。卖出一张则 $c$ 减一。</li>
+                    <li><strong>奖励</strong>：卖出一张票的票价收入（$500$ 或 $200$），未卖出则为 $0$。</li>
+                    <li><strong>终止</strong>：$k = 0$（航班起飞）或 $c = 0$（座位售罄）。</li>
+                </ul>
+            </div>
+
+            <p>注意两个动作的不同性质。高价定价是一个<strong>赌注</strong>：有较大概率卖不出去（特别是在早期时段），但一旦卖出收入很高。低价定价是一个<strong>保底</strong>：几乎确保卖出，但收入较低。这与 4.2 节设备维护例子的"先投资后收益"结构类似，但方向相反：维护是"现在付出、未来受益"，而高价定价是"现在冒险、当期受益"。</p>
+
+            <p>两个动作的期望当期收入为：</p>
+
+            $$\mathbb{E}[\text{高价收入}] = 500 \cdot \lambda \alpha_k, \qquad \mathbb{E}[\text{低价收入}] = 200 \cdot \lambda \tag{8.1-1}$$
+
+            <p>在 $k = 1$（起飞前一天），高价期望收入 $= 500 \times 0.63 = 315$，远高于低价的 $140$。在 $k = 3$（28 天前），高价期望收入 $= 500 \times 0.07 = 35$，远低于低价的 $140$。但当期收入只是决策的一半，另一半是：卖出这张票后，剩余座位的未来价值。</p>
+
+            <!-- ==================== 反向归纳 ==================== -->
+            <h2>反向归纳求解</h2>
+
+            <p>这是一个有限时域 MDP，用反向归纳求解。设 $V^*(c, k)$ 为剩余 $c$ 个座位、$k$ 个时段时的最优期望总收入。边界条件 $V^*(c, 0) = 0$（起飞后座位价值为零）和 $V^*(0, k) = 0$（无座位可卖）。设 $\gamma = 1$（短期问题，不折扣）。</p>
+
+            <p>贝尔曼最优方程为：</p>
+
+            $$V^*(c, k) = \max\Big\{\underbrace{\lambda \alpha_k \cdot \big[500 + V^*(c{-}1, k{-}1)\big] + (1 - \lambda\alpha_k) \cdot V^*(c, k{-}1)}_{\text{高价}},$$
+            $$\underbrace{\lambda \cdot \big[200 + V^*(c{-}1, k{-}1)\big] + (1 - \lambda) \cdot V^*(c, k{-}1)}_{\text{低价}}\Big\} \tag{8.1-2}$$
+
+            <p>逐步计算（从 $k = 1$ 向前推导）：</p>
+
+            <h3>$k = 1$（起飞前一天），$\alpha_1 = 0.9$</h3>
+
+            <p>不管剩余座位是 $1$ 还是 $2$，这是最后的销售机会。</p>
+
+            <p><strong>$(c = 1, k = 1)$</strong>：$Q(\text{高价}) = 0.63 \times 500 = 315$，$Q(\text{低价}) = 0.7 \times 200 = 140$。高价胜出。</p>
+
+            <p><strong>$(c = 2, k = 1)$</strong>：同理，$V^*(2, 1) = 315$。最后一天不管剩几个座位，都应该高价。</p>
+
+            <h3>$k = 2$（14 天前），$\alpha_2 = 0.5$</h3>
+
+            <p><strong>$(c = 1, k = 2)$</strong>：只剩 1 个座位，2 个时段。</p>
+            <ul style="margin:0.3rem 0 0.5rem 2rem;">
+                <li>高价：$Q = 0.35 \times 500 + 0.35 \times V^*(0,1) + 0.65 \times V^*(1,1) = 175 + 0 + 204.75 = 379.75$</li>
+                <li>低价：$Q = 0.7 \times 200 + 0.7 \times V^*(0,1) + 0.3 \times V^*(1,1) = 140 + 0 + 94.50 = 234.50$</li>
+            </ul>
+            <p>高价胜出（$379.75 > 234.50$）。只剩 1 个座位时，宁可冒险等商务客。</p>
+
+            <p><strong>$(c = 2, k = 2)$</strong>：2 个座位，2 个时段。$V^*(1,1) = V^*(2,1) = 315$。</p>
+            <ul style="margin:0.3rem 0 0.5rem 2rem;">
+                <li>高价：$Q = 175 + 0.35 \times 315 + 0.65 \times 315 = 175 + 315 = 490.00$</li>
+                <li>低价：$Q = 140 + 0.7 \times 315 + 0.3 \times 315 = 140 + 315 = 455.00$</li>
+            </ul>
+            <p>高价胜出（$490 > 455$）。</p>
+
+            <h3>$k = 3$（28 天前），$\alpha_3 = 0.1$</h3>
+
+            <p><strong>$(c = 1, k = 3)$</strong>：只有 1 个座位，3 个时段。</p>
+            <ul style="margin:0.3rem 0 0.5rem 2rem;">
+                <li>高价：$Q = 35 + 0.07 \times 0 + 0.93 \times 379.75 = 35 + 353.17 = 388.17$</li>
+                <li>低价：$Q = 140 + 0.7 \times 0 + 0.3 \times 379.75 = 140 + 113.93 = 253.93$</li>
+            </ul>
+            <p>高价胜出（$388.17 > 253.93$）。即使商务客概率只有 10%，只要有多余时段来"赌"，1 个座位仍应高价。</p>
+
+            <p><strong>$(c = 2, k = 3)$</strong>：2 个座位，3 个时段。这是最关键的状态。</p>
+            <ul style="margin:0.3rem 0 0.5rem 2rem;">
+                <li>高价：$Q = 35 + 0.07 \times 379.75 + 0.93 \times 490.00 = 35 + 26.58 + 455.70 = 517.28$</li>
+                <li>低价：$Q = 140 + 0.7 \times 379.75 + 0.3 \times 490.00 = 140 + 265.83 + 147.00 = 552.83$</li>
+            </ul>
+            <p><strong>低价胜出</strong>（$552.83 > 517.28$）！</p>
+
+            <p>用代码验证全部计算：</p>
+
+<pre><code class="language-python">T, C = 3, 2
+p_H, p_L = 500, 200
+lam = 0.7
+alpha = {3: 0.1, 2: 0.5, 1: 0.9}
+
+V = {}
+policy = {}
+for c in range(C + 1):
+    V[(c, 0)] = 0.0
+for k in range(T + 1):
+    V[(0, k)] = 0.0
+
+for k in range(1, T + 1):
+    sell_H = lam * alpha[k]
+    for c in range(1, C + 1):
+        q_H = p_H * sell_H + sell_H * V[(c-1,k-1)] + (1-sell_H) * V[(c,k-1)]
+        q_L = p_L * lam    + lam    * V[(c-1,k-1)] + (1-lam)    * V[(c,k-1)]
+        V[(c, k)] = max(q_H, q_L)
+        policy[(c, k)] = '高价' if q_H &gt;= q_L else '低价'
+        print(f'(c={c},k={k}) Q(高)={q_H:.2f} Q(低)={q_L:.2f} → {policy[(c,k)]}')
+</code></pre>
+
+            <!-- ==================== 最优策略 ==================== -->
+            <h2>最优定价策略</h2>
+
+            <p>汇总所有状态的最优动作：</p>
+
+            <table class="policy-grid">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>$k = 3$<br><span style="font-weight:400;font-size:0.85em;">28 天前</span></th>
+                        <th>$k = 2$<br><span style="font-weight:400;font-size:0.85em;">14 天前</span></th>
+                        <th>$k = 1$<br><span style="font-weight:400;font-size:0.85em;">起飞前一天</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th>$c = 2$（满座）</th>
+                        <td class="low-price">低价 $200$</td>
+                        <td class="high-price">高价 $500$</td>
+                        <td class="high-price">高价 $500$</td>
+                    </tr>
+                    <tr>
+                        <th>$c = 1$（剩 1 座）</th>
+                        <td class="high-price">高价 $500$</td>
+                        <td class="high-price">高价 $500$</td>
+                        <td class="high-price">高价 $500$</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="fig-caption">图 8.1-1　最优定价策略。唯一定低价的状态是 $(c=2, k=3)$：座位充裕且离起飞还远。</div>
+
+            <p>这个策略网格揭示了一个经典的收益管理洞察：<strong>最优定价同时取决于剩余容量和剩余时间</strong>。</p>
+
+            <ul style="margin:0.5rem 0 1rem 2rem;">
+                <li><strong>$(c=2, k=3)$：低价</strong>。两个座位要在三个时段内卖出。商务旅客此时仅占 10%，高价定价每时段只有 7% 的卖出概率。如果两个时段都坚持高价却没卖出，到了 $k=1$ 虽然高价能卖，但概率也只有 63%，很可能有座位空飞。不如先以低价锁定一张，再用剩余时段为最后一个座位赌高价。</li>
+                <li><strong>$(c=1, k=3)$：高价</strong>。只需卖 1 个座位，有 3 个时段来等。即使每时段只有 7% 的商务客概率，三个时段的累计卖出概率约为 $1 - (1-0.07)^3 \approx 20\%$。期望收入 $500 \times 20\% = 100$，与低价的确定性收入 $200 \times 70\% = 140$ 接近，但这里还有一个因素：如果 $k=3$ 没卖出，$k=2$ 和 $k=1$ 的商务客概率更高（50% 和 90%），后续机会的期望值很高。</li>
+                <li><strong>$k=1$（所有容量）：高价</strong>。最后机会，$\alpha_1 = 0.9$，高价期望收入 $315$ 远超低价的 $140$。</li>
+            </ul>
+
+            <div class="concept-card">
+                <div class="concept-name">容量控制与时间控制的交互</div>
+                <p style="margin:0;line-height:1.7;">最优定价策略可以理解为两股力量的权衡。<strong>时间压力</strong>推动降价：时间越少，空座位的机会成本越低，不如降价卖出。<strong>容量稀缺</strong>推动涨价：座位越少，每个座位越珍贵，值得等待高价买家。在 $(c=2, k=3)$，时间充裕但座位相对过剩（2 个座位，只有 3 个时段×0.7≈2.1 个预期顾客），容量压力小于时间压力，低价成为最优选择。</p>
+            </div>
+
+            <!-- ==================== 与 4.2 的联系 ==================== -->
+            <h2>与时域建模的联系</h2>
+
+            <p>这个例子与 4.2 节的设备维护问题形成了有趣的呼应：</p>
+
+            <ul style="margin:0.5rem 0 1rem 2rem;">
+                <li>两者都是<strong>有限时域 MDP</strong>，最优策略都依赖于剩余时间 $k$。</li>
+                <li>两者的最优策略都通过<strong>反向归纳</strong>（从终止条件向前推导）精确求出。</li>
+                <li>两者的状态都需要包含时间信息：设备维护的状态是 $(s, k)$，机票定价的状态是 $(c, k)$。不包含 $k$ 就无法区分"28 天前的 2 个空座"和"起飞前一天的 2 个空座"，而这两者的最优定价完全不同。</li>
+            </ul>
+
+            <p>不同之处在于：设备维护的"投资"是确定性的（花 $7$ 一定能修好），而高价定价是一个<strong>带风险的赌注</strong>（高价不一定卖得出去）。这使得定价问题的最优策略对参数更敏感，也更依赖于容量和时间的联合信息。</p>
+
+            <!-- ==================== 策略性顾客 ==================== -->
+            <h2>讨论：当顾客学会等待</h2>
+
+            <p>上面的求解隐含了一个重要假设：顾客是<strong>短视的</strong>（myopic）。每位顾客在到达时段做出购买决策，不会预测未来的票价走势。商务旅客看到 $500$ 就买，休闲旅客看到 $200$ 就买，不存在"等等看后面会不会降价"的行为。</p>
+
+            <p>在现实中，部分顾客是<strong>策略型的</strong>（strategic）。如果航空公司总是在起飞前降价促销，理性的休闲旅客会学着推迟购买。更微妙的是，如果航空公司在早期时段定低价（如上面 $(c=2, k=3)$ 的策略），本来愿意出 $500$ 的商务旅客也可能选择在早期以 $200$ 购票。这相当于"早鸟折扣"被高价值顾客利用，降低了航空公司的收入。</p>
+
+            <p>策略型顾客的存在使得定价问题从单智能体 MDP 转变为<strong>航空公司与顾客群体之间的博弈</strong>。航空公司的定价策略影响顾客的等待行为，而顾客的等待行为反过来影响每个时段的需求分布。这种反馈循环无法在标准 MDP 框架内完整捕捉。</p>
+
+            <div class="note">
+                <strong>研究前沿</strong> &nbsp; 策略型顾客下的动态定价是运营管理领域的活跃研究方向。常见的建模方法包括：将顾客的等待决策建模为一个子博弈，在此博弈中求均衡；或者将顾客的策略行为纳入需求模型（例如让 $\alpha_k$ 本身成为定价历史的函数）。这些方法超出了本书的范围，但值得意识到：当决策环境中存在其他理性主体时，单智能体 MDP 的假设可能不再成立。
+            </div>
+
+            <!-- ==================== 小结 ==================== -->
+            <h2>小结</h2>
+
+            <ol style="margin: 0.5rem 0 1rem 2rem;">
+                <li>机票动态定价是有限时域 MDP 的经典应用。航班起飞时刻是硬截止，剩余座位在起飞后价值为零。</li>
+                <li>最优定价策略同时取决于<strong>剩余容量</strong>和<strong>剩余时间</strong>。容量充裕时倾向低价锁定销量，容量紧张时倾向高价等待高价值顾客。</li>
+                <li>这个例子再次印证了 4.2 节的结论：有限时域问题的最优策略依赖于时间，$k$ 必须纳入状态。</li>
+                <li>当顾客具有策略性等待行为时，问题超出了单智能体 MDP 的范畴，需要考虑博弈论视角。</li>
+            </ol>
 
             <div class="chapter-nav">
-                <a href="../ch07/7.3.html">&larr; 7.3 需求响应公交调度优化</a>
-                <a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移 &rarr;</a>
+                <a href="../ch07/7.4.html">&larr; 7.4 算法层-逻辑层-物理层的仿真架构</a>
+                <a href="../ch09/9.1.html">9.1 网约车派单优化 &rarr;</a>
             </div>
         </main>
     </div>

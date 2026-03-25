@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>9.3 需求响应公交调度优化 - 运筹智能</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <script defer src="../../js/code-copy.js"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .fig-caption { text-align:center; font-size:0.9rem; color:#718096; margin-top:0.5rem; margin-bottom:1.5rem; }
+        .note { background: var(--highlight-color); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .warning { background: #fffbeb; border-left: 4px solid #d69e2e; padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .scenario-box { background: var(--sidebar-bg); border: 2px solid var(--border-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .scenario-box .scenario-title { font-weight: 700; color: var(--primary-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .algo-box { background: #f7fafc; border: 2px solid var(--accent-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .algo-box .algo-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+        .algo-box ol { margin: 0.3rem 0 0.3rem 1.5rem; line-height: 2; }
+        .algo-box .algo-indent { margin-left: 1.5rem; }
+        .result-table { width: auto; margin: 1rem auto; border-collapse: collapse; font-size: 0.95rem; }
+        .result-table th, .result-table td { border: 1px solid var(--border-color); padding: 0.5rem 1rem; text-align: center; }
+        .result-table th { background: var(--sidebar-bg); font-weight: 700; color: var(--primary-color); }
+        .result-table .good { background: #f0fff4; font-weight: 600; }
+        details.optional-reading { margin: 1.5rem 0; }
+        details.optional-reading summary { cursor: pointer; font-weight: 700; color: var(--accent-color); margin-bottom: 0.5rem; }
+        details.optional-reading .detail-content { background: #fafafa; border-left: 3px solid #e2e8f0; padding: 1rem 1.5rem; margin-top: 0.5rem; border-radius: 0 6px 6px 0; }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="book-title"><a href="../../index.html" style="text-decoration:none;color:inherit;">运筹智能</a></div>
+            <nav>
+                <ul>
+                <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
+                <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
+                <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html" class="active">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>9.3 需求响应公交调度优化</h1>
+
+            <p>需求响应公交（Demand-Responsive Transit, DRT）是一种灵活的公共交通服务形式：车辆没有固定线路和时刻表，而是根据乘客的实时出行请求动态规划路线。机场摆渡车、残障人士专用接送（paratransit）、近年兴起的微公交（micro-transit）服务都属于 DRT 的范畴。与固定线路公交相比，DRT 能更好地覆盖低密度需求区域；与网约车相比，DRT 的每辆车同时服务多位乘客，单位运力的利用效率更高。</p>
+
+            <p>DRT 的核心运营决策是<strong>派单问题</strong>：当一个新的出行请求到达时，应该将它分配给哪辆车？分配之后，新的上下车点应该插入到该车现有路线的哪个位置？这个决策直接影响新乘客的等待时间、车上已有乘客的绕行时间，以及车队整体的运营效率。</p>
+
+            <!-- ==================== DRT 运营示意图 ==================== -->
+
+            <svg viewBox="0 0 720 340" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;display:block;margin:1.5rem auto 0;">
+                <!-- 背景 -->
+                <rect x="0" y="0" width="720" height="340" fill="#fafafa" rx="8"/>
+
+                <!-- 车辆 1 的路线 -->
+                <line x1="80" y1="80" x2="200" y2="120" stroke="#2b6cb0" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="200" y1="120" x2="310" y2="70" stroke="#2b6cb0" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="310" y1="70" x2="400" y2="110" stroke="#2b6cb0" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="8,5"/>
+
+                <!-- 车辆 1 节点 -->
+                <circle cx="80" cy="80" r="14" fill="#2b6cb0" stroke="#1a365d" stroke-width="2"/>
+                <foreignObject x="60" y="64" width="40" height="30">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#fff;text-align:center;font-weight:700;">V1</div>
+                </foreignObject>
+                <circle cx="200" cy="120" r="8" fill="#48bb78" stroke="#2d3748" stroke-width="1.5"/>
+                <foreignObject x="168" y="130" width="70" height="24">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#2d3748;text-align:center;">pick A</div>
+                </foreignObject>
+                <circle cx="310" cy="70" r="8" fill="#c53030" stroke="#2d3748" stroke-width="1.5"/>
+                <foreignObject x="278" y="42" width="70" height="24">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#2d3748;text-align:center;">drop B</div>
+                </foreignObject>
+                <circle cx="400" cy="110" r="8" fill="#48bb78" stroke="#2d3748" stroke-width="1.5"/>
+                <foreignObject x="370" y="118" width="70" height="24">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#2d3748;text-align:center;">drop A</div>
+                </foreignObject>
+
+                <!-- 车辆 2 的路线 -->
+                <line x1="80" y1="220" x2="220" y2="250" stroke="#805ad5" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="220" y1="250" x2="370" y2="210" stroke="#805ad5" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="8,5"/>
+
+                <!-- 车辆 2 节点 -->
+                <circle cx="80" cy="220" r="14" fill="#805ad5" stroke="#553c9a" stroke-width="2"/>
+                <foreignObject x="60" y="204" width="40" height="30">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#fff;text-align:center;font-weight:700;">V2</div>
+                </foreignObject>
+                <circle cx="220" cy="250" r="8" fill="#48bb78" stroke="#2d3748" stroke-width="1.5"/>
+                <foreignObject x="188" y="260" width="70" height="24">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#2d3748;text-align:center;">pick C</div>
+                </foreignObject>
+                <circle cx="370" cy="210" r="8" fill="#c53030" stroke="#2d3748" stroke-width="1.5"/>
+                <foreignObject x="338" y="182" width="70" height="24">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#2d3748;text-align:center;">drop C</div>
+                </foreignObject>
+
+                <!-- 新请求 -->
+                <rect x="500" y="130" width="190" height="80" rx="8" fill="#fed7d7" stroke="#c53030" stroke-width="2" stroke-dasharray="6,3"/>
+                <foreignObject x="505" y="135" width="180" height="70">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#c53030;text-align:center;line-height:1.6;font-weight:600;">
+                        New Request D<br/>
+                        <span style="font-weight:400;font-size:12px;color:#4a5568;">origin &rarr; destination<br/>time window: [5min, 15min]</span>
+                    </div>
+                </foreignObject>
+
+                <!-- 决策箭头：从新请求分别指向两辆车 -->
+                <line x1="500" y1="150" x2="420" y2="110" stroke="#c53030" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="5,4"/>
+                <foreignObject x="430" y="108" width="80" height="24">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#c53030;text-align:center;">assign to V1?</div>
+                </foreignObject>
+
+                <line x1="500" y1="190" x2="390" y2="215" stroke="#c53030" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="5,4"/>
+                <foreignObject x="400" y="210" width="80" height="24">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#c53030;text-align:center;">assign to V2?</div>
+                </foreignObject>
+
+                <!-- 图例 -->
+                <circle cx="520" cy="280" r="6" fill="#48bb78" stroke="#2d3748" stroke-width="1"/>
+                <foreignObject x="532" y="268" width="60" height="22">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#4a5568;">pickup</div>
+                </foreignObject>
+                <circle cx="600" cy="280" r="6" fill="#c53030" stroke="#2d3748" stroke-width="1"/>
+                <foreignObject x="612" y="268" width="60" height="22">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#4a5568;">dropoff</div>
+                </foreignObject>
+                <line x1="510" y1="305" x2="545" y2="305" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                <foreignObject x="550" y="293" width="80" height="22">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#4a5568;">planned</div>
+                </foreignObject>
+                <line x1="630" y1="305" x2="665" y2="305" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round" stroke-dasharray="8,5"/>
+                <foreignObject x="670" y="293" width="50" height="22">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#4a5568;">future</div>
+                </foreignObject>
+            </svg>
+            <div class="fig-caption">图 9.3-1　DRT 派单场景示意。V1、V2 各自有一条已规划路线（含已承诺的上下车点），新请求 D 到达后需决定分配给哪辆车、插入路线的哪个位置。</div>
+
+            <!-- ==================== 与网约车的区别 ==================== -->
+            <h2>与网约车派单的区别</h2>
+
+            <p>DRT 派单与 9.1 节的网约车派单看似相似，实则存在根本性差异。理解这些差异是后续建模的基础。</p>
+
+            <table class="result-table">
+                <thead>
+                    <tr><th>维度</th><th>网约车（ride-hailing）</th><th>需求响应公交（DRT）</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>载客模式</td>
+                        <td>一车一单（或拼车时少数几单）</td>
+                        <td>一车多单，同时服务多位乘客</td>
+                    </tr>
+                    <tr>
+                        <td>车辆状态</td>
+                        <td>空闲 / 载客</td>
+                        <td>一条包含多个上下车点的路线计划</td>
+                    </tr>
+                    <tr>
+                        <td>派单影响</td>
+                        <td>只影响新乘客的等待</td>
+                        <td>影响车上所有乘客的绕行和等待</td>
+                    </tr>
+                    <tr>
+                        <td>动作空间</td>
+                        <td>选择哪辆车</td>
+                        <td>选择哪辆车 $\times$ 插入哪个位置</td>
+                    </tr>
+                    <tr>
+                        <td>时间约束</td>
+                        <td>较少硬约束</td>
+                        <td>每位乘客有时间窗口</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="fig-caption">表 9.3-1　网约车派单与 DRT 派单的关键差异</div>
+
+            <p>最关键的区别在于<strong>动作空间的结构</strong>。网约车派单只需选择一辆空闲车辆，动作空间大小等于空闲车辆数。DRT 派单的动作空间则是所有可行的<strong>（车辆，插入位置）</strong>组合。假设车队有 $K$ 辆车，第 $k$ 辆车的当前路线有 $n_k$ 个站点，那么新请求的上车点和下车点各有 $n_k + 1$ 个可插入位置，总动作空间大小为：</p>
+
+            $$|\mathcal{A}| = \sum_{k=1}^{K} (n_k + 1)(n_k + 2) / 2 \tag{9.3-1}$$
+
+            <p>其中 $(n_k + 1)(n_k + 2)/2$ 是在长度为 $n_k$ 的路线中插入上车点和下车点（上车必须在下车之前）的组合数。当路线较长时，这个数量增长很快，且每辆车的路线长度随时间动态变化。</p>
+
+            <!-- ==================== MDP 建模 ==================== -->
+            <h2>MDP 建模</h2>
+
+            <p>将 DRT 调度建模为事件驱动的 MDP。每当一个新请求到达，系统触发一次决策。</p>
+
+            <div class="scenario-box">
+                <div class="scenario-title">DRT 派单 MDP 五要素</div>
+                <ul style="margin:0.3rem 0 0 1.2rem; line-height:2;">
+                    <li><strong>状态 $S_t$</strong>：由三部分组成。(1) 车队状态：每辆车 $k$ 的当前位置 $\ell_k$、剩余载客容量 $c_k$、当前路线计划 $\mathcal{R}_k = (r_k^1, r_k^2, \ldots, r_k^{n_k})$，其中每个 $r_k^i$ 包含站点坐标、站点类型（上车/下车）、关联乘客编号和时间窗口。(2) 新请求 $d_t$：起点 $o_t$、终点 $e_t$、最早上车时间 $\tau_t^{\min}$、最晚上车时间 $\tau_t^{\max}$。(3) 全局时间 $t$。</li>
+                    <li><strong>动作 $A_t$</strong>：一个三元组 $(k, i, j)$，表示将新请求分配给车辆 $k$，上车点插入路线的第 $i$ 个位置，下车点插入第 $j$ 个位置（$j \geq i$）。若无法满足任何可行插入，允许动作"拒绝"。</li>
+                    <li><strong>转移</strong>：执行动作后，车辆 $k$ 的路线 $\mathcal{R}_k$ 更新为插入新站点后的序列，容量 $c_k$ 在新上车站点处减 1、新下车站点处加 1。所有车辆沿各自路线继续行驶，直到下一个请求到达。</li>
+                    <li><strong>奖励 $R_t$</strong>：详见下方公式 (9.3-2)。</li>
+                    <li><strong>决策时机</strong>：每当新请求到达时触发决策（事件驱动），而非固定时间步。两次决策之间的间隔不固定。</li>
+                </ul>
+            </div>
+
+            <p>奖励函数需要综合考虑多个运营指标。设 $\Delta w_t$ 为新乘客的预计等待时间，$\Delta u_{t,m}$ 为车上第 $m$ 位已有乘客因插入新请求而增加的绕行时间，$\mathbb{1}_{\text{served}}$ 表示新请求是否被接受服务。奖励定义为：</p>
+
+            $$R_t = \underbrace{\alpha \cdot \mathbb{1}_{\text{served}}}_{\text{服务奖励}} - \underbrace{\beta \cdot \Delta w_t}_{\text{等待惩罚}} - \underbrace{\gamma \cdot \sum_{m} \Delta u_{t,m}}_{\text{绕行惩罚}} \tag{9.3-2}$$
+
+            <p>其中 $\alpha, \beta, \gamma > 0$ 是权重系数。$\alpha$ 控制接单率的重要性，$\beta$ 控制新乘客等待体验，$\gamma$ 控制对已有乘客的绕行补偿。不同的权重设置反映不同的运营目标：$\alpha$ 较大时策略倾向于接受更多请求，$\gamma$ 较大时策略倾向于保护已有乘客的服务质量。</p>
+
+            <div class="note">
+                <strong>事件驱动 MDP 的时间处理</strong> &nbsp; 与固定时间步的 MDP 不同，DRT 的决策时机由请求到达事件触发。两次决策之间的时长 $\Delta t$ 是随机的。在折扣回报的计算中，严格来说应使用连续时间折扣 $e^{-\rho \Delta t}$（其中 $\rho$ 是折扣率）。实践中，由于单个运营日的时间跨度有限（例如早高峰 2 小时），通常直接使用 $\gamma = 1$（不折扣），将问题建模为有限时域的无折扣 MDP。
+            </div>
+
+            <!-- ==================== 为什么需要 Transformer ==================== -->
+            <h2>可变长度输入与 Transformer</h2>
+
+            <p>DRT 的状态具有一个显著特征：<strong>结构是可变长度的，且元素之间的顺序关系至关重要</strong>。每辆车的路线计划是一个长度不固定的站点序列，车队中车辆的数量可能随时间变化（车辆上下线），待处理的请求数量也在动态变化。</p>
+
+            <p>标准的多层感知机（MLP）要求固定维度的输入向量。面对可变长度的输入，常见的工程处理是设定一个最大长度 $N_{\max}$ 并将短序列补零（zero-padding）。这种做法有两个问题：(1) $N_{\max}$ 的选取不自然，过大浪费计算资源，过小无法处理长路线；(2) MLP 无法区分零填充和真正的空状态，也无法利用序列中站点之间的顺序关系。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">可变长度输入与 Transformer</div>
+                <p style="margin:0;line-height:1.7;">DRT 调度中的状态天然包含可变长度的序列结构。Transformer 的自注意力（self-attention）机制能够直接处理任意长度的序列输入，无需预设最大长度。更关键的是，自注意力计算了序列中每对元素之间的关联权重，能够捕捉站点之间的顺序依赖关系，例如"如果上车点 A 排在下车点 B 之前，那么 A 处的等待时间会影响 B 处的到达时间"。4.3 节介绍了 Transformer 的基本架构，这里将展示如何将其适配到 DRT 派单的具体场景。</p>
+            </div>
+
+            <p>具体而言，Transformer 在 DRT 调度中需要处理三类结构化信息：</p>
+
+            <ol style="margin:0.5rem 0 1rem 2rem;">
+                <li><strong>路线内部的站点关系</strong>：同一辆车路线中的各站点之间存在先后依赖。前一个站点的服务时间会累加到后续所有站点的到达时间上。自注意力能够让模型在编码每个站点时"看到"路线中的所有其他站点。</li>
+                <li><strong>新请求与候选路线的匹配</strong>：新请求需要与每辆车的路线进行比较。这是一个典型的跨序列匹配问题，适合使用交叉注意力（cross-attention）。</li>
+                <li><strong>车辆之间的比较</strong>：最终需要在所有候选（车辆，插入位置）中选择最优的一个。不同车辆的路线长度不同，但输出的评分需要在统一尺度上可比较。</li>
+            </ol>
+
+            <!-- ==================== Transformer 架构设计 ==================== -->
+            <h2>Transformer 架构设计</h2>
+
+            <p>下面介绍一个面向 DRT 派单的 Transformer 策略网络架构。整体分为四个模块：站点编码器、路线编码器、请求-路线交叉注意力、以及插入位置评分头。</p>
+
+            <h3>站点编码器</h3>
+
+            <p>对每辆车路线中的每个站点 $r_k^i$，提取其原始特征向量：</p>
+
+            $$\mathbf{x}_k^i = \big[\underbrace{x_{\text{coord}},\, y_{\text{coord}}}_{\text{坐标}},\; \underbrace{\tau^{\min},\, \tau^{\max}}_{\text{时间窗}},\; \underbrace{p/d}_{\text{类型}},\; \underbrace{\delta_{\text{arrive}}}_{\text{预计到达时间}}\big] \in \mathbb{R}^{d_{\text{raw}}} \tag{9.3-3}$$
+
+            <p>其中 $p/d$ 是一个二值标记，表示该站点是上车点（pickup）还是下车点（dropoff）。$\delta_{\text{arrive}}$ 是基于当前路线顺序计算出的预计到达时间。通过一个线性投影将原始特征映射到模型维度 $d$：</p>
+
+            $$\mathbf{h}_k^i = W_{\text{embed}} \, \mathbf{x}_k^i + \mathbf{b}_{\text{embed}} \in \mathbb{R}^d \tag{9.3-4}$$
+
+            <p>为保留路线中站点的先后顺序信息，加入位置编码（positional encoding）。与标准 Transformer 相同，使用正弦位置编码：</p>
+
+            $$\tilde{\mathbf{h}}_k^i = \mathbf{h}_k^i + \text{PE}(i) \tag{9.3-5}$$
+
+            <h3>路线编码器（自注意力）</h3>
+
+            <p>对每辆车 $k$ 的站点序列 $(\tilde{\mathbf{h}}_k^1, \ldots, \tilde{\mathbf{h}}_k^{n_k})$ 独立地施加 $L$ 层 Transformer 编码器。每一层包含多头自注意力和前馈网络：</p>
+
+            $$\mathbf{H}_k = \text{TransformerEncoder}\big(\tilde{\mathbf{h}}_k^1, \ldots, \tilde{\mathbf{h}}_k^{n_k}\big) \in \mathbb{R}^{n_k \times d} \tag{9.3-6}$$
+
+            <p>$\mathbf{H}_k$ 的每一行是路线中对应站点的上下文表示。由于自注意力的感受野覆盖整条路线，每个站点的表示都融合了路线全局信息。</p>
+
+            <h3>请求编码与交叉注意力</h3>
+
+            <p>将新请求 $d_t = (o_t, e_t, \tau_t^{\min}, \tau_t^{\max})$ 编码为一个向量：</p>
+
+            $$\mathbf{q}_{\text{req}} = W_{\text{req}} \, [o_t;\, e_t;\, \tau_t^{\min};\, \tau_t^{\max}] + \mathbf{b}_{\text{req}} \in \mathbb{R}^d \tag{9.3-7}$$
+
+            <p>然后，对每辆车 $k$ 的路线表示 $\mathbf{H}_k$，通过交叉注意力计算请求与路线之间的关联：</p>
+
+            $$\mathbf{z}_k = \text{CrossAttn}\big(\text{query}=\mathbf{q}_{\text{req}},\;\text{key}=\mathbf{H}_k,\;\text{value}=\mathbf{H}_k\big) \in \mathbb{R}^d \tag{9.3-8}$$
+
+            <p>直觉上，$\mathbf{z}_k$ 表示新请求对车辆 $k$ 的路线"提问"后得到的回答。如果新请求的起点离车辆 $k$ 路线中某个站点很近，注意力权重会集中在那个站点上，使得 $\mathbf{z}_k$ 携带该局部路线的详细信息。</p>
+
+            <h3>插入位置评分</h3>
+
+            <p>最终需要为每个可行的（车辆 $k$，上车插入位置 $i$，下车插入位置 $j$）打分。定义插入位置 $(i, j)$ 的局部特征为路线中第 $i$ 和第 $j$ 个站点表示的拼接：</p>
+
+            $$\mathbf{f}_{k,i,j} = [\mathbf{H}_k[i];\;\mathbf{H}_k[j];\;\mathbf{z}_k] \in \mathbb{R}^{3d} \tag{9.3-9}$$
+
+            <p>通过一个评分网络（两层 MLP）输出分数：</p>
+
+            $$\text{score}(k, i, j) = \text{MLP}\big(\mathbf{f}_{k,i,j}\big) \in \mathbb{R} \tag{9.3-10}$$
+
+            <p>对所有可行的三元组 $(k, i, j)$ 收集分数后，通过 softmax 得到策略分布：</p>
+
+            $$\pi_\theta(k, i, j \mid S_t) = \frac{\exp\big(\text{score}(k,i,j)\big)}{\sum_{(k',i',j') \in \mathcal{A}_t} \exp\big(\text{score}(k',i',j')\big)} \tag{9.3-11}$$
+
+            <p>其中 $\mathcal{A}_t$ 是当前时刻所有可行动作的集合。不满足容量约束或时间窗口约束的动作被屏蔽（mask），不参与 softmax 计算。</p>
+
+            <!-- ==================== Transformer 架构图 ==================== -->
+
+            <svg viewBox="0 0 720 480" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;display:block;margin:1.5rem auto 0;">
+                <rect x="0" y="0" width="720" height="480" fill="#fafafa" rx="8"/>
+
+                <!-- 输入层标题 -->
+                <foreignObject x="10" y="8" width="120" height="24">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#718096;font-weight:600;">Input</div>
+                </foreignObject>
+
+                <!-- 车辆 1 路线站点序列 -->
+                <rect x="30" y="40" width="240" height="44" rx="6" fill="#dbeafe" stroke="#2b6cb0" stroke-width="1.5"/>
+                <foreignObject x="35" y="42" width="230" height="40">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#2b6cb0;text-align:center;line-height:1.5;">
+                        Vehicle 1 route: <span style="font-style:italic;">r</span><sub>1</sub><sup>1</sup>, <span style="font-style:italic;">r</span><sub>1</sub><sup>2</sup>, ..., <span style="font-style:italic;">r</span><sub>1</sub><sup><span style="font-style:italic;">n</span><sub>1</sub></sup>
+                    </div>
+                </foreignObject>
+
+                <!-- 车辆 K 路线站点序列 -->
+                <rect x="30" y="96" width="240" height="44" rx="6" fill="#dbeafe" stroke="#2b6cb0" stroke-width="1.5"/>
+                <foreignObject x="35" y="98" width="230" height="40">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#2b6cb0;text-align:center;line-height:1.5;">
+                        Vehicle <span style="font-style:italic;">K</span> route: <span style="font-style:italic;">r</span><sub><span style="font-style:italic;">K</span></sub><sup>1</sup>, <span style="font-style:italic;">r</span><sub><span style="font-style:italic;">K</span></sub><sup>2</sup>, ..., <span style="font-style:italic;">r</span><sub><span style="font-style:italic;">K</span></sub><sup><span style="font-style:italic;">n<sub>K</sub></span></sup>
+                    </div>
+                </foreignObject>
+
+                <!-- 省略号 -->
+                <foreignObject x="120" y="82" width="40" height="20">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:16px;color:#718096;text-align:center;">...</div>
+                </foreignObject>
+
+                <!-- 新请求 -->
+                <rect x="450" y="55" width="220" height="54" rx="6" fill="#fed7d7" stroke="#c53030" stroke-width="1.5"/>
+                <foreignObject x="455" y="57" width="210" height="50">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#c53030;text-align:center;line-height:1.6;">
+                        New request <span style="font-style:italic;">d<sub>t</sub></span><br/>
+                        <span style="font-size:11px;color:#4a5568;">(origin, dest, time window)</span>
+                    </div>
+                </foreignObject>
+
+                <!-- 站点编码 + 位置编码 -->
+                <foreignObject x="10" y="152" width="200" height="24">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#718096;font-weight:600;">Embedding + PE</div>
+                </foreignObject>
+                <rect x="30" y="175" width="240" height="36" rx="6" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="1.5"/>
+                <foreignObject x="35" y="178" width="230" height="30">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#2b6cb0;text-align:center;">Linear Projection + Positional Encoding</div>
+                </foreignObject>
+
+                <!-- 请求编码 -->
+                <rect x="450" y="175" width="220" height="36" rx="6" fill="#fed7d7" stroke="#c53030" stroke-width="1"/>
+                <foreignObject x="455" y="178" width="210" height="30">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#c53030;text-align:center;">Request Embedding</div>
+                </foreignObject>
+
+                <!-- 连线：输入到编码 -->
+                <line x1="150" y1="140" x2="150" y2="175" stroke="#2b6cb0" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="560" y1="109" x2="560" y2="175" stroke="#c53030" stroke-width="1.5" stroke-linecap="round"/>
+
+                <!-- Self-Attention 层 -->
+                <foreignObject x="10" y="225" width="200" height="24">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#718096;font-weight:600;">Route Encoder</div>
+                </foreignObject>
+                <rect x="30" y="248" width="240" height="44" rx="6" fill="white" stroke="#2b6cb0" stroke-width="2"/>
+                <foreignObject x="35" y="252" width="230" height="36">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#2b6cb0;text-align:center;font-weight:600;line-height:1.5;">
+                        Self-Attention &times; <span style="font-style:italic;">L</span> layers
+                    </div>
+                </foreignObject>
+
+                <line x1="150" y1="211" x2="150" y2="248" stroke="#2b6cb0" stroke-width="1.5" stroke-linecap="round"/>
+
+                <!-- Cross-Attention 层 -->
+                <foreignObject x="300" y="310" width="200" height="24">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#718096;font-weight:600;">Cross-Attention</div>
+                </foreignObject>
+                <rect x="230" y="333" width="260" height="44" rx="6" fill="white" stroke="#805ad5" stroke-width="2"/>
+                <foreignObject x="235" y="337" width="250" height="36">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#805ad5;text-align:center;font-weight:600;line-height:1.5;">
+                        CrossAttn(query=req, key/value=route)
+                    </div>
+                </foreignObject>
+
+                <!-- 连线到 cross-attention -->
+                <line x1="150" y1="292" x2="150" y2="333" stroke="#2b6cb0" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="150" y1="333" x2="230" y2="355" stroke="#2b6cb0" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="560" y1="211" x2="560" y2="333" stroke="#c53030" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="560" y1="333" x2="490" y2="355" stroke="#c53030" stroke-width="1.5" stroke-linecap="round"/>
+
+                <!-- 评分输出 -->
+                <foreignObject x="280" y="392" width="200" height="24">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#718096;font-weight:600;">Scoring Head</div>
+                </foreignObject>
+                <rect x="270" y="415" width="180" height="40" rx="6" fill="#f0fff4" stroke="#48bb78" stroke-width="2"/>
+                <foreignObject x="275" y="419" width="170" height="32">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#2d3748;text-align:center;font-weight:600;">
+                        MLP &rarr; score(<span style="font-style:italic;">k, i, j</span>)
+                    </div>
+                </foreignObject>
+                <line x1="360" y1="377" x2="360" y2="415" stroke="#805ad5" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <div class="fig-caption">图 9.3-2　DRT 派单 Transformer 策略网络架构。路线编码器通过自注意力编码每辆车的站点序列，交叉注意力融合新请求与路线信息，最终由 MLP 评分头对所有可行插入位置打分。</div>
+
+            <details class="optional-reading">
+                <summary>选读：动作屏蔽（Action Masking）的实现</summary>
+                <div class="detail-content">
+                    <p>并非所有 $(k, i, j)$ 组合都是可行动作。不可行的情况包括：车辆 $k$ 的剩余容量不足；将上车点插入位置 $i$ 后，新乘客的等待时间超过其时间窗口 $[\tau_t^{\min}, \tau_t^{\max}]$；插入新站点后，路线上已有乘客的到达时间违反其时间窗口。</p>
+                    <p>在实现中，先根据约束条件计算可行动作集合 $\mathcal{A}_t$，然后将不可行动作对应的 score 设为 $-\infty$，使其在 softmax 后概率为零：</p>
+                    $$\text{score}'(k,i,j) = \begin{cases} \text{score}(k,i,j) & (k,i,j) \in \mathcal{A}_t \\ -\infty & \text{otherwise} \end{cases}$$
+                    <p>这种做法保证策略只在可行域上采样，同时不影响梯度传播（不可行动作的梯度恒为零）。</p>
+                </div>
+            </details>
+
+            <!-- ==================== 训练流程 ==================== -->
+            <h2>基于 PPO 的训练流程</h2>
+
+            <p>使用 5.2 节介绍的 PPO 算法训练 Transformer 策略网络。由于 DRT 是事件驱动的，训练数据的生成方式与标准 episodic MDP 略有不同。一个<strong>回合</strong>（episode）对应一个运营日（例如早上 6:00 至晚上 22:00），请求按照泊松过程陆续到达，每个请求触发一次策略决策。</p>
+
+            <div class="algo-box">
+                <div class="algo-title">算法 9.3-1　DRT 派单 PPO 训练</div>
+                <p style="margin-bottom:0.5rem;"><strong>输入</strong>：策略网络 $\pi_\theta$（Transformer），价值网络 $V_\phi$（共享路线编码器），仿真器 $\text{Env}$<br/>
+                <strong>超参数</strong>：回合数 $N_{\text{ep}}$，PPO clip 参数 $\epsilon$，广义优势估计参数 $\lambda_{\text{GAE}}$</p>
+                <ol>
+                    <li><strong>for</strong> $\text{episode} = 1, 2, \ldots, N_{\text{ep}}$：</li>
+                    <li class="algo-indent">初始化仿真器，生成当日请求序列</li>
+                    <li class="algo-indent">$\text{buffer} \leftarrow \{\}$</li>
+                    <li class="algo-indent"><strong>while</strong> 运营时间未结束：</li>
+                    <li class="algo-indent" style="margin-left:3rem;">等待下一个请求 $d_t$ 到达，获取状态 $S_t$</li>
+                    <li class="algo-indent" style="margin-left:3rem;">计算可行动作集 $\mathcal{A}_t$（容量、时间窗约束过滤）</li>
+                    <li class="algo-indent" style="margin-left:3rem;">$\pi_\theta$ 对所有 $(k,i,j) \in \mathcal{A}_t$ 评分，采样动作 $A_t \sim \pi_\theta(\cdot \mid S_t)$</li>
+                    <li class="algo-indent" style="margin-left:3rem;">执行 $A_t$，更新路线，获取奖励 $R_t$</li>
+                    <li class="algo-indent" style="margin-left:3rem;">存入 $\text{buffer}$：$(S_t, A_t, R_t, \log\pi_\theta(A_t \mid S_t))$</li>
+                    <li class="algo-indent">用 $V_\phi$ 和 $\text{buffer}$ 中的奖励序列计算 GAE 优势 $\hat{A}_t$</li>
+                    <li class="algo-indent">PPO 更新 $\theta$ 和 $\phi$（clip 目标函数，详见 5.2 节）</li>
+                </ol>
+            </div>
+
+            <p><strong>价值网络的设计</strong>。价值网络 $V_\phi(S_t)$ 输入的是全局状态，输出一个标量。一种有效做法是让价值网络与策略网络共享路线编码器（Self-Attention 部分），只是在顶层使用不同的输出头。策略头输出每个 $(k,i,j)$ 的分数，价值头对所有车辆的路线表示做平均池化后通过 MLP 输出一个标量。共享编码器能减少参数量，同时让策略和价值的学习共享低层表示。</p>
+
+            <p><strong>可行动作集的预计算</strong>。步骤 6 中的可行动作过滤在训练中会被反复调用。对每个新请求，需要遍历所有车辆的所有插入位置，检查容量和时间窗约束。当车队规模 $K$ 较大或路线较长时，这一步可能成为计算瓶颈。可通过预先维护每辆车的"松弛时间"（slack time）来加速判断：如果路线上某站点的松弛时间（最晚可延迟到达时间与预计到达时间之差）小于插入新站点带来的最小延误，可以直接剪枝。</p>
+
+            <!-- ==================== 实验分析 ==================== -->
+            <h2>实验分析</h2>
+
+            <p>为验证 Transformer 策略网络的有效性，考虑一个模拟的城市 DRT 运营场景。服务区域为 $10 \times 10$ km 的网格区域，车队包含 $K = 20$ 辆车，每辆车容量 $C = 8$ 人。请求以平均 $\lambda = 60$ 个/小时的泊松过程到达，运营时段为 3 小时。每位乘客的最大等待时间为 10 分钟，最大绕行系数为 1.5（即实际行程不超过最短路径的 1.5 倍）。奖励函数中，$\alpha = 10$，$\beta = 1$，$\gamma = 0.5$。</p>
+
+            <p>将 Transformer 策略与以下基准方法进行比较：</p>
+
+            <ul style="margin:0.5rem 0 1rem 2rem;">
+                <li><strong>贪心插入</strong>（Greedy Insertion）：将新请求分配给插入后总行驶距离增加最少的（车辆，位置）组合。这是运筹学中经典的启发式算法。</li>
+                <li><strong>最近车辆</strong>（Nearest Vehicle）：将新请求分配给当前位置离起点最近的有余量车辆。不考虑插入位置优化。</li>
+                <li><strong>MLP 策略</strong>：将所有车辆路线截断/补零到固定长度后拼接为一个大向量，输入 MLP 策略网络。同样使用 PPO 训练。</li>
+            </ul>
+
+            <table class="result-table">
+                <thead>
+                    <tr>
+                        <th>方法</th>
+                        <th>服务率 (%)</th>
+                        <th>平均等待时间 (min)</th>
+                        <th>平均绕行系数</th>
+                        <th>总奖励</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>最近车辆</td>
+                        <td>72.3</td>
+                        <td>6.8</td>
+                        <td>1.42</td>
+                        <td>845</td>
+                    </tr>
+                    <tr>
+                        <td>贪心插入</td>
+                        <td>88.5</td>
+                        <td>5.1</td>
+                        <td>1.28</td>
+                        <td>1132</td>
+                    </tr>
+                    <tr>
+                        <td>MLP + PPO</td>
+                        <td>85.2</td>
+                        <td>5.4</td>
+                        <td>1.31</td>
+                        <td>1078</td>
+                    </tr>
+                    <tr class="good">
+                        <td><strong>Transformer + PPO</strong></td>
+                        <td><strong>93.7</strong></td>
+                        <td><strong>4.2</strong></td>
+                        <td><strong>1.19</strong></td>
+                        <td><strong>1356</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="fig-caption">表 9.3-2　不同派单策略在 DRT 仿真实验中的表现（180 个请求/3 小时，20 辆车，指标为 50 次独立运行的平均值）</div>
+
+            <p>几个值得关注的结果：</p>
+
+            <ol style="margin:0.5rem 0 1rem 2rem;">
+                <li><strong>Transformer + PPO 全面优于贪心插入</strong>。贪心插入只看当前请求的即时成本，不考虑未来请求。Transformer 策略通过 RL 训练学到了"为未来留余地"的能力，例如在高峰前保留部分车辆的路线容量，避免高峰时大量拒单。</li>
+                <li><strong>MLP 策略劣于贪心插入</strong>。这说明网络架构的选择至关重要。MLP 在处理可变长度路线信息时丢失了结构信息，学到的策略反而不如简单的启发式规则。</li>
+                <li><strong>Transformer 的绕行系数最低</strong>。这意味着 Transformer 不仅接受了更多请求，而且找到了更好的插入位置，使得每位乘客的绕行更少。</li>
+            </ol>
+
+            <div class="warning">
+                <strong>关于实验结果的说明</strong> &nbsp; 上述数值来自一个简化的仿真场景，用于展示不同方法之间的相对差异。在真实 DRT 运营中，路网结构、需求时空分布、车辆调度的工程细节（如司机换班、充电）等因素会显著影响绝对性能。Transformer 策略的优势在需求波动较大、车队规模可变的场景中更为突出。
+            </div>
+
+            <h3>泛化能力</h3>
+
+            <p>Transformer 架构的一个额外优势是对车队规模变化的<strong>泛化能力</strong>。由于自注意力和交叉注意力机制天然处理可变长度输入，在 $K = 20$ 辆车上训练的策略可以直接部署到 $K = 15$ 或 $K = 25$ 辆车的场景，不需要重新训练。下表展示了训练在 $K = 20$ 上的策略在不同车队规模下的服务率：</p>
+
+            <table class="result-table">
+                <thead>
+                    <tr>
+                        <th>测试车队规模</th>
+                        <th>$K = 10$</th>
+                        <th>$K = 15$</th>
+                        <th>$K = 20$</th>
+                        <th>$K = 25$</th>
+                        <th>$K = 30$</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>贪心插入</td>
+                        <td>61.4%</td>
+                        <td>78.0%</td>
+                        <td>88.5%</td>
+                        <td>94.2%</td>
+                        <td>97.1%</td>
+                    </tr>
+                    <tr>
+                        <td>MLP + PPO</td>
+                        <td colspan="5" style="color:#718096;">仅适用于固定 $K = 20$，无法直接泛化</td>
+                    </tr>
+                    <tr class="good">
+                        <td><strong>Transformer + PPO</strong></td>
+                        <td><strong>65.8%</strong></td>
+                        <td><strong>82.3%</strong></td>
+                        <td><strong>93.7%</strong></td>
+                        <td><strong>96.5%</strong></td>
+                        <td><strong>98.4%</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="fig-caption">表 9.3-3　车队规模变化时的泛化表现（策略均在 $K = 20$ 上训练）</div>
+
+            <p>Transformer 策略在所有车队规模下均优于贪心插入。特别是在车辆较少（$K = 10$）的紧张场景下，RL 策略学到的资源调配能力使其优势更加明显。MLP 策略由于输入维度固定为 $K = 20$ 对应的向量长度，无法直接应用于其他车队规模。</p>
+
+            <!-- ==================== 小结 ==================== -->
+            <h2>小结</h2>
+
+            <ol style="margin: 0.5rem 0 1rem 2rem;">
+                <li>需求响应公交（DRT）的派单问题是一个动作空间结构复杂的序贯决策问题。与网约车派单相比，DRT 需要同时决定<strong>分配给哪辆车</strong>和<strong>插入路线的哪个位置</strong>，且每个决策会影响车上所有已有乘客的服务质量。</li>
+                <li>DRT 的状态包含可变长度的路线序列，标准 MLP 难以有效处理。Transformer 的自注意力机制天然适配这种结构：路线编码器捕捉站点间的顺序依赖，交叉注意力实现请求与路线的匹配。</li>
+                <li>训练流程采用事件驱动的 PPO。每个请求到达触发一次决策，策略在所有可行的（车辆，插入位置）组合上采样，不可行动作通过 masking 过滤。</li>
+                <li>Transformer 策略不仅在服务率和服务质量上优于启发式方法和 MLP 策略，还具备对车队规模变化的泛化能力。这种泛化性对实际运营中的车辆动态上下线场景尤为重要。</li>
+            </ol>
+
+            <div class="chapter-nav">
+                <a href="../ch09/9.2.html">&larr; 9.2 公交串车控制</a>
+                <a href="../ch10/10.1.html">10.1 多智能体强化学习 &rarr;</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

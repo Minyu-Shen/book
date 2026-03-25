@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6.4 决策时机与决策频率的建模 - 运筹智能</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <style>
+        .concept-card {
+            background: var(--sidebar-bg);
+            border-left: 4px solid var(--accent-color);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 6px 6px 0;
+        }
+        .concept-card .concept-name {
+            font-weight: 700;
+            color: var(--accent-color);
+            font-size: 1.05rem;
+            margin-bottom: 0.5rem;
+        }
+        .compare-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+        .compare-table th {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.7rem 1rem;
+            text-align: center;
+        }
+        .compare-table td {
+            padding: 0.6rem 1rem;
+            border: 1px solid var(--border-color);
+            vertical-align: top;
+        }
+        .compare-table tr:nth-child(even) {
+            background: var(--sidebar-bg);
+        }
+        .fig-caption {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #718096;
+            margin-top: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .optional-reading {
+            background: #fafafa;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid #a0aec0;
+            border-radius: 0 8px 8px 0;
+            margin: 2.5rem 0;
+        }
+        .optional-reading summary {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            font-weight: 700;
+            color: #4a5568;
+            font-size: 1.1rem;
+            list-style: none;
+        }
+        .optional-reading summary::-webkit-details-marker { display: none; }
+        .optional-reading summary::before { content: '▶ '; font-size: 0.8em; margin-right: 0.3rem; }
+        .optional-reading[open] summary::before { content: '▼ '; }
+        .optional-reading[open] summary { border-bottom: 1px solid #e2e8f0; }
+        .optional-reading .opt-body { padding: 1.2rem 1.5rem; }
+    </style>
+    <script defer src="../../js/code-copy.js"></script>
+</head>
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="book-title"><a href="../../index.html" style="text-decoration:none;color:inherit;">运筹智能</a></div>
+            <nav>
+                <ul>
+                <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
+                <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
+                <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html" class="active">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>6.4 决策时机与决策频率的建模</h1>
+
+            <!-- ===== 1. 引言 ===== -->
+
+            <p>4.3 节讨论了状态空间、动作空间和奖励函数的设计，回答了智能体<strong>观测什么、做什么、优化什么</strong>的问题。然而，还有一个同样重要的建模选择尚未涉及：智能体<strong>何时做出决策</strong>？</p>
+
+            <p>在教科书的 MDP 形式中，智能体在每个时间步 $t = 0, 1, 2, \ldots$ 都要选择一个动作，时间步之间的间隔是均匀且抽象的。但在管理科学的实际问题中，时间有具体的物理含义。一个网约车派单系统中，乘客请求可能每秒钟都在到达；一个库存管理系统中，补货决策可能只在每天下班前做一次。如何将这些具体的时间结构映射到 MDP 的抽象时间步，直接影响模型的可行性和求解效率。</p>
+
+            <p>本节将依次讨论三个问题：决策由什么触发（事件驱动还是时间驱动），决策频率如何选择，以及如何处理两次决策之间累积的多个事件。</p>
+
+            <!-- ===== 2. 事件驱动 vs 时间驱动 ===== -->
+
+            <h2>事件驱动与时间驱动</h2>
+
+            <p>根据决策被触发的机制，可以将决策模式分为两大类。</p>
+
+            <h3>事件驱动决策</h3>
+
+            <p><strong>事件驱动</strong>（event-driven）是指每当某个特定事件发生时，智能体立即做出一次决策。以网约车派单为例，每当一个新的乘客请求到达，系统就为这个请求分配一辆车辆。在这种模式下，MDP 的一个时间步对应一个事件的到达，状态中自然包含了触发决策的事件信息（例如新请求的出发地和目的地）。</p>
+
+            <p>事件驱动的优势在于响应及时，每个事件都能得到即时处理。但它有一个显著的问题：决策的频率完全由事件的到达过程决定，不受建模者控制。在早高峰时段，请求可能每秒到达数十个，智能体需要高频决策；在深夜时段，可能几分钟才有一个请求。这种不均匀的决策频率给算法训练带来了困难，因为不同时间步的间隔差异悬殊，而标准的折扣回报公式 $G_t = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1}$ 假设时间步是等间距的。</p>
+
+            <h3>时间驱动决策</h3>
+
+            <p><strong>时间驱动</strong>（time-driven）是指按照固定的时间间隔 $\Delta t$ 进行决策。每隔 $\Delta t$ 秒（或分钟、小时），智能体观测当前系统状态，做出一次决策。例如，每隔 10 秒钟，派单系统审视所有待处理的乘客请求，统一进行车辆分配。</p>
+
+            <p>时间驱动的好处是决策频率可控，计算负载可预测，并且天然适配标准 MDP 的等间距时间步。代价是响应可能不够及时：如果 $\Delta t = 10$ 秒，那么一个在第 1 秒到达的请求最多要等 9 秒才能被处理。</p>
+
+            <h3>混合模式</h3>
+
+            <p>实践中，很多系统采用<strong>混合模式</strong>：以固定间隔 $\Delta t$ 做常规决策，同时对特定的高优先级事件立即响应。例如，派单系统每 30 秒做一次批量派单，但当 VIP 乘客发出请求时，立即触发一次额外的决策。混合模式结合了两者的优点，但在 MDP 建模中需要额外的设计来处理非等间距的时间步。</p>
+
+            <p>下表总结了两种基本模式的对比。</p>
+
+            <table class="compare-table">
+                <thead>
+                    <tr>
+                        <th style="width:18%;">对比维度</th>
+                        <th style="width:41%;">事件驱动</th>
+                        <th style="width:41%;">时间驱动</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>触发条件</strong></td>
+                        <td>特定事件发生（如请求到达、任务完成）</td>
+                        <td>固定时间间隔 $\Delta t$</td>
+                    </tr>
+                    <tr>
+                        <td><strong>决策频率</strong></td>
+                        <td>由事件到达过程决定，不可控</td>
+                        <td>固定，由建模者选择</td>
+                    </tr>
+                    <tr>
+                        <td><strong>响应延迟</strong></td>
+                        <td>无延迟，事件到达即处理</td>
+                        <td>最多延迟 $\Delta t$</td>
+                    </tr>
+                    <tr>
+                        <td><strong>计算负载</strong></td>
+                        <td>随事件密度波动</td>
+                        <td>均匀可预测</td>
+                    </tr>
+                    <tr>
+                        <td><strong>批量处理</strong></td>
+                        <td>逐个处理，难以全局优化</td>
+                        <td>天然支持批量决策</td>
+                    </tr>
+                    <tr>
+                        <td><strong>MDP 适配</strong></td>
+                        <td>时间步不等距，需要调整折扣</td>
+                        <td>天然对应等间距时间步</td>
+                    </tr>
+                    <tr>
+                        <td><strong>典型场景</strong></td>
+                        <td>呼叫中心来电分配、告警响应</td>
+                        <td>车辆调度、库存补货、交通信号控制</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="concept-card">
+                <div class="concept-name">建模建议</div>
+                <p>如果问题中的事件到达率相对稳定，事件驱动是自然的选择。如果事件到达率波动剧烈，或者需要对多个事件进行联合优化，时间驱动更为稳健。大多数管理科学中的 RL 应用采用时间驱动模式，因为它与标准 MDP 框架的对接最为直接。</p>
+            </div>
+
+            <!-- ===== 3. 决策频率的影响 ===== -->
+
+            <h2>决策频率的影响</h2>
+
+            <p>在时间驱动模式下，决策间隔 $\Delta t$ 的选择对 MDP 的性质有深远影响。直觉上，$\Delta t$ 太小和太大都有问题。</p>
+
+            <h3>决策过于频繁</h3>
+
+            <p>当 $\Delta t$ 很小时，相邻两个决策点之间系统几乎没有变化。这带来几个后果：</p>
+
+            <ul>
+                <li><strong>状态变化微小。</strong>连续两个状态 $S_t$ 和 $S_{t+1}$ 几乎相同，使得值函数 $V(S_t) \approx V(S_{t+1})$，TD 目标 $R_{t+1} + \gamma V(S_{t+1})$ 提供的学习信号非常弱。</li>
+                <li><strong>动作效果不明显。</strong>在极短的间隔内，动作产生的影响很小，大量时间步的动作选择对最终结果几乎没有区别。</li>
+                <li><strong>回合步数激增。</strong>假设一个派单场景持续 3 小时。若 $\Delta t = 1$ 秒，一个回合就有 $T = 10800$ 步；若 $\Delta t = 10$ 秒，则只有 $T = 1080$ 步。更长的回合意味着更长的信用分配链，增加了学习难度。</li>
+                <li><strong>计算开销增大。</strong>每个决策步都需要前向推理（查询策略网络），步数翻 10 倍意味着推理开销翻 10 倍。</li>
+            </ul>
+
+            <h3>决策过于稀疏</h3>
+
+            <p>当 $\Delta t$ 很大时，两次决策之间系统发生了剧烈变化：</p>
+
+            <ul>
+                <li><strong>信息过时。</strong>决策基于 $\Delta t$ 秒前的状态，但系统此时可能已经面目全非。车辆已经驶过了最佳接客点，请求可能已被乘客取消。</li>
+                <li><strong>错失机会。</strong>两次决策之间到达的事件无法被及时响应，导致服务质量下降。</li>
+                <li><strong>状态跳变剧烈。</strong>$S_t$ 和 $S_{t+1}$ 之间的差异很大，转移概率 $P(S_{t+1} \mid S_t, A_t)$ 的方差增加，使得值函数更难学习。</li>
+                <li><strong>训练样本减少。</strong>同样 3 小时的模拟，$\Delta t = 300$ 秒只产生 36 步，可供学习的转移样本大幅减少。</li>
+            </ul>
+
+            <h3>合适的尺度</h3>
+
+            <div class="concept-card">
+                <div class="concept-name">决策频率的适配原则</div>
+                <p>$\Delta t$ 应当与系统中<strong>有意义变化</strong>的时间尺度相匹配。具体地，$\Delta t$ 应足够大，使得两步之间有值得响应的新信息到达；又足够小，使得决策能在事件发生后及时做出。</p>
+            </div>
+
+            <p>用网约车派单场景来具体说明。设请求的平均到达间隔为 $\bar{\tau}$ 秒，车辆的平均行驶速度为 $v$ 米/秒。</p>
+
+            <ul>
+                <li>如果 $\Delta t \ll \bar{\tau}$，大多数决策步没有新请求到达，智能体反复观测相同的待处理列表，浪费了计算资源。</li>
+                <li>如果 $\Delta t \gg \bar{\tau}$，两次决策之间累积了大量请求，先到的请求等待时间过长。同时，车辆在 $\Delta t$ 内行驶了 $v \cdot \Delta t$ 米，位置信息已经严重滞后。</li>
+                <li>合适的范围是 $\Delta t$ 与 $\bar{\tau}$ 同阶，即 $\Delta t \approx \bar{\tau}$ 或略小于 $\bar{\tau}$。</li>
+            </ul>
+
+            <p>例如，在一个每秒到达 0.5 个请求的场景中，$\bar{\tau} = 2$ 秒。选择 $\Delta t = 2 \sim 5$ 秒是合理的，每个决策步平均处理 $1 \sim 2.5$ 个新请求。若车辆速度 $v = 10$ 米/秒，在 $\Delta t = 5$ 秒内车辆移动约 50 米，位置变化可接受。</p>
+
+            <!-- ===== 4. 批量决策 ===== -->
+
+            <h2>批量决策</h2>
+
+            <p>当采用时间驱动模式且 $\Delta t$ 大于事件平均到达间隔时，每个决策点通常面临多个待处理事件。如何在一个时间步内处理这批事件，有两种主要策略。</p>
+
+            <h3>顺序处理</h3>
+
+            <p><strong>顺序处理</strong>是将批内事件按某种顺序排列（例如到达时间、优先级），逐一做出决策。每处理一个事件后，更新系统的工作状态副本，下一个事件的决策基于更新后的状态。</p>
+
+            <p>以网约车派单为例。假设在 $\Delta t = 10$ 秒内到达了 3 个请求 $\{r_1, r_2, r_3\}$，系统有 5 辆空闲车辆。顺序处理的流程如下：</p>
+
+            <ol>
+                <li>处理 $r_1$：在 5 辆空闲车辆中为 $r_1$ 分配一辆，更新工作状态（剩余 4 辆空闲车辆）。</li>
+                <li>处理 $r_2$：在 4 辆空闲车辆中为 $r_2$ 分配一辆，更新工作状态（剩余 3 辆空闲车辆）。</li>
+                <li>处理 $r_3$：在 3 辆空闲车辆中为 $r_3$ 分配一辆。</li>
+            </ol>
+
+            <p>注意这里有一个微妙之处：处理顺序会影响结果。$r_1$ 先被处理，所以它有更多的可选车辆。如果 $r_3$ 的优先级更高（例如是预约订单），应当调整处理顺序让它先被服务。</p>
+
+            <p>顺序处理的优势在于，它将批量决策分解为多次标准的单步决策，每一次都是一个 $(S, A) \to (S', R)$ 转移。这与标准 RL 框架完全兼容，不需要特殊的网络架构。代价是没有全局最优性保证，因为为 $r_1$ 做决策时并不知道 $r_2$ 和 $r_3$ 即将到来。</p>
+
+            <h3>联合优化</h3>
+
+            <p><strong>联合优化</strong>是将整批事件作为一个整体，同时决定所有分配方案。在派单场景中，这相当于求解一个二部图匹配问题：将 3 个请求同时分配给 5 辆车辆，使总体成本最小。</p>
+
+            <p>联合优化可以利用运筹学中成熟的组合优化算法（如匈牙利算法、拍卖算法）。但它与标准 RL 的结合需要更多设计，因为动作空间从单个分配变成了一个分配方案的组合。一种思路是让 RL 负责学习每个请求-车辆对的价值（考虑长期影响），再由组合优化算法根据这些价值求解即时的匹配问题。这种混合架构将在第九章的具体案例中详细展开。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">顺序处理 vs 联合优化</div>
+                <p>顺序处理简单直接，兼容标准 RL 框架，适合事件之间耦合较弱的场景。联合优化能利用全局信息，适合事件之间存在资源竞争的场景（例如多个请求抢占同一辆车）。两者也可以结合：用 RL 学习长期价值，用组合优化求解短期分配。</p>
+            </div>
+
+            <!-- ===== 5. 回合结构 ===== -->
+
+            <h2>回合结构</h2>
+
+            <p>决策频率确定之后，还需要决定一个回合（episode）的时间跨度。回合结构的选择取决于问题的时间特性。</p>
+
+            <h3>有限期任务</h3>
+
+            <p>很多管理问题有天然的起止边界。一个网约车司机的工作班次有固定的开始和结束时间；一个航班的登机过程在舱门关闭时结束；一场促销活动持续 7 天。这些问题自然地被建模为有限期（episodic）MDP，一个回合对应一个完整的业务周期。</p>
+
+            <p>回合长度 $T$ 的选择需要权衡。过短的回合无法反映长期效应（例如，30 分钟的回合看不到车辆从远处空驶回来的成本），过长的回合则增加训练时间。一个常用的选择是让一个回合覆盖一个完整的业务高峰期，例如早高峰 7:00-10:00（3 小时）。</p>
+
+            <h3>无限期任务</h3>
+
+            <p>有些管理问题没有自然终止点。一个配送中心 24 小时运转，一个库存系统持续运营。这些问题被建模为无限期（continuing）MDP，使用折扣因子 $\gamma < 1$ 确保回报 $G_t = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1}$ 有限。</p>
+
+            <p>在实践中，仿真不可能无限运行。通常的做法是选定一个截断长度 $T$，运行 $T$ 步后终止仿真，但不将 $S_T$ 视为终止状态。相反，用当前值函数的估计 $V(S_T)$ 作为截断点之后回报的近似，即：</p>
+
+            $$G_t = \sum_{k=0}^{T-t-1} \gamma^k R_{t+k+1} + \gamma^{T-t} V(S_T) \tag{6.4-1}$$
+
+            <p>公式 (6.4-1) 中的最后一项 $\gamma^{T-t} V(S_T)$ 称为<strong>自举项</strong>（bootstrap term）。它用值函数估计替代了截断之后无穷多步的真实回报。如果 $V$ 的估计是准确的，截断带来的偏差可以忽略不计。</p>
+
+            <h3>暖启动与冷却效应</h3>
+
+            <p>无论采用有限期还是无限期建模，回合的首尾都需要额外关注。</p>
+
+            <p>在回合开始时，系统可能处于不自然的状态。例如，仿真在 $t=0$ 时将所有车辆放置在随机位置，这与真实系统的稳态分布差异很大。前几分钟的决策和回报受初始条件的影响，不能反映稳态性能。常见的处理方法是设置一个<strong>暖启动期</strong>（warm-up period），在暖启动阶段运行仿真但不收集训练数据，等系统进入稳态后再开始记录。</p>
+
+            <p>在回合结束时，如果智能体知道终止时刻即将到来，可能会做出短视的决策。例如在班次即将结束时，司机倾向于拒绝远途订单，因为它在本回合内无法带来足够回报。这种<strong>末端效应</strong>（end-of-horizon effect）可以通过公式 (6.4-1) 中的自举项来缓解：即使回合在 $T$ 步截断，值函数估计 $V(S_T)$ 仍然能引导智能体考虑截断之后的长期影响。</p>
+
+            <!-- ===== 6. 多时间尺度的系统 ===== -->
+
+            <h2>多时间尺度的系统</h2>
+
+            <p>到目前为止，我们讨论的都是单一决策者在单一时间尺度上的行为。但真实的管理系统往往包含多个层次，每个层次有不同的时间尺度。</p>
+
+            <p>以网约车平台为例，至少存在三个层次：</p>
+
+            <ul>
+                <li><strong>物理层。</strong>车辆在道路网络上连续移动，GPS 坐标每秒更新一次。仿真器以 $\Delta t_{\text{phys}} = 1$ 秒的粒度追踪车辆位置。</li>
+                <li><strong>业务逻辑层。</strong>乘客请求随机到达，系统检测接驾完成和送达完成等事件。这些事件的时间尺度从数秒到数分钟不等。</li>
+                <li><strong>决策层。</strong>RL 智能体每隔 $\Delta t_{\text{dec}} = 10$ 秒做一次派单决策。它不需要知道每一秒的车辆位置更新，只需要在决策点获取当前的系统快照。</li>
+            </ul>
+
+            <p>下图展示了三个层次的时间尺度关系。</p>
+
+            <!-- SVG 图 6.4-1 -->
+            <div style="text-align:center; margin:2rem 0 0.5rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 260" style="max-width:660px; width:100%;">
+                    <!-- 背景 -->
+                    <rect x="0" y="0" width="700" height="260" fill="white" rx="8"/>
+
+                    <!-- 时间轴基线 -->
+                    <line x1="140" y1="55" x2="660" y2="55" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="140" y1="130" x2="660" y2="130" stroke="#cbd5e0" stroke-width="1"/>
+                    <line x1="140" y1="205" x2="660" y2="205" stroke="#cbd5e0" stroke-width="1"/>
+
+                    <!-- 物理层 (蓝色) - 每个小刻度 = 1秒, 共20个 -->
+                    <foreignObject x="4" y="38" width="130" height="34">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px; color:#2b6cb0; font-weight:600; text-align:right; line-height:34px;">物理层 (1s)</div>
+                    </foreignObject>
+                    <!-- 20个刻度, 从x=160到x=640, 间距24 -->
+                    <line x1="160" y1="48" x2="160" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="184" y1="48" x2="184" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="208" y1="48" x2="208" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="232" y1="48" x2="232" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="256" y1="48" x2="256" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="280" y1="48" x2="280" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="304" y1="48" x2="304" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="328" y1="48" x2="328" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="352" y1="48" x2="352" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="376" y1="48" x2="376" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="400" y1="48" x2="400" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="424" y1="48" x2="424" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="448" y1="48" x2="448" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="472" y1="48" x2="472" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="496" y1="48" x2="496" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="520" y1="48" x2="520" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="544" y1="48" x2="544" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="568" y1="48" x2="568" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="592" y1="48" x2="592" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="616" y1="48" x2="616" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="640" y1="48" x2="640" y2="62" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <!-- 物理层连线 -->
+                    <line x1="160" y1="55" x2="640" y2="55" stroke="#2b6cb0" stroke-width="2.5" stroke-linecap="round"/>
+
+                    <!-- 业务逻辑层 (黄色) - 不等间距的事件 -->
+                    <foreignObject x="4" y="113" width="130" height="34">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px; color:#d69e2e; font-weight:600; text-align:right; line-height:34px;">逻辑层 (事件)</div>
+                    </foreignObject>
+                    <!-- 事件标记：不等间距的竖线+圆点 -->
+                    <circle cx="196" cy="130" r="5" fill="#d69e2e"/>
+                    <line x1="196" y1="120" x2="196" y2="140" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="284" cy="130" r="5" fill="#d69e2e"/>
+                    <line x1="284" y1="120" x2="284" y2="140" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="316" cy="130" r="5" fill="#d69e2e"/>
+                    <line x1="316" y1="120" x2="316" y2="140" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="420" cy="130" r="5" fill="#d69e2e"/>
+                    <line x1="420" y1="120" x2="420" y2="140" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="465" cy="130" r="5" fill="#d69e2e"/>
+                    <line x1="465" y1="120" x2="465" y2="140" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="480" cy="130" r="5" fill="#d69e2e"/>
+                    <line x1="480" y1="120" x2="480" y2="140" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="590" cy="130" r="5" fill="#d69e2e"/>
+                    <line x1="590" y1="120" x2="590" y2="140" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
+                    <!-- 逻辑层连线 -->
+                    <line x1="160" y1="130" x2="640" y2="130" stroke="#d69e2e" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="6,4"/>
+
+                    <!-- 决策层 (红色) - 每10秒一个决策点, 间距 = 10*24 = 240 -->
+                    <foreignObject x="4" y="188" width="130" height="34">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px; color:#c53030; font-weight:600; text-align:right; line-height:34px;">决策层 (10s)</div>
+                    </foreignObject>
+                    <!-- 决策点：大圆点 + 粗竖线 -->
+                    <circle cx="160" cy="205" r="7" fill="#c53030"/>
+                    <line x1="160" y1="192" x2="160" y2="218" stroke="#c53030" stroke-width="3" stroke-linecap="round"/>
+                    <circle cx="400" cy="205" r="7" fill="#c53030"/>
+                    <line x1="400" y1="192" x2="400" y2="218" stroke="#c53030" stroke-width="3" stroke-linecap="round"/>
+                    <circle cx="640" cy="205" r="7" fill="#c53030"/>
+                    <line x1="640" y1="192" x2="640" y2="218" stroke="#c53030" stroke-width="3" stroke-linecap="round"/>
+                    <!-- 决策层连线 -->
+                    <line x1="160" y1="205" x2="640" y2="205" stroke="#c53030" stroke-width="2.5" stroke-linecap="round"/>
+
+                    <!-- 竖向虚线连接决策点到其他层 -->
+                    <line x1="160" y1="65" x2="160" y2="190" stroke="#c53030" stroke-width="1" stroke-dasharray="4,4" opacity="0.4"/>
+                    <line x1="400" y1="65" x2="400" y2="190" stroke="#c53030" stroke-width="1" stroke-dasharray="4,4" opacity="0.4"/>
+                    <line x1="640" y1="65" x2="640" y2="190" stroke="#c53030" stroke-width="1" stroke-dasharray="4,4" opacity="0.4"/>
+
+                    <!-- 时间标注 -->
+                    <foreignObject x="140" y="228" width="50" height="25">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px; color:#4a5568; text-align:center;">$t$</div>
+                    </foreignObject>
+                    <foreignObject x="376" y="228" width="50" height="25">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px; color:#4a5568; text-align:center;">$t{+}10$</div>
+                    </foreignObject>
+                    <foreignObject x="616" y="228" width="50" height="25">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px; color:#4a5568; text-align:center;">$t{+}20$</div>
+                    </foreignObject>
+
+                    <!-- 括号标注: 事件累积区间 -->
+                    <rect x="165" y="150" width="230" height="22" rx="4" fill="#fed7d7" fill-opacity="0.5"/>
+                    <foreignObject x="165" y="148" width="230" height="26">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px; color:#c53030; text-align:center; line-height:26px;">3 个事件在此区间累积</div>
+                    </foreignObject>
+                    <rect x="405" y="150" width="230" height="22" rx="4" fill="#fed7d7" fill-opacity="0.5"/>
+                    <foreignObject x="405" y="148" width="230" height="26">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px; color:#c53030; text-align:center; line-height:26px;">4 个事件在此区间累积</div>
+                    </foreignObject>
+                </svg>
+            </div>
+            <p class="fig-caption">图 6.4-1：多时间尺度的系统架构。物理层（蓝色）每秒更新一次车辆位置；业务逻辑层（黄色）在不规则的时间点产生事件；决策层（红色）每 10 秒做一次派单决策，处理区间内累积的所有事件。</p>
+
+            <p>这种分层架构的核心思想是：<strong>MDP 的时间步不必与底层仿真的时间步一致</strong>。物理仿真以 1 秒为步长精确追踪系统动态，RL 智能体以 10 秒为步长做出决策。在两个决策点之间，物理仿真自主运转 10 步，产生的状态变化和事件被汇总为 RL 智能体看到的下一个状态。</p>
+
+            <p>从 RL 智能体的视角看，环境每 10 秒返回一次状态观测和累积奖励，它完全不需要感知底层的 1 秒步长。从仿真器的视角看，RL 智能体的决策是一个持续 10 秒的不变输入，直到下一个决策点才会更新。这种解耦使得决策频率和仿真精度可以独立调节。</p>
+
+            <p>更进一步，某些系统包含不同时间尺度的多层决策。例如，网约车平台的<strong>调度层</strong>每 10 秒决定派单方案，而<strong>运营层</strong>每小时决定不同区域的定价策略和车辆调配方案。较高层的决策成为较低层环境的一部分：调度智能体的状态中包含当前定价，而定价智能体的状态中包含过去一小时的供需统计。这种层次化的建模方式将在第七章仿真架构中进一步讨论。</p>
+
+            <details class="optional-reading">
+                <summary>选读：非等间距时间步的折扣处理</summary>
+                <div class="opt-body">
+                    <p>在事件驱动或混合模式下，相邻两个决策点之间的实际时间间隔 $\delta_t$ 可能不等。如果仍使用固定的折扣因子 $\gamma$，则隐含地假设了等间距时间步。一个更准确的做法是使用<strong>连续时间折扣</strong>。</p>
+
+                    <p>设连续时间折扣率为 $\rho > 0$，则经过 $\delta$ 秒后的折扣因子为：</p>
+
+                    $$\gamma(\delta) = e^{-\rho \delta} \tag{6.4-2}$$
+
+                    <p>对应的回报定义为：</p>
+
+                    $$G_t = \sum_{k=0}^{\infty} e^{-\rho \sum_{j=0}^{k-1} \delta_{t+j}} R_{t+k+1} \tag{6.4-3}$$
+
+                    <p>当所有 $\delta_t = \Delta t$ 相等时，$e^{-\rho \Delta t}$ 就是常见的固定折扣因子 $\gamma$，公式 (6.4-3) 退化为标准形式。</p>
+
+                    <p>在实现上，只需将 TD 目标中的 $\gamma$ 替换为 $e^{-\rho \delta_t}$ 即可。例如 TD(0) 的更新变为：</p>
+
+                    $$V(S_t) \leftarrow V(S_t) + \alpha \Big[ R_{t+1} + e^{-\rho \delta_t} V(S_{t+1}) - V(S_t) \Big] \tag{6.4-4}$$
+                </div>
+            </details>
+
+            <!-- ===== 7. 小结与衔接 ===== -->
+
+            <h2>小结</h2>
+
+            <p>本节讨论了将管理问题映射为 MDP 时的时间维度建模。事件驱动和时间驱动各有适用场景；决策频率 $\Delta t$ 的选择需要与系统变化的时间尺度匹配；多个事件累积时可以采用顺序处理或联合优化；回合结构和多时间尺度的分层设计则提供了额外的建模灵活性。</p>
+
+            <p>至此，4.1 到 4.4 节回答了 MDP 建模中的核心问题：观测什么（状态空间）、做什么（动作空间）、优化什么（奖励函数）、何时做（决策时机与频率）。剩下的问题是如何表示策略和值函数。在离散的小规模问题中，表格就足够了；但在状态空间高维、连续的管理问题中，需要用神经网络作为函数逼近器。下一节将讨论如何根据问题特征选择合适的神经网络架构。</p>
+
+            <div class="chapter-nav">
+                <a href="../ch06/6.3.html">&larr; 6.3 状态空间、动作空间与奖励函数的设计</a>
+                <a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择 &rarr;</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

@@ -10,6 +10,81 @@
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
     <script defer src="../../js/code-copy.js"></script>
+    <style>
+        .concept-card {
+            background: var(--sidebar-bg);
+            border-left: 4px solid var(--accent-color);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 6px 6px 0;
+        }
+        .concept-card .concept-name {
+            font-weight: 700;
+            color: var(--accent-color);
+            font-size: 1.05rem;
+            margin-bottom: 0.5rem;
+        }
+        .scenario-intro {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 6px 6px 0;
+        }
+        .scenario-intro .scenario-label {
+            font-weight: 700;
+            color: #2f855a;
+            font-size: 1.05rem;
+            margin-bottom: 0.5rem;
+        }
+        .figure-caption {
+            text-align: center;
+            font-size: 0.92rem;
+            color: #718096;
+            margin-top: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            font-size: 0.95rem;
+        }
+        .comparison-table th {
+            background: #1a365d;
+            color: white;
+            padding: 0.7rem 1rem;
+            text-align: center;
+        }
+        .comparison-table td {
+            padding: 0.6rem 1rem;
+            border: 1px solid var(--border-color);
+            vertical-align: top;
+        }
+        .comparison-table tr:nth-child(even) {
+            background: var(--sidebar-bg);
+        }
+        .summary-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        .summary-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            color: white;
+            font-weight: 700;
+            font-size: 0.88rem;
+            flex-shrink: 0;
+            margin-right: 0.8rem;
+            margin-top: 0.15rem;
+        }
+    </style>
 </head>
 <body>
     <div class="page-wrapper">
@@ -20,52 +95,58 @@
                 <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
                 <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
                 <li><a href="../ch01/1.2.html" class="active">1.2 管理科学中的典型序贯决策场景</a></li>
-                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
-                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
-                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
-                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.6.1.html">1.6.1 SARSA</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.6.2.html">1.6.2 Q-learning</a></li>
-                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.7.1.html">1.7.1 策略梯度定理</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.7.2.html">1.7.2 REINFORCE算法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.7.3.html">1.7.3 Actor-Critic框架</a></li>
-                <li class="sidebar-chapter">第二章 深度学习基础</li>
-                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
-                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
-                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
-                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
-                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
-                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
-                <li><a href="../ch03/3.2.html">3.2 Policy Gradient与PPO</a></li>
-                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
-                <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
-                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
-                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
-                <li><a href="../ch04/4.2.html">4.2 时域建模与回合定义</a></li>
-                <li><a href="../ch04/4.3.html">4.3 状态空间、动作空间与奖励函数的设计</a></li>
-                <li><a href="../ch04/4.4.html">4.4 决策时机与决策频率的建模</a></li>
-                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
-                <li class="sidebar-chapter">第五章 仿真器搭建</li>
-                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
-                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
-                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
-                <li><a href="../ch05/5.4.html">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
-                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
-                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
-                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
-                <li><a href="../ch07/7.2.html">7.2 公交串车控制</a></li>
-                <li><a href="../ch07/7.3.html">7.3 需求响应公交调度优化</a></li>
-                <li class="sidebar-chapter">第八章 进阶话题</li>
-                <li><a href="../ch08/8.1.html">8.1 多智能体强化学习</a></li>
-                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
                 </ul>
             </nav>
         </aside>
@@ -73,11 +154,329 @@
         <main class="main-content">
             <h1>1.2 管理科学中的典型序贯决策场景</h1>
 
-            <p>（内容待补充）</p>
+            <p>管理科学中的许多经典问题，表面上看千差万别，底层却共享同一种结构：决策者需要在一段时间内反复做出选择，每次选择既产生即时收益或代价，又改变系统的未来状态，从而影响后续所有决策的机会。这类问题统称为<strong>序贯决策问题</strong>（sequential decision problem）。</p>
+
+            <p>本节通过四个管理科学中的典型场景，展示序贯决策的共同结构。我们不急于引入数学定义，而是先用直觉感受每个问题中的<strong>状态</strong>、<strong>动作</strong>、<strong>奖励</strong>以及<strong>当前决策对未来的影响</strong>。这些场景将在后续章节中反复出现，成为贯穿全书的例子。</p>
+
+            <!-- ==================== 场景一：网约车调度 ==================== -->
+            <h2>场景一：网约车调度</h2>
+
+            <p>一位网约车司机在某城市运营一整天。每完成一单或空闲时，他面临一个选择：接下一单订单，还是空驶到另一个区域等待更好的订单？这个看似简单的决策，背后隐含着深刻的时序权衡。</p>
+
+            <p>为了说明问题的本质，我们将城市简化为三个区域：<strong>市中心</strong> $c$、<strong>郊区</strong> $b$、<strong>机场</strong> $a$。每个区域的订单特征不同：</p>
+
+            <ul>
+                <li>市中心 $c$：订单密集，但多为短途，车费较低；完成后大概率仍留在市中心</li>
+                <li>郊区 $b$：订单稀少，等待时间长；偶尔有去市中心或机场的长途单</li>
+                <li>机场 $a$：有高价值的长途单（如去市中心），但机场排队等候时间不确定</li>
+            </ul>
+
+            <p>假设司机当前在市中心 $c$，接到一单去郊区 $b$ 的订单，车费 $8$ 元。如果只看这一单，$8$ 元的收入不算差。但到了郊区之后呢？那里订单稀少，司机可能要空等很久，或者花费油钱空驶回市中心。一个短视的司机可能每次都接眼前最高车费的订单；一个有远见的司机则会考虑：<strong>这一单把我带到哪里，那个位置未来还能赚多少？</strong></p>
+
+            <p>用更精确的语言来描述这个问题的序贯决策结构：</p>
+
+            <div class="scenario-intro">
+                <div class="scenario-label">网约车调度的决策要素</div>
+                <p><strong>状态</strong>：司机当前所在区域（$c$、$b$ 或 $a$），以及当前时段（早高峰、平峰、晚高峰等）。</p>
+                <p><strong>动作</strong>：在当前位置接受某个订单，或空驶到另一个区域重新定位。</p>
+                <p><strong>奖励</strong>：接单的车费收入减去油耗等成本。空驶重新定位时奖励为负（只有成本，没有收入）。</p>
+                <p><strong>状态转移</strong>：接单后司机被送到乘客的目的地（随机性来自订单的目的地分布）；空驶则确定性地到达目标区域。</p>
+                <p><strong>序贯性</strong>：当前接单决策决定了司机下一步的位置，而位置决定了未来可接订单的质量。短途单到郊区虽有即时收入，却可能损失大量未来收益。</p>
+            </div>
+
+            <p>下图展示了这个三区域网约车问题的状态转移结构。每个圆圈代表一个区域（状态），连线代表可能的转移方向，线上的标签表示对应的动作和即时奖励。这个简化模型将在第 2 章和第 3 章中反复使用，帮助我们具体演示 MDP 的各种概念和算法。</p>
+
+            <!-- 三状态网约车 MDP 图 -->
+            <div style="text-align:center; margin: 2rem 0 0.5rem;">
+                <svg width="520" height="400" viewBox="0 0 520 400" xmlns="http://www.w3.org/2000/svg">
+                    <!-- 市中心 c：顶部中央 -->
+                    <circle cx="260" cy="80" r="40" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2.5"/>
+                    <foreignObject x="225" y="58" width="70" height="44">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center; font-size:14px;">
+                            <span style="font-weight:700; color:#1a365d;">市中心</span><br/>
+                            <span style="color:#2b6cb0; font-weight:600; font-style:italic;">c</span>
+                        </div>
+                    </foreignObject>
+
+                    <!-- 郊区 b：左下 -->
+                    <circle cx="120" cy="320" r="40" fill="#fefcbf" stroke="#d69e2e" stroke-width="2.5"/>
+                    <foreignObject x="85" y="298" width="70" height="44">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center; font-size:14px;">
+                            <span style="font-weight:700; color:#1a365d;">郊区</span><br/>
+                            <span style="color:#d69e2e; font-weight:600; font-style:italic;">b</span>
+                        </div>
+                    </foreignObject>
+
+                    <!-- 机场 a：右下 -->
+                    <circle cx="400" cy="320" r="40" fill="#fed7d7" stroke="#c53030" stroke-width="2.5"/>
+                    <foreignObject x="365" y="298" width="70" height="44">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center; font-size:14px;">
+                            <span style="font-weight:700; color:#1a365d;">机场</span><br/>
+                            <span style="color:#c53030; font-weight:600; font-style:italic;">a</span>
+                        </div>
+                    </foreignObject>
+
+                    <!-- 连线 c → b（左侧）：接短途单去郊区 -->
+                    <line x1="228" y1="108" x2="152" y2="288" stroke="#4a5568" stroke-width="2" stroke-linecap="round"/>
+                    <foreignObject x="132" y="178" width="90" height="50">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px; color:#4a5568; text-align:center;">
+                            接短途单<br/><span style="color:#2b6cb0; font-weight:600;">+8</span>
+                        </div>
+                    </foreignObject>
+
+                    <!-- 连线 c → a（右侧）：接单去机场 -->
+                    <line x1="292" y1="108" x2="368" y2="288" stroke="#4a5568" stroke-width="2" stroke-linecap="round"/>
+                    <foreignObject x="308" y="178" width="90" height="50">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px; color:#4a5568; text-align:center;">
+                            接单去机场<br/><span style="color:#2b6cb0; font-weight:600;">+15</span>
+                        </div>
+                    </foreignObject>
+
+                    <!-- 连线 c → c（自环，顶部弧线） -->
+                    <path d="M 225,62 C 190,10 330,10 295,62" fill="none" stroke="#2b6cb0" stroke-width="2" stroke-linecap="round"/>
+                    <foreignObject x="220" y="4" width="80" height="50">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px; color:#2b6cb0; text-align:center; font-weight:600;">
+                            接短途单<br/>+5
+                        </div>
+                    </foreignObject>
+
+                    <!-- 连线 b → c：长途单回市中心 -->
+                    <line x1="148" y1="288" x2="232" y2="112" stroke="#d69e2e" stroke-width="2" stroke-linecap="round" stroke-dasharray="6,3"/>
+                    <foreignObject x="144" y="188" width="90" height="50">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px; color:#d69e2e; text-align:center;">
+                            长途单回城<br/><span style="font-weight:600;">+12</span>
+                        </div>
+                    </foreignObject>
+
+                    <!-- 连线 b → b（自环，左下弧线） -->
+                    <path d="M 88,298 C 30,270 30,370 88,342" fill="none" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
+                    <foreignObject x="4" y="292" width="76" height="50">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px; color:#d69e2e; text-align:center;">
+                            空等<br/><span style="font-weight:600;">0</span>
+                        </div>
+                    </foreignObject>
+
+                    <!-- 连线 a → c：机场长途单去市中心 -->
+                    <line x1="372" y1="292" x2="290" y2="112" stroke="#c53030" stroke-width="2" stroke-linecap="round" stroke-dasharray="6,3"/>
+                    <foreignObject x="296" y="188" width="90" height="50">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px; color:#c53030; text-align:center;">
+                            长途单回城<br/><span style="font-weight:600;">+25</span>
+                        </div>
+                    </foreignObject>
+
+                    <!-- 连线 b → a：郊区到机场 -->
+                    <line x1="160" y1="320" x2="360" y2="320" stroke="#4a5568" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="4,3"/>
+                    <foreignObject x="210" y="326" width="100" height="40">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px; color:#4a5568; text-align:center;">
+                            空驶去机场 <span style="font-weight:600;">-5</span>
+                        </div>
+                    </foreignObject>
+
+                    <!-- 连线 a → a（自环，右下弧线） -->
+                    <path d="M 432,298 C 490,270 490,370 432,342" fill="none" stroke="#c53030" stroke-width="2" stroke-linecap="round"/>
+                    <foreignObject x="442" y="292" width="76" height="50">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px; color:#c53030; text-align:center;">
+                            排队等候<br/><span style="font-weight:600;">0</span>
+                        </div>
+                    </foreignObject>
+                </svg>
+            </div>
+            <div class="figure-caption">图 1.2-1 &nbsp; 网约车三区域调度问题的状态转移图。实线为高频转移，虚线为较低频或需等待的转移。线上数字为即时奖励（单位：元）。</div>
+
+            <p>图 1.2-1 清楚地展示了序贯决策的核心困境。假设司机在市中心 $c$，面前有两个订单：一单去郊区 $b$，车费 $+8$ 元；另一单是市中心内的短途，车费 $+5$ 元。如果只看即时收入，去郊区的订单更好。但到了郊区之后，司机面临的是稀疏的订单和漫长的等待。而留在市中心虽然单价低，却能持续接单。<strong>哪个选择的长期总收入更高，取决于后续所有时间步的累积效果。</strong></p>
+
+            <p>将即时收入记为 $R_t$，司机在一天中的总收入可以写成：</p>
+
+            <div class="formula-block">
+                $$\text{总收入} = \sum_{t=0}^{T-1} R_t \tag{1.2-1}$$
+            </div>
+
+            <p>其中 $T$ 是一天中的总决策步数。司机的目标是选择一个<strong>策略</strong>（在每个区域、每个时段如何选择订单或重新定位），使公式 (1.2-1) 的期望值最大。这正是强化学习要解决的问题。</p>
+
+
+            <!-- ==================== 场景二：库存管理 ==================== -->
+            <h2>场景二：库存管理</h2>
+
+            <p>一家零售商每周需要决定向供应商订购多少货物。库存太多，要支付仓储费和资金占用成本；库存太少，顾客来了无货可卖，损失销售收入甚至流失客户。更棘手的是，从下单到货物到达有一个<strong>提前期</strong>（lead time），通常为 1-3 周，期间需求持续发生但补货尚未到达。</p>
+
+            <p>考虑一个具体场景：某商品当前库存为 $I_t = 50$ 件，已下单但尚未到货（在途库存）为 $O_t = 30$ 件，上周的需求为 $D_{t-1} = 40$ 件。零售商需要决定本周的订货量 $a_t$。</p>
+
+            <div class="scenario-intro">
+                <div class="scenario-label">库存管理的决策要素</div>
+                <p><strong>状态</strong>：当前库存水平 $I_t$、在途库存 $O_t$、近期需求的观测值（作为需求预测的依据）。</p>
+                <p><strong>动作</strong>：本期的订货量 $a_t \in \{0, 1, 2, \ldots, a_{\max}\}$，受仓库容量限制。</p>
+                <p><strong>奖励</strong>：本期的销售利润减去持有成本和缺货惩罚。</p>
+                <p><strong>状态转移</strong>：下一期的库存取决于本期库存、到货量和实际需求。需求是随机的，因此转移具有不确定性。</p>
+                <p><strong>序贯性</strong>：本期订货影响未来若干期的库存水平（因为提前期的存在），而库存水平又约束了未来的销售能力和成本。</p>
+            </div>
+
+            <p>库存的动态变化可以用如下递推公式描述。设提前期为 $L$ 周，第 $t$ 周订购的货物在第 $t+L$ 周到达。在不考虑缺货积压的情形下，库存更新为：</p>
+
+            <div class="formula-block">
+                $$I_{t+1} = \max\big(I_t + Q_{t} - D_t, \; 0\big) \tag{1.2-2}$$
+            </div>
+
+            <p>其中 $Q_t$ 是第 $t$ 周实际到货的数量（即 $L$ 周前下的订单），$D_t$ 是第 $t$ 周的随机需求。当 $I_t + Q_t < D_t$ 时发生缺货，库存降为零，多余的需求流失。</p>
+
+            <p>每周的即时奖励由三部分构成：</p>
+
+            <div class="formula-block">
+                $$R_t = p \cdot \min(I_t + Q_t, \; D_t) - h \cdot I_{t+1} - b \cdot \max(D_t - I_t - Q_t, \; 0) \tag{1.2-3}$$
+            </div>
+
+            <p>公式 (1.2-3) 中，$p$ 为单位售价，$h$ 为单位持有成本，$b$ 为单位缺货惩罚。第一项是销售收入（实际卖出量），第二项是期末库存的持有成本，第三项是缺货造成的损失。</p>
+
+            <p>序贯性在这里体现得非常明显：本周多订一些货，虽然增加了持有成本，但降低了未来几周缺货的风险；本周少订一些，节省了仓储费，却可能在需求高峰时无货可卖。最优订货策略需要在这两种代价之间取得平衡，而这种平衡依赖于对未来需求的不确定性的考量。</p>
+
+
+            <!-- ==================== 场景三：交通信号控制 ==================== -->
+            <h2>场景三：交通信号控制</h2>
+
+            <p>城市交通网络中，每个交叉口的信号灯需要实时决定各方向的绿灯时长。传统的信号控制大多采用预先设定的固定配时方案，但交通流量随时间和事件不断变化，固定方案难以应对。更好的方法是根据实时的车辆排队状况动态调整信号。</p>
+
+            <p>考虑一个典型的十字路口。南北方向和东西方向交替获得绿灯，每个信号相位持续若干秒。在每个相位切换的时刻，信号控制系统需要决定：下一个相位给哪个方向，持续多久？</p>
+
+            <div class="scenario-intro">
+                <div class="scenario-label">交通信号控制的决策要素</div>
+                <p><strong>状态</strong>：各进口道的车辆排队长度、当前信号相位、已等待时间。在更精细的模型中还可以包括上下游交叉口的排队情况。</p>
+                <p><strong>动作</strong>：选择下一个信号相位（如东西直行、南北直行、左转专用相位等），以及该相位的持续时长。</p>
+                <p><strong>奖励</strong>：通常取为负的总延误时间或负的排队长度，使奖励最大化等价于延误最小化。</p>
+                <p><strong>状态转移</strong>：给某方向绿灯后，该方向排队消散，其他方向排队增长。同时新的车辆不断到达，到达量是随机的。</p>
+                <p><strong>序贯性</strong>：当前的绿灯分配影响各方向的排队长度，进而影响下一次信号切换时需要疏散的车辆数。如果一个方向长时间不给绿灯，排队会溢出到上游路段，引发更大范围的拥堵。</p>
+            </div>
+
+            <p>交通信号控制的序贯特性还有一个重要维度：<strong>网络效应</strong>。一个交叉口的信号决策不仅影响本路口的排队，还会改变下游路口的到达车流。例如，当北方向给了一个较长的绿灯后，大量车辆被放行到下一个路口，导致该路口突然涌入大量车辆。这种拥堵在网络中的传播，使得单个路口的决策必须考虑全局影响。</p>
+
+            <p>设第 $t$ 个决策时刻各进口道 $i$ 的排队车辆数为 $q_i^{(t)}$，一个常用的奖励定义是：</p>
+
+            <div class="formula-block">
+                $$R_t = -\sum_{i=1}^{N} q_i^{(t)} \tag{1.2-4}$$
+            </div>
+
+            <p>即所有进口道排队总长度的负值。最大化累积奖励等价于最小化所有时间步上的总排队长度。</p>
+
+
+            <!-- ==================== 场景四：动态定价 ==================== -->
+            <h2>场景四：动态定价</h2>
+
+            <p>一家航空公司运营某条航线，航班在 $T$ 天后起飞，共有 $C$ 个座位待售。随着起飞日期临近，公司需要每天调整票价。定价太高，座位可能卖不完，空座起飞；定价太低，座位虽然很快售罄，却错失了愿意出高价的晚期旅客。</p>
+
+            <p>假设距起飞还有 $\tau$ 天，当前已售出 $n$ 个座位（剩余 $C - n$ 个）。航空公司将票价设为 $p$，当天的需求 $D_t$ 是一个随机变量，其分布取决于价格和距起飞的天数。价格越低、越临近起飞，需求越高。</p>
+
+            <div class="scenario-intro">
+                <div class="scenario-label">动态定价的决策要素</div>
+                <p><strong>状态</strong>：剩余座位数 $C - n$，距起飞天数 $\tau$，以及历史需求信息（可用于估计需求趋势）。</p>
+                <p><strong>动作</strong>：当天的票价 $p_t$，通常从若干离散价格等级中选取。</p>
+                <p><strong>奖励</strong>：当天的售票收入 $R_t = p_t \cdot \min(D_t, \; C - n_t)$，即票价乘以实际售出数量。</p>
+                <p><strong>状态转移</strong>：已售座位数增加（增加量取决于随机需求和剩余座位数），距起飞天数减一。</p>
+                <p><strong>序贯性</strong>：今天定低价虽然能多卖几张票，但消耗了有限的座位。如果明天出现大量愿意出高价的旅客，已经没有座位可卖了。反之，今天定高价可能一张也卖不出去，浪费了一天的销售窗口。</p>
+            </div>
+
+            <p>在每个时间步，已售座位数的更新为：</p>
+
+            <div class="formula-block">
+                $$n_{t+1} = n_t + \min\big(D_t(p_t), \; C - n_t\big) \tag{1.2-5}$$
+            </div>
+
+            <p>其中 $D_t(p_t)$ 是价格 $p_t$ 下的随机需求。当剩余座位为零时，无论价格如何，都不再有收入。航班起飞后，未售出的座位价值归零。</p>
+
+            <p>航空公司的目标是选择一个定价策略 $\pi$，使从当前到起飞日的总收入期望最大：</p>
+
+            <div class="formula-block">
+                $$\max_\pi \; \mathbb{E}\left[\sum_{t=0}^{T-1} p_t \cdot \min\big(D_t(p_t), \; C - n_t\big)\right] \tag{1.2-6}$$
+            </div>
+
+            <p>这正是一个典型的有限时域序贯决策问题。关于动态定价的完整建模与求解，我们将在第 8 章的机票定价案例中详细展开。</p>
+
+
+            <!-- ==================== 四个场景的对比总结 ==================== -->
+            <h2>四个场景的对比</h2>
+
+            <p>下表将上述四个场景的决策要素做一个横向对比，帮助读者看到序贯决策问题的共同结构。</p>
+
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th style="width:14%;">场景</th>
+                        <th style="width:22%;">状态</th>
+                        <th style="width:18%;">动作</th>
+                        <th style="width:22%;">即时奖励</th>
+                        <th style="width:24%;">不确定性来源</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>网约车调度</strong></td>
+                        <td>当前区域、时段</td>
+                        <td>接单 / 空驶重定位</td>
+                        <td>车费收入 $-$ 油耗成本</td>
+                        <td>订单的目的地和到达时间</td>
+                    </tr>
+                    <tr>
+                        <td><strong>库存管理</strong></td>
+                        <td>库存水平、在途库存、需求观测</td>
+                        <td>订货量</td>
+                        <td>销售收入 $-$ 持有成本 $-$ 缺货惩罚</td>
+                        <td>顾客需求的随机波动</td>
+                    </tr>
+                    <tr>
+                        <td><strong>信号控制</strong></td>
+                        <td>各方向排队长度、当前相位</td>
+                        <td>下一相位及持续时长</td>
+                        <td>$-$总排队长度（或 $-$总延误）</td>
+                        <td>车辆到达的随机性</td>
+                    </tr>
+                    <tr>
+                        <td><strong>动态定价</strong></td>
+                        <td>剩余座位数、距起飞天数</td>
+                        <td>票价水平</td>
+                        <td>票价 $\times$ 实际售出量</td>
+                        <td>旅客需求的随机性</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="figure-caption">表 1.2-1 &nbsp; 四个序贯决策场景的决策要素对比</div>
+
+
+            <!-- ==================== 总结：共同特征 ==================== -->
+            <h2>总结：序贯决策的共同特征</h2>
+
+            <p>尽管这四个场景的领域背景各不相同，它们共享以下四个结构性特征。正是这些特征，使得它们都适合用统一的<strong>马尔可夫决策过程</strong>（MDP）框架来建模。</p>
+
+            <div style="margin: 1.5rem 0;">
+                <div class="summary-item">
+                    <span class="summary-number">1</span>
+                    <div><strong>决策在时间上展开。</strong>决策者不是一次性做出所有选择，而是在多个时间步上依次决策。网约车司机每单做一次选择，库存管理员每周下一次订单，信号灯每个周期切换一次，航空公司每天调整一次票价。</div>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-number">2</span>
+                    <div><strong>状态转移由动作和随机性共同驱动。</strong>系统下一步的状态既取决于决策者选择了什么动作，又受到不可控的随机因素影响。司机接单后被送往的目的地取决于乘客去向；库存下一期的水平取决于补货量和随机需求；交叉口排队长度取决于信号配时和随机到达车流；已售座位数取决于定价和随机旅客需求。</div>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-number">3</span>
+                    <div><strong>当前决策影响未来机会。</strong>每一步的动作不仅产生即时收益或代价，还通过改变状态来影响后续所有时间步的决策空间。这是序贯决策与静态优化的根本区别：在静态优化中，决策变量之间的关联通过约束条件一次性刻画；在序贯决策中，决策之间的关联通过时间展开的状态转移动态体现。</div>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-number">4</span>
+                    <div><strong>即时收益与长期目标之间存在权衡。</strong>贪心地追求每一步的最大即时奖励，往往不是全局最优的策略。网约车司机接高车费短途单却被困在郊区，零售商为避免缺货而过量订货导致仓储成本飙升，信号灯为疏散一个方向而让其他方向严重拥堵，航空公司低价快速售罄却错过高价旅客。如何在即时收益和长期回报之间找到最优平衡，正是强化学习的核心问题。</div>
+                </div>
+            </div>
+
+            <div class="concept-card">
+                <div class="concept-name">即时奖励 vs 长期回报</div>
+                <p>在序贯决策问题中，每一步动作都会产生一个<strong>即时奖励</strong> $R_t$，但决策者真正关心的是所有时间步上的<strong>累积回报</strong>：</p>
+                <div class="formula-block" style="margin: 0.8rem 0;">
+                    $$G_0 = R_0 + R_1 + R_2 + \cdots \tag{1.2-7}$$
+                </div>
+                <p>一个好的策略不一定在每一步都选择即时奖励最高的动作。它需要<strong>前瞻性地</strong>考虑当前动作对未来状态的影响，在某些时间步主动牺牲即时收益，以换取更有利的未来状态。</p>
+                <p>这种即时奖励与长期回报之间的权衡，贯穿于本书介绍的所有强化学习算法。如何量化这种权衡，正是下一章将要引入的<strong>值函数</strong>和<strong>贝尔曼方程</strong>所解决的问题。</p>
+            </div>
+
+            <p>有了这些直观认识，我们已经准备好进入正式的数学框架了。下一章将从<strong>马尔可夫决策过程</strong>（MDP）的严格定义出发，为上述场景中的状态、动作、转移和奖励建立统一的数学语言，并在此基础上推导出求解最优策略的方法。</p>
 
             <div class="chapter-nav">
                 <a href="../ch01/1.1.html">&larr; 1.1 从运筹优化到强化学习：为什么管理科学需要RL</a>
-                <a href="../ch01/1.3.html">1.3 马尔可夫决策过程 &rarr;</a>
+                <a href="../ch02/2.1.html">2.1 马尔可夫决策过程 &rarr;</a>
             </div>
         </main>
     </div>

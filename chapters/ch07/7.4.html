@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>7.4 算法层-逻辑层-物理层的仿真架构 - 运筹智能</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .fig-caption { text-align:center; font-size:0.9rem; color:#718096; margin-top:0.5rem; margin-bottom:1.5rem; }
+        .note { background: var(--highlight-color); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .warning { background: #fffbeb; border-left: 4px solid #d69e2e; padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .layer-section { margin-top: 2.5rem; }
+        .layer-section h3 { border-bottom: 2px solid #e2e8f0; padding-bottom: 0.3rem; }
+        .benefit-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.95rem; }
+        .benefit-table th, .benefit-table td { border: 1px solid var(--border-color); padding: 0.6rem 1rem; text-align: left; }
+        .benefit-table th { background: var(--primary-color); color: white; }
+        .benefit-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .walkthrough { background: #f7fafc; border: 2px solid var(--accent-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .walkthrough .walk-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .walkthrough ol { margin: 0.3rem 0 0.3rem 1.5rem; line-height: 2; }
+        .step-physics { color: #276749; }
+        .step-logic { color: #2b6cb0; }
+        .step-algo { color: #c53030; }
+    </style>
+    <script defer src="../../js/code-copy.js"></script>
+</head>
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="book-title"><a href="../../index.html" style="text-decoration:none;color:inherit;">运筹智能</a></div>
+            <nav>
+                <ul>
+                <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
+                <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
+                <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html" class="active">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>7.4 算法层-逻辑层-物理层的仿真架构</h1>
+
+            <!-- ===== 引言：复杂度问题 ===== -->
+            <p>7.2节和7.3节分别介绍了实体建模和仿真循环。对于库存管理这类简单场景，一个类加一个循环就能实现完整的仿真器。然而，当我们面对车队调度、需求响应公交等真实管理科学问题时，仿真器的复杂度会急剧上升：需要同时处理数十辆车的运动轨迹、乘客的上下车流程、订单的状态流转、路径规划、需求生成，以及调度决策本身。</p>
+
+            <p>如果把所有逻辑都写在一个类或一个函数里，代码会迅速膨胀为难以维护的混乱结构。车辆移动的物理计算与订单匹配的业务规则交织在一起，调度算法与状态转移的边界模糊不清，任何一个小改动都可能引发连锁反应。更重要的是，当我们需要把调度策略从启发式切换为RL策略时，不得不在大量无关代码中寻找修改点。</p>
+
+            <p>本节介绍一种经过实践检验的仿真架构：将仿真器划分为<strong>算法层</strong>、<strong>逻辑层</strong>和<strong>物理层</strong>三个层次，每一层承担明确的职责，层与层之间通过清晰的接口通信。这种分层架构源自生产级车队调度仿真系统的工程实践，能够有效管理复杂度，并为RL策略的嵌入提供天然的接口。</p>
+
+            <!-- ===== 三层架构概览 ===== -->
+            <h2>三层架构概览</h2>
+
+            <p>三层架构的核心思想是<strong>关注点分离</strong>（separation of concerns）：把仿真系统中性质不同的计算分配到不同的层次中，每一层只处理自己职责范围内的事务。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">物理层（Physics Layer）</div>
+                <p>负责纯粹的动力学计算。在车队调度的场景中，物理层的唯一任务是根据车辆当前的位置、速度和路径，推算下一个时间步的位置。它不知道订单是什么，也不关心调度决策，只处理运动学。</p>
+            </div>
+
+            <div class="concept-card">
+                <div class="concept-name">逻辑层（Logic Layer）</div>
+                <p>负责业务规则和状态管理。逻辑层检测事件（车辆到达目的地、新订单产生），执行状态转移（订单从等待变为运送中，乘客上车、下车），管理队列和容量约束。它是物理层和算法层之间的桥梁：从物理层接收事件，向算法层提供状态查询，将算法层的决策转化为对实体的具体操作。</p>
+            </div>
+
+            <div class="concept-card">
+                <div class="concept-name">算法层（Algorithm Layer）</div>
+                <p>负责高层决策。在车队调度中，算法层的任务是给定当前可用车辆和待服务订单，决定哪辆车去服务哪个订单。RL策略或启发式算法就嵌入在这一层。算法层可以独立替换，而不需要修改物理层和逻辑层的代码。</p>
+            </div>
+
+            <p>图 7.4-1 展示了三层架构的整体结构和层间通信关系。</p>
+
+            <!-- ===== 图 7.4-1：三层架构示意图 ===== -->
+            <div style="text-align:center; margin:2rem 0 0.5rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 420" style="max-width:680px; width:100%;">
+                    <defs>
+                        <filter id="shadow1" x="-3%" y="-3%" width="106%" height="112%">
+                            <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.1"/>
+                        </filter>
+                    </defs>
+
+                    <!-- Algorithm Layer -->
+                    <rect x="140" y="30" width="420" height="90" rx="10" ry="10"
+                          fill="#fed7d7" stroke="#c53030" stroke-width="2" filter="url(#shadow1)"/>
+                    <foreignObject x="140" y="30" width="420" height="90">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;font-family:sans-serif;">
+                            <div style="font-size:17px;font-weight:700;color:#c53030;">算法层 (Algorithm Layer)</div>
+                            <div style="font-size:13px;color:#4a5568;margin-top:6px;">RL策略 / 启发式算法 / 调度决策</div>
+                        </div>
+                    </foreignObject>
+
+                    <!-- Logic Layer -->
+                    <rect x="140" y="165" width="420" height="90" rx="10" ry="10"
+                          fill="#dbeafe" stroke="#2b6cb0" stroke-width="2" filter="url(#shadow1)"/>
+                    <foreignObject x="140" y="165" width="420" height="90">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;font-family:sans-serif;">
+                            <div style="font-size:17px;font-weight:700;color:#2b6cb0;">逻辑层 (Logic Layer)</div>
+                            <div style="font-size:13px;color:#4a5568;margin-top:6px;">状态机 / 事件处理 / 业务规则</div>
+                        </div>
+                    </foreignObject>
+
+                    <!-- Physics Layer -->
+                    <rect x="140" y="300" width="420" height="90" rx="10" ry="10"
+                          fill="#f0fff4" stroke="#48bb78" stroke-width="2" filter="url(#shadow1)"/>
+                    <foreignObject x="140" y="300" width="420" height="90">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;font-family:sans-serif;">
+                            <div style="font-size:17px;font-weight:700;color:#276749;">物理层 (Physics Layer)</div>
+                            <div style="font-size:13px;color:#4a5568;margin-top:6px;">运动学 / 位置更新 / 轨迹推算</div>
+                        </div>
+                    </foreignObject>
+
+                    <!-- Left side connections: Algorithm <-> Logic -->
+                    <line x1="115" y1="95" x2="115" y2="190" stroke="#4a5568" stroke-width="2" stroke-linecap="round"/>
+                    <!-- Left labels -->
+                    <foreignObject x="8" y="115" width="100" height="40">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#c53030;text-align:right;font-family:sans-serif;line-height:1.3;">
+                            决策指令 ↓
+                        </div>
+                    </foreignObject>
+                    <foreignObject x="8" y="155" width="100" height="40">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#2b6cb0;text-align:right;font-family:sans-serif;line-height:1.3;">
+                            状态查询 ↑
+                        </div>
+                    </foreignObject>
+
+                    <!-- Right side connections: Logic <-> Physics -->
+                    <line x1="585" y1="230" x2="585" y2="325" stroke="#4a5568" stroke-width="2" stroke-linecap="round"/>
+                    <!-- Right labels -->
+                    <foreignObject x="595" y="245" width="100" height="40">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#276749;text-align:left;font-family:sans-serif;line-height:1.3;">
+                            ↑ 事件触发
+                        </div>
+                    </foreignObject>
+                    <foreignObject x="595" y="275" width="100" height="40">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#2b6cb0;text-align:left;font-family:sans-serif;line-height:1.3;">
+                            ↓ 执行命令
+                        </div>
+                    </foreignObject>
+
+                    <!-- Center vertical connections -->
+                    <line x1="350" y1="120" x2="350" y2="165" stroke="#4a5568" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="5,4"/>
+                    <line x1="350" y1="255" x2="350" y2="300" stroke="#4a5568" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="5,4"/>
+                </svg>
+            </div>
+            <div class="fig-caption">图 7.4-1 &nbsp; 三层仿真架构。算法层负责决策，逻辑层负责业务规则与状态管理，物理层负责运动学计算。层间通过清晰的接口通信。</div>
+
+            <!-- ===== 物理层 ===== -->
+            <div class="layer-section">
+                <h2>物理层：纯粹的运动学</h2>
+
+                <p>物理层是整个仿真器的底层引擎。它的职责极为单纯：根据车辆的当前位置、速度和预定路径，计算经过一个时间步 $\Delta t$ 后车辆的新位置。物理层不知道订单的存在，不关心调度策略，甚至不关心车辆为什么在移动。它只回答一个问题：按照当前速度沿当前路径走 $\Delta t$ 秒，车辆会到达哪里？</p>
+
+                <p>以下是物理层核心服务 <code>VehiclePhysicsService</code> 的实现。每辆车维护一条路径（由若干路径点组成的折线段），物理层沿折线段推进车辆位置。</p>
+
+<pre><code class="language-python">class VehiclePhysicsService:
+    def __init__(self, delta_t: float):
+        self.delta_t = delta_t
+
+    def update(self, vehicles: list[Vehicle]):
+        """推进所有正在移动的车辆的位置"""
+        for vehicle in vehicles:
+            if vehicle.status != VehicleStatus.MOVING:
+                continue
+            if not vehicle.current_route:
+                continue
+
+            # 本时间步需要前进的距离：速度 × 时间步长
+            distance_to_travel = vehicle.speed * self.delta_t
+            self._advance_along_route(vehicle, distance_to_travel)
+
+    def _advance_along_route(self, vehicle, distance):
+        """沿折线路径前进指定距离"""
+        route = vehicle.current_route
+        while distance &gt; 0 and vehicle.route_index &lt; len(route) - 1:
+            segment_start = route[vehicle.route_index]
+            segment_end = route[vehicle.route_index + 1]
+            segment_length = self._distance(segment_start, segment_end)
+            remaining = segment_length - vehicle.segment_progress
+
+            if distance &gt;= remaining:
+                # 走完当前线段，进入下一段
+                distance -= remaining
+                vehicle.route_index += 1
+                vehicle.segment_progress = 0.0
+            else:
+                # 在当前线段内前进
+                vehicle.segment_progress += distance
+                distance = 0.0
+
+        # 更新车辆坐标
+        if vehicle.route_index &gt;= len(route) - 1:
+            vehicle.location = route[-1]
+            vehicle.status = VehicleStatus.STOPPED
+        else:
+            vehicle.location = self._interpolate(
+                route[vehicle.route_index],
+                route[vehicle.route_index + 1],
+                vehicle.segment_progress
+            )</code></pre>
+
+                <p>值得注意的是，当车辆走完整条路径时，物理层将其状态设为 <code>STOPPED</code>。但物理层并不处理到达后的业务逻辑（乘客上下车、订单状态更新等），这些属于逻辑层的职责。物理层只报告一个事实：车辆到达了路径的终点。</p>
+
+                <div class="note">
+                    <strong>设计原则：</strong>物理层不包含任何 <code>if order...</code> 或 <code>if schedule...</code> 类型的判断。如果你发现物理层的代码里出现了业务概念，说明职责划分出了问题。物理层应当可以在完全不知道"订单""乘客""调度"等概念的情况下独立工作。
+                </div>
+            </div>
+
+            <!-- ===== 逻辑层 ===== -->
+            <div class="layer-section">
+                <h2>逻辑层：业务规则与状态管理</h2>
+
+                <p>逻辑层是三层架构的枢纽。它从物理层接收事件（车辆停下了），根据业务规则执行相应操作（处理上下车、更新订单状态），并为算法层提供决策所需的状态信息（哪些车辆空闲、哪些订单在等待）。</p>
+
+                <p>逻辑层通常由多个服务类组成，每个服务类处理一类业务规则。以车队调度仿真器为例，核心的逻辑服务是 <code>VehicleStateService</code>，负责检测车辆到达目的地并执行相应的业务操作。</p>
+
+<pre><code class="language-python">class VehicleStateService:
+    """检测车辆到达目的地，执行取货和送货逻辑"""
+
+    def update(self, vehicles, orders, current_time):
+        for vehicle in vehicles:
+            if vehicle.status != VehicleStatus.STOPPED:
+                continue
+            if not vehicle.schedule:
+                vehicle.status = VehicleStatus.IDLE
+                continue
+
+            next_task = vehicle.schedule[0]
+            if self._at_location(vehicle.location, next_task.location):
+                self._process_arrival(vehicle, next_task,
+                                      orders, current_time)
+
+    def _process_arrival(self, vehicle, task, orders, current_time):
+        # 处理取货：乘客上车，订单进入运送状态
+        for order_id in task.pickup_order_ids:
+            order = orders[order_id]
+            vehicle.board_passenger(order.num_items)
+            order.transition_to(OrderStatus.IN_TRANSIT, current_time)
+
+        # 处理送货：乘客下车，订单完成
+        for order_id in task.dropoff_order_ids:
+            order = orders[order_id]
+            vehicle.alight_passenger(order.num_items)
+            order.transition_to(OrderStatus.COMPLETED, current_time)
+
+        # 当前任务完成，从调度表中移除
+        vehicle.schedule.pop(0)
+        if vehicle.schedule:
+            # 设置前往下一个任务地点的路径
+            vehicle.current_route = self._plan_route(
+                vehicle.location, vehicle.schedule[0].location
+            )
+            vehicle.route_index = 0
+            vehicle.segment_progress = 0.0
+            vehicle.status = VehicleStatus.MOVING
+        else:
+            vehicle.status = VehicleStatus.IDLE</code></pre>
+
+                <p>逻辑层还可以包含其他服务，例如：</p>
+                <ul>
+                    <li><code>DemandService</code>：按照预设的需求分布，在特定时刻生成新订单。</li>
+                    <li><code>StopOperationService</code>：处理车辆在站点停靠时的上下客时间模拟。</li>
+                    <li><code>MetricsService</code>：计算服务质量指标，如平均等待时间、完成率等。</li>
+                </ul>
+
+                <p>这些服务各自独立，但共同维护着仿真系统的业务状态。它们之间通过共享的实体对象（<code>Vehicle</code>、<code>Order</code>）进行通信。</p>
+            </div>
+
+            <!-- ===== 算法层 ===== -->
+            <div class="layer-section">
+                <h2>算法层：决策与策略</h2>
+
+                <p>算法层位于架构的顶端，负责做出高层决策。在车队调度场景中，算法层的核心问题是：给定当前的空闲车辆集合和待服务订单集合，如何将车辆分配给订单？</p>
+
+                <p>算法层的入口是 <code>DispatchController</code>，它控制决策频率，并将具体的分配逻辑委托给可替换的策略对象。</p>
+
+<pre><code class="language-python">class DispatchController:
+    def __init__(self, strategy: DispatchStrategy):
+        self.strategy = strategy   # RL策略或启发式
+        self.decision_interval = 10.0  # 每10秒做一次决策
+        self.last_decision_time = -float('inf')
+
+    def update(self, vehicles, pending_orders, current_time):
+        if current_time - self.last_decision_time &lt; self.decision_interval:
+            return []
+        self.last_decision_time = current_time
+
+        available = [v for v in vehicles
+                     if v.status == VehicleStatus.IDLE]
+        waiting = [o for o in pending_orders
+                   if o.status == OrderStatus.WAITING]
+
+        if not available or not waiting:
+            return []
+
+        return self.strategy.make_decisions(
+            available, waiting, current_time
+        )</code></pre>
+
+                <p>策略的设计采用<strong>策略模式</strong>（Strategy Pattern）：定义统一的抽象接口，不同的策略实现这个接口。这样，切换算法只需要替换策略对象，而不需要修改控制器或仿真器的其他部分。</p>
+
+<pre><code class="language-python">from abc import ABC, abstractmethod
+
+class DispatchStrategy(ABC):
+    @abstractmethod
+    def make_decisions(self, vehicles, orders, current_time):
+        """返回 [(vehicle_id, order_id), ...] 形式的分配列表"""
+        pass
+
+
+class NearestNeighborStrategy(DispatchStrategy):
+    """最近邻启发式：将每个订单分配给距离最近的空闲车辆"""
+
+    def make_decisions(self, vehicles, orders, current_time):
+        decisions = []
+        assigned_vehicles = set()
+        for order in orders:
+            best_vehicle = None
+            best_dist = float('inf')
+            for vehicle in vehicles:
+                if vehicle.vehicle_id in assigned_vehicles:
+                    continue
+                dist = distance(vehicle.location, order.origin)
+                if dist &lt; best_dist:
+                    best_dist = dist
+                    best_vehicle = vehicle
+            if best_vehicle:
+                decisions.append(
+                    (best_vehicle.vehicle_id, order.order_id)
+                )
+                assigned_vehicles.add(best_vehicle.vehicle_id)
+        return decisions
+
+
+class RLStrategy(DispatchStrategy):
+    """RL策略：使用训练好的神经网络做调度决策"""
+
+    def __init__(self, policy_network):
+        self.policy = policy_network
+
+    def make_decisions(self, vehicles, orders, current_time):
+        obs = self._build_observation(vehicles, orders)
+        actions = self.policy.predict(obs)
+        return self._decode_actions(actions, vehicles, orders)</code></pre>
+
+                <p>从启发式算法切换到RL策略，只需在初始化时更换策略对象：</p>
+
+<pre><code class="language-python"># 使用启发式
+controller = DispatchController(NearestNeighborStrategy())
+
+# 切换为RL策略
+controller = DispatchController(RLStrategy(trained_policy))</code></pre>
+
+                <p>仿真器的其余代码（物理层、逻辑层）完全不需要修改。这正是分层架构的价值所在。</p>
+            </div>
+
+            <!-- ===== 接口隔离 ===== -->
+            <div class="layer-section">
+                <h2>接口隔离：读与写的分离</h2>
+
+                <p>三层架构还隐含着一个重要的设计原则：算法层只能<strong>读取</strong>状态，不能直接修改实体。所有对实体状态的修改都必须经过逻辑层。</p>
+
+                <p>为什么这很重要？考虑一个没有接口隔离的场景：算法层在做调度决策时，直接把车辆状态改成了 <code>MOVING</code>，但没有设置路径。这辆车在物理层的更新中就会出现异常。如果算法层直接修改了订单状态，而跳过了逻辑层的上下车处理，车辆的载客数和订单状态就会不一致。</p>
+
+                <div class="concept-card">
+                    <div class="concept-name">接口隔离原则</div>
+                    <p>算法层通过<strong>只读接口</strong>查询系统状态，通过<strong>命令</strong>发出决策。逻辑层是唯一能修改实体状态的组件。这种分离确保实体始终处于合法状态，避免因算法层的直接修改而引入不一致性。</p>
+                </div>
+
+                <p>在代码中，这种分离可以通过定义查询接口和命令接口来实现。</p>
+
+<pre><code class="language-python">class VehicleQueryInterface:
+    """算法层通过此接口查询车辆状态（只读）"""
+
+    def get_idle_vehicles(self) -&gt; list[Vehicle]:
+        """返回所有空闲车辆"""
+        ...
+
+    def get_vehicle_location(self, vid: str) -&gt; Location:
+        """查询指定车辆的当前位置"""
+        ...
+
+    def get_vehicle_load(self, vid: str) -&gt; int:
+        """查询指定车辆的当前载客数"""
+        ...
+
+
+class VehicleCommandInterface:
+    """逻辑层通过此接口修改车辆状态（写入）"""
+
+    def assign_schedule(self, vid: str, schedule: list):
+        """为车辆分配新的调度计划"""
+        ...
+
+    def update_location(self, vid: str, location: Location):
+        """更新车辆位置（由物理层调用）"""
+        ...</code></pre>
+
+                <p>算法层持有 <code>VehicleQueryInterface</code> 的引用，只能读取信息。当算法层做出分配决策后，它返回一组 <code>(vehicle_id, order_id)</code> 元组，由逻辑层负责将这些决策转化为实体的状态变更。这条规则看似增加了代码量，实际上大幅降低了调试难度：当实体出现非法状态时，只需要在逻辑层排查原因，而不必在整个代码库中搜索。</p>
+            </div>
+
+            <!-- ===== 完整系统图 ===== -->
+            <div class="layer-section">
+                <h2>完整系统组件图</h2>
+
+                <p>图 7.4-2 展示了车队调度仿真器中各组件的归属层次和相互关系。</p>
+
+                <div style="text-align:center; margin:2rem 0 0.5rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 520" style="max-width:720px; width:100%;">
+                        <defs>
+                            <filter id="shadow2" x="-3%" y="-3%" width="106%" height="112%">
+                                <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.08"/>
+                            </filter>
+                        </defs>
+
+                        <!-- Algorithm Layer background -->
+                        <rect x="30" y="20" width="680" height="110" rx="10" ry="10"
+                              fill="#fed7d7" fill-opacity="0.4" stroke="#c53030" stroke-width="1.5" stroke-dasharray="6,3"/>
+                        <foreignObject x="38" y="24" width="200" height="24">
+                            <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;font-weight:700;color:#c53030;font-family:sans-serif;">算法层</div>
+                        </foreignObject>
+
+                        <!-- DispatchController -->
+                        <rect x="60" y="52" width="200" height="60" rx="8" ry="8"
+                              fill="white" stroke="#c53030" stroke-width="1.5" filter="url(#shadow2)"/>
+                        <foreignObject x="60" y="52" width="200" height="60">
+                            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:14px;color:#c53030;font-weight:600;font-family:sans-serif;">
+                                DispatchController
+                            </div>
+                        </foreignObject>
+
+                        <!-- NearestNeighborStrategy -->
+                        <rect x="310" y="52" width="185" height="60" rx="8" ry="8"
+                              fill="white" stroke="#c53030" stroke-width="1.5" filter="url(#shadow2)"/>
+                        <foreignObject x="310" y="52" width="185" height="60">
+                            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;font-family:sans-serif;">
+                                <div style="font-size:13px;color:#c53030;font-weight:600;">NearestNeighbor</div>
+                                <div style="font-size:11px;color:#718096;">Strategy</div>
+                            </div>
+                        </foreignObject>
+
+                        <!-- RLStrategy -->
+                        <rect x="540" y="52" width="150" height="60" rx="8" ry="8"
+                              fill="white" stroke="#c53030" stroke-width="1.5" filter="url(#shadow2)"/>
+                        <foreignObject x="540" y="52" width="150" height="60">
+                            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;font-family:sans-serif;">
+                                <div style="font-size:13px;color:#c53030;font-weight:600;">RLStrategy</div>
+                                <div style="font-size:11px;color:#718096;">Strategy</div>
+                            </div>
+                        </foreignObject>
+
+                        <!-- Connection: Controller -> Strategies -->
+                        <line x1="260" y1="82" x2="310" y2="82" stroke="#c53030" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="495" y1="82" x2="540" y2="82" stroke="#c53030" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="4,3"/>
+
+                        <!-- Logic Layer background -->
+                        <rect x="30" y="155" width="680" height="110" rx="10" ry="10"
+                              fill="#dbeafe" fill-opacity="0.4" stroke="#2b6cb0" stroke-width="1.5" stroke-dasharray="6,3"/>
+                        <foreignObject x="38" y="159" width="200" height="24">
+                            <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;font-weight:700;color:#2b6cb0;font-family:sans-serif;">逻辑层</div>
+                        </foreignObject>
+
+                        <!-- VehicleStateService -->
+                        <rect x="60" y="187" width="185" height="60" rx="8" ry="8"
+                              fill="white" stroke="#2b6cb0" stroke-width="1.5" filter="url(#shadow2)"/>
+                        <foreignObject x="60" y="187" width="185" height="60">
+                            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:13px;color:#2b6cb0;font-weight:600;font-family:sans-serif;">
+                                VehicleStateService
+                            </div>
+                        </foreignObject>
+
+                        <!-- DemandService -->
+                        <rect x="280" y="187" width="170" height="60" rx="8" ry="8"
+                              fill="white" stroke="#2b6cb0" stroke-width="1.5" filter="url(#shadow2)"/>
+                        <foreignObject x="280" y="187" width="170" height="60">
+                            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:13px;color:#2b6cb0;font-weight:600;font-family:sans-serif;">
+                                DemandService
+                            </div>
+                        </foreignObject>
+
+                        <!-- StopOperationService -->
+                        <rect x="485" y="187" width="205" height="60" rx="8" ry="8"
+                              fill="white" stroke="#2b6cb0" stroke-width="1.5" filter="url(#shadow2)"/>
+                        <foreignObject x="485" y="187" width="205" height="60">
+                            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:13px;color:#2b6cb0;font-weight:600;font-family:sans-serif;">
+                                StopOperationService
+                            </div>
+                        </foreignObject>
+
+                        <!-- Physics Layer background -->
+                        <rect x="30" y="290" width="680" height="100" rx="10" ry="10"
+                              fill="#f0fff4" fill-opacity="0.4" stroke="#48bb78" stroke-width="1.5" stroke-dasharray="6,3"/>
+                        <foreignObject x="38" y="294" width="200" height="24">
+                            <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;font-weight:700;color:#276749;font-family:sans-serif;">物理层</div>
+                        </foreignObject>
+
+                        <!-- VehiclePhysicsService -->
+                        <rect x="220" y="318" width="300" height="56" rx="8" ry="8"
+                              fill="white" stroke="#48bb78" stroke-width="1.5" filter="url(#shadow2)"/>
+                        <foreignObject x="220" y="318" width="300" height="56">
+                            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:14px;color:#276749;font-weight:600;font-family:sans-serif;">
+                                VehiclePhysicsService
+                            </div>
+                        </foreignObject>
+
+                        <!-- Shared Entities -->
+                        <rect x="30" y="415" width="680" height="85" rx="10" ry="10"
+                              fill="#fefcbf" fill-opacity="0.4" stroke="#d69e2e" stroke-width="1.5" stroke-dasharray="6,3"/>
+                        <foreignObject x="38" y="419" width="250" height="24">
+                            <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;font-weight:700;color:#975a16;font-family:sans-serif;">共享实体 (Shared Data)</div>
+                        </foreignObject>
+
+                        <!-- Vehicle entity -->
+                        <rect x="100" y="447" width="130" height="40" rx="6" ry="6"
+                              fill="white" stroke="#d69e2e" stroke-width="1.5" filter="url(#shadow2)"/>
+                        <foreignObject x="100" y="447" width="130" height="40">
+                            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:13px;color:#975a16;font-weight:600;font-family:sans-serif;">
+                                Vehicle
+                            </div>
+                        </foreignObject>
+
+                        <!-- Order entity -->
+                        <rect x="290" y="447" width="130" height="40" rx="6" ry="6"
+                              fill="white" stroke="#d69e2e" stroke-width="1.5" filter="url(#shadow2)"/>
+                        <foreignObject x="290" y="447" width="130" height="40">
+                            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:13px;color:#975a16;font-weight:600;font-family:sans-serif;">
+                                Order
+                            </div>
+                        </foreignObject>
+
+                        <!-- Schedule entity -->
+                        <rect x="480" y="447" width="130" height="40" rx="6" ry="6"
+                              fill="white" stroke="#d69e2e" stroke-width="1.5" filter="url(#shadow2)"/>
+                        <foreignObject x="480" y="447" width="130" height="40">
+                            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:13px;color:#975a16;font-weight:600;font-family:sans-serif;">
+                                Schedule
+                            </div>
+                        </foreignObject>
+
+                        <!-- Vertical connections between layers -->
+                        <line x1="152" y1="112" x2="152" y2="187" stroke="#4a5568" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="4,3"/>
+                        <line x1="365" y1="247" x2="365" y2="318" stroke="#4a5568" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="4,3"/>
+
+                        <!-- Connections to shared entities -->
+                        <line x1="165" y1="390" x2="165" y2="447" stroke="#d69e2e" stroke-width="1" stroke-linecap="round" stroke-dasharray="3,3"/>
+                        <line x1="355" y1="390" x2="355" y2="447" stroke="#d69e2e" stroke-width="1" stroke-linecap="round" stroke-dasharray="3,3"/>
+                        <line x1="545" y1="390" x2="545" y2="447" stroke="#d69e2e" stroke-width="1" stroke-linecap="round" stroke-dasharray="3,3"/>
+                    </svg>
+                </div>
+                <div class="fig-caption">图 7.4-2 &nbsp; 车队调度仿真器的完整组件图。各层包含具体的服务类，所有层通过共享实体对象进行数据交换。</div>
+            </div>
+
+            <!-- ===== 架构的好处 ===== -->
+            <div class="layer-section">
+                <h2>为什么需要分层</h2>
+
+                <p>对于小型仿真器，分层架构可能显得过度设计。但当仿真器达到生产级别的规模（数十个实体类型、上百种业务规则），不分层的代码几乎不可能维护。下表总结了分层架构带来的具体收益。</p>
+
+                <table class="benefit-table">
+                    <thead>
+                        <tr>
+                            <th style="width:25%;">收益</th>
+                            <th>说明</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>算法可替换</strong></td>
+                            <td>RL策略和启发式共享同一接口，切换策略只需替换一个对象，无需修改仿真器的其他部分。在训练阶段使用RL策略，在基线对比实验中使用启发式，代码完全相同。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>独立测试</strong></td>
+                            <td>物理层可以脱离算法层单独做单元测试，验证车辆移动逻辑的正确性。逻辑层可以用预设的事件序列测试状态转移是否正确。每一层的测试都不依赖其他层。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>团队协作</strong></td>
+                            <td>不同的团队成员可以同时开发不同的层。开发RL算法的研究者不需要了解物理引擎的细节，负责仿真环境的工程师也不需要理解策略梯度的数学。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>定位问题</strong></td>
+                            <td>当仿真器产生异常行为时，可以逐层排查。车辆位置计算错误是物理层的问题，订单状态不一致是逻辑层的问题，分配效率低是算法层的问题。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>跨场景复用</strong></td>
+                            <td>同一个物理层可以用于网约车调度、外卖配送、需求响应公交等不同场景。只需更换逻辑层和算法层的实现。</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ===== 完整时间步 walkthrough ===== -->
+            <div class="layer-section">
+                <h2>完整的一个时间步</h2>
+
+                <p>为了让三层架构的协作方式更加具体，我们完整追踪一个时间步内各层的执行过程。假设当前时刻为 $t = 120$ 秒，时间步长 $\Delta t = 1$ 秒。</p>
+
+                <div class="walkthrough">
+                    <div class="walk-title">时间步 $t = 120 \to 121$ 秒的执行流程</div>
+                    <ol>
+                        <li><span class="step-physics"><strong>物理层</strong></span>：<code>VehiclePhysicsService.update()</code> 推进所有移动中车辆的位置。车辆 A 沿路径前进 $v \cdot \Delta t = 10$ 米。</li>
+                        <li><span class="step-physics"><strong>物理层</strong></span>：车辆 A 恰好到达路径终点，物理层将其状态设为 <code>STOPPED</code>。</li>
+                        <li><span class="step-logic"><strong>逻辑层</strong></span>：<code>VehicleStateService.update()</code> 检测到车辆 A 的状态为 <code>STOPPED</code>，且调度表中的下一个任务地点与当前位置一致。执行送货逻辑：乘客下车，订单 #42 状态变更为 <code>COMPLETED</code>。车辆 A 的调度表为空，状态变为 <code>IDLE</code>。</li>
+                        <li><span class="step-logic"><strong>逻辑层</strong></span>：<code>DemandService.update()</code> 根据需求分布，在当前时刻生成新订单 #57。</li>
+                        <li><span class="step-algo"><strong>算法层</strong></span>：<code>DispatchController.update()</code> 发现距离上次决策已超过 10 秒。查询空闲车辆（车辆 A、车辆 B），查询等待中的订单（订单 #57）。调用策略，决定将订单 #57 分配给车辆 B。</li>
+                        <li><span class="step-logic"><strong>逻辑层</strong></span>：接收算法层的分配结果，为车辆 B 创建调度表（先去取货点，再去送货点），规划路径，将车辆 B 状态设为 <code>MOVING</code>。</li>
+                    </ol>
+                </div>
+
+                <p>注意执行顺序：先物理层，再逻辑层，最后算法层，然后逻辑层将算法层的决策落地。这个顺序保证了逻辑层在处理事件时已经拿到最新的物理状态，算法层在做决策时已经拿到最新的业务状态。</p>
+
+                <p>用伪代码表示，主循环的结构如下：</p>
+
+<pre><code class="language-python">class FleetSimulator:
+    def __init__(self, physics, logic_services, controller):
+        self.physics = physics
+        self.logic_services = logic_services  # 逻辑层的各个服务
+        self.controller = controller          # 算法层
+
+    def step(self, current_time):
+        # 1. 物理层：推进车辆位置
+        self.physics.update(self.vehicles)
+
+        # 2. 逻辑层：处理事件和状态转移
+        for service in self.logic_services:
+            service.update(self.vehicles, self.orders, current_time)
+
+        # 3. 算法层：做出调度决策
+        decisions = self.controller.update(
+            self.vehicles, self.orders, current_time
+        )
+
+        # 4. 逻辑层：将决策转化为实体操作
+        self._apply_decisions(decisions)</code></pre>
+
+                <p>整个仿真器的主循环只有四步，每一步对应架构中的一个明确职责。新加入项目的开发者可以快速理解系统的整体结构，然后深入到具体的层去了解细节。</p>
+            </div>
+
+            <!-- ===== 本节小结 ===== -->
+            <h2>本节小结</h2>
+
+            <p>简单的仿真器可以用一个类完成所有功能。但当仿真系统的复杂度增长到生产级别时，缺乏架构的代码会迅速失控。本节介绍的三层架构提供了一种经过实践验证的组织方式：</p>
+
+            <ul>
+                <li><strong>物理层</strong>处理纯粹的运动学计算，不包含任何业务逻辑。</li>
+                <li><strong>逻辑层</strong>负责业务规则、事件检测和状态转移，是系统的枢纽。</li>
+                <li><strong>算法层</strong>负责高层决策，通过策略模式支持RL与启发式的无缝切换。</li>
+            </ul>
+
+            <p>层间通过接口隔离保持边界清晰：算法层只读取状态、发出决策命令，逻辑层负责所有的状态修改。这种分离使得每一层可以独立开发、独立测试、独立迭代。</p>
+
+            <p>对于强化学习研究而言，三层架构的最大价值在于为RL策略提供了天然的嵌入点。算法层的策略接口就是RL智能体与环境的交互边界。训练阶段，RL策略在算法层中探索和学习；部署阶段，训练好的策略替换启发式，仿真器的其余部分无需任何修改。这正是第九章实际案例中采用的架构模式。</p>
+
+            <div class="chapter-nav">
+                <a href="../ch07/7.3.html">&larr; 7.3 基于时间步的仿真逻辑</a>
+                <a href="../ch08/8.1.html">8.1 机票动态定价 &rarr;</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

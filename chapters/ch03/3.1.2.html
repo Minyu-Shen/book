@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>1.5.2 时序差分学习 - 运筹智能</title>
+    <title>3.1.2 时序差分学习 - 运筹智能</title>
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
@@ -41,76 +41,82 @@
                 <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
                 <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
                 <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
-                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
-                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
-                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html" class="active">1.5.2 时序差分学习</a></li>
-                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.6.1.html">1.6.1 SARSA</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.6.2.html">1.6.2 Q-learning</a></li>
-                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.7.1.html">1.7.1 策略梯度定理</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.7.2.html">1.7.2 REINFORCE算法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.7.3.html">1.7.3 Actor-Critic框架</a></li>
-                <li class="sidebar-chapter">第二章 深度学习基础</li>
-                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
-                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
-                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
-                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
-                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
-                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
-                <li><a href="../ch03/3.2.html">3.2 Policy Gradient与PPO</a></li>
-                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
-                <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
-                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
-                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
-                <li><a href="../ch04/4.2.html">4.2 时域建模与回合定义</a></li>
-                <li><a href="../ch04/4.3.html">4.3 状态空间、动作空间与奖励函数的设计</a></li>
-                <li><a href="../ch04/4.4.html">4.4 决策时机与决策频率的建模</a></li>
-                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
-                <li class="sidebar-chapter">第五章 仿真器搭建</li>
-                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
-                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
-                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
-                <li><a href="../ch05/5.4.html">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
-                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
-                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
-                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
-                <li><a href="../ch07/7.2.html">7.2 公交串车控制</a></li>
-                <li><a href="../ch07/7.3.html">7.3 需求响应公交调度优化</a></li>
-                <li class="sidebar-chapter">第八章 进阶话题</li>
-                <li><a href="../ch08/8.1.html">8.1 多智能体强化学习</a></li>
-                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html" class="active">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
                 </ul>
             </nav>
         </aside>
 
         <main class="main-content">
-            <h1>1.5.2 时序差分学习</h1>
+            <h1>3.1.2 时序差分学习</h1>
 
             <p>上一节的蒙特卡洛方法有一个明显的局限：必须等到整条轨迹结束，才能计算累计回报 $G_t$，然后才能更新值函数。对于持续运行的任务（如网约车24小时不停运营）或轨迹很长的问题，这带来了很大的延迟。我们能否在每走一步后就立即更新值函数？时序差分（Temporal Difference, TD）学习给出了肯定的答案。TD学习将蒙特卡洛方法的无模型学习能力与动态规划的递推更新思想结合在一起，是强化学习中最核心的算法思想之一。</p>
 
             <!-- ===== TD(0) ===== -->
             <h2>TD(0)：一步自举更新</h2>
 
-            <p>TD方法的思路来自贝尔曼方程。回忆1.3.3节的贝尔曼期望方程：</p>
+            <p>TD方法的思路来自贝尔曼方程。回忆2.1.3节的贝尔曼期望方程：</p>
 
             $$V^\pi(s) = \mathbb{E}_\pi\!\left[\,R_t + \gamma\, V^\pi(S_{t+1}) \mid S_t = s\,\right]$$
 
             <p>这个方程告诉我们：如果值函数是准确的，那么 $V^\pi(S_t)$ 应该等于 $R_t + \gamma\, V^\pi(S_{t+1})$ 的期望。蒙特卡洛方法用实际的完整回报 $G_t = R_t + \gamma R_{t+1} + \gamma^2 R_{t+2} + \cdots$ 来更新 $V(S_t)$，而TD方法只看一步：用当前的估计值 $V(S_{t+1})$ 来替代未来所有的回报，构造一个更新目标 $R_t + \gamma\,V(S_{t+1})$。</p>
 
-            <p>这个思路其实和1.4节的动态规划一脉相承：策略迭代和值迭代也是用下一状态的值函数估计 $V(s')$ 来更新当前状态的 $V(s)$，只不过DP需要对所有可能的 $s'$ 求加权平均（因为知道转移概率），而TD只使用实际采样到的那一个 $s'$。这种用已有估计值来更新估计值的做法，在强化学习中称为<strong>自举</strong>（bootstrapping），"自举"的字面意思是"拽着自己的鞋带把自己提起来"，形象地描述了"用估计更新估计"的递推过程。</p>
+            <p>这个思路其实和2.2节的动态规划一脉相承：策略迭代和值迭代也是用下一状态的值函数估计 $V(s')$ 来更新当前状态的 $V(s)$，只不过DP需要对所有可能的 $s'$ 求加权平均（因为知道转移概率），而TD只使用实际采样到的那一个 $s'$。这种用已有估计值来更新估计值的做法，在强化学习中称为<strong>自举</strong>（bootstrapping），"自举"的字面意思是"拽着自己的鞋带把自己提起来"，形象地描述了"用估计更新估计"的递推过程。</p>
 
             <div class="concept-card">
                 <div class="concept-name">TD(0) 更新规则</div>
                 <p>在时刻 $t$，智能体执行动作后观察到奖励 $R_t$ 和下一状态 $S_{t+1}$，立即更新：</p>
-                $$V(S_t) \leftarrow V(S_t) + \alpha \left[\, \underbrace{R_t + \gamma \, V(S_{t+1})}_{\text{TD目标}} - V(S_t) \,\right] \tag{1.5-5}$$
+                $$V(S_t) \leftarrow V(S_t) + \alpha \left[\, \underbrace{R_t + \gamma \, V(S_{t+1})}_{\text{TD目标}} - V(S_t) \,\right] \tag{3.1-5}$$
                 <p style="margin-top:0.5rem;">其中 $\alpha$ 是学习率。与MC更新（式1.5-2）的关键区别在于：MC用<strong>实际回报</strong> $G_t$ 作为更新目标，TD用<strong>一步估计</strong> $R_t + \gamma\,V(S_{t+1})$ 作为更新目标。TD只需要走一步就能更新，无需等到轨迹结束。</p>
             </div>
 
@@ -149,7 +155,7 @@
                 <rect x="60" y="120" width="400" height="36" rx="6" fill="#f0fff4" stroke="#48bb78" stroke-width="1.5"/>
                 <foreignObject x="62" y="124" width="396" height="28"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px;color:#276749;text-align:center;">TD目标 $= R + \gamma\,V(b) = 8 + 0.9 \times 35 = 39.5$</div></foreignObject>
             </svg>
-            <p style="text-align:center; font-size:0.9rem; color:#718096; margin-top:0.3rem;">图 1.5-3 &nbsp; TD更新的直觉。蓝色实线段是已经观测到的真实车费，黄色虚线段是算法对未来收入的估计。TD目标结合了真实观测和已有估计。</p>
+            <p style="text-align:center; font-size:0.9rem; color:#718096; margin-top:0.3rem;">图 3.1-3 &nbsp; TD更新的直觉。蓝色实线段是已经观测到的真实车费，黄色虚线段是算法对未来收入的估计。TD目标结合了真实观测和已有估计。</p>
             </div>
 
             <p>两种更新方式的区别如下：</p>
@@ -168,7 +174,7 @@
 
             <div class="derivation">
                 <div class="step-label">TD误差的定义</div>
-                $$\delta_t = R_t + \gamma \, V(S_{t+1}) - V(S_t) \tag{1.5-6}$$
+                $$\delta_t = R_t + \gamma \, V(S_{t+1}) - V(S_t) \tag{3.1-6}$$
                 <p style="margin-top:0.5rem;">TD更新可以简写为 $V(S_t) \leftarrow V(S_t) + \alpha\,\delta_t$。</p>
             </div>
 
@@ -188,7 +194,7 @@
                     <tr><td>何时更新</td><td>必须等轨迹结束</td><td>每走一步立即更新</td></tr>
                     <tr><td>偏差</td><td><strong>无偏</strong>：$G_t$ 是 $V^\pi(S_t)$ 的无偏估计</td><td><strong>有偏</strong>：依赖当前 $V(S_{t+1})$ 的准确性</td></tr>
                     <tr><td>方差</td><td><strong>高方差</strong>：$G_t$ 受整条轨迹所有随机性影响</td><td><strong>低方差</strong>：只涉及一步转移的随机性</td></tr>
-                    <tr><td>适用场景</td><td>轨迹较短、有明确终止；无限期任务可通过截断+冗余段处理（见1.5.1节），但仍需等截断完成</td><td>轨迹长或持续任务、需要在线学习</td></tr>
+                    <tr><td>适用场景</td><td>轨迹较短、有明确终止；无限期任务可通过截断+冗余段处理（见3.1.1节），但仍需等截断完成</td><td>轨迹长或持续任务、需要在线学习</td></tr>
                 </tbody>
             </table>
 
@@ -274,7 +280,7 @@
 
             <div class="rl-info" id="bv-stats"></div>
 
-            <p style="text-align:center; font-size:0.9rem; color:#718096; margin-top:0.3rem;">图 1.5-4 &nbsp; MC更新目标 $G_t$（蓝色）与TD更新目标 $R_t + \gamma V(S_{t+1})$（红色）的分布对比（基于500次仿真采样的箱型图）。紫色虚线为真实值 $V^\pi(c)$。切换V值设定，观察TD的偏差如何随 $V$ 的准确性变化。</p>
+            <p style="text-align:center; font-size:0.9rem; color:#718096; margin-top:0.3rem;">图 3.1-4 &nbsp; MC更新目标 $G_t$（蓝色）与TD更新目标 $R_t + \gamma V(S_{t+1})$（红色）的分布对比（基于500次仿真采样的箱型图）。紫色虚线为真实值 $V^\pi(c)$。切换V值设定，观察TD的偏差如何随 $V$ 的准确性变化。</p>
 
             <script>
 (function(){
@@ -485,7 +491,7 @@
                 <span style="display:inline-block;width:20px;height:10px;background:#fc8181;opacity:0.4;vertical-align:middle;border-radius:2px;"></span> 用于更新的信息
             </p>
 
-            <p style="text-align:center; font-size:0.9rem; color:#718096; margin-top:0.3rem;">图 1.5-5 &nbsp; DP、MC、TD 三种方法的备份图对比。红色阴影标出了每种方法用于更新 $V(S_t)$ 的信息范围：DP展开所有分支（需要模型），MC沿一条轨迹采样到底（无需模型，不自举），TD只采样一步（无需模型，自举）。</p>
+            <p style="text-align:center; font-size:0.9rem; color:#718096; margin-top:0.3rem;">图 3.1-5 &nbsp; DP、MC、TD 三种方法的备份图对比。红色阴影标出了每种方法用于更新 $V(S_t)$ 的信息范围：DP展开所有分支（需要模型），MC沿一条轨迹采样到底（无需模型，不自举），TD只采样一步（无需模型，自举）。</p>
 
             <p>TD方法兼取了MC和DP各自的优势：它像MC一样不需要环境模型，直接从交互经验中学习；又像DP一样利用贝尔曼方程的递推结构进行自举更新，不需要等到轨迹结束。这种融合使TD成为现代强化学习中最广泛使用的算法基础。</p>
 
@@ -597,7 +603,7 @@ for s in ['c', 'b', 'a']:
 
             <div class="rl-info" id="conv-info">点击"运行仿真"开始</div>
 
-            <p style="text-align:center; font-size:0.9rem; color:#718096; margin-top:0.3rem;">图 1.5-6 &nbsp; 网约车例子中MC（虚线）与TD（实线）的收敛速度对比（$\alpha = 0.05$）。横轴为与环境的交互步数，纵轴为所选状态的值函数估计。</p>
+            <p style="text-align:center; font-size:0.9rem; color:#718096; margin-top:0.3rem;">图 3.1-6 &nbsp; 网约车例子中MC（虚线）与TD（实线）的收敛速度对比（$\alpha = 0.05$）。横轴为与环境的交互步数，纵轴为所选状态的值函数估计。</p>
 
             <script>
 (function(){
@@ -678,11 +684,11 @@ for s in ['c', 'b', 'a']:
             <!-- ===== 从预测到控制 ===== -->
             <h2>从预测到控制</h2>
 
-            <p>蒙特卡洛方法和时序差分学习都解决了<strong>策略评估</strong>（预测）问题：在不知道环境模型的情况下，估计给定策略 $\pi$ 的状态值函数 $V^\pi$。但我们的最终目标是找到<strong>最优策略</strong>（控制问题）。要实现控制，需要从学习 $V$ 值转向学习 $Q$ 值，因为 $Q(s,a)$ 直接给出了在状态 $s$ 选择动作 $a$ 的好坏，智能体无需知道转移概率就能据此选择动作。1.6节将介绍两种基于TD思想的控制算法：在策略的SARSA和离策略的Q-learning。</p>
+            <p>蒙特卡洛方法和时序差分学习都解决了<strong>策略评估</strong>（预测）问题：在不知道环境模型的情况下，估计给定策略 $\pi$ 的状态值函数 $V^\pi$。但我们的最终目标是找到<strong>最优策略</strong>（控制问题）。要实现控制，需要从学习 $V$ 值转向学习 $Q$ 值，因为 $Q(s,a)$ 直接给出了在状态 $s$ 选择动作 $a$ 的好坏，智能体无需知道转移概率就能据此选择动作。3.2节将介绍两种基于TD思想的控制算法：在策略的SARSA和离策略的Q-learning。</p>
 
             <div class="chapter-nav">
-                <a href="../ch01/1.5.1.html">&larr; 1.5.1 蒙特卡洛方法</a>
-                <a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法 &rarr;</a>
+                <a href="../ch03/3.1.1.html">&larr; 3.1.1 蒙特卡洛方法</a>
+                <a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较 &rarr;</a>
             </div>
         </main>
     </div>

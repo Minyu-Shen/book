@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>1.5.3 SARSA与Q-learning - 运筹智能</title>
+    <title>3.1.3 蒙特卡洛与时序差分的比较 - 运筹智能</title>
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -39,54 +39,64 @@
                 <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
                 <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
                 <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
-                <li><a href="../ch01/1.3.html">1.3 马尔可夫决策过程</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.1.html">1.3.1 基本概念与定义</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.2.html">1.3.2 值函数</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.3.3.html">1.3.3 贝尔曼期望方程</a></li>
-                <li><a href="../ch01/1.4.html">1.4 依赖模型的动态规划算法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.1.html">1.4.1 策略迭代</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.4.2.html">1.4.2 值迭代</a></li>
-                <li><a href="../ch01/1.5.html">1.5 预测（学习）问题：蒙特卡洛与时序差分</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.1.html">1.5.1 蒙特卡洛方法</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.2.html">1.5.2 时序差分学习</a></li>
-                <li class="sidebar-subsection"><a href="../ch01/1.5.3.html" class="active">1.5.3 SARSA与Q-learning</a></li>
-                <li><a href="../ch01/1.6.html">1.6 控制问题（一）：基于值函数的方法</a></li>
-                <li><a href="../ch01/1.7.html">1.7 控制问题（二）：基于策略的方法</a></li>
-                <li class="sidebar-chapter">第二章 深度学习基础</li>
-                <li><a href="../ch02/2.1.html">2.1 从线性回归到神经网络</a></li>
-                <li><a href="../ch02/2.2.html">2.2 卷积神经网络与循环神经网络</a></li>
-                <li><a href="../ch02/2.3.html">2.3 Attention机制与Transformer架构</a></li>
-                <li><a href="../ch02/2.4.html">2.4 图神经网络</a></li>
-                <li class="sidebar-chapter">第三章 深度强化学习算法</li>
-                <li><a href="../ch03/3.1.html">3.1 Deep Q-Network</a></li>
-                <li><a href="../ch03/3.2.html">3.2 Policy Gradient与PPO</a></li>
-                <li><a href="../ch03/3.3.html">3.3 Soft Actor-Critic</a></li>
-                <li><a href="../ch03/3.4.html">3.4 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
-                <li class="sidebar-chapter">第四章 管理科学问题的建模范式</li>
-                <li><a href="../ch04/4.1.html">4.1 如何将管理科学问题抽象为MDP</a></li>
-                <li><a href="../ch04/4.2.html">4.2 时域建模与回合定义</a></li>
-                <li><a href="../ch04/4.3.html">4.3 状态空间、动作空间与奖励函数的设计</a></li>
-                <li><a href="../ch04/4.4.html">4.4 决策时机与决策频率的建模</a></li>
-                <li><a href="../ch04/4.5.html">4.5 从问题特征到网络架构的选择</a></li>
-                <li class="sidebar-chapter">第五章 仿真器搭建</li>
-                <li><a href="../ch05/5.1.html">5.1 为什么管理科学研究离不开仿真器</a></li>
-                <li><a href="../ch05/5.2.html">5.2 面向对象编程与智能体建模</a></li>
-                <li><a href="../ch05/5.3.html">5.3 基于时间步的仿真逻辑</a></li>
-                <li><a href="../ch05/5.4.html">5.4 算法层-逻辑层-物理层的仿真架构</a></li>
-                <li class="sidebar-chapter">第六章 应用举例之小规模案例</li>
-                <li class="sidebar-chapter">第七章 应用举例之真实场景案例</li>
-                <li><a href="../ch07/7.1.html">7.1 网约车派单优化</a></li>
-                <li><a href="../ch07/7.2.html">7.2 公交串车控制</a></li>
-                <li><a href="../ch07/7.3.html">7.3 需求响应公交调度优化</a></li>
-                <li class="sidebar-chapter">第八章 进阶话题</li>
-                <li><a href="../ch08/8.1.html">8.1 多智能体强化学习</a></li>
-                <li><a href="../ch08/8.2.html">8.2 从仿真到实际部署的迁移</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html" class="active">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
                 </ul>
             </nav>
         </aside>
 
         <main class="main-content">
-            <h1>1.5.3 SARSA与Q-learning</h1>
+            <h1>3.1.3 蒙特卡洛与时序差分的比较</h1>
 
             <!-- ==================== 从预测到控制 ==================== -->
             <h2>从预测到控制：为什么需要 Q 值</h2>
@@ -100,7 +110,7 @@
             <div class="concept-card">
                 <div class="concept-name">$\varepsilon$-greedy 策略</div>
                 <p>以 $1-\varepsilon$ 的概率选择当前Q值最大的动作（利用），以 $\varepsilon$ 的概率随机选择一个动作（探索）：</p>
-                $$\pi(a \mid s) = \begin{cases} 1 - \varepsilon + \dfrac{\varepsilon}{|\mathcal{A}(s)|}, & \text{if } a = \arg\max_{a'} Q(s, a') \\ \dfrac{\varepsilon}{|\mathcal{A}(s)|}, & \text{otherwise} \end{cases} \tag{1.5-7}$$
+                $$\pi(a \mid s) = \begin{cases} 1 - \varepsilon + \dfrac{\varepsilon}{|\mathcal{A}(s)|}, & \text{if } a = \arg\max_{a'} Q(s, a') \\ \dfrac{\varepsilon}{|\mathcal{A}(s)|}, & \text{otherwise} \end{cases} \tag{3.1-7}$$
                 <p style="margin-top:0.5rem;">当 $\varepsilon = 0.1$ 且有2个动作时，最优动作被选中的概率是 $0.95$，非最优动作被选中的概率是 $0.05$。</p>
             </div>
 
@@ -111,7 +121,7 @@
 
             <div class="concept-card">
                 <div class="concept-name">SARSA 更新规则</div>
-                $$Q(S_t, A_t) \leftarrow Q(S_t, A_t) + \alpha \left[\, R_t + \gamma \, Q(S_{t+1}, A_{t+1}) - Q(S_t, A_t) \,\right] \tag{1.5-8}$$
+                $$Q(S_t, A_t) \leftarrow Q(S_t, A_t) + \alpha \left[\, R_t + \gamma \, Q(S_{t+1}, A_{t+1}) - Q(S_t, A_t) \,\right] \tag{3.1-8}$$
                 <p style="margin-top:0.5rem;">其中 $A_{t+1}$ 是在 $S_{t+1}$ 下由当前策略（如 $\varepsilon$-greedy）实际选出的动作。TD目标是 $R_t + \gamma\,Q(S_{t+1}, A_{t+1})$。</p>
             </div>
 
@@ -208,11 +218,11 @@ for s in T:
 
             <div class="concept-card">
                 <div class="concept-name">Q-learning 更新规则</div>
-                $$Q(S_t, A_t) \leftarrow Q(S_t, A_t) + \alpha \left[\, R_t + \gamma \, \max_{a} Q(S_{t+1}, a) - Q(S_t, A_t) \,\right] \tag{1.5-9}$$
+                $$Q(S_t, A_t) \leftarrow Q(S_t, A_t) + \alpha \left[\, R_t + \gamma \, \max_{a} Q(S_{t+1}, a) - Q(S_t, A_t) \,\right] \tag{3.1-9}$$
                 <p style="margin-top:0.5rem;">TD目标是 $R_t + \gamma\,\max_a Q(S_{t+1}, a)$，与实际选择的 $A_{t+1}$ 无关。</p>
             </div>
 
-            <p>对比1.4节中的<strong>贝尔曼最优方程</strong>，Q-learning的更新目标正是其采样版本：</p>
+            <p>对比2.2节中的<strong>贝尔曼最优方程</strong>，Q-learning的更新目标正是其采样版本：</p>
 
             $$\underbrace{R_t + \gamma \max_{a} Q(S_{t+1}, a)}_{\text{Q-learning TD目标（单次采样）}} \quad \approx \quad \underbrace{\sum_{s'} P(s' \mid s, a)\left[R(s,a) + \gamma \max_{a'} Q^*(s', a')\right]}_{\text{贝尔曼最优方程右端（需要模型）}}$$
 
@@ -281,7 +291,7 @@ for s in T:
 
             <div class="result-box">
                 <strong>Q-learning得到的最优策略：</strong>市中心→接单，郊区→空驶去市中心，机场→接单<br>
-                与1.4节动态规划得到的结果完全一致！
+                与2.2节动态规划得到的结果完全一致！
             </div>
 
             <p>关键区别在于：动态规划需要事先知道所有的转移概率（如市中心接单后去郊区的概率是30%），而Q-learning完全不需要这些信息。它仅通过反复在三个区域间运营，逐步从经验中学会了同样的最优策略。</p>
@@ -357,7 +367,7 @@ for s in T:
             <!-- ==================== 函数近似 ==================== -->
             <h2>从表格到函数近似</h2>
 
-            <p>在网约车例子中，状态空间只有3个状态、6个Q值，用表格存储绰绰有余。但在实际的管理科学问题中——比如有成百上千个区域的网约车调度、连续变化的库存水平、高维的交通状态——状态空间可能是巨大的甚至连续的，表格方法不再可行。解决方案是用<strong>函数近似</strong>（function approximation）来表示Q值：用一个参数化的函数 $Q_\theta(s, a)$（如神经网络）来代替查找表，输入状态-动作对，输出Q值估计。这就是<strong>Deep Q-Network（DQN）</strong>等深度强化学习算法的起点，我们将在第三章详细展开。</p>
+            <p>在网约车例子中，状态空间只有3个状态、6个Q值，用表格存储绰绰有余。但在实际的管理科学问题中——比如有成百上千个区域的网约车调度、连续变化的库存水平、高维的交通状态——状态空间可能是巨大的甚至连续的，表格方法不再可行。解决方案是用<strong>函数近似</strong>（function approximation）来表示Q值：用一个参数化的函数 $Q_\theta(s, a)$（如神经网络）来代替查找表，输入状态-动作对，输出Q值估计。这就是<strong>Deep Q-Network（DQN）</strong>等深度强化学习算法的起点，我们将在第五章详细展开。</p>
 
             <!-- ==================== 小结 ==================== -->
             <h2>小结</h2>
@@ -376,8 +386,8 @@ for s in T:
             <p>至此，我们已经建立了完整的表格强化学习工具箱：从DP（需要模型）到MC和TD（不需要模型），从预测（估计V值）到控制（学习最优Q值）。这些方法的共同点是通过"估计值函数→从值函数推导策略"的间接路径来寻找最优策略。下一节我们将介绍一种截然不同的思路——<strong>策略梯度方法</strong>：直接参数化策略 $\pi_\theta$，通过梯度上升优化策略的期望回报。</p>
 
             <div class="chapter-nav">
-                <a href="../ch01/1.5.2.html">&larr; 1.5.2 时序差分学习</a>
-                <a href="../ch01/1.7.html">1.7 例子：等红绿灯问题 &rarr;</a>
+                <a href="../ch03/3.1.2.html">&larr; 3.1.2 时序差分学习</a>
+                <a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法 &rarr;</a>
             </div>
         </main>
     </div>
