@@ -674,6 +674,975 @@ for ep in range(300):
                 <li><strong>探索噪声与目标噪声</strong>。探索噪声（<code>explore_noise=0.1</code>）用于数据采集时的探索，目标噪声（<code>policy_noise=0.2</code>）用于计算 TD 目标时的平滑。两者的作用不同。</li>
             </ul>
 
+            <!-- ==================== 交互演示 ==================== -->
+            <h2>交互演示：TD3 实时竞价训练</h2>
+
+            <p>下面的交互演示在简化的广告实时竞价环境中逐步运行 TD3 算法。顶部的网络图实时展示 Actor（确定性策略）和双 Critic 的权重与输出；中间左侧展示确定性策略与探索噪声的关系，右侧展示双 Critic 如何抑制 $Q$ 值过估计；底部的数据面板显示当前步的具体数值。你可以逐步观察 TD3 的每一个环节，包括 Actor 的延迟更新机制。</p>
+
+            <div class="td3-demo" id="td3-demo">
+                <div class="demo-title" style="font-weight:700;color:var(--accent-color);margin-bottom:0.6rem;font-size:1.05rem;">交互演示：TD3 算法逐步训练</div>
+
+                <!-- 控制栏 -->
+                <div class="rl-ctrl">
+                    <button id="td3-btn-step" onclick="TD3Demo.nextStep()">下一步</button>
+                    <button id="td3-btn-auto" onclick="TD3Demo.toggleAuto()">自动训练</button>
+                    <button id="td3-btn-converge" onclick="TD3Demo.fastConverge()">快进到收敛</button>
+                    <button id="td3-btn-reset" onclick="TD3Demo.reset()">重置</button>
+                </div>
+                <div class="rl-info" id="td3-info">训练步 <strong>0</strong> &nbsp;|&nbsp; 探索噪声 $\sigma$: <strong>0.20</strong> &nbsp;|&nbsp; 缓冲区: <strong>0</strong>/500</div>
+
+                <!-- 顶部：三网络图 -->
+                <div style="text-align:center; margin:0.8rem 0 0.4rem 0;">
+                    <canvas id="td3-nn-canvas" class="nn-canvas" width="580" height="300" style="width:580px;height:300px;max-width:100%;"></canvas>
+                </div>
+
+                <!-- 中间两栏 -->
+                <div class="demo-mid-row" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:0.8rem 0;">
+                    <!-- 左栏：确定性策略 vs 探索 -->
+                    <div class="dqn-panel" style="background:white;border:1px solid var(--border-color);border-radius:6px;padding:0.8rem;">
+                        <div class="dqn-panel-title" style="font-weight:600;font-size:0.9rem;color:var(--primary-color);margin-bottom:0.5rem;">确定性策略 vs 随机探索</div>
+                        <canvas id="td3-policy-canvas" width="260" height="200" style="width:100%;height:200px;display:block;border:1px solid #e2e8f0;border-radius:6px;background:white;"></canvas>
+                        <div style="font-size:0.78rem;color:#718096;margin-top:0.3rem;text-align:center;">
+                            <span style="color:#2b6cb0;font-weight:600;">---</span> $\mu_\theta(s)$ 确定性策略 &nbsp;
+                            <span style="color:#c53030;font-weight:600;">*</span> 含噪声的实际动作
+                        </div>
+                    </div>
+                    <!-- 右栏：Twin Critics 过估计抑制 -->
+                    <div class="dqn-panel" style="background:white;border:1px solid var(--border-color);border-radius:6px;padding:0.8rem;">
+                        <div class="dqn-panel-title" style="font-weight:600;font-size:0.9rem;color:var(--primary-color);margin-bottom:0.5rem;">Twin Critics 抑制过估计</div>
+                        <canvas id="td3-critic-canvas" width="260" height="200" style="width:100%;height:200px;display:block;border:1px solid #e2e8f0;border-radius:6px;background:white;"></canvas>
+                        <div style="font-size:0.78rem;color:#718096;margin-top:0.3rem;text-align:center;">
+                            <span style="color:#2b6cb0;font-weight:600;">|</span> $Q_1$ &nbsp;
+                            <span style="color:#c53030;font-weight:600;">|</span> $Q_2$ &nbsp;
+                            <span style="color:#805ad5;font-weight:600;">--</span> $\min(Q_1, Q_2)$
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 底部：数据面板 -->
+                <div class="data-panel" id="td3-data-panel" style="background:#f7fafc;border:1px solid #e2e8f0;border-radius:6px;padding:0.8rem;margin-top:0.8rem;font-size:0.85rem;font-family:'JetBrains Mono','Courier New',monospace;line-height:1.8;">
+                    <span class="dp-label">状态:</span> <span id="td3-state" class="dp-val">budget=1.00, ctr=0.00</span><br>
+                    <span class="dp-label">确定性动作:</span> $\mu_\theta(s)$ = <span id="td3-det-action" class="dp-val">0.00</span> &nbsp;
+                    <span class="dp-label">噪声:</span> $\epsilon$ = <span id="td3-noise" class="dp-val">0.00</span> &nbsp;
+                    <span class="dp-label">实际出价:</span> <span id="td3-actual-action" class="dp-val">0.00</span><br>
+                    <span class="dp-label">$Q_1$ =</span> <span id="td3-q1" class="dp-val">0.00</span> &nbsp;
+                    <span class="dp-label">$Q_2$ =</span> <span id="td3-q2" class="dp-val">0.00</span> &nbsp;
+                    <span class="dp-label">$\min$ =</span> <span id="td3-qmin" class="dp-val dp-highlight">0.00</span><br>
+                    <span class="dp-label">延迟更新:</span> <span id="td3-delay-status" class="dp-val">每2步一次 (当前第0步, 本步Actor<span class="dp-dim">未更新</span>)</span>
+                </div>
+
+                <!-- 训练曲线 -->
+                <div style="margin-top:0.8rem;">
+                    <canvas id="td3-reward-canvas" width="560" height="120" style="width:100%;height:120px;display:block;border:1px solid #e2e8f0;border-radius:6px;background:white;"></canvas>
+                    <div style="font-size:0.78rem;color:#718096;text-align:center;margin-top:0.3rem;">Episode 回报曲线</div>
+                </div>
+            </div>
+            <div class="fig-caption">图 5.3-2：TD3 算法在广告实时竞价任务上的交互演示。Actor 输出确定性出价，训练时添加高斯噪声探索。双 Critic 取较小值作为 TD 目标，Actor 每 2 步更新一次。</div>
+
+            <style>
+                .td3-demo { border:2px solid var(--border-color); border-radius:8px; padding:1.2rem; margin:1.5rem 0; background:#fafafa; }
+                .td3-demo .rl-ctrl { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; margin-bottom:0.8rem; font-size:0.88rem; }
+                .td3-demo .rl-ctrl button { padding:0.3rem 0.7rem; border:1px solid #2b6cb0; background:white; color:#2b6cb0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.84rem; transition:all 0.15s; }
+                .td3-demo .rl-ctrl button:hover { background:#2b6cb0; color:white; }
+                .td3-demo .rl-ctrl button.active-btn { background:#2b6cb0; color:white; }
+                .td3-demo .rl-info { background:#ebf4ff; border-radius:6px; padding:0.4rem 0.8rem; font-size:0.88rem; margin-bottom:0.8rem; }
+                .td3-demo .nn-canvas { border:1px solid #e2e8f0; border-radius:8px; background:white; display:block; margin:0 auto; }
+                .td3-demo .dp-label { font-weight:600; color:#2b6cb0; }
+                .td3-demo .dp-val { font-weight:700; color:#2d3748; }
+                .td3-demo .dp-pos { color:#276749; font-weight:600; }
+                .td3-demo .dp-neg { color:#c53030; font-weight:600; }
+                .td3-demo .dp-dim { color:#a0aec0; }
+                .td3-demo .dp-highlight { background:#fefcbf; padding:0.1rem 0.3rem; border-radius:3px; }
+                @media (max-width: 768px) { .td3-demo .demo-mid-row { grid-template-columns:1fr !important; } }
+            </style>
+
+            <script>
+            // ========== TD3 Interactive Demo ==========
+            const TD3Demo = (function() {
+                'use strict';
+
+                // ---- Tiny Neural Network ----
+                function createNet(inputDim, hiddenDim, outputDim) {
+                    // Xavier-ish init
+                    function randW(rows, cols) {
+                        const s = Math.sqrt(2.0 / (rows + cols));
+                        const w = [];
+                        for (let i = 0; i < rows; i++) {
+                            w[i] = [];
+                            for (let j = 0; j < cols; j++) w[i][j] = (Math.random() - 0.5) * 2 * s;
+                        }
+                        return w;
+                    }
+                    function randB(n) { const b = []; for (let i = 0; i < n; i++) b[i] = 0; return b; }
+                    return {
+                        w1: randW(inputDim, hiddenDim), b1: randB(hiddenDim),
+                        w2: randW(hiddenDim, outputDim), b2: randB(outputDim),
+                        _hid: new Array(hiddenDim).fill(0)
+                    };
+                }
+                function netForward(net, x, outAct) {
+                    const h = net._hid;
+                    for (let j = 0; j < net.b1.length; j++) {
+                        let v = net.b1[j];
+                        for (let i = 0; i < x.length; i++) v += x[i] * net.w1[i][j];
+                        h[j] = Math.max(0, v); // ReLU
+                    }
+                    const out = [];
+                    for (let k = 0; k < net.b2.length; k++) {
+                        let v = net.b2[k];
+                        for (let j = 0; j < h.length; j++) v += h[j] * net.w2[j][k];
+                        if (outAct === 'sigmoid') v = 1 / (1 + Math.exp(-v));
+                        else if (outAct === 'tanh') v = Math.tanh(v);
+                        out[k] = v;
+                    }
+                    return out;
+                }
+                function copyNet(src) {
+                    const dst = { w1: [], b1: [...src.b1], w2: [], b2: [...src.b2], _hid: new Array(src._hid.length).fill(0) };
+                    for (let i = 0; i < src.w1.length; i++) dst.w1[i] = [...src.w1[i]];
+                    for (let j = 0; j < src.w2.length; j++) dst.w2[j] = [...src.w2[j]];
+                    return dst;
+                }
+                function softUpdateNet(main, target, tau) {
+                    for (let i = 0; i < main.w1.length; i++)
+                        for (let j = 0; j < main.w1[i].length; j++)
+                            target.w1[i][j] = tau * main.w1[i][j] + (1 - tau) * target.w1[i][j];
+                    for (let j = 0; j < main.b1.length; j++)
+                        target.b1[j] = tau * main.b1[j] + (1 - tau) * target.b1[j];
+                    for (let j = 0; j < main.w2.length; j++)
+                        for (let k = 0; k < main.w2[j].length; k++)
+                            target.w2[j][k] = tau * main.w2[j][k] + (1 - tau) * target.w2[j][k];
+                    for (let k = 0; k < main.b2.length; k++)
+                        target.b2[k] = tau * main.b2[k] + (1 - tau) * target.b2[k];
+                }
+
+                // ---- Numerical gradient + SGD update ----
+                function netGrad(net, x, outAct, targetVal, lr) {
+                    // Simple gradient via finite differences (for this small demo net)
+                    const eps = 1e-4;
+                    function loss() {
+                        const out = netForward(net, x, outAct);
+                        let l = 0;
+                        for (let k = 0; k < out.length; k++) l += (out[k] - targetVal[k]) ** 2;
+                        return l;
+                    }
+                    // Update w1
+                    for (let i = 0; i < net.w1.length; i++) {
+                        for (let j = 0; j < net.w1[i].length; j++) {
+                            net.w1[i][j] += eps;
+                            const lp = loss();
+                            net.w1[i][j] -= 2 * eps;
+                            const lm = loss();
+                            net.w1[i][j] += eps;
+                            net.w1[i][j] -= lr * (lp - lm) / (2 * eps);
+                        }
+                    }
+                    // Update b1
+                    for (let j = 0; j < net.b1.length; j++) {
+                        net.b1[j] += eps;
+                        const lp = loss();
+                        net.b1[j] -= 2 * eps;
+                        const lm = loss();
+                        net.b1[j] += eps;
+                        net.b1[j] -= lr * (lp - lm) / (2 * eps);
+                    }
+                    // Update w2
+                    for (let j = 0; j < net.w2.length; j++) {
+                        for (let k = 0; k < net.w2[j].length; k++) {
+                            net.w2[j][k] += eps;
+                            const lp = loss();
+                            net.w2[j][k] -= 2 * eps;
+                            const lm = loss();
+                            net.w2[j][k] += eps;
+                            net.w2[j][k] -= lr * (lp - lm) / (2 * eps);
+                        }
+                    }
+                    // Update b2
+                    for (let k = 0; k < net.b2.length; k++) {
+                        net.b2[k] += eps;
+                        const lp = loss();
+                        net.b2[k] -= 2 * eps;
+                        const lm = loss();
+                        net.b2[k] += eps;
+                        net.b2[k] -= lr * (lp - lm) / (2 * eps);
+                    }
+                }
+
+                // Actor-specific update: maximize Q(s, actor(s)) using critic1
+                function actorUpdate(actor, critic1, states, lr) {
+                    const eps = 1e-4;
+                    function negQ() {
+                        let total = 0;
+                        for (const s of states) {
+                            const a = netForward(actor, s, 'sigmoid');
+                            const q = netForward(critic1, s.concat(a), 'none');
+                            total -= q[0];
+                        }
+                        return total / states.length;
+                    }
+                    // w1
+                    for (let i = 0; i < actor.w1.length; i++) {
+                        for (let j = 0; j < actor.w1[i].length; j++) {
+                            actor.w1[i][j] += eps;
+                            const lp = negQ();
+                            actor.w1[i][j] -= 2 * eps;
+                            const lm = negQ();
+                            actor.w1[i][j] += eps;
+                            actor.w1[i][j] -= lr * (lp - lm) / (2 * eps);
+                        }
+                    }
+                    for (let j = 0; j < actor.b1.length; j++) {
+                        actor.b1[j] += eps;
+                        const lp = negQ();
+                        actor.b1[j] -= 2 * eps;
+                        const lm = negQ();
+                        actor.b1[j] += eps;
+                        actor.b1[j] -= lr * (lp - lm) / (2 * eps);
+                    }
+                    for (let j = 0; j < actor.w2.length; j++) {
+                        for (let k = 0; k < actor.w2[j].length; k++) {
+                            actor.w2[j][k] += eps;
+                            const lp = negQ();
+                            actor.w2[j][k] -= 2 * eps;
+                            const lm = negQ();
+                            actor.w2[j][k] += eps;
+                            actor.w2[j][k] -= lr * (lp - lm) / (2 * eps);
+                        }
+                    }
+                    for (let k = 0; k < actor.b2.length; k++) {
+                        actor.b2[k] += eps;
+                        const lp = negQ();
+                        actor.b2[k] -= 2 * eps;
+                        const lm = negQ();
+                        actor.b2[k] += eps;
+                        actor.b2[k] -= lr * (lp - lm) / (2 * eps);
+                    }
+                }
+
+                // ---- RTB Environment ----
+                function createEnv() {
+                    return {
+                        T: 30, initBudget: 15.0, clickValue: 5.0,
+                        t: 0, budget: 15.0, done: false,
+                        reset() {
+                            this.t = 0; this.budget = this.initBudget; this.done = false;
+                            return this._obs();
+                        },
+                        _obs() {
+                            return [
+                                this.budget / this.initBudget,
+                                Math.random() * 0.7 + 0.05 // ctr (simplified 2D)
+                            ];
+                        },
+                        step(action) {
+                            const bid = Math.max(0, Math.min(1, action));
+                            const ctr = Math.random() * 0.7 + 0.05;
+                            const competition = Math.random() * 0.5 + 0.1;
+                            const marketPrice = competition * 0.6 + Math.random() * 0.2;
+                            let reward = 0;
+                            if (bid >= marketPrice && this.budget > 0) {
+                                const cost = marketPrice;
+                                this.budget -= cost;
+                                const clicked = Math.random() < ctr;
+                                reward = this.clickValue * (clicked ? 1 : 0) - cost;
+                            }
+                            this.t++;
+                            this.done = this.t >= this.T || this.budget <= 0;
+                            const nextObs = this.done ? [0, 0] : this._obs();
+                            return { nextObs, reward, done: this.done };
+                        }
+                    };
+                }
+
+                // ---- State ----
+                let actor, critic1, critic2;
+                let actorTarget, critic1Target, critic2Target;
+                let env, buffer, totalSteps, episodeReward, episodeRewards;
+                let currentState, autoTimer, isAuto;
+                let policyHistory, explorationDots;
+                let q1History, q2History, qMinHistory;
+                let actorUpdatedThisStep;
+                const BUFFER_MAX = 500;
+                const BATCH_SIZE = 8;
+                const GAMMA = 0.95;
+                const TAU = 0.05;
+                const EXPLORE_NOISE = 0.2;
+                const POLICY_NOISE = 0.15;
+                const NOISE_CLIP = 0.3;
+                const POLICY_DELAY = 2;
+                const LR_CRITIC = 0.005;
+                const LR_ACTOR = 0.003;
+
+                function init() {
+                    actor = createNet(2, 6, 1);
+                    critic1 = createNet(3, 6, 1);
+                    critic2 = createNet(3, 6, 1);
+                    actorTarget = copyNet(actor);
+                    critic1Target = copyNet(critic1);
+                    critic2Target = copyNet(critic2);
+                    env = createEnv();
+                    buffer = [];
+                    totalSteps = 0;
+                    episodeReward = 0;
+                    episodeRewards = [];
+                    currentState = env.reset();
+                    isAuto = false;
+                    autoTimer = null;
+                    policyHistory = [];
+                    explorationDots = [];
+                    q1History = [];
+                    q2History = [];
+                    qMinHistory = [];
+                    actorUpdatedThisStep = false;
+                }
+
+                // ---- One training step ----
+                function trainStep() {
+                    if (env.done) {
+                        episodeRewards.push(episodeReward);
+                        episodeReward = 0;
+                        currentState = env.reset();
+                    }
+
+                    // Actor forward → deterministic action
+                    const detAction = netForward(actor, currentState, 'sigmoid')[0];
+                    const noise = gaussianRandom() * EXPLORE_NOISE;
+                    const actualAction = Math.max(0, Math.min(1, detAction + noise));
+
+                    // Environment step
+                    const { nextObs, reward, done } = env.step(actualAction);
+                    episodeReward += reward;
+
+                    // Store in buffer
+                    buffer.push({ s: [...currentState], a: actualAction, r: reward, s2: [...nextObs], d: done ? 1 : 0 });
+                    if (buffer.length > BUFFER_MAX) buffer.shift();
+
+                    // Record for policy plot
+                    explorationDots.push({ x: currentState[1], yDet: detAction, yAct: actualAction });
+                    if (explorationDots.length > 60) explorationDots.shift();
+
+                    totalSteps++;
+                    actorUpdatedThisStep = false;
+
+                    // Update if buffer has enough samples
+                    if (buffer.length >= BATCH_SIZE) {
+                        // Sample mini-batch
+                        const batch = [];
+                        for (let i = 0; i < BATCH_SIZE; i++) {
+                            batch.push(buffer[Math.floor(Math.random() * buffer.length)]);
+                        }
+
+                        // Compute TD targets
+                        const targets1 = [];
+                        const targets2 = [];
+                        const batchStates = [];
+                        for (const tr of batch) {
+                            // Target policy smoothing
+                            const aNext = netForward(actorTarget, tr.s2, 'sigmoid')[0];
+                            const tNoise = Math.max(-NOISE_CLIP, Math.min(NOISE_CLIP, gaussianRandom() * POLICY_NOISE));
+                            const aSmoothed = Math.max(0, Math.min(1, aNext + tNoise));
+                            const q1t = netForward(critic1Target, tr.s2.concat([aSmoothed]), 'none')[0];
+                            const q2t = netForward(critic2Target, tr.s2.concat([aSmoothed]), 'none')[0];
+                            const qTarget = Math.min(q1t, q2t);
+                            const y = tr.r + (1 - tr.d) * GAMMA * qTarget;
+                            targets1.push(y);
+                            targets2.push(y);
+                            batchStates.push(tr.s);
+                        }
+
+                        // Update both critics
+                        for (let i = 0; i < batch.length; i++) {
+                            const inp = batch[i].s.concat([batch[i].a]);
+                            netGrad(critic1, inp, 'none', [targets1[i]], LR_CRITIC);
+                            netGrad(critic2, inp, 'none', [targets2[i]], LR_CRITIC);
+                        }
+
+                        // Delayed actor update
+                        if (totalSteps % POLICY_DELAY === 0) {
+                            actorUpdate(actor, critic1, batchStates, LR_ACTOR);
+                            softUpdateNet(actor, actorTarget, TAU);
+                            softUpdateNet(critic1, critic1Target, TAU);
+                            softUpdateNet(critic2, critic2Target, TAU);
+                            actorUpdatedThisStep = true;
+                        }
+                    }
+
+                    // Record Q values for the current state-action
+                    const qIn = currentState.concat([actualAction]);
+                    const q1Val = netForward(critic1, qIn, 'none')[0];
+                    const q2Val = netForward(critic2, qIn, 'none')[0];
+                    q1History.push(q1Val);
+                    q2History.push(q2Val);
+                    qMinHistory.push(Math.min(q1Val, q2Val));
+                    if (q1History.length > 80) { q1History.shift(); q2History.shift(); qMinHistory.shift(); }
+
+                    // Build policy curve
+                    policyHistory = [];
+                    for (let xi = 0; xi <= 1.0; xi += 0.05) {
+                        const s = [0.5, xi]; // budget=0.5 (mid), varying ctr
+                        const a = netForward(actor, s, 'sigmoid')[0];
+                        policyHistory.push({ x: xi, y: a });
+                    }
+
+                    // Update display
+                    updateInfo(detAction, noise, actualAction, q1Val, q2Val);
+                    currentState = nextObs;
+
+                    drawAll();
+                }
+
+                function gaussianRandom() {
+                    let u = 0, v = 0;
+                    while (u === 0) u = Math.random();
+                    while (v === 0) v = Math.random();
+                    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+                }
+
+                // ---- Drawing functions ----
+                function getCtx(id, w, h) {
+                    const c = document.getElementById(id);
+                    if (!c) return null;
+                    const dpr = window.devicePixelRatio || 1;
+                    if (c.width !== w * dpr || c.height !== h * dpr) {
+                        c.width = w * dpr;
+                        c.height = h * dpr;
+                    }
+                    const ctx = c.getContext('2d');
+                    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                    return ctx;
+                }
+
+                function drawAll() {
+                    drawNetworks();
+                    drawPolicyPlot();
+                    drawCriticPlot();
+                    drawRewardCurve();
+                }
+
+                // ---- Draw triple network diagram ----
+                function drawNetworks() {
+                    const W = 580, H = 300;
+                    const ctx = getCtx('td3-nn-canvas', W, H);
+                    if (!ctx) return;
+                    ctx.clearRect(0, 0, W, H);
+
+                    // Layout: Actor on left, Critic1 top-right, Critic2 bottom-right
+                    const actorX = 40, actorY = 60;
+                    const c1X = 330, c1Y = 15;
+                    const c2X = 330, c2Y = 160;
+
+                    // Draw Actor network
+                    drawMiniNet(ctx, actor, actorX, actorY, 2, 6, 1,
+                        'Actor \u03bc\u03b8(s)', '#2b6cb0', '#ebf4ff', 'sigmoid');
+                    // Draw Critic 1
+                    drawMiniNet(ctx, critic1, c1X, c1Y, 3, 6, 1,
+                        'Critic Q\u2081', '#2b6cb0', '#ebf4ff', 'none');
+                    // Draw Critic 2
+                    drawMiniNet(ctx, critic2, c2X, c2Y, 3, 6, 1,
+                        'Critic Q\u2082', '#c53030', '#fed7d7', 'none');
+
+                    // Arrow from Actor output to Critics' action input
+                    const actorOutX = actorX + 230;
+                    const actorOutY = actorY + 55;
+                    // To Critic1 action input (3rd input node)
+                    const c1InX = c1X + 8;
+                    const c1InY = c1Y + 88;
+                    // To Critic2 action input
+                    const c2InX = c2X + 8;
+                    const c2InY = c2Y + 88;
+
+                    ctx.save();
+                    ctx.strokeStyle = '#805ad5';
+                    ctx.lineWidth = 1.8;
+                    ctx.setLineDash([5, 3]);
+                    ctx.lineCap = 'round';
+                    // Curve to Critic1
+                    ctx.beginPath();
+                    ctx.moveTo(actorOutX, actorOutY);
+                    ctx.quadraticCurveTo(actorOutX + 40, c1InY, c1InX, c1InY);
+                    ctx.stroke();
+                    // Curve to Critic2
+                    ctx.beginPath();
+                    ctx.moveTo(actorOutX, actorOutY);
+                    ctx.quadraticCurveTo(actorOutX + 40, c2InY, c2InX, c2InY);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.restore();
+
+                    // Label "a" on arrows
+                    ctx.fillStyle = '#805ad5';
+                    ctx.font = 'italic 12px Georgia, serif';
+                    ctx.fillText('a', actorOutX + 25, (actorOutY + c1InY) / 2 - 2);
+                    ctx.fillText('a', actorOutX + 25, (actorOutY + c2InY) / 2 + 2);
+
+                    // min(Q1, Q2) label between critics
+                    const midY = (c1Y + 110 + c2Y) / 2 + 10;
+                    ctx.fillStyle = '#805ad5';
+                    ctx.font = 'bold 13px "Source Han Serif SC", Georgia, serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('min(Q\u2081, Q\u2082)', c1X + 120, midY);
+                    ctx.textAlign = 'left';
+
+                    // Draw bracket between the two critic outputs
+                    const outC1Y = c1Y + 55;
+                    const outC2Y = c2Y + 55;
+                    const bracketX = c1X + 228;
+                    ctx.strokeStyle = '#805ad5';
+                    ctx.lineWidth = 2;
+                    ctx.lineCap = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(bracketX, outC1Y);
+                    ctx.lineTo(bracketX + 12, outC1Y);
+                    ctx.lineTo(bracketX + 12, outC2Y);
+                    ctx.lineTo(bracketX, outC2Y);
+                    ctx.stroke();
+                    // Arrow tip from bracket
+                    ctx.beginPath();
+                    ctx.moveTo(bracketX + 12, midY - 8);
+                    ctx.lineTo(bracketX + 25, midY - 8);
+                    ctx.stroke();
+                }
+
+                function drawMiniNet(ctx, net, ox, oy, nIn, nHid, nOut, label, color, bgColor, outAct) {
+                    const W = 230, H = 110;
+                    // Background
+                    ctx.fillStyle = bgColor;
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 1.5;
+                    roundRect(ctx, ox, oy, W, H, 6);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Label
+                    ctx.fillStyle = color;
+                    ctx.font = 'bold 11px "Source Han Serif SC", Georgia, serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(label, ox + W / 2, oy - 4);
+                    ctx.textAlign = 'left';
+
+                    // Node positions
+                    const layerX = [ox + 30, ox + W / 2, ox + W - 30];
+                    function nodeY(layerIdx, nodeIdx, count) {
+                        const spacing = Math.min(18, (H - 20) / (count + 1));
+                        const totalH = spacing * (count - 1);
+                        return oy + H / 2 - totalH / 2 + nodeIdx * spacing;
+                    }
+
+                    // Connections input→hidden
+                    const maxW1 = getMaxAbs(net.w1);
+                    for (let i = 0; i < nIn; i++) {
+                        for (let j = 0; j < nHid; j++) {
+                            const w = net.w1[i][j];
+                            const alpha = Math.min(1, Math.abs(w) / (maxW1 + 0.01));
+                            ctx.strokeStyle = w >= 0 ? `rgba(43,108,176,${alpha * 0.7})` : `rgba(197,48,48,${alpha * 0.7})`;
+                            ctx.lineWidth = Math.max(0.3, alpha * 2.5);
+                            ctx.beginPath();
+                            ctx.moveTo(layerX[0], nodeY(0, i, nIn));
+                            ctx.lineTo(layerX[1], nodeY(1, j, nHid));
+                            ctx.stroke();
+                        }
+                    }
+                    // Connections hidden→output
+                    const maxW2 = getMaxAbs2(net.w2);
+                    for (let j = 0; j < nHid; j++) {
+                        for (let k = 0; k < nOut; k++) {
+                            const w = net.w2[j][k];
+                            const alpha = Math.min(1, Math.abs(w) / (maxW2 + 0.01));
+                            ctx.strokeStyle = w >= 0 ? `rgba(43,108,176,${alpha * 0.7})` : `rgba(197,48,48,${alpha * 0.7})`;
+                            ctx.lineWidth = Math.max(0.3, alpha * 2.5);
+                            ctx.beginPath();
+                            ctx.moveTo(layerX[1], nodeY(1, j, nHid));
+                            ctx.lineTo(layerX[2], nodeY(2, k, nOut));
+                            ctx.stroke();
+                        }
+                    }
+
+                    // Hidden activations (use a sample input)
+                    const sampleIn = currentState ? [...currentState] : [0.5, 0.3];
+                    if (nIn === 3) sampleIn.push(0.5); // action for critic
+                    const out = netForward(net, sampleIn, outAct || 'none');
+                    const hid = net._hid;
+
+                    // Draw nodes
+                    const inLabels = nIn === 2 ? ['b', 'ctr'] : ['b', 'ctr', 'a'];
+                    for (let i = 0; i < nIn; i++) {
+                        drawNode(ctx, layerX[0], nodeY(0, i, nIn), 7, '#fff', color);
+                        ctx.fillStyle = '#4a5568';
+                        ctx.font = '9px "Source Han Serif SC", Georgia, serif';
+                        ctx.textAlign = 'right';
+                        ctx.fillText(inLabels[i], layerX[0] - 10, nodeY(0, i, nIn) + 3);
+                        ctx.textAlign = 'left';
+                    }
+                    for (let j = 0; j < nHid; j++) {
+                        const act = Math.min(1, Math.max(0, hid[j]));
+                        const r = Math.round(235 - act * 192);
+                        const g = Math.round(244 - act * 136);
+                        const b2 = Math.round(255 - act * 79);
+                        drawNode(ctx, layerX[1], nodeY(1, j, nHid), 5, `rgb(${r},${g},${b2})`, color);
+                    }
+                    for (let k = 0; k < nOut; k++) {
+                        drawNode(ctx, layerX[2], nodeY(2, k, nOut), 8, '#fefcbf', color);
+                        ctx.fillStyle = '#2d3748';
+                        ctx.font = 'bold 10px "JetBrains Mono", monospace';
+                        ctx.textAlign = 'left';
+                        ctx.fillText(out[k].toFixed(2), layerX[2] + 12, nodeY(2, k, nOut) + 4);
+                    }
+                }
+
+                function drawNode(ctx, x, y, r, fill, stroke) {
+                    ctx.beginPath();
+                    ctx.arc(x, y, r, 0, Math.PI * 2);
+                    ctx.fillStyle = fill;
+                    ctx.fill();
+                    ctx.strokeStyle = stroke;
+                    ctx.lineWidth = 1.2;
+                    ctx.stroke();
+                }
+
+                function roundRect(ctx, x, y, w, h, r) {
+                    ctx.beginPath();
+                    ctx.moveTo(x + r, y);
+                    ctx.lineTo(x + w - r, y);
+                    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+                    ctx.lineTo(x + w, y + h - r);
+                    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+                    ctx.lineTo(x + r, y + h);
+                    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+                    ctx.lineTo(x, y + r);
+                    ctx.quadraticCurveTo(x, y, x + r, y);
+                    ctx.closePath();
+                }
+
+                function getMaxAbs(w2d) {
+                    let m = 0;
+                    for (const row of w2d) for (const v of row) m = Math.max(m, Math.abs(v));
+                    return m;
+                }
+                const getMaxAbs2 = getMaxAbs;
+
+                // ---- Policy plot (left panel) ----
+                function drawPolicyPlot() {
+                    const W = 260, H = 200;
+                    const ctx = getCtx('td3-policy-canvas', W, H);
+                    if (!ctx) return;
+                    ctx.clearRect(0, 0, W, H);
+
+                    const pad = { l: 38, r: 12, t: 12, b: 28 };
+                    const pw = W - pad.l - pad.r;
+                    const ph = H - pad.t - pad.b;
+
+                    // Axes
+                    ctx.strokeStyle = '#cbd5e0';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(pad.l, pad.t);
+                    ctx.lineTo(pad.l, H - pad.b);
+                    ctx.lineTo(W - pad.r, H - pad.b);
+                    ctx.stroke();
+
+                    // Axis labels
+                    ctx.fillStyle = '#718096';
+                    ctx.font = '10px "Source Han Serif SC", Georgia, serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('ctr (点击率)', pad.l + pw / 2, H - 4);
+                    ctx.save();
+                    ctx.translate(10, pad.t + ph / 2);
+                    ctx.rotate(-Math.PI / 2);
+                    ctx.fillText('出价', 0, 0);
+                    ctx.restore();
+
+                    // Ticks
+                    ctx.fillStyle = '#a0aec0';
+                    ctx.font = '9px monospace';
+                    ctx.textAlign = 'right';
+                    for (let v = 0; v <= 1; v += 0.25) {
+                        const y = pad.t + ph * (1 - v);
+                        ctx.fillText(v.toFixed(1), pad.l - 4, y + 3);
+                        ctx.strokeStyle = '#edf2f7';
+                        ctx.beginPath();
+                        ctx.moveTo(pad.l, y);
+                        ctx.lineTo(W - pad.r, y);
+                        ctx.stroke();
+                    }
+                    ctx.textAlign = 'center';
+                    for (let v = 0; v <= 1; v += 0.25) {
+                        const x = pad.l + pw * v;
+                        ctx.fillText(v.toFixed(1), x, H - pad.b + 14);
+                    }
+
+                    // Policy curve (blue line)
+                    if (policyHistory.length > 1) {
+                        ctx.strokeStyle = '#2b6cb0';
+                        ctx.lineWidth = 2;
+                        ctx.lineCap = 'round';
+                        ctx.beginPath();
+                        for (let i = 0; i < policyHistory.length; i++) {
+                            const px = pad.l + policyHistory[i].x * pw;
+                            const py = pad.t + (1 - policyHistory[i].y) * ph;
+                            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                        }
+                        ctx.stroke();
+                    }
+
+                    // Exploration dots (red)
+                    ctx.fillStyle = '#c53030';
+                    for (const dot of explorationDots) {
+                        const px = pad.l + dot.x * pw;
+                        const py = pad.t + (1 - dot.yAct) * ph;
+                        ctx.beginPath();
+                        ctx.arc(px, py, 2.5, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                // ---- Critic comparison plot (right panel) ----
+                function drawCriticPlot() {
+                    const W = 260, H = 200;
+                    const ctx = getCtx('td3-critic-canvas', W, H);
+                    if (!ctx) return;
+                    ctx.clearRect(0, 0, W, H);
+
+                    const pad = { l: 38, r: 12, t: 12, b: 28 };
+                    const pw = W - pad.l - pad.r;
+                    const ph = H - pad.t - pad.b;
+
+                    // Axes
+                    ctx.strokeStyle = '#cbd5e0';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(pad.l, pad.t);
+                    ctx.lineTo(pad.l, H - pad.b);
+                    ctx.lineTo(W - pad.r, H - pad.b);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#718096';
+                    ctx.font = '10px "Source Han Serif SC", Georgia, serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('训练步', pad.l + pw / 2, H - 4);
+                    ctx.save();
+                    ctx.translate(10, pad.t + ph / 2);
+                    ctx.rotate(-Math.PI / 2);
+                    ctx.fillText('Q 值', 0, 0);
+                    ctx.restore();
+
+                    if (q1History.length < 2) return;
+
+                    // Find range
+                    const allVals = q1History.concat(q2History);
+                    let qMin = Math.min(...allVals);
+                    let qMax = Math.max(...allVals);
+                    const margin = Math.max(0.5, (qMax - qMin) * 0.15);
+                    qMin -= margin; qMax += margin;
+
+                    // Y ticks
+                    ctx.fillStyle = '#a0aec0';
+                    ctx.font = '9px monospace';
+                    ctx.textAlign = 'right';
+                    const step = (qMax - qMin) / 4;
+                    for (let i = 0; i <= 4; i++) {
+                        const v = qMin + i * step;
+                        const y = pad.t + ph * (1 - i / 4);
+                        ctx.fillText(v.toFixed(1), pad.l - 4, y + 3);
+                        ctx.strokeStyle = '#edf2f7';
+                        ctx.beginPath();
+                        ctx.moveTo(pad.l, y);
+                        ctx.lineTo(W - pad.r, y);
+                        ctx.stroke();
+                    }
+
+                    const n = q1History.length;
+                    function toX(i) { return pad.l + (i / (n - 1)) * pw; }
+                    function toY(v) { return pad.t + (1 - (v - qMin) / (qMax - qMin)) * ph; }
+
+                    // Q1 line (blue)
+                    ctx.strokeStyle = '#2b6cb0';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    for (let i = 0; i < n; i++) {
+                        const px = toX(i), py = toY(q1History[i]);
+                        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                    }
+                    ctx.stroke();
+
+                    // Q2 line (red)
+                    ctx.strokeStyle = '#c53030';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    for (let i = 0; i < n; i++) {
+                        const px = toX(i), py = toY(q2History[i]);
+                        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                    }
+                    ctx.stroke();
+
+                    // min line (purple dashed)
+                    ctx.strokeStyle = '#805ad5';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 3]);
+                    ctx.beginPath();
+                    for (let i = 0; i < n; i++) {
+                        const px = toX(i), py = toY(qMinHistory[i]);
+                        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                    }
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+
+                // ---- Reward curve ----
+                function drawRewardCurve() {
+                    const W = 560, H = 120;
+                    const ctx = getCtx('td3-reward-canvas', W, H);
+                    if (!ctx) return;
+                    ctx.clearRect(0, 0, W, H);
+
+                    const pad = { l: 45, r: 12, t: 10, b: 22 };
+                    const pw = W - pad.l - pad.r;
+                    const ph = H - pad.t - pad.b;
+
+                    // Axes
+                    ctx.strokeStyle = '#cbd5e0';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(pad.l, pad.t);
+                    ctx.lineTo(pad.l, H - pad.b);
+                    ctx.lineTo(W - pad.r, H - pad.b);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#718096';
+                    ctx.font = '10px "Source Han Serif SC", Georgia, serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Episode', pad.l + pw / 2, H - 2);
+
+                    if (episodeRewards.length < 2) {
+                        ctx.fillStyle = '#a0aec0';
+                        ctx.fillText('等待训练...', pad.l + pw / 2, pad.t + ph / 2);
+                        return;
+                    }
+
+                    let rMin = Math.min(...episodeRewards);
+                    let rMax = Math.max(...episodeRewards);
+                    const mg = Math.max(1, (rMax - rMin) * 0.1);
+                    rMin -= mg; rMax += mg;
+
+                    // Y ticks
+                    ctx.fillStyle = '#a0aec0';
+                    ctx.font = '9px monospace';
+                    ctx.textAlign = 'right';
+                    for (let i = 0; i <= 3; i++) {
+                        const v = rMin + (rMax - rMin) * i / 3;
+                        const y = pad.t + ph * (1 - i / 3);
+                        ctx.fillText(v.toFixed(0), pad.l - 4, y + 3);
+                    }
+
+                    const n = episodeRewards.length;
+                    function toX(i) { return pad.l + (i / (n - 1)) * pw; }
+                    function toY(v) { return pad.t + (1 - (v - rMin) / (rMax - rMin)) * ph; }
+
+                    // Raw rewards (light)
+                    ctx.strokeStyle = 'rgba(43,108,176,0.3)';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    for (let i = 0; i < n; i++) {
+                        const px = toX(i), py = toY(episodeRewards[i]);
+                        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                    }
+                    ctx.stroke();
+
+                    // Moving average
+                    if (n >= 5) {
+                        ctx.strokeStyle = '#2b6cb0';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        const wSize = Math.min(10, n);
+                        for (let i = wSize - 1; i < n; i++) {
+                            let sum = 0;
+                            for (let j = i - wSize + 1; j <= i; j++) sum += episodeRewards[j];
+                            const avg = sum / wSize;
+                            const px = toX(i), py = toY(avg);
+                            if (i === wSize - 1) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                        }
+                        ctx.stroke();
+                    }
+                }
+
+                // ---- UI updates ----
+                function updateInfo(detA, noise, actA, q1, q2) {
+                    const infoEl = document.getElementById('td3-info');
+                    if (infoEl) {
+                        infoEl.innerHTML = `训练步 <strong>${totalSteps}</strong> &nbsp;|&nbsp; 探索噪声 $\\sigma$: <strong>${EXPLORE_NOISE.toFixed(2)}</strong> &nbsp;|&nbsp; 缓冲区: <strong>${buffer.length}</strong>/${BUFFER_MAX}`;
+                    }
+                    const stateEl = document.getElementById('td3-state');
+                    if (stateEl) stateEl.textContent = `budget=${currentState[0].toFixed(2)}, ctr=${currentState[1].toFixed(2)}`;
+                    const detEl = document.getElementById('td3-det-action');
+                    if (detEl) detEl.textContent = detA.toFixed(3);
+                    const noiseEl = document.getElementById('td3-noise');
+                    if (noiseEl) noiseEl.textContent = (noise >= 0 ? '+' : '') + noise.toFixed(3);
+                    const actEl = document.getElementById('td3-actual-action');
+                    if (actEl) actEl.textContent = actA.toFixed(3);
+                    const q1El = document.getElementById('td3-q1');
+                    if (q1El) q1El.textContent = q1.toFixed(2);
+                    const q2El = document.getElementById('td3-q2');
+                    if (q2El) q2El.textContent = q2.toFixed(2);
+                    const qmEl = document.getElementById('td3-qmin');
+                    if (qmEl) qmEl.textContent = Math.min(q1, q2).toFixed(2);
+                    const delayEl = document.getElementById('td3-delay-status');
+                    if (delayEl) {
+                        const updated = actorUpdatedThisStep;
+                        delayEl.innerHTML = `每2步一次 (当前第${totalSteps}步, 本步Actor<span class="${updated ? 'dp-pos' : 'dp-dim'}">${updated ? '已更新' : '未更新'}</span>)`;
+                    }
+
+                    // Re-render KaTeX in the info bar
+                    if (window.renderMathInElement) {
+                        const infoBar = document.getElementById('td3-info');
+                        if (infoBar) renderMathInElement(infoBar, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});
+                    }
+                }
+
+                // ---- Public API ----
+                function nextStep() { trainStep(); }
+
+                function toggleAuto() {
+                    isAuto = !isAuto;
+                    const btn = document.getElementById('td3-btn-auto');
+                    if (isAuto) {
+                        btn.textContent = '暂停';
+                        btn.classList.add('active-btn');
+                        autoTimer = setInterval(() => { trainStep(); }, 80);
+                    } else {
+                        btn.textContent = '自动训练';
+                        btn.classList.remove('active-btn');
+                        clearInterval(autoTimer);
+                        autoTimer = null;
+                    }
+                }
+
+                function fastConverge() {
+                    if (isAuto) toggleAuto();
+                    for (let i = 0; i < 500; i++) trainStep();
+                }
+
+                function resetDemo() {
+                    if (isAuto) toggleAuto();
+                    init();
+                    updateInfo(0, 0, 0, 0, 0);
+                    drawAll();
+                }
+
+                // Initialize on load
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', () => { init(); drawAll(); });
+                } else {
+                    init(); drawAll();
+                }
+
+                return {
+                    nextStep: nextStep,
+                    toggleAuto: toggleAuto,
+                    fastConverge: fastConverge,
+                    reset: resetDemo
+                };
+            })();
+            </script>
+
             <!-- ==================== 小结 ==================== -->
             <h2>小结</h2>
 
