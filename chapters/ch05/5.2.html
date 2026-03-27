@@ -36,6 +36,19 @@
         .demo-canvas-wrap { display:flex; gap:1.5rem; flex-wrap:wrap; justify-content:center; margin:0.8rem 0; }
         .demo-canvas-wrap canvas { border:1px solid var(--border-color); border-radius:4px; background:white; }
         .fig-caption { text-align:center; font-size:0.9rem; color:#718096; margin-top:0.5rem; margin-bottom:1.5rem; }
+
+        /* PPO 交互演示 */
+        .ppo-demo { border:2px solid var(--border-color); border-radius:8px; padding:1.2rem; margin:1.5rem 0; background:#fafafa; }
+        .ppo-demo .demo-title { font-weight:700; color:var(--accent-color); margin-bottom:0.6rem; font-size:1.05rem; }
+        .ppo-panels { display:flex; gap:1.2rem; flex-wrap:wrap; justify-content:center; margin:0.8rem 0; }
+        .ppo-panel { flex:1 1 280px; min-width:260px; max-width:340px; }
+        .ppo-panel canvas { width:100%; border:1px solid var(--border-color); border-radius:4px; background:white; display:block; }
+        .ppo-net-wrap { display:flex; justify-content:center; margin:0.8rem 0; }
+        .ppo-net-wrap canvas { border:1px solid var(--border-color); border-radius:4px; background:white; }
+        .ppo-data-panel { background:#ebf4ff; border-radius:6px; padding:0.6rem 0.8rem; font-size:0.85rem; margin-top:0.6rem; line-height:1.8; }
+        .ppo-data-panel .clip-status { font-weight:600; }
+        .ppo-data-panel .clip-status.clipped { color:#c53030; }
+        .ppo-data-panel .clip-status.not-clipped { color:#2b6cb0; }
     </style>
     <script defer src="../../js/code-copy.js"></script>
 </head>
@@ -654,6 +667,47 @@ for seats in [50, 30, 10, 5]:
 
             <p>可以观察到学到的策略符合收益管理的直觉：座位充裕时低价吸引客流，座位紧张时提高价格。代码中的 GAE 计算直接使用了3.1.4节式(3.1-14)的递推形式。</p>
 
+            <!-- ==================== PPO 交互演示 ==================== -->
+            <h2>交互演示：PPO训练机票动态定价</h2>
+
+            <p>下面的演示使用与上面代码示例相同的机票定价问题，在浏览器中运行一个简化的 PPO 算法。通过可视化 Actor-Critic 网络结构、策略分布的演变以及裁剪机制的工作原理，帮助理解 PPO 的核心机制。</p>
+
+            <div class="ppo-demo">
+                <div class="demo-title">交互演示：PPO 学习机票动态定价</div>
+
+                <!-- 控制栏 -->
+                <div class="rl-ctrl">
+                    <button onclick="ppoCollect()">收集轨迹</button>
+                    <button onclick="ppoUpdate()">PPO更新</button>
+                    <button onclick="ppoAutoToggle()" id="ppo-auto-btn">自动训练</button>
+                    <button onclick="ppoFastForward()">快进到收敛</button>
+                    <button onclick="ppoReset()">重置</button>
+                    <span id="ppo-status" style="font-size:0.88rem; color:#4a5568; margin-left:0.5rem;">第 0 轮 | 总收入: --</span>
+                </div>
+
+                <!-- 顶部: Actor-Critic 网络图 -->
+                <div class="ppo-net-wrap">
+                    <canvas id="ppo-net" width="540" height="250"></canvas>
+                </div>
+
+                <!-- 中间: 两个面板并排 -->
+                <div class="ppo-panels">
+                    <div class="ppo-panel">
+                        <canvas id="ppo-policy" width="320" height="260"></canvas>
+                    </div>
+                    <div class="ppo-panel">
+                        <canvas id="ppo-clip" width="320" height="260"></canvas>
+                    </div>
+                </div>
+
+                <!-- 底部: 数据面板 -->
+                <div class="ppo-data-panel" id="ppo-data">
+                    当前状态: $s = (1.00, 1.00)$ &nbsp;|&nbsp; 选择: -- &nbsp;|&nbsp; 优势: --<br>
+                    <span class="clip-status not-clipped">等待训练开始...</span>
+                </div>
+            </div>
+            <div class="fig-caption">图 5.2-3：PPO训练机票动态定价的交互演示。上方为 Actor-Critic 网络结构及权重；左下为新旧策略分布对比与重要性采样比率；右下为 PPO-Clip 目标函数的裁剪机制可视化。</div>
+
             <!-- ==================== 小结 ==================== -->
             <h2>小结</h2>
 
@@ -899,6 +953,821 @@ for seats in [50, 30, 10, 5]:
         });
 
         reset();
+    })();
+    </script>
+
+    <!-- ==================== PPO 交互演示 JS ==================== -->
+    <script>
+    (function(){
+    'use strict';
+
+    /* ======== 工具函数 ======== */
+    var dpr = window.devicePixelRatio || 1;
+    function setupCanvas(id, w, h) {
+        var c = document.getElementById(id);
+        c.width = w * dpr; c.height = h * dpr;
+        c.style.width = w + 'px'; c.style.height = h + 'px';
+        var ctx = c.getContext('2d');
+        ctx.scale(dpr, dpr);
+        return { canvas: c, ctx: ctx, w: w, h: h };
+    }
+    function randn() {
+        var u = 0, v = 0;
+        while (u === 0) u = Math.random();
+        while (v === 0) v = Math.random();
+        return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+    }
+    function poissonSample(lam) {
+        var L = Math.exp(-lam), k = 0, p = 1;
+        do { k++; p *= Math.random(); } while (p > L);
+        return k - 1;
+    }
+    function softmax4(h) {
+        var mx = Math.max(h[0], h[1], h[2], h[3]);
+        var e = [Math.exp(h[0]-mx), Math.exp(h[1]-mx), Math.exp(h[2]-mx), Math.exp(h[3]-mx)];
+        var s = e[0]+e[1]+e[2]+e[3];
+        return [e[0]/s, e[1]/s, e[2]/s, e[3]/s];
+    }
+    function sampleCategorical(probs) {
+        var r = Math.random(), cum = 0;
+        for (var i = 0; i < probs.length; i++) { cum += probs[i]; if (r < cum) return i; }
+        return probs.length - 1;
+    }
+
+    /* ======== 极简神经网络 ======== */
+    // Xavier初始化
+    function xavierInit(rows, cols) {
+        var std = Math.sqrt(2.0 / (rows + cols));
+        var m = [];
+        for (var i = 0; i < rows; i++) {
+            m[i] = [];
+            for (var j = 0; j < cols; j++) m[i][j] = randn() * std;
+        }
+        return m;
+    }
+    function zerosVec(n) { var v = []; for (var i = 0; i < n; i++) v[i] = 0; return v; }
+    function zerosMatrix(r, c) { var m = []; for (var i = 0; i < r; i++) { m[i] = []; for (var j = 0; j < c; j++) m[i][j] = 0; } return m; }
+    function cloneNet(net) {
+        return {
+            W1: net.W1.map(function(r){ return r.slice(); }),
+            b1: net.b1.slice(),
+            W2: net.W2.map(function(r){ return r.slice(); }),
+            b2: net.b2.slice()
+        };
+    }
+
+    // 前向传播: input(nin) -> hidden(nhid, ReLU) -> output(nout)
+    function forward(net, x) {
+        var nhid = net.b1.length, nout = net.b2.length;
+        var h = [];
+        for (var j = 0; j < nhid; j++) {
+            var sum = net.b1[j];
+            for (var i = 0; i < x.length; i++) sum += net.W1[j][i] * x[i];
+            h[j] = sum > 0 ? sum : 0; // ReLU
+        }
+        var o = [];
+        for (var k = 0; k < nout; k++) {
+            var sum = net.b2[k];
+            for (var j = 0; j < nhid; j++) sum += net.W2[k][j] * h[j];
+            o[k] = sum;
+        }
+        return { hidden: h, output: o };
+    }
+
+    // 反向传播并累加梯度
+    function backward(net, x, h, dOut, grads) {
+        var nhid = net.b1.length, nout = net.b2.length, nin = x.length;
+        // dOut -> dW2, db2, dh
+        var dh = zerosVec(nhid);
+        for (var k = 0; k < nout; k++) {
+            grads.db2[k] += dOut[k];
+            for (var j = 0; j < nhid; j++) {
+                grads.dW2[k][j] += dOut[k] * h[j];
+                dh[j] += dOut[k] * net.W2[k][j];
+            }
+        }
+        // ReLU mask
+        for (var j = 0; j < nhid; j++) {
+            if (h[j] <= 0) dh[j] = 0;
+        }
+        // dh -> dW1, db1
+        for (var j = 0; j < nhid; j++) {
+            grads.db1[j] += dh[j];
+            for (var i = 0; i < nin; i++) {
+                grads.dW1[j][i] += dh[j] * x[i];
+            }
+        }
+    }
+
+    function makeGrads(nin, nhid, nout) {
+        return { dW1: zerosMatrix(nhid, nin), db1: zerosVec(nhid), dW2: zerosMatrix(nout, nhid), db2: zerosVec(nout) };
+    }
+
+    function applyGrads(net, grads, lr, n) {
+        var nhid = net.b1.length, nout = net.b2.length, nin = net.W1[0].length;
+        var scale = lr / Math.max(n, 1);
+        for (var j = 0; j < nhid; j++) {
+            net.b1[j] += scale * grads.db1[j];
+            for (var i = 0; i < nin; i++) net.W1[j][i] += scale * grads.dW1[j][i];
+        }
+        for (var k = 0; k < nout; k++) {
+            net.b2[k] += scale * grads.db2[k];
+            for (var j = 0; j < nhid; j++) net.W2[k][j] += scale * grads.dW2[k][j];
+        }
+    }
+
+    /* ======== 环境 ======== */
+    var CAPACITY = 50, HORIZON = 30;
+    var PRICES = [200, 400, 600, 800];
+
+    function envReset() { return { seats: CAPACITY, day: 0 }; }
+    function envObs(st) { return [st.seats / CAPACITY, (HORIZON - st.day) / HORIZON]; }
+    function envStep(st, actionIdx) {
+        var price = PRICES[actionIdx];
+        var lam = 5 * Math.exp(-price / 400);
+        var demand = poissonSample(lam);
+        var sold = Math.min(demand, st.seats);
+        var reward = price * sold;
+        st.seats -= sold;
+        st.day += 1;
+        var done = (st.day >= HORIZON) || (st.seats <= 0);
+        return { reward: reward, done: done };
+    }
+
+    /* ======== PPO Agent ======== */
+    var NHID = 8;
+    var GAMMA = 0.99, LAM = 0.95, EPS_CLIP = 0.2;
+    var LR_ACTOR = 0.005, LR_CRITIC = 0.01;
+    var K_EPOCHS = 3;
+
+    var actor, critic, actorOld;
+    var epoch, lastRevenue, autoRunning, autoTimer;
+    // 可视化用的状态
+    var vizState, vizProbs, vizProbsOld, vizAction, vizAdvantage, vizRatio, vizClipped;
+    var trajData; // 最近收集的轨迹数据
+
+    function initAgent() {
+        actor = { W1: xavierInit(NHID, 2), b1: zerosVec(NHID), W2: xavierInit(4, NHID), b2: zerosVec(4) };
+        critic = { W1: xavierInit(NHID, 2), b1: zerosVec(NHID), W2: xavierInit(1, NHID), b2: [0] };
+        actorOld = cloneNet(actor);
+        epoch = 0; lastRevenue = 0; autoRunning = false; autoTimer = null;
+        vizState = [1.0, 1.0]; vizProbs = [0.25, 0.25, 0.25, 0.25];
+        vizProbsOld = [0.25, 0.25, 0.25, 0.25];
+        vizAction = -1; vizAdvantage = 0; vizRatio = 1.0; vizClipped = false;
+        trajData = null;
+    }
+
+    function getPolicy(net, obs) {
+        var res = forward(net, obs);
+        return softmax4(res.output);
+    }
+
+    function getValue(obs) {
+        return forward(critic, obs).output[0];
+    }
+
+    /* 收集一条轨迹 */
+    function collectTrajectory() {
+        var st = envReset();
+        var states = [], actions = [], rewards = [], logProbs = [], values = [];
+        var done = false;
+        while (!done) {
+            var obs = envObs(st);
+            var probs = getPolicy(actor, obs);
+            var a = sampleCategorical(probs);
+            var v = getValue(obs);
+            var lp = Math.log(probs[a] + 1e-10);
+
+            states.push(obs);
+            actions.push(a);
+            logProbs.push(lp);
+            values.push(v);
+
+            var result = envStep(st, a);
+            rewards.push(result.reward);
+            done = result.done;
+        }
+        // terminal value
+        values.push(done ? 0 : getValue(envObs(st)));
+
+        // GAE
+        var T = rewards.length;
+        var advantages = new Array(T);
+        var returns = new Array(T);
+        var gae = 0;
+        for (var t = T - 1; t >= 0; t--) {
+            var delta = rewards[t] + GAMMA * values[t+1] - values[t];
+            gae = delta + GAMMA * LAM * gae;
+            advantages[t] = gae;
+            returns[t] = gae + values[t];
+        }
+
+        var totalReward = 0;
+        for (var t = 0; t < T; t++) totalReward += rewards[t];
+
+        return { states: states, actions: actions, rewards: rewards,
+                 logProbs: logProbs, advantages: advantages, returns: returns,
+                 totalReward: totalReward };
+    }
+
+    /* PPO更新 */
+    function ppoUpdateStep(traj) {
+        var T = traj.states.length;
+        // 归一化优势
+        var advMean = 0, advStd = 0;
+        for (var t = 0; t < T; t++) advMean += traj.advantages[t];
+        advMean /= T;
+        for (var t = 0; t < T; t++) advStd += (traj.advantages[t] - advMean) * (traj.advantages[t] - advMean);
+        advStd = Math.sqrt(advStd / T + 1e-8);
+        var advNorm = [];
+        for (var t = 0; t < T; t++) advNorm[t] = (traj.advantages[t] - advMean) / advStd;
+
+        // 记录裁剪可视化用的数据(取中间时间步)
+        var vizT = Math.min(5, T - 1);
+
+        for (var ke = 0; ke < K_EPOCHS; ke++) {
+            var actorGrads = makeGrads(2, NHID, 4);
+            var criticGrads = makeGrads(2, NHID, 1);
+            var totalClipCount = 0;
+
+            for (var t = 0; t < T; t++) {
+                var obs = traj.states[t];
+                var a = traj.actions[t];
+                var advt = advNorm[t];
+                var ret = traj.returns[t];
+
+                // Actor forward
+                var aRes = forward(actor, obs);
+                var probs = softmax4(aRes.output);
+                var newLP = Math.log(probs[a] + 1e-10);
+                var ratio = Math.exp(newLP - traj.logProbs[t]);
+
+                // Clip
+                var clippedRatio = Math.max(1 - EPS_CLIP, Math.min(1 + EPS_CLIP, ratio));
+                var surr1 = ratio * advt;
+                var surr2 = clippedRatio * advt;
+                var useSurr = (surr1 < surr2) ? surr1 : surr2; // min
+                var isClipped = (Math.abs(ratio - clippedRatio) > 1e-6);
+                if (isClipped) totalClipCount++;
+                var effectiveRatio = (surr1 < surr2) ? ratio : clippedRatio;
+
+                // 保存可视化数据 (最后一轮epoch的中间步)
+                if (ke === K_EPOCHS - 1 && t === vizT) {
+                    vizState = obs.slice();
+                    vizProbs = probs.slice();
+                    vizProbsOld = softmax4(forward(actorOld, obs).output);
+                    vizAction = a;
+                    vizAdvantage = traj.advantages[t];
+                    vizRatio = ratio;
+                    vizClipped = isClipped;
+                }
+
+                // Actor梯度: d(-L_clip)/d(logits)
+                // dL/d(ratio) then d(ratio)/d(newLP) then d(newLP)/d(logits)
+                var dRatio = (surr1 < surr2) ? advt : (isClipped ? 0 : advt);
+                var dNewLP = dRatio * ratio; // d/d(newLP) of ratio*adv = ratio * adv, chain rule via exp
+                // dNewLP / d(logits_k) for softmax: dNewLP * (indicator(k==a) - probs[k])
+                var dLogits = [0, 0, 0, 0];
+                for (var k = 0; k < 4; k++) {
+                    dLogits[k] = dNewLP * ((k === a ? 1 : 0) - probs[k]);
+                }
+                backward(actor, obs, aRes.hidden, dLogits, actorGrads);
+
+                // Critic forward
+                var cRes = forward(critic, obs);
+                var vPred = cRes.output[0];
+                // dLoss/dV = 2*(V - ret) / T, 最小化MSE，梯度取负(因为applyGrads做加法)
+                var dV = [-2 * (vPred - ret)];
+                backward(critic, obs, cRes.hidden, dV, criticGrads);
+            }
+
+            applyGrads(actor, actorGrads, LR_ACTOR, T);
+            applyGrads(critic, criticGrads, LR_CRITIC, T);
+        }
+    }
+
+    /* ======== 画布设置 ======== */
+    var netCvs, polCvs, clipCvs;
+    function setupAllCanvas() {
+        netCvs = setupCanvas('ppo-net', 540, 250);
+        polCvs = setupCanvas('ppo-policy', 320, 260);
+        clipCvs = setupCanvas('ppo-clip', 320, 260);
+    }
+
+    /* ======== 绘制：Actor-Critic网络 ======== */
+    function drawNetwork() {
+        var ctx = netCvs.ctx, W = netCvs.w, H = netCvs.h;
+        ctx.clearRect(0, 0, W, H);
+
+        // 布局
+        var actorX = 30, criticX = 300;
+        var layerGap = 90;
+
+        // --- Actor ---
+        ctx.fillStyle = '#1a365d'; ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('Actor (策略网络)', actorX + 120, 18);
+
+        var aInputY = [90, 150]; // 2 inputs
+        var aHiddenY = []; for (var i = 0; i < NHID; i++) aHiddenY.push(40 + i * 26);
+        var aOutputY = [70, 105, 140, 175]; // 4 outputs
+
+        var aIX = actorX + 10, aHX = actorX + 10 + layerGap, aOX = actorX + 10 + layerGap * 2;
+
+        // 连线: input->hidden
+        for (var j = 0; j < NHID; j++) {
+            for (var i = 0; i < 2; i++) {
+                var w = actor.W1[j][i];
+                var alpha = Math.min(1, Math.abs(w) * 0.6);
+                ctx.strokeStyle = w >= 0 ? 'rgba(43,108,176,' + alpha + ')' : 'rgba(197,48,48,' + alpha + ')';
+                ctx.lineWidth = Math.min(2.5, Math.abs(w) * 0.8 + 0.3);
+                ctx.beginPath(); ctx.moveTo(aIX + 14, aInputY[i]); ctx.lineTo(aHX - 6, aHiddenY[j]); ctx.stroke();
+            }
+        }
+        // 连线: hidden->output
+        for (var k = 0; k < 4; k++) {
+            for (var j = 0; j < NHID; j++) {
+                var w = actor.W2[k][j];
+                var alpha = Math.min(1, Math.abs(w) * 0.6);
+                ctx.strokeStyle = w >= 0 ? 'rgba(43,108,176,' + alpha + ')' : 'rgba(197,48,48,' + alpha + ')';
+                ctx.lineWidth = Math.min(2.5, Math.abs(w) * 0.8 + 0.3);
+                ctx.beginPath(); ctx.moveTo(aHX + 6, aHiddenY[j]); ctx.lineTo(aOX - 14, aOutputY[k]); ctx.stroke();
+            }
+        }
+
+        // 节点: inputs
+        var inputLabels = ['座位', '天数'];
+        for (var i = 0; i < 2; i++) {
+            ctx.fillStyle = '#ebf4ff'; ctx.strokeStyle = '#2b6cb0'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.arc(aIX, aInputY[i], 14, 0, 2*Math.PI); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#2d3748'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText(inputLabels[i], aIX, aInputY[i] + 3.5);
+        }
+        // 节点: hidden
+        for (var j = 0; j < NHID; j++) {
+            ctx.fillStyle = '#4a5568'; ctx.beginPath(); ctx.arc(aHX, aHiddenY[j], 6, 0, 2*Math.PI); ctx.fill();
+        }
+        // 节点: outputs with probability bars
+        var curProbs = getPolicy(actor, vizState);
+        var priceLabels = ['200', '400', '600', '800'];
+        for (var k = 0; k < 4; k++) {
+            ctx.fillStyle = '#fff'; ctx.strokeStyle = '#2b6cb0'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.arc(aOX, aOutputY[k], 12, 0, 2*Math.PI); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#2d3748'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText(priceLabels[k], aOX, aOutputY[k] + 3);
+            // probability bar
+            var barW = curProbs[k] * 40;
+            ctx.fillStyle = '#2b6cb0';
+            ctx.fillRect(aOX + 16, aOutputY[k] - 5, barW, 10);
+            ctx.fillStyle = '#1a365d'; ctx.font = '9px sans-serif'; ctx.textAlign = 'left';
+            ctx.fillText((curProbs[k]*100).toFixed(0) + '%', aOX + 18 + barW, aOutputY[k] + 3);
+        }
+        // softmax label
+        ctx.fillStyle = '#718096'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('softmax', aOX, aOutputY[3] + 25);
+
+        // --- Critic ---
+        ctx.fillStyle = '#1a365d'; ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('Critic (值网络)', criticX + 120, 18);
+
+        var cIX = criticX + 10, cHX = criticX + 10 + layerGap, cOX = criticX + 10 + layerGap * 2;
+        var cInputY = [90, 150];
+        var cHiddenY = []; for (var i = 0; i < NHID; i++) cHiddenY.push(40 + i * 26);
+        var cOutputY = [120];
+
+        // 连线
+        for (var j = 0; j < NHID; j++) {
+            for (var i = 0; i < 2; i++) {
+                var w = critic.W1[j][i];
+                var alpha = Math.min(1, Math.abs(w) * 0.6);
+                ctx.strokeStyle = w >= 0 ? 'rgba(43,108,176,' + alpha + ')' : 'rgba(197,48,48,' + alpha + ')';
+                ctx.lineWidth = Math.min(2.5, Math.abs(w) * 0.8 + 0.3);
+                ctx.beginPath(); ctx.moveTo(cIX + 14, cInputY[i]); ctx.lineTo(cHX - 6, cHiddenY[j]); ctx.stroke();
+            }
+        }
+        for (var j = 0; j < NHID; j++) {
+            var w = critic.W2[0][j];
+            var alpha = Math.min(1, Math.abs(w) * 0.6);
+            ctx.strokeStyle = w >= 0 ? 'rgba(43,108,176,' + alpha + ')' : 'rgba(197,48,48,' + alpha + ')';
+            ctx.lineWidth = Math.min(2.5, Math.abs(w) * 0.8 + 0.3);
+            ctx.beginPath(); ctx.moveTo(cHX + 6, cHiddenY[j]); ctx.lineTo(cOX - 18, cOutputY[0]); ctx.stroke();
+        }
+
+        // 节点
+        for (var i = 0; i < 2; i++) {
+            ctx.fillStyle = '#ebf4ff'; ctx.strokeStyle = '#2b6cb0'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.arc(cIX, cInputY[i], 14, 0, 2*Math.PI); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#2d3748'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText(inputLabels[i], cIX, cInputY[i] + 3.5);
+        }
+        for (var j = 0; j < NHID; j++) {
+            ctx.fillStyle = '#4a5568'; ctx.beginPath(); ctx.arc(cHX, cHiddenY[j], 6, 0, 2*Math.PI); ctx.fill();
+        }
+        // Output: V(s) value
+        var vVal = getValue(vizState);
+        ctx.fillStyle = '#f0fff4'; ctx.strokeStyle = '#48bb78'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(cOX, cOutputY[0], 18, 0, 2*Math.PI); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#276749'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('V=' + vVal.toFixed(0), cOX, cOutputY[0] + 4);
+
+        // Layer labels
+        ctx.fillStyle = '#718096'; ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('输入层', aIX, 230);
+        ctx.fillText('隐藏层(ReLU)', aHX, 230);
+        ctx.fillText('输出层', aOX + 10, 230);
+        ctx.fillText('输入层', cIX, 230);
+        ctx.fillText('隐藏层(ReLU)', cHX, 230);
+        ctx.fillText('V(s)', cOX, 230);
+
+        // 分隔线
+        ctx.strokeStyle = '#cbd5e0'; ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath(); ctx.moveTo(criticX - 10, 30); ctx.lineTo(criticX - 10, 220); ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    /* ======== 绘制：策略分布演变 ======== */
+    function drawPolicy() {
+        var ctx = polCvs.ctx, W = polCvs.w, H = polCvs.h;
+        ctx.clearRect(0, 0, W, H);
+
+        var padL = 50, padR = 15, padT = 30, padB = 80;
+        var plotW = W - padL - padR, plotH = H - padT - padB;
+
+        // 标题
+        ctx.fillStyle = '#1a365d'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('策略分布演变', W/2, 18);
+
+        // 柱状图
+        var barW = 32, gap = 16;
+        var totalW = 4 * barW + 3 * gap;
+        var startX = padL + (plotW - totalW) / 2;
+
+        var maxP = 0;
+        for (var i = 0; i < 4; i++) {
+            if (vizProbs[i] > maxP) maxP = vizProbs[i];
+            if (vizProbsOld[i] > maxP) maxP = vizProbsOld[i];
+        }
+        maxP = Math.max(maxP, 0.4);
+
+        // 坐标轴
+        ctx.strokeStyle = '#4a5568'; ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + plotH);
+        ctx.lineTo(padL + plotW, padT + plotH);
+        ctx.stroke();
+
+        // Y轴刻度
+        ctx.fillStyle = '#718096'; ctx.font = '10px sans-serif'; ctx.textAlign = 'right';
+        for (var tick = 0; tick <= 1; tick += 0.25) {
+            var y = padT + plotH * (1 - tick / maxP);
+            if (y >= padT && y <= padT + plotH) {
+                ctx.fillText((tick * 100).toFixed(0) + '%', padL - 4, y + 3);
+                ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 0.5;
+                ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + plotW, y); ctx.stroke();
+            }
+        }
+
+        var priceLabels = ['200', '400', '600', '800'];
+        for (var i = 0; i < 4; i++) {
+            var x = startX + i * (barW + gap);
+
+            // 旧策略 (灰色半透明)
+            var hOld = (vizProbsOld[i] / maxP) * plotH;
+            ctx.fillStyle = 'rgba(160,174,192,0.35)';
+            ctx.fillRect(x, padT + plotH - hOld, barW/2 - 1, hOld);
+
+            // 新策略 (蓝色)
+            var hNew = (vizProbs[i] / maxP) * plotH;
+            ctx.fillStyle = '#2b6cb0';
+            ctx.fillRect(x + barW/2 + 1, padT + plotH - hNew, barW/2 - 1, hNew);
+
+            // 价格标签
+            ctx.fillStyle = '#4a5568'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText(priceLabels[i], x + barW/2, padT + plotH + 14);
+        }
+
+        // 图例
+        ctx.fillStyle = 'rgba(160,174,192,0.5)'; ctx.fillRect(padL + 5, padT + plotH + 24, 12, 8);
+        ctx.fillStyle = '#718096'; ctx.font = '10px sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText('旧策略', padL + 20, padT + plotH + 32);
+        ctx.fillStyle = '#2b6cb0'; ctx.fillRect(padL + 72, padT + plotH + 24, 12, 8);
+        ctx.fillStyle = '#718096';
+        ctx.fillText('新策略', padL + 87, padT + plotH + 32);
+
+        // 重要性采样比率
+        ctx.fillStyle = '#1a365d'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('重要性采样比率', W/2, padT + plotH + 52);
+
+        for (var i = 0; i < 4; i++) {
+            var x = startX + i * (barW + gap);
+            var ratio_i = vizProbsOld[i] > 1e-8 ? vizProbs[i] / vizProbsOld[i] : 1.0;
+            var clr = (ratio_i > 1 + EPS_CLIP || ratio_i < 1 - EPS_CLIP) ? '#c53030' : '#2b6cb0';
+            ctx.fillStyle = clr; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('r=' + ratio_i.toFixed(2), x + barW/2, padT + plotH + 68);
+        }
+    }
+
+    /* ======== 绘制：裁剪机制可视化 ======== */
+    function drawClipping() {
+        var ctx = clipCvs.ctx, W = clipCvs.w, H = clipCvs.h;
+        ctx.clearRect(0, 0, W, H);
+
+        var padL = 45, padR = 20, padT = 30, padB = 40;
+        var plotW = W - padL - padR, plotH = H - padT - padB;
+
+        // 标题
+        ctx.fillStyle = '#1a365d'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+        var titleSuffix = vizAdvantage >= 0 ? '  (A > 0)' : '  (A < 0)';
+        ctx.fillText('PPO-Clip 目标函数' + titleSuffix, W/2, 18);
+
+        // 坐标轴
+        ctx.strokeStyle = '#4a5568'; ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + plotH);
+        ctx.lineTo(padL + plotW, padT + plotH);
+        ctx.stroke();
+
+        // x轴: ratio r from 0 to 2
+        var rMin = 0, rMax = 2;
+        function xPos(r) { return padL + ((r - rMin) / (rMax - rMin)) * plotW; }
+
+        // y轴范围: depends on advantage sign
+        var A = Math.abs(vizAdvantage) > 0.01 ? vizAdvantage : 1.0;
+        var yRange = Math.abs(A) * 2.5;
+        var yMin = -yRange, yMax = yRange;
+        if (yMax <= yMin) { yMin = -1; yMax = 1; }
+        function yPos(v) { return padT + (1 - (v - yMin) / (yMax - yMin)) * plotH; }
+
+        // 裁剪区域着色
+        ctx.fillStyle = 'rgba(252,129,129,0.15)';
+        if (A > 0) {
+            // 当A>0, r > 1+eps 区域被裁剪
+            ctx.fillRect(xPos(1 + EPS_CLIP), padT, xPos(rMax) - xPos(1 + EPS_CLIP), plotH);
+        } else {
+            // 当A<0, r < 1-eps 区域被裁剪
+            ctx.fillRect(xPos(rMin), padT, xPos(1 - EPS_CLIP) - xPos(rMin), plotH);
+        }
+
+        // [1-eps, 1+eps] 区域 浅蓝底
+        ctx.fillStyle = 'rgba(219,234,254,0.4)';
+        ctx.fillRect(xPos(1 - EPS_CLIP), padT, xPos(1 + EPS_CLIP) - xPos(1 - EPS_CLIP), plotH);
+
+        // x轴标记
+        ctx.fillStyle = '#718096'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+        // 1-eps
+        ctx.strokeStyle = '#cbd5e0'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+        ctx.beginPath(); ctx.moveTo(xPos(1-EPS_CLIP), padT); ctx.lineTo(xPos(1-EPS_CLIP), padT+plotH); ctx.stroke();
+        ctx.fillText('1-\u03B5', xPos(1-EPS_CLIP), padT + plotH + 14);
+        // 1+eps
+        ctx.beginPath(); ctx.moveTo(xPos(1+EPS_CLIP), padT); ctx.lineTo(xPos(1+EPS_CLIP), padT+plotH); ctx.stroke();
+        ctx.fillText('1+\u03B5', xPos(1+EPS_CLIP), padT + plotH + 14);
+        // 1
+        ctx.beginPath(); ctx.moveTo(xPos(1), padT); ctx.lineTo(xPos(1), padT+plotH); ctx.stroke();
+        ctx.fillText('1', xPos(1), padT + plotH + 14);
+        ctx.setLineDash([]);
+        // 0
+        ctx.fillText('0', xPos(0), padT + plotH + 14);
+        // 2
+        ctx.fillText('2', xPos(2), padT + plotH + 14);
+
+        // axis labels
+        ctx.fillStyle = '#4a5568'; ctx.font = '11px sans-serif';
+        ctx.fillText('比率 r', padL + plotW/2, padT + plotH + 32);
+
+        // 零线
+        if (yMin < 0 && yMax > 0) {
+            ctx.strokeStyle = '#cbd5e0'; ctx.lineWidth = 0.5;
+            ctx.beginPath(); ctx.moveTo(padL, yPos(0)); ctx.lineTo(padL + plotW, yPos(0)); ctx.stroke();
+        }
+
+        // 绘制 rA 线 (虚线)
+        ctx.strokeStyle = '#a0aec0'; ctx.lineWidth = 1.5; ctx.setLineDash([4,3]);
+        ctx.beginPath();
+        for (var px = 0; px <= plotW; px += 2) {
+            var r = rMin + (px / plotW) * (rMax - rMin);
+            var y = r * A;
+            var sy = yPos(y);
+            if (sy < padT - 5 || sy > padT + plotH + 5) { ctx.moveTo(padL + px, Math.max(padT, Math.min(padT+plotH, sy))); continue; }
+            if (px === 0) ctx.moveTo(padL + px, sy); else ctx.lineTo(padL + px, sy);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // rA label
+        ctx.fillStyle = '#a0aec0'; ctx.font = '10px sans-serif'; ctx.textAlign = 'left';
+        var rALabelY = yPos(rMax * A);
+        rALabelY = Math.max(padT + 10, Math.min(padT + plotH - 5, rALabelY));
+        ctx.fillText('rA', padL + plotW + 3, rALabelY);
+
+        // 绘制 PPO-Clip线 (实线)
+        ctx.strokeStyle = '#2b6cb0'; ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        var started = false;
+        for (var px = 0; px <= plotW; px += 1) {
+            var r = rMin + (px / plotW) * (rMax - rMin);
+            var rClipped = Math.max(1 - EPS_CLIP, Math.min(1 + EPS_CLIP, r));
+            var val1 = r * A;
+            var val2 = rClipped * A;
+            var val = Math.min(val1, val2);
+            var sy = yPos(val);
+            if (sy < padT - 10 || sy > padT + plotH + 10) {
+                started = false; continue;
+            }
+            sy = Math.max(padT, Math.min(padT+plotH, sy));
+            if (!started) { ctx.moveTo(padL + px, sy); started = true; }
+            else ctx.lineTo(padL + px, sy);
+        }
+        ctx.stroke();
+
+        // L^CLIP label
+        ctx.fillStyle = '#2b6cb0'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'right';
+        ctx.fillText('L\u1D9C\u02E1\u1DA6\u1D56', padL + plotW - 2, padT + 12);
+
+        // 标记当前ratio点
+        if (vizAction >= 0) {
+            var dotR = Math.max(rMin, Math.min(rMax, vizRatio));
+            var rC = Math.max(1 - EPS_CLIP, Math.min(1 + EPS_CLIP, dotR));
+            var dotVal = Math.min(dotR * A, rC * A);
+            var dx = xPos(dotR), dy = yPos(dotVal);
+            dy = Math.max(padT + 3, Math.min(padT + plotH - 3, dy));
+
+            ctx.fillStyle = '#c53030';
+            ctx.beginPath(); ctx.arc(dx, dy, 5, 0, 2*Math.PI); ctx.fill();
+            ctx.fillStyle = '#c53030'; ctx.font = '10px sans-serif'; ctx.textAlign = 'left';
+            ctx.fillText('r=' + vizRatio.toFixed(2), dx + 8, dy - 2);
+        }
+
+        // Y轴刻度
+        ctx.fillStyle = '#718096'; ctx.font = '9px sans-serif'; ctx.textAlign = 'right';
+        var yStep = yRange / 2;
+        for (var v = yMin; v <= yMax + 0.01; v += yStep) {
+            var y = yPos(v);
+            if (y >= padT - 2 && y <= padT + plotH + 2) {
+                ctx.fillText(v.toFixed(1), padL - 4, y + 3);
+            }
+        }
+    }
+
+    /* ======== 更新数据面板 ======== */
+    function updateDataPanel() {
+        var el = document.getElementById('ppo-data');
+        var sStr = '(' + vizState[0].toFixed(2) + ', ' + vizState[1].toFixed(2) + ')';
+        var actionStr = vizAction >= 0 ? PRICES[vizAction] + '元' : '--';
+        var advStr = vizAction >= 0 ? vizAdvantage.toFixed(1) : '--';
+        var probsStr = '';
+        for (var i = 0; i < 4; i++) {
+            probsStr += PRICES[i] + ':' + (vizProbs[i]*100).toFixed(1) + '% ';
+        }
+
+        var clipStr;
+        if (vizAction < 0) {
+            clipStr = '<span class="clip-status not-clipped">等待训练开始...</span>';
+        } else if (vizClipped) {
+            var dir = vizRatio > 1 + EPS_CLIP ? '> ' + (1+EPS_CLIP).toFixed(1) : '< ' + (1-EPS_CLIP).toFixed(1);
+            clipStr = '<span class="clip-status clipped">比率 r=' + vizRatio.toFixed(2) + ' ' + dir + '，已裁剪!</span>';
+        } else {
+            clipStr = '<span class="clip-status not-clipped">比率 r=' + vizRatio.toFixed(2) + ' 在 [' + (1-EPS_CLIP).toFixed(1) + ', ' + (1+EPS_CLIP).toFixed(1) + '] 内，未裁剪</span>';
+        }
+
+        el.innerHTML = '当前状态: $s = ' + sStr + '$ &nbsp;|&nbsp; 选择: ' + actionStr +
+            ' &nbsp;|&nbsp; 优势: ' + advStr + '<br>' +
+            '动作概率: ' + probsStr + '<br>' + clipStr;
+
+        // re-render KaTeX
+        if (window.renderMathInElement) {
+            renderMathInElement(el, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});
+        }
+    }
+
+    /* ======== 更新状态栏 ======== */
+    function updateStatus() {
+        document.getElementById('ppo-status').textContent = '第 ' + epoch + ' 轮 | 总收入: ' + (lastRevenue > 0 ? '¥' + lastRevenue.toFixed(0) : '--');
+    }
+
+    /* ======== 全部重绘 ======== */
+    function drawAll() {
+        drawNetwork();
+        drawPolicy();
+        drawClipping();
+        updateDataPanel();
+        updateStatus();
+    }
+
+    /* ======== 公开接口 ======== */
+    window.ppoCollect = function() {
+        actorOld = cloneNet(actor);
+        vizProbsOld = getPolicy(actorOld, vizState);
+        trajData = collectTrajectory();
+        lastRevenue = trajData.totalReward;
+
+        // 更新可视化状态(取前几步的某一步)
+        if (trajData.states.length > 5) {
+            var t = 5;
+            vizState = trajData.states[t];
+            vizProbs = getPolicy(actor, vizState);
+            vizProbsOld = getPolicy(actorOld, vizState);
+            vizAction = trajData.actions[t];
+            vizAdvantage = trajData.advantages[t];
+            vizRatio = 1.0; // 刚收集时, 新旧策略相同
+            vizClipped = false;
+        }
+        drawAll();
+    };
+
+    window.ppoUpdate = function() {
+        if (!trajData) {
+            // 如果还没收集过, 先收集一条
+            window.ppoCollect();
+        }
+        actorOld = cloneNet(actor);
+        vizProbsOld = getPolicy(actorOld, vizState);
+        ppoUpdateStep(trajData);
+        epoch++;
+        vizProbs = getPolicy(actor, vizState);
+        drawAll();
+    };
+
+    window.ppoAutoToggle = function() {
+        if (autoRunning) {
+            clearInterval(autoTimer);
+            autoRunning = false;
+            document.getElementById('ppo-auto-btn').textContent = '自动训练';
+        } else {
+            autoRunning = true;
+            document.getElementById('ppo-auto-btn').textContent = '暂停';
+            autoTimer = setInterval(function() {
+                actorOld = cloneNet(actor);
+                vizProbsOld = getPolicy(actorOld, vizState);
+                trajData = collectTrajectory();
+                lastRevenue = trajData.totalReward;
+                ppoUpdateStep(trajData);
+                epoch++;
+                // update viz state
+                if (trajData.states.length > 5) {
+                    var t = 5;
+                    vizState = trajData.states[t];
+                    vizAction = trajData.actions[t];
+                    vizAdvantage = trajData.advantages[t];
+                }
+                vizProbs = getPolicy(actor, vizState);
+                vizProbsOld = getPolicy(actorOld, vizState);
+                // 计算ratio
+                if (vizAction >= 0) {
+                    var pNew = vizProbs[vizAction];
+                    var pOld = vizProbsOld[vizAction];
+                    vizRatio = pOld > 1e-8 ? pNew / pOld : 1.0;
+                    vizClipped = (vizRatio > 1 + EPS_CLIP || vizRatio < 1 - EPS_CLIP);
+                }
+                drawAll();
+            }, 120);
+        }
+    };
+
+    window.ppoFastForward = function() {
+        if (autoRunning) { window.ppoAutoToggle(); }
+        for (var i = 0; i < 200; i++) {
+            actorOld = cloneNet(actor);
+            trajData = collectTrajectory();
+            lastRevenue = trajData.totalReward;
+            ppoUpdateStep(trajData);
+            epoch++;
+        }
+        // 更新可视化
+        if (trajData && trajData.states.length > 5) {
+            var t = 5;
+            vizState = trajData.states[t];
+            vizAction = trajData.actions[t];
+            vizAdvantage = trajData.advantages[t];
+        }
+        vizProbs = getPolicy(actor, vizState);
+        vizProbsOld = getPolicy(actorOld, vizState);
+        if (vizAction >= 0) {
+            var pNew = vizProbs[vizAction];
+            var pOld = vizProbsOld[vizAction];
+            vizRatio = pOld > 1e-8 ? pNew / pOld : 1.0;
+            vizClipped = (vizRatio > 1 + EPS_CLIP || vizRatio < 1 - EPS_CLIP);
+        }
+        drawAll();
+    };
+
+    window.ppoReset = function() {
+        if (autoRunning) { window.ppoAutoToggle(); }
+        initAgent();
+        setupAllCanvas();
+        drawAll();
+    };
+
+    /* ======== 初始化 ======== */
+    initAgent();
+    // 等DOM加载完成再设置canvas
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() { setupAllCanvas(); drawAll(); });
+    } else {
+        setupAllCanvas();
+        drawAll();
+    }
+
     })();
     </script>
 </body>

@@ -90,6 +90,15 @@
         .rl-ctrl button:disabled { opacity:0.5; cursor:not-allowed; }
         .rl-ctrl button.active-btn { background:#2b6cb0; color:white; }
         .rl-info { background:#ebf4ff; border-radius:6px; padding:0.4rem 0.8rem; font-size:0.88rem; margin-top:0.6rem; }
+
+        /* 神经网络 canvas */
+        .nn-canvas { border: 1px solid #e2e8f0; border-radius: 8px; background: white; display:block; margin:0 auto; }
+        .demo-mid-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 0.8rem 0; }
+        @media (max-width: 768px) { .demo-mid-row { grid-template-columns: 1fr; } }
+        .hm-cell.generalized { box-shadow: 0 0 0 2px #48bb78; position: relative; }
+        .hm-cell.generalized::after { content: '泛化'; position: absolute; top: -8px; right: -4px; font-size: 9px; color: #48bb78; font-weight: 700; }
+        .hm-cell.batch-updated { animation: batchFlash 0.8s ease-out; }
+        @keyframes batchFlash { 0% { background: #fefcbf !important; box-shadow: 0 0 6px #d69e2e; } 100% {} }
     </style>
     <script defer src="../../js/code-copy.js"></script>
 </head>
@@ -509,7 +518,7 @@
             <!-- ==================== 交互演示：DQN ==================== -->
             <h2>交互演示</h2>
 
-            <p>下面的交互演示在12状态的网约车环境（3个区域 $\times$ 4个时段）中逐步运行DQN。左侧的 Q 值热力图展示所有状态的最优Q值估计，右侧的算法面板逐步高亮正在执行的伪代码行，底部的数据面板显示当前步的具体数值。你可以逐子步观察DQN算法的每一个环节，也可以快进到收敛观察最终策略。</p>
+            <p>下面的交互演示在12状态的网约车环境（3个区域 $\times$ 4个时段）中逐步运行DQN。最上方的神经网络图实时展示所有72个权重连接、隐藏层激活值和输出Q值；中间左侧的热力图展示所有状态的最优Q值估计，右侧的算法面板逐步高亮正在执行的伪代码行；底部的数据面板显示当前步的具体数值。你可以逐子步观察DQN算法的每一个环节，也可以快进到收敛观察最终策略。</p>
 
             <div class="dqn-demo">
                 <div class="demo-title">交互演示：DQN 算法逐步执行</div>
@@ -524,31 +533,32 @@
                 </div>
                 <div class="rl-info" id="dqn-info">训练步 <strong>0</strong> &nbsp;|&nbsp; $\varepsilon$ = <strong>1.00</strong> &nbsp;|&nbsp; 缓冲区: <strong>0</strong>/200</div>
 
-                <!-- 顶部两栏 -->
-                <div class="dqn-top-row">
+                <!-- 顶部：神经网络图 -->
+                <div style="text-align:center; margin:0.8rem 0 0.4rem 0;">
+                    <canvas id="nn-canvas" class="nn-canvas" width="540" height="280" style="width:540px;height:280px;max-width:100%;"></canvas>
+                </div>
+
+                <!-- 中间两栏 -->
+                <div class="demo-mid-row">
                     <!-- 左栏：Q值热力图 -->
                     <div class="dqn-panel" id="panel-heatmap">
                         <div class="dqn-panel-title">Q值热力图 &nbsp;<span style="font-weight:400;font-size:0.78rem;color:#718096;">$\max_a Q(s,a)$</span></div>
                         <div class="q-heatmap" id="q-heatmap">
-                            <!-- 表头行: 角标 + 4个时段 -->
                             <div class="hm-corner">区域\时段</div>
                             <div class="hm-header">0 早高峰</div>
                             <div class="hm-header">1 白天</div>
                             <div class="hm-header">2 晚高峰</div>
                             <div class="hm-header">3 夜间</div>
-                            <!-- 市中心 c -->
                             <div class="hm-label">市中心 $c$</div>
                             <div class="hm-cell" id="hm-c-0">0.00</div>
                             <div class="hm-cell" id="hm-c-1">0.00</div>
                             <div class="hm-cell" id="hm-c-2">0.00</div>
                             <div class="hm-cell" id="hm-c-3">0.00</div>
-                            <!-- 郊区 b -->
                             <div class="hm-label">郊区 $b$</div>
                             <div class="hm-cell" id="hm-b-0">0.00</div>
                             <div class="hm-cell" id="hm-b-1">0.00</div>
                             <div class="hm-cell" id="hm-b-2">0.00</div>
                             <div class="hm-cell" id="hm-b-3">0.00</div>
-                            <!-- 机场 a -->
                             <div class="hm-label">机场 $a$</div>
                             <div class="hm-cell" id="hm-a-0">0.00</div>
                             <div class="hm-cell" id="hm-a-1">0.00</div>
@@ -580,7 +590,7 @@
                     <span class="dp-dim">点击"下一子步"或"自动播放"开始训练</span>
                 </div>
             </div>
-            <div class="fig-caption">图 5.1-4 &nbsp; DQN 算法逐步执行演示。左侧热力图展示所有12个状态的最优Q值（颜色越深值越高），右侧伪代码面板高亮当前执行步骤，底部数据面板显示具体计算过程。</div>
+            <div class="fig-caption">图 5.1-4 &nbsp; DQN 算法逐步执行演示。上方神经网络图展示全部72个权重（蓝=正、红=负，线宽反映绝对值），中间左侧热力图展示12个状态的最优Q值，右侧伪代码面板高亮当前执行步骤，底部数据面板显示具体计算过程。</div>
 
             <p>DQN 的基本框架——Q网络 + 经验回放 + 目标网络——已经足以处理许多问题。但在实践中，还有三项重要改进可以显著提升 DQN 的性能：Double DQN（减少Q值过估计）、Dueling 架构（分离状态价值和动作优势）和优先经验回放（让有信息量的样本被更多地学习）。下一节将逐一介绍这三项改进。</p>
 
@@ -599,7 +609,7 @@
            12-state taxi MDP: 3 zones × 4 time periods
            State = (zone, period), zone ∈ {c, b, a}, period ∈ {0,1,2,3}
            Actions: 0=接单(pickup), 1=空驶(deadhead)
-           Network: 7D one-hot → 24 → 24 → 2
+           Network: 7 → 8 (ReLU) → 2
            ============================================================ */
 
         // === 常量 ===
@@ -609,68 +619,53 @@
         var PERIOD_NAMES = ['早高峰','白天','晚高峰','夜间'];
         var ACT_NAMES = ['接单','空驶'];
         var GAMMA = 0.9;
-        var BUF_SIZE = 200, BATCH = 8, TARGET_FREQ = 50, LR = 0.005;
+        var BUF_SIZE = 200, BATCH = 4, TARGET_FREQ = 50, LR = 0.008;
         var EPS_START = 1.0, EPS_END = 0.05, EPS_DECAY = 500;
-        var NUM_SUBSTEPS = 7; // (i) through (vii)
+        var NUM_SUBSTEPS = 7;
+        var INPUT_LABELS = ['c','b','a','P0','P1','P2','P3'];
+        var HIDDEN_SIZE = 8;
+        var OUTPUT_LABELS = ['Q(接单)','Q(空驶)'];
 
         // === 环境定义 ===
-        // 接单转移: ENV_PICKUP[zone][period] = [{to, p, r}, ...]
-        // 每次转移后 period' = (period + 1) % 4
-        var ENV_PICKUP = {
-            c: {
-                0: [{to:'c',p:0.5,r:5}, {to:'b',p:0.3,r:8}, {to:'a',p:0.2,r:12}],   // 早高峰
-                1: [{to:'c',p:0.5,r:6}, {to:'b',p:0.3,r:7}, {to:'a',p:0.2,r:10}],   // 白天
-                2: [{to:'c',p:0.4,r:7}, {to:'b',p:0.4,r:6}, {to:'a',p:0.2,r:11}],   // 晚高峰
-                3: [{to:'c',p:0.3,r:3}, {to:'b',p:0.5,r:4}, {to:'a',p:0.2,r:6}]     // 夜间
-            },
-            b: {
-                0: [{to:'c',p:0.1,r:5}, {to:'b',p:0.8,r:1}, {to:'a',p:0.1,r:8}],
-                1: [{to:'c',p:0.15,r:5},{to:'b',p:0.7,r:2}, {to:'a',p:0.15,r:7}],
-                2: [{to:'c',p:0.2,r:4}, {to:'b',p:0.7,r:2}, {to:'a',p:0.1,r:7}],
-                3: [{to:'c',p:0.1,r:4}, {to:'b',p:0.8,r:1}, {to:'a',p:0.1,r:6}]
-            },
-            a: {
-                0: [{to:'c',p:0.6,r:14},{to:'b',p:0.4,r:10}],                         // 早高峰
-                1: [{to:'c',p:0.5,r:12},{to:'b',p:0.5,r:9}],                          // 白天
-                2: [{to:'c',p:0.5,r:13},{to:'b',p:0.5,r:10}],                         // 晚高峰
-                3: [{to:'c',p:0.7,r:16},{to:'b',p:0.3,r:10}]                          // 夜间
-            }
+        var PERIOD_SCALE = [1.2, 1.0, 1.1, 0.8];
+        var ENV_PICKUP_BASE = {
+            c: [{to:'c',p:0.5,r:5}, {to:'b',p:0.3,r:8}, {to:'a',p:0.2,r:12}],
+            b: [{to:'c',p:0.1,r:5}, {to:'b',p:0.8,r:1}, {to:'a',p:0.1,r:8}],
+            a: [{to:'c',p:0.6,r:14},{to:'b',p:0.4,r:10}]
         };
-        // 空驶转移: ENV_DEADHEAD[zone] = {to, r}
-        var ENV_DEADHEAD = {
-            c: {to:'a', r:-4},
-            b: {to:'c', r:-3},
-            a: {to:'c', r:-5}
-        };
+        var ENV_DEADHEAD = {c:{to:'a',r:-4}, b:{to:'c',r:-3}, a:{to:'c',r:-5}};
+
+        function getPickupTransitions(zone, period) {
+            var base = ENV_PICKUP_BASE[zone];
+            var scale = PERIOD_SCALE[period];
+            return base.map(function(t) { return {to:t.to, p:t.p, r:Math.round(t.r*scale*10)/10}; });
+        }
 
         function stepEnv(zone, period, action) {
             var reward, nextZone;
-            if (action === 0) { // 接单
-                var transitions = ENV_PICKUP[zone][period];
+            if (action === 0) {
+                var transitions = getPickupTransitions(zone, period);
                 var roll = Math.random(), cum = 0;
                 for (var i = 0; i < transitions.length; i++) {
                     cum += transitions[i].p;
                     if (roll < cum) { nextZone = transitions[i].to; reward = transitions[i].r; break; }
                 }
                 if (nextZone === undefined) { var last = transitions[transitions.length-1]; nextZone = last.to; reward = last.r; }
-            } else { // 空驶
+            } else {
                 var dh = ENV_DEADHEAD[zone];
                 nextZone = dh.to; reward = dh.r;
             }
-            var nextPeriod = (period + 1) % 4;
-            return {nextZone: nextZone, nextPeriod: nextPeriod, reward: reward};
+            return {nextZone: nextZone, nextPeriod: (period+1)%4, reward: reward};
         }
 
-        // === 极简神经网络 ===
+        // === 极简神经网络 (7 → 8 → 2) ===
         function randn() { var u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
 
         function createNet() {
-            // 7 → 24 → 24 → 2
-            // Output layer: zero-init weights and biases (so Q ≈ 0 initially)
-            var sizes = [7, 24, 24, 2], layers = [];
+            var sizes = [7, HIDDEN_SIZE, 2], layers = [];
             for (var i = 0; i < sizes.length - 1; i++) {
                 var fi = sizes[i], fo = sizes[i+1];
-                var sc = (i < sizes.length - 2) ? Math.sqrt(2/fi) : 0; // zero-init output layer
+                var sc = (i < sizes.length - 1 - 1) ? Math.sqrt(2/fi) : 0;
                 var W = [], b = [];
                 for (var r = 0; r < fo; r++) {
                     var row = [];
@@ -746,20 +741,28 @@
                 try { renderMathInElement(elem, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]}); } catch(e){}
             }
         }
-        function stateName(zone, period) {
-            return ZONE_NAMES[zone] + '\u00b7' + PERIOD_NAMES[period];
-        }
-        function stateNameShort(zone, period) {
-            return zone + period;
-        }
+        function stateName(zone, period) { return ZONE_NAMES[zone] + '\u00b7' + PERIOD_NAMES[period]; }
+        function stateNameShort(zone, period) { return zone + period; }
 
         // === DQN 状态 ===
         var onlineNet, targetNet, replayBuf, totalSteps, curZone, curPeriod, epsilon;
         var autoTimer = null;
-        var subStep = -1; // -1 = idle, 0..6 = substeps (i)..(vii)
-        // 临时存储当前训练步各子步的中间结果
+        var subStep = -1;
         var stepData = {};
         var prevQAll = {};
+        var prevWeights = null; // 用于权重变化闪烁
+        var lastFwd = null;    // 最近一次前向传播结果，用于画网络
+        var weightFlashTimer = 0; // 权重闪烁倒计时帧数
+
+        function snapshotWeights(net) {
+            var snap = [];
+            for (var l = 0; l < net.length; l++) {
+                var Ws = [];
+                for (var r = 0; r < net[l].W.length; r++) Ws.push(net[l].W[r].slice());
+                snap.push(Ws);
+            }
+            return snap;
+        }
 
         function initDQN() {
             onlineNet = createNet();
@@ -772,7 +775,9 @@
             subStep = -1;
             stepData = {};
             prevQAll = {};
-            // 记录初始Q值
+            prevWeights = snapshotWeights(onlineNet);
+            lastFwd = forward(onlineNet, stateVec(curZone, curPeriod));
+            weightFlashTimer = 0;
             ZONES.forEach(function(z) {
                 PERIODS.forEach(function(p) {
                     var q = predict(onlineNet, stateVec(z, p));
@@ -781,7 +786,234 @@
             });
         }
 
-        // === Q值颜色映射 ===
+        // ==================== 神经网络 Canvas 渲染 ====================
+        var nnCanvas, nnCtx, dpr;
+        var NN_W = 540, NN_H = 280;
+
+        // 节点位置布局
+        var NODE_R_IN = 14, NODE_R_HID = 14, NODE_R_OUT = 18;
+        var layerX = [70, 270, 470]; // 输入、隐藏、输出层x
+        function inputY(i) { return 30 + i * (NN_H - 60) / 6; }      // 7 nodes
+        function hiddenY(i) { return 22 + i * (NN_H - 44) / 7; }     // 8 nodes
+        function outputY(i) { return NN_H / 2 + (i - 0.5) * 70; }    // 2 nodes
+
+        function initCanvas() {
+            nnCanvas = el('nn-canvas');
+            if (!nnCanvas) return;
+            dpr = window.devicePixelRatio || 1;
+            nnCanvas.width = NN_W * dpr;
+            nnCanvas.height = NN_H * dpr;
+            nnCanvas.style.width = NN_W + 'px';
+            nnCanvas.style.height = NN_H + 'px';
+            nnCtx = nnCanvas.getContext('2d');
+            nnCtx.scale(dpr, dpr);
+        }
+
+        function drawNetwork() {
+            if (!nnCtx) return;
+            var ctx = nnCtx;
+            ctx.clearRect(0, 0, NN_W, NN_H);
+
+            // 获取当前状态的前向传播
+            var fwd = lastFwd;
+            var inputActs = fwd ? fwd.acts[0] : stateVec(curZone, curPeriod);
+            var hiddenActs = fwd ? fwd.acts[1] : new Array(HIDDEN_SIZE).fill(0);
+            var outputActs = fwd ? fwd.acts[2] : [0, 0];
+
+            // 找各层权重的最大绝对值，用于归一化线宽/透明度
+            var maxW0 = 0.01, maxW1 = 0.01;
+            var W0 = onlineNet[0].W, W1 = onlineNet[1].W;
+            for (var r = 0; r < W0.length; r++) for (var c = 0; c < W0[r].length; c++) maxW0 = Math.max(maxW0, Math.abs(W0[r][c]));
+            for (var r = 0; r < W1.length; r++) for (var c = 0; c < W1[r].length; c++) maxW1 = Math.max(maxW1, Math.abs(W1[r][c]));
+
+            // 权重变化检测
+            var weightChanges0 = null, weightChanges1 = null;
+            if (prevWeights && weightFlashTimer > 0) {
+                weightChanges0 = [];
+                for (var r = 0; r < W0.length; r++) {
+                    var row = [];
+                    for (var c = 0; c < W0[r].length; c++) row.push(Math.abs(W0[r][c] - prevWeights[0][r][c]));
+                    weightChanges0.push(row);
+                }
+                weightChanges1 = [];
+                for (var r = 0; r < W1.length; r++) {
+                    var row = [];
+                    for (var c = 0; c < W1[r].length; c++) row.push(Math.abs(W1[r][c] - prevWeights[1][r][c]));
+                    weightChanges1.push(row);
+                }
+            }
+            var maxChange0 = 0.001, maxChange1 = 0.001;
+            if (weightChanges0) {
+                for (var r = 0; r < weightChanges0.length; r++) for (var c = 0; c < weightChanges0[r].length; c++) maxChange0 = Math.max(maxChange0, weightChanges0[r][c]);
+                for (var r = 0; r < weightChanges1.length; r++) for (var c = 0; c < weightChanges1[r].length; c++) maxChange1 = Math.max(maxChange1, weightChanges1[r][c]);
+            }
+
+            // --- 绘制连线: 输入→隐藏 ---
+            for (var h = 0; h < HIDDEN_SIZE; h++) {
+                for (var inp = 0; inp < 7; inp++) {
+                    var w = W0[h][inp];
+                    var norm = Math.abs(w) / maxW0;
+                    var alpha = 0.08 + norm * 0.82;
+                    var lw = 0.5 + norm * 2.5;
+                    var x1 = layerX[0] + NODE_R_IN, y1 = inputY(inp);
+                    var x2 = layerX[1] - NODE_R_HID, y2 = hiddenY(h);
+
+                    // flash glow for changed weights
+                    if (weightChanges0 && weightFlashTimer > 0) {
+                        var chg = weightChanges0[h][inp] / maxChange0;
+                        if (chg > 0.1) {
+                            var glowAlpha = chg * 0.6 * (weightFlashTimer / 30);
+                            ctx.strokeStyle = 'rgba(214,158,46,' + glowAlpha.toFixed(2) + ')';
+                            ctx.lineWidth = lw + 4;
+                            ctx.lineCap = 'round';
+                            ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+                        }
+                    }
+
+                    ctx.strokeStyle = w >= 0
+                        ? 'rgba(43,108,176,' + alpha.toFixed(2) + ')'
+                        : 'rgba(197,48,48,' + alpha.toFixed(2) + ')';
+                    ctx.lineWidth = lw;
+                    ctx.lineCap = 'round';
+                    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+                }
+            }
+
+            // --- 绘制连线: 隐藏→输出 ---
+            for (var o = 0; o < 2; o++) {
+                for (var h = 0; h < HIDDEN_SIZE; h++) {
+                    var w = W1[o][h];
+                    var norm = Math.abs(w) / maxW1;
+                    var alpha = 0.08 + norm * 0.82;
+                    var lw = 0.5 + norm * 2.5;
+                    var x1 = layerX[1] + NODE_R_HID, y1 = hiddenY(h);
+                    var x2 = layerX[2] - NODE_R_OUT, y2 = outputY(o);
+
+                    if (weightChanges1 && weightFlashTimer > 0) {
+                        var chg = weightChanges1[o][h] / maxChange1;
+                        if (chg > 0.1) {
+                            var glowAlpha = chg * 0.6 * (weightFlashTimer / 30);
+                            ctx.strokeStyle = 'rgba(214,158,46,' + glowAlpha.toFixed(2) + ')';
+                            ctx.lineWidth = lw + 4;
+                            ctx.lineCap = 'round';
+                            ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+                        }
+                    }
+
+                    ctx.strokeStyle = w >= 0
+                        ? 'rgba(43,108,176,' + alpha.toFixed(2) + ')'
+                        : 'rgba(197,48,48,' + alpha.toFixed(2) + ')';
+                    ctx.lineWidth = lw;
+                    ctx.lineCap = 'round';
+                    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+                }
+            }
+
+            // --- 绘制输入节点 ---
+            for (var i = 0; i < 7; i++) {
+                var x = layerX[0], y = inputY(i);
+                var active = inputActs[i] > 0.5;
+                ctx.beginPath(); ctx.arc(x, y, NODE_R_IN, 0, 2*Math.PI);
+                ctx.fillStyle = active ? '#2b6cb0' : '#e2e8f0';
+                ctx.fill();
+                ctx.strokeStyle = active ? '#1a365d' : '#a0aec0';
+                ctx.lineWidth = active ? 2.5 : 1.5;
+                ctx.stroke();
+
+                ctx.fillStyle = active ? '#ffffff' : '#4a5568';
+                ctx.font = (active ? 'bold ' : '') + '11px "Source Han Serif SC", Georgia, serif';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(INPUT_LABELS[i], x, y);
+            }
+
+            // --- 绘制隐藏节点 ---
+            var maxHidAct = 0.01;
+            for (var i = 0; i < HIDDEN_SIZE; i++) maxHidAct = Math.max(maxHidAct, Math.abs(hiddenActs[i]));
+            for (var i = 0; i < HIDDEN_SIZE; i++) {
+                var x = layerX[1], y = hiddenY(i);
+                var act = hiddenActs[i];
+                var intensity = Math.min(1, Math.abs(act) / Math.max(maxHidAct, 1));
+                // 颜色：激活越大越深蓝
+                var r = Math.round(235 - intensity * 192);
+                var g = Math.round(244 - intensity * 136);
+                var b = Math.round(255 - intensity * 79);
+                ctx.beginPath(); ctx.arc(x, y, NODE_R_HID, 0, 2*Math.PI);
+                ctx.fillStyle = 'rgb(' + r + ',' + g + ',' + b + ')';
+                ctx.fill();
+                ctx.strokeStyle = intensity > 0.3 ? '#2b6cb0' : '#a0aec0';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                // 激活值文字
+                ctx.fillStyle = intensity > 0.5 ? '#ffffff' : '#2d3748';
+                ctx.font = '9px "JetBrains Mono", monospace';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(act.toFixed(1), x, y);
+            }
+
+            // --- 绘制输出节点 ---
+            var greedyIdx = outputActs[0] >= outputActs[1] ? 0 : 1;
+            for (var i = 0; i < 2; i++) {
+                var x = layerX[2], y = outputY(i);
+                ctx.beginPath(); ctx.arc(x, y, NODE_R_OUT, 0, 2*Math.PI);
+                ctx.fillStyle = '#fffff0';
+                ctx.fill();
+                if (i === greedyIdx) {
+                    ctx.strokeStyle = '#d69e2e';
+                    ctx.lineWidth = 3.5;
+                } else {
+                    ctx.strokeStyle = '#a0aec0';
+                    ctx.lineWidth = 1.5;
+                }
+                ctx.stroke();
+
+                // Q值
+                ctx.fillStyle = '#2d3748';
+                ctx.font = 'bold 11px "JetBrains Mono", monospace';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(outputActs[i].toFixed(2), x, y - 5);
+
+                // 标签
+                ctx.fillStyle = '#718096';
+                ctx.font = '9px "Source Han Serif SC", Georgia, serif';
+                ctx.fillText(OUTPUT_LABELS[i], x, y + 10);
+            }
+
+            // --- 层标签 ---
+            ctx.fillStyle = '#1a365d';
+            ctx.font = 'bold 12px "Source Han Serif SC", Georgia, serif';
+            ctx.textAlign = 'center';
+            // 输入层标签已经由节点标识
+            ctx.fillStyle = '#718096';
+            ctx.font = '11px "Source Han Serif SC", Georgia, serif';
+            ctx.fillText('输入层 (7)', layerX[0], NN_H - 6);
+            ctx.fillText('隐藏层 (8, ReLU)', layerX[1], NN_H - 6);
+            ctx.fillText('输出层 (2)', layerX[2], NN_H - 6);
+
+            // --- 权重图例 ---
+            ctx.font = '9px "Source Han Serif SC", Georgia, serif';
+            ctx.textAlign = 'left';
+            // 蓝 = 正权重
+            ctx.strokeStyle = 'rgba(43,108,176,0.8)'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.moveTo(8, 10); ctx.lineTo(28, 10); ctx.stroke();
+            ctx.fillStyle = '#2b6cb0'; ctx.fillText('正权重', 31, 13);
+            // 红 = 负权重
+            ctx.strokeStyle = 'rgba(197,48,48,0.8)'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(8, 24); ctx.lineTo(28, 24); ctx.stroke();
+            ctx.fillStyle = '#c53030'; ctx.fillText('负权重', 31, 27);
+        }
+
+        // 动画循环（用于weight flash衰减）
+        var animFrameId = null;
+        function animLoop() {
+            if (weightFlashTimer > 0) {
+                weightFlashTimer--;
+                drawNetwork();
+            }
+            animFrameId = requestAnimationFrame(animLoop);
+        }
+
+        // ==================== Q值颜色映射 ====================
         function qColor(v) {
             var minQ = -10, maxQ = 80;
             var norm = Math.max(0, Math.min(1, (v - minQ) / (maxQ - minQ)));
@@ -796,8 +1028,12 @@
             return {bg: 'rgb('+r+','+g+','+b+')', fg: norm > 0.65 ? 'white' : '#2d3748'};
         }
 
-        // === 更新热力图 ===
-        function updateHeatmap() {
+        // ==================== 更新热力图 ====================
+        function updateHeatmap(batchStates, showGeneralization) {
+            // batchStates: Set of "zone_period" keys that were in the mini-batch
+            // showGeneralization: if true, highlight cells not in batch that changed
+            if (!batchStates) batchStates = new Set();
+
             ZONES.forEach(function(z) {
                 PERIODS.forEach(function(p) {
                     var q = predict(onlineNet, stateVec(z, p));
@@ -811,25 +1047,36 @@
                     cell.style.color = col.fg;
 
                     // 当前状态高亮
-                    if (z === curZone && p === curPeriod) {
-                        cell.classList.add('current-state');
-                    } else {
-                        cell.classList.remove('current-state');
-                    }
+                    if (z === curZone && p === curPeriod) cell.classList.add('current-state');
+                    else cell.classList.remove('current-state');
 
-                    // 闪烁检测
+                    // 清除之前的泛化标记
+                    cell.classList.remove('generalized', 'batch-updated');
+
                     var key = z+'_'+p;
                     if (prevQAll[key]) {
                         var oldMax = Math.max(prevQAll[key][0], prevQAll[key][1]);
-                        if (Math.abs(maxQ - oldMax) > 0.05) {
-                            cell.classList.remove('flash');
-                            void cell.offsetWidth;
-                            cell.classList.add('flash');
+                        var changed = Math.abs(maxQ - oldMax) > 0.05;
+                        if (changed) {
+                            if (showGeneralization && batchStates.size > 0) {
+                                if (batchStates.has(key)) {
+                                    // In mini-batch: yellow flash
+                                    cell.classList.remove('batch-updated');
+                                    void cell.offsetWidth;
+                                    cell.classList.add('batch-updated');
+                                } else {
+                                    // NOT in mini-batch but changed: generalization!
+                                    cell.classList.add('generalized');
+                                }
+                            } else {
+                                cell.classList.remove('flash');
+                                void cell.offsetWidth;
+                                cell.classList.add('flash');
+                            }
                         }
                     }
                 });
             });
-            // 更新策略行
             updatePolicyRow();
         }
 
@@ -884,8 +1131,13 @@
             // (i) ε-greedy 选择动作
             stepData.state = curZone;
             stepData.period = curPeriod;
-            var qCur = predict(onlineNet, stateVec(curZone, curPeriod));
+
+            // 前向传播并更新网络图
+            lastFwd = forward(onlineNet, stateVec(curZone, curPeriod));
+            var qCur = lastFwd.acts[onlineNet.length];
             stepData.qValues = [qCur[0], qCur[1]];
+            drawNetwork();
+
             var isRandom = Math.random() < epsilon;
             var ai;
             if (isRandom) { ai = Math.floor(Math.random() * 2); }
@@ -953,10 +1205,9 @@
                 setDataPanel('<span class="dp-dim">缓冲区样本不足（' + replayBuf.length + '/' + BATCH + '），跳过训练</span>');
                 return;
             }
-            var indices = [];
-            for (var i = 0; i < BATCH; i++) indices.push(Math.floor(Math.random() * replayBuf.length));
             for (var i = 0; i < BATCH; i++) {
-                stepData.batchSamples.push(Object.assign({}, replayBuf[indices[i]], {idx: indices[i]}));
+                var idx = Math.floor(Math.random() * replayBuf.length);
+                stepData.batchSamples.push(Object.assign({}, replayBuf[idx], {idx: idx}));
             }
 
             highlightStep(3);
@@ -987,7 +1238,6 @@
             }
 
             highlightStep(4);
-            // 只显示第一条的详细计算，其余简略
             var d0 = stepData.tdDetails[0];
             var errStr = d0.tdError >= 0 ? '<span class="dp-pos">+' + d0.tdError.toFixed(1) + '</span>' : '<span class="dp-neg">' + d0.tdError.toFixed(1) + '</span>';
             var html = '<span class="dp-label">TD目标(样本1):</span> $y$ = ' + d0.sample.r + ' + ' + GAMMA + ' &times; ' + d0.maxQNext.toFixed(2) + ' = <span class="dp-highlight">' + d0.tdTarget.toFixed(2) + '</span>';
@@ -1003,14 +1253,32 @@
         }
 
         function doSubStep5() {
-            // (vi) 梯度下降更新 θ
+            // (vi) 梯度下降更新 θ — THE KEY STEP
             if (!stepData.canTrain) {
                 highlightStep(5);
                 setDataPanel('<span class="dp-dim">跳过（无mini-batch）</span>');
                 return;
             }
 
-            // 记录更新前Q值
+            // 记录更新前Q值（所有12状态，用于泛化检测）
+            var beforeQAll = {};
+            ZONES.forEach(function(z) {
+                PERIODS.forEach(function(p) {
+                    var q = predict(onlineNet, stateVec(z, p));
+                    beforeQAll[z+'_'+p] = [q[0], q[1]];
+                });
+            });
+
+            // 记录更新前权重快照
+            prevWeights = snapshotWeights(onlineNet);
+
+            // 收集mini-batch中涉及的状态
+            var batchStateKeys = new Set();
+            stepData.batchSamples.forEach(function(s) {
+                batchStateKeys.add(s.sz + '_' + s.sp);
+            });
+
+            // 记录batch内状态的更新前Q值
             var beforeQ = {};
             stepData.batchSamples.forEach(function(s) {
                 var key = s.sz + '_' + s.sp + '_' + s.a;
@@ -1036,6 +1304,28 @@
                 }
             });
 
+            // 检测所有12状态的变化（泛化检测）
+            var afterQAll = {};
+            var genCount = 0;
+            ZONES.forEach(function(z) {
+                PERIODS.forEach(function(p) {
+                    var q = predict(onlineNet, stateVec(z, p));
+                    afterQAll[z+'_'+p] = [q[0], q[1]];
+                    var key = z+'_'+p;
+                    if (!batchStateKeys.has(key)) {
+                        var oldMax = Math.max(beforeQAll[key][0], beforeQAll[key][1]);
+                        var newMax = Math.max(q[0], q[1]);
+                        if (Math.abs(newMax - oldMax) > 0.05) genCount++;
+                    }
+                });
+            });
+
+            // 触发权重闪烁动画
+            weightFlashTimer = 30;
+            // 更新前向传播显示
+            lastFwd = forward(onlineNet, stateVec(curZone, curPeriod));
+            drawNetwork();
+
             highlightStep(5);
             var changes = [];
             for (var key in beforeQ) {
@@ -1044,19 +1334,16 @@
                 var diffStr = diff >= 0 ? '<span class="dp-pos">+' + diff.toFixed(2) + '</span>' : '<span class="dp-neg">' + diff.toFixed(2) + '</span>';
                 changes.push('$Q$(' + stateNameShort(parts[0], parseInt(parts[1])) + ',' + ACT_NAMES[parseInt(parts[2])] + '): ' + beforeQ[key].toFixed(2) + '&rarr;' + afterQ[key].toFixed(2) + ' (' + diffStr + ')');
             }
-            setDataPanel('<span class="dp-label">参数更新:</span> ' + changes.join(' &nbsp;|&nbsp; '));
+            var genHtml = genCount > 0
+                ? '<br><span style="color:#48bb78;font-weight:600;">泛化: 其他' + genCount + '个状态的Q值也发生了变化</span>'
+                : '';
+            setDataPanel('<span class="dp-label">参数更新:</span> ' + changes.join(' &nbsp;|&nbsp; ') + genHtml);
 
-            // 更新热力图
-            // 先保存前Q值用于闪烁
-            var newQAll = {};
-            ZONES.forEach(function(z) {
-                PERIODS.forEach(function(p) {
-                    var q = predict(onlineNet, stateVec(z, p));
-                    newQAll[z+'_'+p] = [q[0], q[1]];
-                });
-            });
-            updateHeatmap();
-            prevQAll = newQAll;
+            // 更新热力图（带泛化高亮）
+            prevQAll = beforeQAll;
+            updateHeatmap(batchStateKeys, true);
+            // 保存新Q值用于下次
+            prevQAll = afterQAll;
         }
 
         function doSubStep6() {
@@ -1084,27 +1371,25 @@
                 setDataPanel('<span class="dp-dim">未到同步时刻（还差' + nextSync + '步）</span>');
             }
             updateInfoBar();
+            // 清除泛化标记
+            var cells = document.querySelectorAll('.hm-cell');
+            for (var ci = 0; ci < cells.length; ci++) cells[ci].classList.remove('generalized', 'batch-updated');
             updateHeatmap();
+            // 更新网络图显示新状态
+            lastFwd = forward(onlineNet, stateVec(curZone, curPeriod));
+            drawNetwork();
         }
 
         var subStepFuncs = [doSubStep0, doSubStep1, doSubStep2, doSubStep3, doSubStep4, doSubStep5, doSubStep6];
 
         // === 执行一个完整步（不更新UI中间过程） ===
         function doOneFullStepSilent() {
-            stepData = {};
-            // (i) ε-greedy
             var qCur = predict(onlineNet, stateVec(curZone, curPeriod));
             var isRandom = Math.random() < epsilon;
             var ai = isRandom ? Math.floor(Math.random()*2) : (qCur[0]>=qCur[1]?0:1);
-
-            // (ii) step env
             var result = stepEnv(curZone, curPeriod, ai);
-
-            // (iii) store
             replayBuf.push({sz:curZone, sp:curPeriod, a:ai, r:result.reward, nsz:result.nextZone, nsp:result.nextPeriod});
             if (replayBuf.length > BUF_SIZE) replayBuf.shift();
-
-            // (iv)+(v)+(vi) train
             if (replayBuf.length >= BATCH) {
                 for (var bi = 0; bi < BATCH; bi++) {
                     var idx = Math.floor(Math.random()*replayBuf.length);
@@ -1116,8 +1401,6 @@
                     backward(onlineNet, fwd, s.a, tdT, LR / BATCH);
                 }
             }
-
-            // (vii) sync + advance
             totalSteps++;
             epsilon = EPS_END + (EPS_START - EPS_END) * Math.exp(-totalSteps / EPS_DECAY);
             if (totalSteps % TARGET_FREQ === 0) targetNet = copyNet(onlineNet);
@@ -1129,22 +1412,18 @@
 
         function nextSubStep() {
             if (subStep >= NUM_SUBSTEPS - 1 || subStep < 0) {
-                // 开始新的一步
                 subStep = 0;
                 stepData = {};
             } else {
                 subStep++;
             }
             subStepFuncs[subStep]();
-
-            // 如果完成了最后一个子步，重置 subStep 以便下次开始新步
             if (subStep >= NUM_SUBSTEPS - 1) {
-                subStep = NUM_SUBSTEPS; // 标记完成
+                subStep = NUM_SUBSTEPS;
             }
         }
 
         function nextFullStep() {
-            // 执行所有子步骤
             stepData = {};
             for (var i = 0; i < NUM_SUBSTEPS; i++) {
                 subStep = i;
@@ -1165,21 +1444,19 @@
                 btn.classList.add('active-btn');
                 autoTimer = setInterval(function() {
                     nextSubStep();
-                    // 检查是否运行了很多步
                     if (totalSteps >= 2000) {
                         clearInterval(autoTimer);
                         autoTimer = null;
                         btn.textContent = '自动播放';
                         btn.classList.remove('active-btn');
                     }
-                }, 400);
+                }, 500);
             }
         }
 
         function fastConverge() {
             if (autoTimer) { clearInterval(autoTimer); autoTimer = null; el('dqn-btn-auto').textContent = '自动播放'; el('dqn-btn-auto').classList.remove('active-btn'); }
 
-            // 保存前Q值
             ZONES.forEach(function(z) {
                 PERIODS.forEach(function(p) {
                     var q = predict(onlineNet, stateVec(z, p));
@@ -1187,12 +1464,16 @@
                 });
             });
 
-            for (var i = 0; i < 1000; i++) doOneFullStepSilent();
+            prevWeights = snapshotWeights(onlineNet);
+            for (var i = 0; i < 800; i++) doOneFullStepSilent();
             subStep = NUM_SUBSTEPS;
+            weightFlashTimer = 30;
+            lastFwd = forward(onlineNet, stateVec(curZone, curPeriod));
             updateInfoBar();
             updateHeatmap();
+            drawNetwork();
             setDataPanel(
-                '<span class="dp-label">快进完成!</span> 已执行1000步训练。$\\varepsilon$ = ' + epsilon.toFixed(3) + '，缓冲区 ' + replayBuf.length + '/' + BUF_SIZE + ' 条。Q值热力图已更新。'
+                '<span class="dp-label">快进完成!</span> 已执行800步训练。$\\varepsilon$ = ' + epsilon.toFixed(3) + '，缓冲区 ' + replayBuf.length + '/' + BUF_SIZE + ' 条。观察Q值热力图和神经网络权重的变化。'
             );
             clearStepHighlight();
         }
@@ -1202,6 +1483,7 @@
             initDQN();
             updateInfoBar();
             updateHeatmap();
+            drawNetwork();
             clearStepHighlight();
             setDataPanel('<span class="dp-dim">点击"下一子步"或"自动播放"开始训练</span>');
         }
@@ -1209,8 +1491,11 @@
         // === 初始化 ===
         initDQN();
         setTimeout(function() {
+            initCanvas();
             updateInfoBar();
             updateHeatmap();
+            drawNetwork();
+            animLoop();
         }, 200);
 
         return {
