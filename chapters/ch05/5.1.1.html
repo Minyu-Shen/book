@@ -505,13 +505,15 @@
 
             <table class="trans-table" style="width:100%;">
                 <thead>
-                    <tr><th>区域</th><th>时段</th><th>接单奖励</th><th>空驶奖励</th><th>接单后转移概率</th></tr>
+                    <tr><th>区域</th><th>时段</th><th>动作</th><th>可能的转移</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td>市中心 $c$</td><td>0（早高峰）</td><td>$12$</td><td>$-4$</td><td>$c$: 0.5, $b$: 0.3, $a$: 0.2</td></tr>
-                    <tr><td>市中心 $c$</td><td>3（夜间）</td><td>$4$</td><td>$-4$</td><td>$c$: 0.3, $b$: 0.5, $a$: 0.2</td></tr>
-                    <tr><td>机场 $a$</td><td>0（早高峰）</td><td>$8$</td><td>$-5$</td><td>$c$: 0.6, $b$: 0.4</td></tr>
-                    <tr><td>机场 $a$</td><td>3（夜间）</td><td>$16$</td><td>$-5$</td><td>$c$: 0.7, $b$: 0.3</td></tr>
+                    <tr><td rowspan="2">市中心 $c$</td><td rowspan="2">0（早高峰）</td><td>接单</td><td>→ $c$（概率0.5，车费5）、→ $b$（概率0.3，车费8）、→ $a$（概率0.2，车费12）</td></tr>
+                    <tr><td>空驶去机场</td><td>→ $a$（确定，油费 $-4$）</td></tr>
+                    <tr><td rowspan="2">市中心 $c$</td><td rowspan="2">3（夜间）</td><td>接单</td><td>→ $c$（概率0.3，车费3）、→ $b$（概率0.5，车费4）、→ $a$（概率0.2，车费6）</td></tr>
+                    <tr><td>空驶去机场</td><td>→ $a$（确定，油费 $-4$）</td></tr>
+                    <tr><td rowspan="2">机场 $a$</td><td rowspan="2">3（夜间）</td><td>接单</td><td>→ $c$（概率0.7，车费16）、→ $b$（概率0.3，车费10）</td></tr>
+                    <tr><td>空驶去市中心</td><td>→ $c$（确定，油费 $-5$）</td></tr>
                 </tbody>
             </table>
 
