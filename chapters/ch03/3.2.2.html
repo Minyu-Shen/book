@@ -61,9 +61,11 @@
                 <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
                 <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
                 <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.4.html">3.1.4 TD(λ)与资格迹</a></li>
                 <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
                 <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
                 <li class="sidebar-subsection"><a href="../ch03/3.2.2.html" class="active">3.2.2 Q-learning</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.3.html">3.2.3 Double Q-learning</a></li>
                 <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
                 <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
                 <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
@@ -106,6 +108,7 @@
 
         <main class="main-content">
             <h1>3.2.2 Q-learning</h1>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.3.html">3.2.3 Double Q-learning</a></li>
 
             <!-- ==================== Q-learning ==================== -->
             <h2>Q-learning：Off-policy 的 TD 控制</h2>
@@ -257,7 +260,7 @@ for s in T:
                 </div>
                 <table class="trans-table">
                     <thead>
-                        <tr><th>状态</th><th>Q(s, 接单)</th><th>Q*(接单)</th><th>Q(s, 空驶)</th><th>Q*(空驶)</th><th>当前最优动作</th></tr>
+                        <tr><th>状态</th><th>$Q(s, \text{接单})$</th><th>$Q^*(\text{接单})$</th><th>$Q(s, \text{空驶})$</th><th>$Q^*(\text{空驶})$</th><th>当前最优动作</th></tr>
                     </thead>
                     <tbody>
                         <tr><td>市中心 (c)</td><td id="ql-q-c-0">0.0</td><td style="color:#a0aec0;">56.3</td><td id="ql-q-c-1">0.0</td><td style="color:#a0aec0;">50.0</td><td id="ql-p-c">—</td></tr>
@@ -293,7 +296,7 @@ for s in T:
 
             <div class="chapter-nav">
                 <a href="../ch03/3.2.1.html">&larr; 3.2.1 SARSA</a>
-                <a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法 &rarr;</a>
+                <a href="../ch03/3.2.3.html">3.2.3 Double Q-learning &rarr;</a>
             </div>
         </main>
     </div>
