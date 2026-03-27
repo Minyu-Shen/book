@@ -550,35 +550,47 @@ if __name__ == "__main__":
                 <li><strong>对数概率的 tanh 修正</strong>：由于动作经过了 $\tanh$ 压缩，计算 $\log \pi(a|s)$ 时需要加上雅可比修正项 $-\sum_i \log(1 - \tanh^2(u_i))$，其中 $u_i$ 是 $\tanh$ 之前的值。代码中使用数值稳定的等价形式实现。</li>
             </ul>
 
-            <p>下面的交互演示展示了SAC在简化版投资组合配置问题上的学习过程。为便于可视化，我们将市场状态离散为三种典型情景，用二维连续动作空间来演示策略分布（高斯分布）如何随训练而变化。</p>
+            <p>下面的交互演示展示了SAC在简化版投资组合配置问题上的学习过程。状态空间简化为二维（近期收益率、波动率），动作空间为二维连续量（股票配置比例、债券配置比例），现金比例由约束 $1 - w_{\text{stock}} - w_{\text{bond}}$ 自动确定。演示的核心是直观呈现 SAC 的三个关键机制：高斯策略分布如何从宽到窄收敛、温度系数 $\alpha$ 如何自动调节、以及熵正则化如何自然地产生分散化效果。</p>
 
             <!-- ==================== 交互演示 ==================== -->
             <div class="demo-container">
                 <div class="demo-title">交互演示：SAC 学习投资组合配置策略</div>
+
+                <!-- 控制栏 -->
                 <div class="rl-ctrl">
-                    <button onclick="sacTrain(100)">训练100步</button>
-                    <button onclick="sacTrain(5000)">快进5000步</button>
+                    <button id="sac-btn-step" onclick="sacStep()">下一步</button>
+                    <button id="sac-btn-auto" onclick="sacToggleAuto()">自动训练</button>
+                    <button id="sac-btn-fast" onclick="sacFast()">快进到收敛</button>
                     <button onclick="sacReset()">重置</button>
-                    <label style="margin-left:1rem;">温度 $\alpha$：</label>
-                    <select id="sac-alpha" onchange="sacSetAlpha(this.value)">
-                        <option value="0.05">0.05（低探索）</option>
-                        <option value="0.2" selected>0.2（默认）</option>
-                        <option value="1.0">1.0（高探索）</option>
-                    </select>
                 </div>
+                <div class="rl-info" id="sac-status">训练步 <strong>0</strong> | 温度 $\alpha$: <strong>0.50</strong> | 熵: <strong>—</strong> | 缓冲区: <strong>0</strong>/500</div>
+
+                <!-- 上方：网络架构图 + 温度计 -->
+                <div style="text-align:center; margin:0.8rem 0 0.2rem;">
+                    <canvas id="cvs-arch" width="540" height="300" style="width:100%;max-width:540px;border:1px solid var(--border-color);border-radius:4px;background:white;"></canvas>
+                </div>
+                <div class="fig-caption" style="margin-bottom:1rem;">SAC 网络架构：Actor 输出高斯分布参数，Twin Critics 评估动作价值，温度 $\alpha$ 自动调节探索程度</div>
+
+                <!-- 中间：策略分布 + 熵/温度曲线 -->
                 <div class="demo-row">
                     <div class="demo-panel">
-                        <canvas id="cvs-policy" width="440" height="260"></canvas>
-                        <div class="fig-caption" style="margin-bottom:0;">策略分布：不同市场状态下的股票配置比例分布</div>
+                        <canvas id="cvs-policy" width="440" height="380"></canvas>
+                        <div class="fig-caption" style="margin-bottom:0;">策略分布演变：二维高斯在可行域（三角形）上的分布</div>
                     </div>
                     <div class="demo-panel">
-                        <canvas id="cvs-entropy" width="440" height="260"></canvas>
-                        <div class="fig-caption" style="margin-bottom:0;">训练过程中策略熵和累积奖励的变化</div>
+                        <canvas id="cvs-entropy" width="440" height="380"></canvas>
+                        <div class="fig-caption" style="margin-bottom:0;">熵与温度变化：策略熵逐步逼近目标熵，$\alpha$ 自动下调</div>
                     </div>
                 </div>
-                <div class="rl-info" id="sac-info">已训练 <strong>0</strong> 步 | 平均奖励：<strong>—</strong> | 平均策略熵：<strong>—</strong></div>
+
+                <!-- 下方：数据面板 -->
+                <div class="rl-info" id="sac-data" style="font-family:monospace;font-size:0.84rem;line-height:1.8;white-space:pre-wrap;">状态: (近期收益=—, 波动率=—)
+高斯参数: μ=(—, —), σ=(—, —)
+采样动作: (股票=—, 债券=—, 现金=—)
+熵: — (目标: —)  温度: α=—
+Q值: Q₁=—, Q₂=—</div>
             </div>
-            <div class="fig-caption">图 5.4-2　SAC 学习投资组合配置策略的交互演示。左图展示三种市场状态下策略网络输出的高斯分布（股票配置比例的概率密度）；右图展示训练过程中策略熵逐渐下降、累积奖励逐渐上升的趋势。可通过切换温度 $\alpha$ 观察探索-利用平衡的变化。</div>
+            <div class="fig-caption">图 5.4-2　SAC 学习投资组合配置策略的交互演示。左图展示策略网络输出的二维高斯分布如何在可行域（$w_{\text{stock}} + w_{\text{bond}} \le 1$ 的三角形区域）内从宽分布（探索）收敛到窄分布（利用）；右图展示策略熵逐步逼近目标熵、温度 $\alpha$ 自动下降的过程。即使收敛后，策略仍保持一定的分散性，体现了最大熵的分散化效果。</div>
 
             <!-- ==================== 小结 ==================== -->
             <h2>小结</h2>
@@ -668,434 +680,838 @@ if __name__ == "__main__":
     <!-- ==================== SAC 交互演示 JS ==================== -->
     <script>
     (function(){
-        /* ---------- 简化版 SAC 演示：投资组合配置 ---------- */
-        /* 状态：市场状态（离散化为三种情景便于可视化）
-           动作：股票配置比例 ∈ [0, 1]，用高斯策略表示
-           演示重点：策略分布的变化 + 熵的下降 */
+    "use strict";
 
-        var ALPHA = 0.2;   // 温度系数
-        var GAMMA = 0.95;
-        var LR_Q = 0.01;   // Q 学习率
-        var LR_PI = 0.005; // 策略学习率
-        var TAU = 0.01;    // 目标网络软更新率
+    /* ==========================================================
+       SAC Interactive Demo – Portfolio Allocation (2D continuous)
+       ==========================================================
+       State:  (recent_return, volatility) ∈ [0,1]²
+       Action: (stock_alloc, bond_alloc)   ∈ [0,1]², stock+bond ≤ 1
+       cash = 1 - stock - bond
+       Actor outputs Gaussian params (μ₁,μ₂,logσ₁,logσ₂)
+       Twin Critics Q₁, Q₂
+       Automatic temperature α tuning
+    ========================================================== */
 
-        // 市场参数
-        var STOCK_MU = 0.0005, STOCK_SIGMA = 0.02;
-        var BOND_MU = 0.0003, BOND_SIGMA = 0.005;
-        var RF = 0.0002;     // 无风险利率
-        var COST_COEFF = 0.001;
-        var RISK_BETA = 5.0;
+    /* ---------- Hyperparameters ---------- */
+    var GAMMA = 0.95;
+    var LR_Q = 0.008;
+    var LR_PI = 0.004;
+    var LR_ALPHA = 0.006;
+    var TAU = 0.008;
+    var BUFFER_MAX = 500;
+    var BATCH = 32;
+    var TARGET_ENTROPY = -2;  // -dim(A)
 
-        // 状态离散化：3种市场状态
-        var N_BINS = 3;
-        var BIN_LABELS = ['高波动', '中等', '低波动'];
-        var BIN_VOL = [0.035, 0.02, 0.008]; // 对应的波动率水平
+    /* ---------- Tiny Neural Network Lib ---------- */
+    function randNorm(){ var u=Math.random(),v=Math.random(); return Math.sqrt(-2*Math.log(u+1e-12))*Math.cos(6.2831853*v); }
+    function clamp(x,lo,hi){ return x<lo?lo:(x>hi?hi:x); }
+    function tanh(x){ var e=Math.exp(2*x); return (e-1)/(e+1); }
+    function sigmoid(x){ return 1/(1+Math.exp(-x)); }
+    function relu(x){ return x>0?x:0; }
 
-        // 动作网格（用于可视化Q值和策略）：股票配置比例 0%~100%
-        var N_A_GRID = 51; // 0..50 映射到 0..1
-        var MAX_ALLOC = 1.0; // 最大配置比例
-
-        // 简化的Q表：Q[bin][a_grid] 和 目标Q表
-        var Q1, Q2, Q1_tgt, Q2_tgt;
-        // 策略参数：每个bin一个 (mu, log_sigma)
-        var piMu, piLogSig;
-        var totalSteps, rewardHistory, entropyHistory;
-        var curBin; // 当前市场状态
-        var curWeights; // 当前持仓
-
-        function clamp(x, lo, hi) { return Math.max(lo, Math.min(hi, x)); }
-
-        function gaussPdf(x, mu, sigma) {
-            var z = (x - mu) / sigma;
-            return Math.exp(-0.5 * z * z) / (sigma * Math.sqrt(2 * Math.PI));
+    // Dense layer: weights[out][in], biases[out]
+    function makeLayer(ni,no){
+        var w=[], b=[];
+        var s = Math.sqrt(2.0/ni);
+        for(var o=0;o<no;o++){
+            w[o]=[];
+            for(var i=0;i<ni;i++) w[o][i]=randNorm()*s;
+            b[o]=0;
         }
-
-        function gaussLogProb(x, mu, sigma) {
-            var z = (x - mu) / sigma;
-            return -0.5 * z * z - Math.log(sigma) - 0.5 * Math.log(2 * Math.PI);
+        return {w:w,b:b,ni:ni,no:no};
+    }
+    function fwdLayer(layer,inp,act){
+        var out=[];
+        for(var o=0;o<layer.no;o++){
+            var s=layer.b[o];
+            for(var i=0;i<layer.ni;i++) s+=layer.w[o][i]*inp[i];
+            out[o]= act? act(s) : s;
         }
-
-        function sampleGauss(mu, sigma) {
-            var u1 = Math.random(), u2 = Math.random();
-            var z = Math.sqrt(-2 * Math.log(u1 + 1e-8)) * Math.cos(2 * Math.PI * u2);
-            return mu + sigma * z;
+        return out;
+    }
+    function copyLayer(src){
+        var dst=makeLayer(src.ni,src.no);
+        for(var o=0;o<src.no;o++){
+            dst.b[o]=src.b[o];
+            for(var i=0;i<src.ni;i++) dst.w[o][i]=src.w[o][i];
         }
-
-        function transitionBin() {
-            // 简化的市场状态转移
-            var r = Math.random();
-            if (curBin === 0) { // 高波动
-                return r < 0.5 ? 0 : (r < 0.8 ? 1 : 2);
-            } else if (curBin === 1) { // 中等
-                return r < 0.2 ? 0 : (r < 0.8 ? 1 : 2);
-            } else { // 低波动
-                return r < 0.1 ? 0 : (r < 0.4 ? 1 : 2);
-            }
+        return dst;
+    }
+    function softUpdate(tgt,src,tau){
+        for(var o=0;o<src.no;o++){
+            tgt.b[o]+= tau*(src.b[o]-tgt.b[o]);
+            for(var i=0;i<src.ni;i++) tgt.w[o][i]+= tau*(src.w[o][i]-tgt.w[o][i]);
         }
+    }
 
-        function computeReward(stockAlloc, vol) {
-            var bondAlloc = (1 - stockAlloc) * 0.6;
-            var cashAlloc = 1 - stockAlloc - bondAlloc;
-            // 模拟收益
-            var rStock = sampleGauss(STOCK_MU, vol);
-            var rBond = sampleGauss(BOND_MU, BOND_SIGMA);
-            var rPort = stockAlloc * rStock + bondAlloc * rBond + cashAlloc * RF;
-            // 交易成本（简化）
-            var tradeCost = COST_COEFF * Math.abs(stockAlloc - curWeights);
-            // 奖励
-            var reward = rPort - tradeCost - RISK_BETA * rPort * rPort;
-            return reward * 1000; // 放大便于可视化
-        }
+    /* ---------- Actor: 2 → 6(relu) → 4 (μ1,μ2,logσ1,logσ2) ---------- */
+    var actorL1, actorL2;
+    /* ---------- Critic 1 & 2: 4 → 6(relu) → 1 ---------- */
+    var c1L1, c1L2, c2L1, c2L2;
+    var c1L1t, c1L2t, c2L1t, c2L2t; // targets
 
-        function initArrays() {
-            Q1 = []; Q2 = []; Q1_tgt = []; Q2_tgt = [];
-            for (var b = 0; b < N_BINS; b++) {
-                Q1[b] = []; Q2[b] = []; Q1_tgt[b] = []; Q2_tgt[b] = [];
-                for (var a = 0; a < N_A_GRID; a++) {
-                    Q1[b][a] = 0; Q2[b][a] = 0; Q1_tgt[b][a] = 0; Q2_tgt[b][a] = 0;
-                }
-            }
-            piMu = []; piLogSig = [];
-            for (var b = 0; b < N_BINS; b++) {
-                piMu[b] = 0.5;         // 初始均值：50% 配置
-                piLogSig[b] = Math.log(0.25); // 初始标准差较大（探索）
-            }
-        }
+    function initNets(){
+        actorL1=makeLayer(2,6); actorL2=makeLayer(6,4);
+        // bias logσ heads to ~log(0.3) ≈ -1.2 so we start with wide exploration
+        actorL2.b[2]=-0.5; actorL2.b[3]=-0.5;
+        c1L1=makeLayer(4,6); c1L2=makeLayer(6,1);
+        c2L1=makeLayer(4,6); c2L2=makeLayer(6,1);
+        c1L1t=copyLayer(c1L1); c1L2t=copyLayer(c1L2);
+        c2L1t=copyLayer(c2L1); c2L2t=copyLayer(c2L2);
+    }
 
-        function getAction(bin) {
-            var sigma = Math.exp(piLogSig[bin]);
-            var a = sampleGauss(piMu[bin], sigma);
-            return clamp(a, 0, MAX_ALLOC);
-        }
+    function actorForward(s){
+        // s=[ret,vol]
+        var h=fwdLayer(actorL1,s,relu);
+        var out=fwdLayer(actorL2,h,null);
+        // μ via sigmoid to [0,1], logσ clamped
+        var mu1=sigmoid(out[0]), mu2=sigmoid(out[1]);
+        var ls1=clamp(out[2],-4,-0.3), ls2=clamp(out[3],-4,-0.3);
+        return {mu:[mu1,mu2], logSig:[ls1,ls2], h:h, raw:out};
+    }
 
-        function getQmin(bin, aIdx) {
-            return Math.min(Q1[bin][aIdx], Q2[bin][aIdx]);
-        }
-        function getQminTgt(bin, aIdx) {
-            return Math.min(Q1_tgt[bin][aIdx], Q2_tgt[bin][aIdx]);
-        }
+    function actorSample(s){
+        var p=actorForward(s);
+        var sig1=Math.exp(p.logSig[0]), sig2=Math.exp(p.logSig[1]);
+        var eps1=randNorm(), eps2=randNorm();
+        var a1=clamp(p.mu[0]+sig1*eps1, 0, 1);
+        var a2=clamp(p.mu[1]+sig2*eps2, 0, 1);
+        // enforce stock+bond ≤ 1
+        if(a1+a2>1){ var sc=1/(a1+a2); a1*=sc; a2*=sc; }
+        // log_prob (diagonal Gaussian, ignore boundary corrections for demo)
+        var lp = -0.5*eps1*eps1 - p.logSig[0] - 0.5*eps2*eps2 - p.logSig[1] - Math.log(2*Math.PI);
+        return {a:[a1,a2], lp:lp, mu:p.mu, sig:[sig1,sig2], eps:[eps1,eps2]};
+    }
 
-        function actionToIdx(a) {
-            return clamp(Math.round(a * (N_A_GRID - 1)), 0, N_A_GRID - 1);
-        }
+    function criticForward(cL1,cL2,s,a){
+        var inp=[s[0],s[1],a[0],a[1]];
+        var h=fwdLayer(cL1,inp,relu);
+        return fwdLayer(cL2,h,null)[0];
+    }
 
-        function trainStep() {
-            var bin = curBin;
-            var action = getAction(bin);
-            var aIdx = actionToIdx(action);
-            var vol = BIN_VOL[bin];
-            var reward = computeReward(action, vol);
-            var nextBin = transitionBin();
-            curWeights = action;
-            curBin = nextBin;
+    /* ---------- Numerical gradients via finite differences ---------- */
+    // We use simple numerical gradients for the small networks since analytical
+    // backprop would be very verbose in vanilla JS. The networks are tiny (2→6→4
+    // and 4→6→1) so this is fast enough for the demo.
 
-            // 计算TD目标
-            var nextAction = getAction(nextBin);
-            var nextAIdx = actionToIdx(nextAction);
-            var nextSigma = Math.exp(piLogSig[nextBin]);
-            var nextLogProb = gaussLogProb(nextAction, piMu[nextBin], nextSigma);
-            var qTargetVal = getQminTgt(nextBin, nextAIdx) - ALPHA * nextLogProb;
-            var y = reward + GAMMA * qTargetVal;
-
-            // 更新Q网络
-            var err1 = Q1[bin][aIdx] - y;
-            var err2 = Q2[bin][aIdx] - y;
-            Q1[bin][aIdx] -= LR_Q * err1;
-            Q2[bin][aIdx] -= LR_Q * err2;
-
-            // 更新策略网络
-            var sigma = Math.exp(piLogSig[bin]);
-            var gradMu = 0, gradLogSig = 0;
-            var nSamples = 5;
-            for (var k = 0; k < nSamples; k++) {
-                var eps = sampleGauss(0, 1);
-                var aSample = clamp(piMu[bin] + sigma * eps, 0, MAX_ALLOC);
-                var aI = actionToIdx(aSample);
-                var qVal = getQmin(bin, aI);
-                var lp = gaussLogProb(aSample, piMu[bin], sigma);
-                var score_mu = (aSample - piMu[bin]) / (sigma * sigma);
-                var score_logsig = ((aSample - piMu[bin]) * (aSample - piMu[bin]) / (sigma * sigma) - 1);
-                var advantage = qVal - ALPHA * lp;
-                gradMu += score_mu * advantage / nSamples;
-                gradLogSig += score_logsig * advantage / nSamples;
-            }
-            piMu[bin] += LR_PI * gradMu;
-            piMu[bin] = clamp(piMu[bin], 0, MAX_ALLOC);
-            piLogSig[bin] += LR_PI * 0.1 * gradLogSig;
-            piLogSig[bin] = clamp(piLogSig[bin], Math.log(0.02), Math.log(0.4));
-
-            // 软更新目标网络
-            for (var a2 = 0; a2 < N_A_GRID; a2++) {
-                Q1_tgt[bin][a2] = TAU * Q1[bin][a2] + (1 - TAU) * Q1_tgt[bin][a2];
-                Q2_tgt[bin][a2] = TAU * Q2[bin][a2] + (1 - TAU) * Q2_tgt[bin][a2];
-            }
-
-            totalSteps++;
-            return { reward: reward, sigma: sigma };
-        }
-
-        function computeAvgEntropy() {
-            var total = 0;
-            for (var b = 0; b < N_BINS; b++) {
-                var sigma = Math.exp(piLogSig[b]);
-                total += 0.5 * Math.log(2 * Math.PI * Math.E * sigma * sigma);
-            }
-            return total / N_BINS;
-        }
-
-        /* ---------- 绘图 ---------- */
-        function drawPolicy() {
-            var cvs = document.getElementById('cvs-policy');
-            if (!cvs) return;
-            var ctx = cvs.getContext('2d');
-            var W = cvs.width, H = cvs.height;
-            ctx.clearRect(0, 0, W, H);
-
-            var padL = 55, padR = 15, padT = 25, padB = 45;
-            var plotW = W - padL - padR, plotH = H - padT - padB;
-
-            // 坐标轴
-            ctx.strokeStyle = '#a0aec0';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(padL, padT);
-            ctx.lineTo(padL, padT + plotH);
-            ctx.lineTo(padL + plotW, padT + plotH);
-            ctx.stroke();
-
-            // X轴标签
-            ctx.fillStyle = '#4a5568';
-            ctx.font = '11px sans-serif';
-            ctx.textAlign = 'center';
-            for (var i = 0; i <= 5; i++) {
-                var xVal = (i * 20);
-                var x = padL + (i / 5) * plotW;
-                ctx.fillText(xVal + '%', x, padT + plotH + 15);
-                if (i > 0) {
-                    ctx.strokeStyle = '#e2e8f0';
-                    ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, padT + plotH); ctx.stroke();
-                }
-            }
-            ctx.fillText('股票配置比例', padL + plotW / 2, padT + plotH + 35);
-
-            // Y轴标签
-            ctx.save();
-            ctx.translate(14, padT + plotH / 2);
-            ctx.rotate(-Math.PI / 2);
-            ctx.textAlign = 'center';
-            ctx.fillText('概率密度', 0, 0);
-            ctx.restore();
-
-            // 画三种市场状态的策略分布
-            var colors = ['#e53e3e', '#2b6cb0', '#38a169'];
-            var labels = ['高波动', '中等', '低波动'];
-
-            // 找最大密度来归一化
-            var maxDensity = 0.001;
-            for (var bi = 0; bi < N_BINS; bi++) {
-                var mu = piMu[bi], sig = Math.exp(piLogSig[bi]);
-                maxDensity = Math.max(maxDensity, gaussPdf(mu, mu, sig));
-            }
-
-            for (var bi = 0; bi < N_BINS; bi++) {
-                var mu = piMu[bi], sig = Math.exp(piLogSig[bi]);
-                ctx.strokeStyle = colors[bi];
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                for (var xi = 0; xi <= 200; xi++) {
-                    var aVal = (xi / 200) * MAX_ALLOC;
-                    var density = gaussPdf(aVal, mu, sig);
-                    var px = padL + (aVal / MAX_ALLOC) * plotW;
-                    var py = padT + plotH - (density / (maxDensity * 1.15)) * plotH;
-                    if (xi === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-                }
-                ctx.stroke();
-
-                // 图例
-                var ly = padT + 8 + bi * 18;
-                ctx.fillStyle = colors[bi];
-                ctx.beginPath();
-                ctx.moveTo(padL + plotW - 100, ly); ctx.lineTo(padL + plotW - 80, ly);
-                ctx.strokeStyle = colors[bi]; ctx.lineWidth = 2; ctx.stroke();
-                ctx.font = '11px sans-serif';
-                ctx.textAlign = 'left';
-                ctx.fillText(labels[bi], padL + plotW - 75, ly + 4);
+    function updateLayerFD(layer, lossFn, lr){
+        var eps=1e-3;
+        for(var o=0;o<layer.no;o++){
+            // bias
+            var orig=layer.b[o];
+            layer.b[o]=orig+eps; var lp=lossFn();
+            layer.b[o]=orig-eps; var lm=lossFn();
+            layer.b[o]=orig;
+            var g=(lp-lm)/(2*eps);
+            layer.b[o]-=lr*clamp(g,-5,5);
+            // weights
+            for(var i=0;i<layer.ni;i++){
+                var ow=layer.w[o][i];
+                layer.w[o][i]=ow+eps; lp=lossFn();
+                layer.w[o][i]=ow-eps; lm=lossFn();
+                layer.w[o][i]=ow;
+                g=(lp-lm)/(2*eps);
+                layer.w[o][i]-=lr*clamp(g,-5,5);
             }
         }
+    }
 
-        function drawEntropy() {
-            var cvs = document.getElementById('cvs-entropy');
-            if (!cvs) return;
-            var ctx = cvs.getContext('2d');
-            var W = cvs.width, H = cvs.height;
-            ctx.clearRect(0, 0, W, H);
+    /* ---------- Market Environment ---------- */
+    var STOCK_MU=0.0005, STOCK_SIG=0.02;
+    var BOND_MU=0.0003, BOND_SIG=0.005;
+    var RF=0.0002, COST=0.001, RISK_BETA=5.0;
 
-            var padL = 55, padR = 55, padT = 25, padB = 45;
-            var plotW = W - padL - padR, plotH = H - padT - padB;
+    var envState, envWeights;
 
-            // 坐标轴
-            ctx.strokeStyle = '#a0aec0';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(padL, padT);
-            ctx.lineTo(padL, padT + plotH);
-            ctx.lineTo(padL + plotW, padT + plotH);
-            ctx.stroke();
+    function envReset(){
+        var ret=0.5+0.2*randNorm(); // normalized recent return
+        var vol=0.3+0.15*randNorm(); // normalized volatility
+        envState=[clamp(ret,0,1), clamp(vol,0,1)];
+        envWeights=[1/3,1/3];
+        return envState.slice();
+    }
 
-            if (entropyHistory.length < 2) {
-                ctx.fillStyle = '#a0aec0';
-                ctx.font = '13px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('开始训练后显示曲线', padL + plotW / 2, padT + plotH / 2);
-                return;
+    function envStep(action){
+        var ws=action[0], wb=action[1];
+        var wc=1-ws-wb;
+        // simulate daily returns
+        var vol = envState[1]*0.04+0.005; // map normalized vol to actual
+        var rStock = STOCK_MU + vol*randNorm();
+        var rBond = BOND_MU + BOND_SIG*randNorm();
+        var rPort = ws*rStock + wb*rBond + wc*RF;
+        var tradeCost = COST*(Math.abs(ws-envWeights[0])+Math.abs(wb-envWeights[1]));
+        var reward = (rPort - tradeCost - RISK_BETA*rPort*rPort)*1000;
+        envWeights=[ws,wb];
+        // next state: incorporate new return and vol info
+        var newRet = clamp(envState[0]+0.1*(rPort*500), 0, 1);
+        var newVol = clamp(envState[1]+0.05*randNorm(), 0, 1);
+        envState=[newRet,newVol];
+        return {s2:envState.slice(), r:reward};
+    }
+
+    /* ---------- Replay Buffer ---------- */
+    var buffer=[];
+    function bufPush(s,a,r,s2){
+        if(buffer.length>=BUFFER_MAX) buffer.shift();
+        buffer.push({s:s,a:a,r:r,s2:s2});
+    }
+    function bufSample(n){
+        var out=[];
+        for(var i=0;i<n;i++) out.push(buffer[Math.floor(Math.random()*buffer.length)]);
+        return out;
+    }
+
+    /* ---------- State ---------- */
+    var logAlpha, totalSteps;
+    var entropyHist=[], alphaHist=[];
+    var lastSample=null;
+    var autoTimer=null;
+    var lastQ1=0, lastQ2=0;
+
+    function getAlpha(){ return Math.exp(logAlpha); }
+
+    function sacInit(){
+        initNets();
+        logAlpha=Math.log(0.5);
+        totalSteps=0;
+        buffer=[];
+        entropyHist=[]; alphaHist=[];
+        lastSample=null;
+        lastQ1=0; lastQ2=0;
+        envReset();
+    }
+
+    /* ---------- Single training step ---------- */
+    function doStep(){
+        var s=envState.slice();
+        var sam=actorSample(s);
+        var res=envStep(sam.a);
+        bufPush(s, sam.a, res.r, res.s2);
+
+        lastSample={s:s, mu:sam.mu, sig:sam.sig, a:sam.a, lp:sam.lp};
+        totalSteps++;
+
+        if(buffer.length < BATCH) { recordHistory(sam); return; }
+
+        var batch=bufSample(BATCH);
+        var alpha=getAlpha();
+
+        // --- Update critics ---
+        // Compute mean TD loss for each critic and update via FD
+        function criticLoss(cL1x,cL2x){
+            var loss=0;
+            for(var i=0;i<batch.length;i++){
+                var b=batch[i];
+                var sam2=actorSample(b.s2);
+                var q1t=criticForward(c1L1t,c1L2t,b.s2,sam2.a);
+                var q2t=criticForward(c2L1t,c2L2t,b.s2,sam2.a);
+                var qMin=Math.min(q1t,q2t);
+                var y=b.r+GAMMA*(qMin - alpha*sam2.lp);
+                var pred=criticForward(cL1x,cL2x,b.s,b.a);
+                var e=pred-y;
+                loss+=e*e;
             }
+            return loss/batch.length;
+        }
+        updateLayerFD(c1L1, function(){return criticLoss(c1L1,c1L2);}, LR_Q);
+        updateLayerFD(c1L2, function(){return criticLoss(c1L1,c1L2);}, LR_Q);
+        updateLayerFD(c2L1, function(){return criticLoss(c2L1,c2L2);}, LR_Q);
+        updateLayerFD(c2L2, function(){return criticLoss(c2L1,c2L2);}, LR_Q);
 
-            var n = entropyHistory.length;
-
-            // X轴
-            ctx.fillStyle = '#4a5568';
-            ctx.font = '11px sans-serif';
-            ctx.textAlign = 'center';
-            var maxStep = n * 50;
-            for (var i = 0; i <= 4; i++) {
-                var xVal = Math.round(maxStep * i / 4);
-                var x = padL + (i / 4) * plotW;
-                ctx.fillText(xVal.toString(), x, padT + plotH + 15);
+        // --- Update actor ---
+        function actorLoss(){
+            var loss=0;
+            for(var i=0;i<batch.length;i++){
+                var b=batch[i];
+                var sam3=actorSample(b.s);
+                var q1v=criticForward(c1L1,c1L2,b.s,sam3.a);
+                var q2v=criticForward(c2L1,c2L2,b.s,sam3.a);
+                loss+= alpha*sam3.lp - Math.min(q1v,q2v);
             }
-            ctx.fillText('训练步数', padL + plotW / 2, padT + plotH + 35);
+            return loss/batch.length;
+        }
+        updateLayerFD(actorL1, actorLoss, LR_PI);
+        updateLayerFD(actorL2, actorLoss, LR_PI);
 
-            // 画熵曲线
-            var minE = Infinity, maxE = -Infinity;
-            for (var i = 0; i < n; i++) {
-                minE = Math.min(minE, entropyHistory[i]);
-                maxE = Math.max(maxE, entropyHistory[i]);
+        // --- Update alpha ---
+        // L(α) = -α * (log_π + H_target)
+        var meanLp=0;
+        for(var i=0;i<batch.length;i++){
+            var sam4=actorSample(batch[i].s);
+            meanLp+=sam4.lp;
+        }
+        meanLp/=batch.length;
+        var alphaGrad = -(meanLp + TARGET_ENTROPY);
+        logAlpha -= LR_ALPHA * clamp(alphaGrad,-2,2);
+        logAlpha = clamp(logAlpha, Math.log(0.01), Math.log(2.0));
+
+        // --- Soft update targets ---
+        softUpdate(c1L1t,c1L1,TAU); softUpdate(c1L2t,c1L2,TAU);
+        softUpdate(c2L1t,c2L1,TAU); softUpdate(c2L2t,c2L2,TAU);
+
+        // record Q values for display
+        lastQ1=criticForward(c1L1,c1L2,s,sam.a);
+        lastQ2=criticForward(c2L1,c2L2,s,sam.a);
+
+        recordHistory(sam);
+    }
+
+    function recordHistory(sam){
+        // Record every 5 steps
+        if(totalSteps%5===0){
+            // compute entropy from current policy at a few sampled states
+            var ent=0, nS=8;
+            for(var i=0;i<nS;i++){
+                var ss=[Math.random(), Math.random()];
+                var p=actorForward(ss);
+                // Gaussian entropy: 0.5*ln(2πe*σ²) per dim, 2 dims
+                ent+= 0.5*Math.log(2*Math.PI*Math.E)*2 + p.logSig[0] + p.logSig[1];
             }
-            if (maxE - minE < 0.1) { maxE = minE + 1; }
-            var rangeE = maxE - minE;
+            ent/=nS;
+            entropyHist.push(ent);
+            alphaHist.push(getAlpha());
+        }
+    }
 
-            ctx.strokeStyle = '#e53e3e';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            for (var i = 0; i < n; i++) {
-                var px = padL + (i / (n - 1)) * plotW;
-                var py = padT + plotH - ((entropyHistory[i] - minE) / rangeE) * plotH;
-                if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-            }
-            ctx.stroke();
+    /* ==================== DRAWING ==================== */
+    var DPR = window.devicePixelRatio || 1;
 
-            // Y轴标签（熵）
-            ctx.save();
-            ctx.fillStyle = '#e53e3e';
-            ctx.translate(14, padT + plotH / 2);
-            ctx.rotate(-Math.PI / 2);
-            ctx.textAlign = 'center';
-            ctx.font = '11px sans-serif';
-            ctx.fillText('策略熵', 0, 0);
-            ctx.restore();
+    function setupCanvas(id,w,h){
+        var cvs=document.getElementById(id);
+        if(!cvs) return null;
+        cvs.width=w*DPR; cvs.height=h*DPR;
+        cvs.style.width=w+'px'; cvs.style.height=h+'px';
+        var ctx=cvs.getContext('2d');
+        ctx.setTransform(DPR,0,0,DPR,0,0);
+        return ctx;
+    }
 
-            // 画奖励曲线（右Y轴）
-            var minR = Infinity, maxR = -Infinity;
-            for (var i = 0; i < n; i++) {
-                minR = Math.min(minR, rewardHistory[i]);
-                maxR = Math.max(maxR, rewardHistory[i]);
-            }
-            if (maxR - minR < 1) { maxR = minR + 10; }
-            var rangeR = maxR - minR;
+    /* --- Architecture Diagram (canvas) --- */
+    function drawArch(){
+        var ctx=setupCanvas('cvs-arch',540,300);
+        if(!ctx) return;
+        var W=540, H=300;
+        ctx.clearRect(0,0,W,H);
+        ctx.textBaseline='middle';
 
-            ctx.strokeStyle = '#2b6cb0';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            for (var i = 0; i < n; i++) {
-                var px = padL + (i / (n - 1)) * plotW;
-                var py = padT + plotH - ((rewardHistory[i] - minR) / rangeR) * plotH;
-                if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-            }
-            ctx.stroke();
+        // --- Actor box ---
+        ctx.fillStyle='#f0fff4'; ctx.strokeStyle='#48bb78'; ctx.lineWidth=2;
+        roundRect(ctx, 15, 30, 200, 230, 8, true, true);
+        ctx.fillStyle='#276749'; ctx.font='bold 13px sans-serif'; ctx.textAlign='center';
+        ctx.fillText('Actor: 高斯策略 π', 115, 50);
+        ctx.font='11px sans-serif';
+        ctx.fillText('θ', 173, 53);
 
-            // 右Y轴
-            ctx.strokeStyle = '#a0aec0';
-            ctx.beginPath();
-            ctx.moveTo(padL + plotW, padT);
-            ctx.lineTo(padL + plotW, padT + plotH);
-            ctx.stroke();
-
-            ctx.save();
-            ctx.fillStyle = '#2b6cb0';
-            ctx.translate(W - 8, padT + plotH / 2);
-            ctx.rotate(-Math.PI / 2);
-            ctx.textAlign = 'center';
-            ctx.font = '11px sans-serif';
-            ctx.fillText('平均奖励', 0, 0);
-            ctx.restore();
-
-            // 图例
-            ctx.lineWidth = 2;
-            var lx = padL + 10, ly = padT + 10;
-            ctx.strokeStyle = '#e53e3e'; ctx.beginPath();
-            ctx.moveTo(lx, ly); ctx.lineTo(lx + 20, ly); ctx.stroke();
-            ctx.fillStyle = '#e53e3e'; ctx.font = '11px sans-serif'; ctx.textAlign = 'left';
-            ctx.fillText('策略熵', lx + 25, ly + 4);
-
-            ly += 18;
-            ctx.strokeStyle = '#2b6cb0'; ctx.beginPath();
-            ctx.moveTo(lx, ly); ctx.lineTo(lx + 20, ly); ctx.stroke();
-            ctx.fillStyle = '#2b6cb0';
-            ctx.fillText('平均奖励', lx + 25, ly + 4);
+        // Input nodes
+        ctx.fillStyle='#ebf4ff'; ctx.strokeStyle='#2b6cb0'; ctx.lineWidth=1.2;
+        var inLabels=['ret','vol'];
+        var inY=[100,160];
+        for(var i=0;i<2;i++){
+            ctx.beginPath(); ctx.arc(55,inY[i],14,0,6.283); ctx.fill(); ctx.stroke();
+            ctx.fillStyle='#2d3748'; ctx.font='italic 11px sans-serif'; ctx.textAlign='center';
+            ctx.fillText(inLabels[i], 55, inY[i]);
+            ctx.fillStyle='#ebf4ff';
         }
 
-        function updateInfo() {
-            var avgR = '—', avgH = '—';
-            if (rewardHistory.length > 0) {
-                avgR = rewardHistory[rewardHistory.length - 1].toFixed(1);
-                avgH = entropyHistory[entropyHistory.length - 1].toFixed(2);
-            }
-            document.getElementById('sac-info').innerHTML =
-                '已训练 <strong>' + totalSteps + '</strong> 步 | 平均奖励：<strong>' + avgR + '</strong> | 平均策略熵：<strong>' + avgH + '</strong>';
+        // Hidden layer (6 nodes, draw 4 representative)
+        var hidY=[80,120,160,200];
+        ctx.fillStyle='#e2e8f0'; ctx.strokeStyle='#718096';
+        for(var i=0;i<4;i++){
+            ctx.beginPath(); ctx.arc(115,hidY[i],8,0,6.283); ctx.fill(); ctx.stroke();
+        }
+        ctx.fillStyle='#718096'; ctx.font='9px sans-serif';
+        ctx.fillText('×6', 115, 222);
+
+        // Output: Gaussian params
+        var outLabels=['μ_s','μ_b','σ_s','σ_b'];
+        var outY=[75,115,165,205];
+        var outColors=['#2b6cb0','#2b6cb0','#c53030','#c53030'];
+        for(var i=0;i<4;i++){
+            ctx.fillStyle=i<2?'#dbeafe':'#fed7d7'; ctx.strokeStyle=outColors[i]; ctx.lineWidth=1.2;
+            ctx.beginPath(); ctx.arc(180,outY[i],12,0,6.283); ctx.fill(); ctx.stroke();
+            ctx.fillStyle=outColors[i]; ctx.font='italic 10px sans-serif';
+            ctx.fillText(outLabels[i], 180, outY[i]);
         }
 
-        function sacResetInternal() {
-            initArrays();
-            totalSteps = 0;
-            rewardHistory = [];
-            entropyHistory = [];
-            curBin = 1; // 初始为中等波动
-            curWeights = 0.33; // 初始等权配置
+        // Connections: input → hidden
+        ctx.strokeStyle='#b0b8c4'; ctx.lineWidth=0.8;
+        for(var i=0;i<2;i++) for(var j=0;j<4;j++){
+            ctx.beginPath(); ctx.moveTo(69,inY[i]); ctx.lineTo(107,hidY[j]); ctx.stroke();
+        }
+        // hidden → output
+        for(var i=0;i<4;i++) for(var j=0;j<4;j++){
+            ctx.beginPath(); ctx.moveTo(123,hidY[i]); ctx.lineTo(168,outY[j]); ctx.stroke();
         }
 
-        /* ---------- 全局接口 ---------- */
-        window.sacTrain = function(n) {
-            var rewardBuf = [];
-            for (var i = 0; i < n; i++) {
-                var res = trainStep();
-                rewardBuf.push(res.reward);
-                if (totalSteps % 50 === 0) {
-                    var avgR = 0;
-                    var cnt = Math.min(rewardBuf.length, 50);
-                    for (var j = rewardBuf.length - cnt; j < rewardBuf.length; j++) avgR += rewardBuf[j];
-                    avgR /= cnt;
-                    rewardHistory.push(avgR);
-                    entropyHistory.push(computeAvgEntropy());
-                }
+        // Draw small Gaussian bell curves next to μ/σ outputs
+        if(lastSample){
+            var mu1=lastSample.mu[0], mu2=lastSample.mu[1];
+            var sig1=lastSample.sig[0], sig2=lastSample.sig[1];
+            drawMiniGauss(ctx, 178, 63, 40, 20, mu1, sig1, '#2b6cb0');
+            drawMiniGauss(ctx, 178, 148, 40, 20, mu2, sig2, '#2b6cb0');
+        }
+
+        // --- Twin Critics ---
+        var cx=320, cy1=50, cy2=175;
+        // Critic 1
+        ctx.fillStyle='#fffff0'; ctx.strokeStyle='#d69e2e'; ctx.lineWidth=2;
+        roundRect(ctx, cx, cy1, 140, 80, 8, true, true);
+        ctx.fillStyle='#975a16'; ctx.font='bold 12px sans-serif'; ctx.textAlign='center';
+        ctx.fillText('Critic Q₁', cx+70, cy1+25);
+        ctx.font='11px sans-serif'; ctx.fillStyle='#975a16';
+        ctx.fillText('(s, a) → Q₁', cx+70, cy1+50);
+        if(lastQ1!==0){
+            ctx.fillStyle='#4a5568'; ctx.font='10px sans-serif';
+            ctx.fillText('Q₁='+lastQ1.toFixed(1), cx+70, cy1+68);
+        }
+
+        // Critic 2
+        ctx.fillStyle='#fffff0'; ctx.strokeStyle='#d69e2e'; ctx.lineWidth=2;
+        roundRect(ctx, cx, cy2, 140, 80, 8, true, true);
+        ctx.fillStyle='#975a16'; ctx.font='bold 12px sans-serif'; ctx.textAlign='center';
+        ctx.fillText('Critic Q₂', cx+70, cy2+25);
+        ctx.font='11px sans-serif'; ctx.fillStyle='#975a16';
+        ctx.fillText('(s, a) → Q₂', cx+70, cy2+50);
+        if(lastQ2!==0){
+            ctx.fillStyle='#4a5568'; ctx.font='10px sans-serif';
+            ctx.fillText('Q₂='+lastQ2.toFixed(1), cx+70, cy2+68);
+        }
+
+        // min box
+        ctx.fillStyle='#e9d8fd'; ctx.strokeStyle='#805ad5'; ctx.lineWidth=1.5;
+        roundRect(ctx, cx+30, cy2+95, 80, 28, 6, true, true);
+        ctx.fillStyle='#553c9a'; ctx.font='bold 11px sans-serif';
+        ctx.fillText('min(Q₁, Q₂)', cx+70, cy2+109);
+
+        // lines from critics to min
+        ctx.strokeStyle='#805ad5'; ctx.lineWidth=1.2;
+        ctx.beginPath(); ctx.moveTo(cx+70,cy1+80); ctx.lineTo(cx+70,cy2+95); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx+70,cy2+80); ctx.lineTo(cx+70,cy2+95); ctx.stroke();
+
+        // line from actor to critics
+        ctx.strokeStyle='#718096'; ctx.lineWidth=1;
+        ctx.setLineDash([4,3]);
+        ctx.beginPath(); ctx.moveTo(215,130); ctx.lineTo(cx,cy1+50); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(215,130); ctx.lineTo(cx,cy2+50); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // --- Temperature gauge ---
+        var gx=490, gy=30, gw=35, gh=230;
+        // thermometer outline
+        ctx.fillStyle='#fafafa'; ctx.strokeStyle='#805ad5'; ctx.lineWidth=1.5;
+        roundRect(ctx, gx, gy, gw, gh, 6, true, true);
+        // fill level based on alpha
+        var alpha=getAlpha();
+        var fillH = (alpha/2.0)*gh; // alpha ∈ [0.01, 2.0]
+        fillH=clamp(fillH, 4, gh-4);
+        ctx.fillStyle='rgba(128,90,213,0.25)';
+        ctx.fillRect(gx+3, gy+gh-fillH, gw-6, fillH-3);
+        // label
+        ctx.fillStyle='#805ad5'; ctx.font='bold 11px sans-serif'; ctx.textAlign='center';
+        ctx.fillText('α', gx+gw/2, gy-10);
+        ctx.font='10px sans-serif';
+        ctx.fillText(alpha.toFixed(2), gx+gw/2, gy+gh+14);
+        // scale marks
+        ctx.fillStyle='#a0aec0'; ctx.font='9px sans-serif'; ctx.textAlign='right';
+        ctx.fillText('2.0', gx-3, gy+8);
+        ctx.fillText('1.0', gx-3, gy+gh/2);
+        ctx.fillText('0', gx-3, gy+gh-2);
+        // pointer
+        var pointerY=gy+gh - fillH;
+        ctx.fillStyle='#805ad5';
+        ctx.beginPath();
+        ctx.moveTo(gx+gw+2, pointerY);
+        ctx.lineTo(gx+gw+8, pointerY-4);
+        ctx.lineTo(gx+gw+8, pointerY+4);
+        ctx.closePath(); ctx.fill();
+
+        // annotations
+        ctx.fillStyle='#718096'; ctx.font='9px sans-serif'; ctx.textAlign='center';
+        ctx.fillText('高探索', gx+gw/2, gy+15);
+        ctx.fillText('高利用', gx+gw/2, gy+gh-10);
+    }
+
+    function drawMiniGauss(ctx, cx, cy, w, h, mu, sig, color){
+        ctx.strokeStyle=color; ctx.lineWidth=1.5;
+        ctx.beginPath();
+        for(var i=0;i<=40;i++){
+            var x=i/40; // 0..1
+            var z=(x-mu)/Math.max(sig,0.05);
+            var y=Math.exp(-0.5*z*z);
+            var px=cx-w/2+x*w;
+            var py=cy+h/2-y*h;
+            if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+        }
+        ctx.stroke();
+    }
+
+    function roundRect(ctx,x,y,w,h,r,fill,stroke){
+        ctx.beginPath();
+        ctx.moveTo(x+r,y);
+        ctx.lineTo(x+w-r,y); ctx.arcTo(x+w,y,x+w,y+r,r);
+        ctx.lineTo(x+w,y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+        ctx.lineTo(x+r,y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
+        ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r);
+        ctx.closePath();
+        if(fill) ctx.fill();
+        if(stroke) ctx.stroke();
+    }
+
+    /* --- Policy Distribution (2D contour in triangle) --- */
+    function drawPolicy(){
+        var ctx=setupCanvas('cvs-policy',440,380);
+        if(!ctx) return;
+        var W=440, H=380;
+        ctx.clearRect(0,0,W,H);
+
+        var padL=55, padR=20, padT=30, padB=50;
+        var plotW=W-padL-padR, plotH=H-padT-padB;
+
+        // Get current policy params at a representative state
+        var repState=[0.5, 0.4]; // mid return, mid vol
+        var p=actorForward(repState);
+        var mu1=p.mu[0], mu2=p.mu[1];
+        var sig1=Math.exp(p.logSig[0]), sig2=Math.exp(p.logSig[1]);
+
+        // Draw heatmap of policy density
+        var res=2; // pixel step
+        for(var px=0; px<plotW; px+=res){
+            for(var py=0; py<plotH; py+=res){
+                var ax=px/plotW; // stock alloc
+                var ay=1-py/plotH; // bond alloc (y-axis inverted)
+                if(ax+ay>1.02) continue; // outside feasible
+                var z1=(ax-mu1)/Math.max(sig1,0.01);
+                var z2=(ay-mu2)/Math.max(sig2,0.01);
+                var density=Math.exp(-0.5*(z1*z1+z2*z2));
+                if(density<0.01) continue;
+                var r=Math.round(43+212*(1-density));
+                var g=Math.round(108+147*(1-density));
+                var b=Math.round(176+79*(1-density));
+                var alpha_c=0.15+0.7*density;
+                ctx.fillStyle='rgba('+r+','+g+','+b+','+alpha_c+')';
+                ctx.fillRect(padL+px, padT+py, res, res);
             }
-            drawPolicy();
-            drawEntropy();
-            updateInfo();
-        };
+        }
 
-        window.sacReset = function() {
-            sacResetInternal();
-            drawPolicy();
-            drawEntropy();
-            updateInfo();
-        };
+        // Draw feasible triangle boundary (stock + bond ≤ 1)
+        ctx.strokeStyle='#4a5568'; ctx.lineWidth=1.5; ctx.setLineDash([5,3]);
+        ctx.beginPath();
+        ctx.moveTo(padL, padT); // (0,1)
+        ctx.lineTo(padL, padT+plotH); // (0,0)
+        ctx.lineTo(padL+plotW, padT+plotH); // (1,0)
+        ctx.lineTo(padL, padT); // back to (0,1)
+        ctx.stroke();
+        ctx.setLineDash([]);
 
-        window.sacSetAlpha = function(val) {
-            ALPHA = parseFloat(val);
-        };
+        // Label the triangle constraint
+        ctx.fillStyle='#4a5568'; ctx.font='10px sans-serif'; ctx.textAlign='center';
+        ctx.save();
+        ctx.translate(padL+plotW*0.55, padT+plotH*0.25);
+        ctx.rotate(Math.atan2(-plotH, plotW));
+        ctx.fillText('stock + bond = 1', 0, -8);
+        ctx.restore();
 
-        // 初始化
-        sacResetInternal();
-        setTimeout(function(){ drawPolicy(); drawEntropy(); updateInfo(); }, 100);
+        // Shade infeasible region
+        ctx.fillStyle='rgba(200,200,200,0.15)';
+        ctx.beginPath();
+        ctx.moveTo(padL, padT);
+        ctx.lineTo(padL+plotW, padT);
+        ctx.lineTo(padL+plotW, padT+plotH);
+        ctx.lineTo(padL, padT);
+        ctx.closePath(); ctx.fill();
+
+        // Draw 2σ ellipse
+        ctx.strokeStyle='#c53030'; ctx.lineWidth=2;
+        ctx.beginPath();
+        for(var t=0;t<=64;t++){
+            var angle=t/64*6.2832;
+            var ex=mu1+2*sig1*Math.cos(angle);
+            var ey=mu2+2*sig2*Math.sin(angle);
+            var epx=padL+ex*plotW;
+            var epy=padT+(1-ey)*plotH;
+            if(t===0) ctx.moveTo(epx,epy); else ctx.lineTo(epx,epy);
+        }
+        ctx.closePath(); ctx.stroke();
+
+        // Label ellipse
+        ctx.fillStyle='#c53030'; ctx.font='10px sans-serif'; ctx.textAlign='left';
+        var lblX=padL+clamp((mu1+2*sig1)*plotW+4, padL, padL+plotW-30);
+        var lblY=padT+(1-mu2)*plotH;
+        ctx.fillText('2σ', lblX, lblY);
+
+        // Draw sampled points (last 30 from buffer)
+        var nPts=Math.min(buffer.length, 30);
+        ctx.fillStyle='rgba(192,86,33,0.45)';
+        for(var i=buffer.length-nPts;i<buffer.length;i++){
+            var ba=buffer[i].a;
+            var bpx=padL+ba[0]*plotW;
+            var bpy=padT+(1-ba[1])*plotH;
+            ctx.beginPath(); ctx.arc(bpx,bpy,2.5,0,6.283); ctx.fill();
+        }
+
+        // Draw mean as crosshair
+        var mpx=padL+mu1*plotW, mpy=padT+(1-mu2)*plotH;
+        ctx.strokeStyle='#c53030'; ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.moveTo(mpx-6,mpy); ctx.lineTo(mpx+6,mpy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(mpx,mpy-6); ctx.lineTo(mpx,mpy+6); ctx.stroke();
+
+        // Axes
+        ctx.strokeStyle='#cbd5e0'; ctx.lineWidth=1;
+        ctx.beginPath();
+        ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.lineTo(padL+plotW, padT+plotH);
+        ctx.stroke();
+
+        // Axis labels and ticks
+        ctx.fillStyle='#4a5568'; ctx.font='11px sans-serif'; ctx.textAlign='center';
+        for(var i=0;i<=4;i++){
+            var v=(i*25)+'%';
+            var x=padL+(i/4)*plotW;
+            ctx.fillText(v, x, padT+plotH+16);
+            // tick
+            ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=0.5;
+            if(i>0){ ctx.beginPath(); ctx.moveTo(x,padT); ctx.lineTo(x,padT+plotH); ctx.stroke(); }
+        }
+        ctx.fillText('股票配置比例', padL+plotW/2, padT+plotH+38);
+
+        ctx.textAlign='right';
+        for(var i=0;i<=4;i++){
+            var v=(i*25)+'%';
+            var y=padT+plotH-(i/4)*plotH;
+            ctx.fillText(v, padL-6, y+4);
+            ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=0.5;
+            if(i>0){ ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(padL+plotW,y); ctx.stroke(); }
+        }
+        ctx.save();
+        ctx.translate(14, padT+plotH/2);
+        ctx.rotate(-Math.PI/2);
+        ctx.textAlign='center'; ctx.fillStyle='#4a5568'; ctx.font='11px sans-serif';
+        ctx.fillText('债券配置比例', 0, 0);
+        ctx.restore();
+
+        // Legend
+        ctx.textAlign='left'; ctx.font='10px sans-serif';
+        // density swatch
+        ctx.fillStyle='rgba(43,108,176,0.6)';
+        ctx.fillRect(padL+5, padT+5, 12, 12);
+        ctx.fillStyle='#2d3748';
+        ctx.fillText('策略密度', padL+20, padT+15);
+        // ellipse
+        ctx.strokeStyle='#c53030'; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.moveTo(padL+5,padT+27); ctx.lineTo(padL+17,padT+27); ctx.stroke();
+        ctx.fillStyle='#c53030';
+        ctx.fillText('2σ 等高线', padL+20, padT+31);
+        // sample dots
+        ctx.fillStyle='rgba(192,86,33,0.6)';
+        ctx.beginPath(); ctx.arc(padL+11,padT+43,3,0,6.283); ctx.fill();
+        ctx.fillStyle='#c05621';
+        ctx.fillText('采样动作', padL+20, padT+47);
+
+        // Info: current σ
+        ctx.fillStyle='#718096'; ctx.font='10px sans-serif'; ctx.textAlign='right';
+        ctx.fillText('σ_stock='+sig1.toFixed(3)+', σ_bond='+sig2.toFixed(3), padL+plotW, padT+plotH+38);
+    }
+
+    /* --- Entropy & Temperature Curves --- */
+    function drawEntropy(){
+        var ctx=setupCanvas('cvs-entropy',440,380);
+        if(!ctx) return;
+        var W=440, H=380;
+        ctx.clearRect(0,0,W,H);
+
+        var padL=50, padR=50, padT=30, padB=50;
+        var plotW=W-padL-padR, plotH_half=(H-padT-padB-20)/2; // two stacked charts
+
+        // Top chart: Entropy H(π)
+        drawSubChart(ctx, padL, padT, plotW, plotH_half, entropyHist, '策略熵 H(π)', '#2b6cb0', true);
+
+        // Bottom chart: Temperature α
+        var topBot = padT+plotH_half+20;
+        drawSubChart(ctx, padL, topBot, plotW, plotH_half, alphaHist, '温度 α', '#805ad5', false);
+
+        // X-axis label
+        ctx.fillStyle='#4a5568'; ctx.font='11px sans-serif'; ctx.textAlign='center';
+        ctx.fillText('训练步数', padL+plotW/2, H-8);
+    }
+
+    function drawSubChart(ctx, ox, oy, pw, ph, data, label, color, showTarget){
+        // Background
+        ctx.fillStyle='#fafafa';
+        ctx.fillRect(ox, oy, pw, ph);
+
+        // Axes
+        ctx.strokeStyle='#cbd5e0'; ctx.lineWidth=1;
+        ctx.beginPath();
+        ctx.moveTo(ox, oy); ctx.lineTo(ox, oy+ph); ctx.lineTo(ox+pw, oy+ph);
+        ctx.stroke();
+
+        // Label
+        ctx.save();
+        ctx.fillStyle=color; ctx.font='bold 11px sans-serif';
+        ctx.translate(ox-35, oy+ph/2);
+        ctx.rotate(-Math.PI/2);
+        ctx.textAlign='center';
+        ctx.fillText(label, 0, 0);
+        ctx.restore();
+
+        if(data.length<2){
+            ctx.fillStyle='#a0aec0'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+            ctx.fillText('开始训练后显示曲线', ox+pw/2, oy+ph/2);
+            if(showTarget){
+                // still show target entropy line
+                ctx.strokeStyle='#805ad5'; ctx.lineWidth=1; ctx.setLineDash([4,3]);
+                var ty=oy+ph*0.4;
+                ctx.beginPath(); ctx.moveTo(ox,ty); ctx.lineTo(ox+pw,ty); ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle='#805ad5'; ctx.font='10px sans-serif'; ctx.textAlign='left';
+                ctx.fillText('目标熵: '+TARGET_ENTROPY.toFixed(1), ox+pw-80, ty-5);
+            }
+            return;
+        }
+
+        var n=data.length;
+        var minV=Infinity, maxV=-Infinity;
+        for(var i=0;i<n;i++){
+            if(data[i]<minV) minV=data[i];
+            if(data[i]>maxV) maxV=data[i];
+        }
+        // Include target entropy in range if showing
+        if(showTarget){
+            minV=Math.min(minV, TARGET_ENTROPY-0.3);
+            maxV=Math.max(maxV, TARGET_ENTROPY+0.3);
+        }
+        if(maxV-minV<0.1) { maxV=minV+1; }
+        var range=maxV-minV;
+
+        // Data line
+        ctx.strokeStyle=color; ctx.lineWidth=2;
+        ctx.beginPath();
+        for(var i=0;i<n;i++){
+            var px=ox+(i/(n-1))*pw;
+            var py=oy+ph-((data[i]-minV)/range)*ph;
+            if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+        }
+        ctx.stroke();
+
+        // Target entropy dashed line
+        if(showTarget){
+            ctx.strokeStyle='#805ad5'; ctx.lineWidth=1; ctx.setLineDash([4,3]);
+            var ty=oy+ph-((TARGET_ENTROPY-minV)/range)*ph;
+            ty=clamp(ty, oy+2, oy+ph-2);
+            ctx.beginPath(); ctx.moveTo(ox,ty); ctx.lineTo(ox+pw,ty); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle='#805ad5'; ctx.font='10px sans-serif'; ctx.textAlign='left';
+            ctx.fillText('目标熵: '+TARGET_ENTROPY.toFixed(1), ox+pw-80, ty-5);
+        }
+
+        // X tick marks
+        ctx.fillStyle='#4a5568'; ctx.font='10px sans-serif'; ctx.textAlign='center';
+        var maxStep=n*5;
+        for(var i=0;i<=4;i++){
+            var xVal=Math.round(maxStep*i/4);
+            var x=ox+(i/4)*pw;
+            ctx.fillText(xVal.toString(), x, oy+ph+13);
+        }
+
+        // Y tick marks
+        ctx.textAlign='right';
+        for(var i=0;i<=3;i++){
+            var v=minV+range*(i/3);
+            var y=oy+ph-(i/3)*ph;
+            ctx.fillText(v.toFixed(1), ox-5, y+3);
+        }
+
+        // current value label
+        ctx.fillStyle=color; ctx.font='bold 10px sans-serif'; ctx.textAlign='right';
+        var lastVal=data[data.length-1];
+        var lastPy=oy+ph-((lastVal-minV)/range)*ph;
+        ctx.fillText(lastVal.toFixed(2), ox+pw+40, lastPy+3);
+    }
+
+    /* --- Data Panel --- */
+    function updateDataPanel(){
+        var el=document.getElementById('sac-data');
+        if(!el) return;
+        if(!lastSample){
+            el.textContent='状态: (近期收益=—, 波动率=—)\n高斯参数: μ=(—, —), σ=(—, —)\n采样动作: (股票=—, 债券=—, 现金=—)\n熵: — (目标: '+TARGET_ENTROPY.toFixed(1)+')  温度: α=—\nQ值: Q₁=—, Q₂=—';
+            return;
+        }
+        var s=lastSample;
+        var cash=(1-s.a[0]-s.a[1]);
+        var ent = entropyHist.length>0 ? entropyHist[entropyHist.length-1] : 0;
+        var lines=[
+            '状态: (近期收益='+s.s[0].toFixed(2)+', 波动率='+s.s[1].toFixed(2)+')',
+            '高斯参数: μ=('+s.mu[0].toFixed(3)+', '+s.mu[1].toFixed(3)+'), σ=('+s.sig[0].toFixed(3)+', '+s.sig[1].toFixed(3)+')',
+            '采样动作: (股票='+s.a[0].toFixed(2)+', 债券='+s.a[1].toFixed(2)+', 现金='+cash.toFixed(2)+')',
+            '熵: '+ent.toFixed(2)+' (目标: '+TARGET_ENTROPY.toFixed(1)+')  温度: α='+getAlpha().toFixed(3),
+            'Q值: Q₁='+lastQ1.toFixed(1)+', Q₂='+lastQ2.toFixed(1)
+        ];
+        el.textContent=lines.join('\n');
+    }
+
+    /* --- Status Bar --- */
+    function updateStatus(){
+        var el=document.getElementById('sac-status');
+        if(!el) return;
+        var ent = entropyHist.length>0 ? entropyHist[entropyHist.length-1].toFixed(2) : '—';
+        el.innerHTML='训练步 <strong>'+totalSteps+'</strong> | 温度 $\\alpha$: <strong>'+getAlpha().toFixed(2)+'</strong> | 熵: <strong>'+ent+'</strong> | 缓冲区: <strong>'+buffer.length+'</strong>/'+BUFFER_MAX;
+        // re-render KaTeX in status
+        if(window.renderMathInElement) renderMathInElement(el, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+    }
+
+    function redrawAll(){
+        drawArch();
+        drawPolicy();
+        drawEntropy();
+        updateDataPanel();
+        updateStatus();
+    }
+
+    /* ---------- Global Interface ---------- */
+    window.sacStep = function(){
+        doStep();
+        redrawAll();
+    };
+
+    window.sacToggleAuto = function(){
+        var btn=document.getElementById('sac-btn-auto');
+        if(autoTimer){
+            clearInterval(autoTimer);
+            autoTimer=null;
+            if(btn) btn.textContent='自动训练';
+        } else {
+            autoTimer=setInterval(function(){
+                for(var i=0;i<5;i++) doStep();
+                redrawAll();
+            }, 80);
+            if(btn) btn.textContent='暂停';
+        }
+    };
+
+    window.sacFast = function(){
+        if(autoTimer){ clearInterval(autoTimer); autoTimer=null;
+            var btn=document.getElementById('sac-btn-auto');
+            if(btn) btn.textContent='自动训练';
+        }
+        for(var i=0;i<500;i++) doStep();
+        redrawAll();
+    };
+
+    window.sacReset = function(){
+        if(autoTimer){ clearInterval(autoTimer); autoTimer=null;
+            var btn=document.getElementById('sac-btn-auto');
+            if(btn) btn.textContent='自动训练';
+        }
+        sacInit();
+        envReset();
+        redrawAll();
+    };
+
+    // Initialize
+    sacInit();
+    envReset();
+    setTimeout(redrawAll, 200);
+
     })();
     </script>
 </body>
