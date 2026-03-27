@@ -28,12 +28,6 @@
         .optional-reading { background: #f0fff4; border: 1px solid #9ae6b4; border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; }
         .optional-reading summary { font-weight: 700; color: #276749; cursor: pointer; font-size: 1rem; }
         .optional-reading summary:hover { color: var(--accent-color); }
-        .rl-ctrl { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; margin-bottom:0.8rem; font-size:0.88rem; }
-        .rl-ctrl button { padding:0.3rem 0.7rem; border:1px solid #2b6cb0; background:white; color:#2b6cb0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.84rem; transition:all 0.15s; }
-        .rl-ctrl button:hover { background:#2b6cb0; color:white; }
-        .rl-ctrl button:disabled { opacity:0.5; cursor:not-allowed; }
-        .rl-info { background:#ebf4ff; border-radius:6px; padding:0.4rem 0.8rem; font-size:0.88rem; margin-top:0.6rem; }
-
         /* 网络结构 SVG */
         .nn-svg text { font-family: "Source Han Serif SC", Georgia, serif; }
 
@@ -51,60 +45,51 @@
         /* DQN 交互演示 */
         .dqn-demo { border:2px solid var(--border-color); border-radius:8px; padding:1.2rem; margin:1.5rem 0; background:#fafafa; }
         .dqn-demo .demo-title { font-weight:700; color:var(--accent-color); margin-bottom:0.6rem; font-size:1.05rem; }
-        .dqn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 0.8rem 0; }
-        .dqn-grid-full { grid-column: 1 / -1; }
-        @media (max-width: 768px) { .dqn-grid { grid-template-columns: 1fr; } }
-        .dqn-panel { background: white; border: 1px solid var(--border-color); border-radius: 6px; padding: 0.8rem; }
-        .dqn-panel-title { font-weight: 600; font-size: 0.9rem; color: var(--primary-color); margin-bottom: 0.5rem; }
-        .q-cell { display: inline-block; padding: 0.15rem 0.4rem; margin: 0.1rem; border-radius: 3px; font-size: 0.82rem; font-family: "JetBrains Mono", monospace; }
         .fig-caption { text-align: center; font-size: 0.92rem; color: #4a5568; margin: 0.8rem 0 1.5rem 0; }
 
-        /* Panel 1: 状态与动作选择 */
-        .zone-map { display:flex; justify-content:center; gap:1.2rem; margin:0.6rem 0; align-items:center; }
-        .zone-circle { width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-                        font-size:0.85rem; font-weight:600; border:3px solid #cbd5e0; transition:all 0.3s; color:#2d3748; }
-        .zone-circle.active { border-color:#2b6cb0; box-shadow:0 0 0 4px rgba(43,108,176,0.2); }
-        .zone-circle.zone-c { background:#dbeafe; }
-        .zone-circle.zone-b { background:#fefcbf; }
-        .zone-circle.zone-a { background:#fed7d7; }
-        .action-choice { background:#f7fafc; border-radius:6px; padding:0.6rem; margin-top:0.5rem; font-size:0.85rem; line-height:1.7; }
-        .action-choice .chosen { font-weight:700; color:#276749; }
-        .action-choice .explore-tag { display:inline-block; padding:0.1rem 0.4rem; border-radius:3px; font-size:0.75rem; font-weight:600; margin-left:0.3rem; }
-        .action-choice .explore-tag.random { background:#fed7d7; color:#c53030; }
-        .action-choice .explore-tag.greedy { background:#c6f6d5; color:#276749; }
+        /* 顶部两栏布局 */
+        .dqn-top-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:0.8rem 0; }
+        @media (max-width: 768px) { .dqn-top-row { grid-template-columns:1fr; } }
+        .dqn-panel { background:white; border:1px solid var(--border-color); border-radius:6px; padding:0.8rem; }
+        .dqn-panel-title { font-weight:600; font-size:0.9rem; color:var(--primary-color); margin-bottom:0.5rem; }
 
-        /* Panel 2: 环境反馈 */
-        .feedback-display { text-align:center; padding:0.5rem; }
-        .feedback-arrow { display:flex; align-items:center; justify-content:center; gap:0.5rem; margin:0.5rem 0; font-size:0.95rem; }
-        .feedback-arrow .arrow-line { color:#2b6cb0; font-size:1.3rem; }
-        .feedback-detail { font-size:0.88rem; line-height:1.8; }
-        .feedback-detail .val { font-weight:700; font-family:"JetBrains Mono",monospace; }
-
-        /* Panel 3: 经验缓冲区 */
-        .buffer-table { width:100%; border-collapse:collapse; font-size:0.82rem; }
-        .buffer-table th, .buffer-table td { border:1px solid #e2e8f0; padding:0.3rem 0.5rem; text-align:center; }
-        .buffer-table th { background:#2b6cb0; color:white; font-size:0.78rem; }
-        .buffer-table tr.new-row { background:#fefcbf; }
-        .buffer-table tr.sampled-row { background:#dbeafe; }
-        .buffer-table tr.both-row { background:linear-gradient(135deg, #fefcbf 50%, #dbeafe 50%); }
-
-        /* Panel 4: TD目标与更新 */
-        .td-update-list { font-size:0.84rem; line-height:1.6; }
-        .td-update-item { background:#f7fafc; border:1px solid #e2e8f0; border-radius:5px; padding:0.5rem 0.7rem; margin-bottom:0.4rem; }
-        .td-update-item .td-formula { font-family:"JetBrains Mono",monospace; font-size:0.82rem; }
-        .td-update-item .td-error-pos { color:#276749; font-weight:600; }
-        .td-update-item .td-error-neg { color:#c53030; font-weight:600; }
-
-        /* Panel 5: Q值热力图 */
-        .q-heatmap { display:grid; grid-template-columns:auto 1fr 1fr; gap:0; margin:0.5rem 0; font-size:0.82rem; }
+        /* Q值热力图 */
+        .q-heatmap { display:grid; grid-template-columns:auto repeat(4, 1fr); gap:0; margin:0.5rem 0; font-size:0.82rem; }
+        .q-heatmap .hm-corner { background:#f7fafc; border:1px solid #e2e8f0; padding:0.3rem 0.4rem; font-size:0.75rem; color:#718096; text-align:center; }
         .q-heatmap .hm-header { background:#2b6cb0; color:white; padding:0.3rem 0.5rem; text-align:center; font-weight:600; font-size:0.78rem; }
-        .q-heatmap .hm-label { background:#f7fafc; padding:0.3rem 0.5rem; font-weight:600; border:1px solid #e2e8f0; display:flex; align-items:center; }
-        .q-heatmap .hm-cell { padding:0.4rem 0.5rem; text-align:center; border:1px solid #e2e8f0;
-                               font-family:"JetBrains Mono",monospace; font-size:0.85rem; transition:background 0.5s; }
-        .q-heatmap .hm-cell.flash { animation: cellFlash 0.6s ease-out; }
-        @keyframes cellFlash { 0% { background:#fefcbf; } 100% { background:inherit; } }
-        .best-actions { margin-top:0.5rem; font-size:0.84rem; line-height:1.7; }
-        .best-actions .best-label { font-weight:600; color:#2b6cb0; }
+        .q-heatmap .hm-label { background:#f7fafc; padding:0.3rem 0.5rem; font-weight:600; border:1px solid #e2e8f0; display:flex; align-items:center; font-size:0.82rem; }
+        .q-heatmap .hm-cell { padding:0.35rem 0.3rem; text-align:center; border:1px solid #e2e8f0;
+                               font-family:"JetBrains Mono",monospace; font-size:0.8rem; transition:background 0.5s;
+                               min-height:2.5rem; display:flex; flex-direction:column; justify-content:center; border-radius:2px; }
+        .q-heatmap .hm-cell.current-state { box-shadow:0 0 0 3px #c53030; z-index:1; position:relative; }
+        .q-heatmap .hm-cell.flash { animation:cellFlash 0.6s ease-out; }
+        @keyframes cellFlash { 0% { background:#fefcbf !important; } 100% { } }
+        .hm-policy-row { margin-top:0.5rem; font-size:0.78rem; color:#4a5568; line-height:1.6; }
+        .hm-policy-row .policy-label { font-weight:600; color:#2b6cb0; }
+
+        /* 算法伪代码面板 */
+        .algo-step { padding:0.4rem 0.8rem; margin:0.2rem 0; border-radius:4px; font-size:0.85rem; color:#4a5568; transition:background 0.2s; border-left:3px solid transparent; }
+        .algo-step.active { background:#fefcbf; border-left:3px solid #d69e2e; font-weight:600; color:#975a16; }
+        .algo-step.done { color:#a0aec0; }
+        .algo-step .step-num { display:inline-block; width:2.2em; font-weight:600; }
+
+        /* 数据面板 */
+        .data-panel { background:#f7fafc; border:1px solid #e2e8f0; border-radius:6px; padding:0.8rem; margin-top:0.8rem;
+                      font-size:0.85rem; min-height:2rem; font-family:"JetBrains Mono","Courier New",monospace; line-height:1.6; }
+        .data-panel .dp-label { font-weight:600; color:#2b6cb0; font-family:inherit; }
+        .data-panel .dp-val { font-weight:700; color:#2d3748; }
+        .data-panel .dp-pos { color:#276749; font-weight:600; }
+        .data-panel .dp-neg { color:#c53030; font-weight:600; }
+        .data-panel .dp-dim { color:#a0aec0; }
+        .data-panel .dp-highlight { background:#fefcbf; padding:0.1rem 0.3rem; border-radius:3px; }
+
+        /* 控制按钮 */
+        .rl-ctrl { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; margin-bottom:0.8rem; font-size:0.88rem; }
+        .rl-ctrl button { padding:0.3rem 0.7rem; border:1px solid #2b6cb0; background:white; color:#2b6cb0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.84rem; transition:all 0.15s; }
+        .rl-ctrl button:hover { background:#2b6cb0; color:white; }
+        .rl-ctrl button:disabled { opacity:0.5; cursor:not-allowed; }
+        .rl-ctrl button.active-btn { background:#2b6cb0; color:white; }
+        .rl-info { background:#ebf4ff; border-radius:6px; padding:0.4rem 0.8rem; font-size:0.88rem; margin-top:0.6rem; }
     </style>
     <script defer src="../../js/code-copy.js"></script>
 </head>
@@ -524,89 +509,78 @@
             <!-- ==================== 交互演示：DQN ==================== -->
             <h2>交互演示</h2>
 
-            <p>下面的交互演示在网约车三区域环境（市中心 $c$、郊区 $b$、机场 $a$，与第三章相同）中逐步运行DQN。每点击一次"下一步"，就能看到一个完整训练步的全部内部细节：$\varepsilon$-greedy 如何选择动作、环境如何反馈、新经验如何存入缓冲区、mini-batch 如何被采样、TD 目标如何计算、Q 值如何更新。</p>
+            <p>下面的交互演示在12状态的网约车环境（3个区域 $\times$ 4个时段）中逐步运行DQN。左侧的 Q 值热力图展示所有状态的最优Q值估计，右侧的算法面板逐步高亮正在执行的伪代码行，底部的数据面板显示当前步的具体数值。你可以逐子步观察DQN算法的每一个环节，也可以快进到收敛观察最终策略。</p>
 
             <div class="dqn-demo">
-                <div class="demo-title">交互演示：逐步观察 DQN 训练过程</div>
+                <div class="demo-title">交互演示：DQN 算法逐步执行</div>
+
+                <!-- 控制栏 -->
                 <div class="rl-ctrl">
-                    <button id="dqn-btn-step" onclick="_dqnNextStep()">下一步</button>
-                    <button id="dqn-btn-fast" onclick="_dqnFast100()">快进100步</button>
-                    <button id="dqn-btn-reset" onclick="_dqnReset()">重置</button>
+                    <button id="dqn-btn-substep" onclick="DQN.nextSubStep()">下一子步</button>
+                    <button id="dqn-btn-fullstep" onclick="DQN.nextFullStep()">下一完整步</button>
+                    <button id="dqn-btn-auto" onclick="DQN.toggleAuto()">自动播放</button>
+                    <button id="dqn-btn-converge" onclick="DQN.fastConverge()">快进到收敛</button>
+                    <button id="dqn-btn-reset" onclick="DQN.reset()">重置</button>
                 </div>
-                <div class="rl-info" id="dqn-info">第 <strong>0</strong> 步 &nbsp;|&nbsp; $\varepsilon$ = <strong>1.00</strong> &nbsp;|&nbsp; 缓冲区: <strong>0</strong> 条</div>
+                <div class="rl-info" id="dqn-info">训练步 <strong>0</strong> &nbsp;|&nbsp; $\varepsilon$ = <strong>1.00</strong> &nbsp;|&nbsp; 缓冲区: <strong>0</strong>/200</div>
 
-                <div class="dqn-grid">
-                    <!-- Panel 1: 当前状态与动作选择 -->
-                    <div class="dqn-panel" id="panel-action">
-                        <div class="dqn-panel-title">1. 当前状态与动作选择</div>
-                        <div class="zone-map">
-                            <div class="zone-circle zone-c active" id="zone-c">市中心<br><em>c</em></div>
-                            <div class="zone-circle zone-b" id="zone-b">郊区<br><em>b</em></div>
-                            <div class="zone-circle zone-a" id="zone-a">机场<br><em>a</em></div>
-                        </div>
-                        <div class="action-choice" id="action-info">
-                            当前状态：<strong>市中心 $c$</strong><br>
-                            $Q(c, \text{接单})$ = <span class="val">0.00</span> &nbsp; $Q(c, \text{空驶})$ = <span class="val">0.00</span><br>
-                            <em>点击"下一步"开始训练</em>
-                        </div>
-                    </div>
-
-                    <!-- Panel 2: 环境反馈 -->
-                    <div class="dqn-panel" id="panel-feedback">
-                        <div class="dqn-panel-title">2. 环境反馈</div>
-                        <div class="feedback-display" id="feedback-info">
-                            <div style="color:#a0aec0; padding:1.5rem 0;">等待第一步...</div>
-                        </div>
-                    </div>
-
-                    <!-- Panel 3: 经验缓冲区 (full width) -->
-                    <div class="dqn-panel dqn-grid-full" id="panel-buffer">
-                        <div class="dqn-panel-title">3. 经验缓冲区 <span id="buffer-count" style="font-weight:400;color:#718096;font-size:0.82rem;">(0/200 条)</span></div>
-                        <table class="buffer-table">
-                            <thead>
-                                <tr><th>#</th><th>状态 $s$</th><th>动作 $a$</th><th>奖励 $r$</th><th>下一状态 $s'$</th></tr>
-                            </thead>
-                            <tbody id="buffer-tbody">
-                                <tr><td colspan="5" style="color:#a0aec0; padding:0.8rem;">缓冲区为空</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Panel 4: TD目标与更新 -->
-                    <div class="dqn-panel" id="panel-td">
-                        <div class="dqn-panel-title">4. TD目标与参数更新</div>
-                        <div class="td-update-list" id="td-info">
-                            <div style="color:#a0aec0; padding:0.5rem 0;">缓冲区积累足够样本后开始更新</div>
-                        </div>
-                    </div>
-
-                    <!-- Panel 5: Q值热力图 -->
+                <!-- 顶部两栏 -->
+                <div class="dqn-top-row">
+                    <!-- 左栏：Q值热力图 -->
                     <div class="dqn-panel" id="panel-heatmap">
-                        <div class="dqn-panel-title">5. Q值热力图</div>
+                        <div class="dqn-panel-title">Q值热力图 &nbsp;<span style="font-weight:400;font-size:0.78rem;color:#718096;">$\max_a Q(s,a)$</span></div>
                         <div class="q-heatmap" id="q-heatmap">
-                            <div class="hm-header"></div>
-                            <div class="hm-header">接单</div>
-                            <div class="hm-header">空驶</div>
+                            <!-- 表头行: 角标 + 4个时段 -->
+                            <div class="hm-corner">区域\时段</div>
+                            <div class="hm-header">0 早高峰</div>
+                            <div class="hm-header">1 白天</div>
+                            <div class="hm-header">2 晚高峰</div>
+                            <div class="hm-header">3 夜间</div>
+                            <!-- 市中心 c -->
                             <div class="hm-label">市中心 $c$</div>
                             <div class="hm-cell" id="hm-c-0">0.00</div>
                             <div class="hm-cell" id="hm-c-1">0.00</div>
+                            <div class="hm-cell" id="hm-c-2">0.00</div>
+                            <div class="hm-cell" id="hm-c-3">0.00</div>
+                            <!-- 郊区 b -->
                             <div class="hm-label">郊区 $b$</div>
                             <div class="hm-cell" id="hm-b-0">0.00</div>
                             <div class="hm-cell" id="hm-b-1">0.00</div>
+                            <div class="hm-cell" id="hm-b-2">0.00</div>
+                            <div class="hm-cell" id="hm-b-3">0.00</div>
+                            <!-- 机场 a -->
                             <div class="hm-label">机场 $a$</div>
                             <div class="hm-cell" id="hm-a-0">0.00</div>
                             <div class="hm-cell" id="hm-a-1">0.00</div>
+                            <div class="hm-cell" id="hm-a-2">0.00</div>
+                            <div class="hm-cell" id="hm-a-3">0.00</div>
                         </div>
-                        <div class="best-actions" id="best-actions">
-                            <span class="best-label">当前最优策略：</span>
-                            $c$: <span id="best-c">-</span> &nbsp;
-                            $b$: <span id="best-b">-</span> &nbsp;
-                            $a$: <span id="best-a">-</span>
+                        <div class="hm-policy-row" id="policy-row">
+                            <span class="policy-label">当前策略：</span><span id="policy-text" style="color:#a0aec0;">等待训练...</span>
+                        </div>
+                    </div>
+
+                    <!-- 右栏：算法执行 -->
+                    <div class="dqn-panel" id="panel-algo">
+                        <div class="dqn-panel-title">算法执行</div>
+                        <div id="algo-steps">
+                            <div class="algo-step" id="algo-step-0"><span class="step-num">(i)</span> $\varepsilon$-greedy 选择动作</div>
+                            <div class="algo-step" id="algo-step-1"><span class="step-num">(ii)</span> 执行动作，观察 $R$, $S'$</div>
+                            <div class="algo-step" id="algo-step-2"><span class="step-num">(iii)</span> 存入经验缓冲区</div>
+                            <div class="algo-step" id="algo-step-3"><span class="step-num">(iv)</span> 从缓冲区采样 mini-batch</div>
+                            <div class="algo-step" id="algo-step-4"><span class="step-num">(v)</span> 计算 TD 目标</div>
+                            <div class="algo-step" id="algo-step-5"><span class="step-num">(vi)</span> 梯度下降更新 $\theta$</div>
+                            <div class="algo-step" id="algo-step-6"><span class="step-num">(vii)</span> 每 $C$ 步同步目标网络</div>
                         </div>
                     </div>
                 </div>
+
+                <!-- 底部：数据面板 -->
+                <div class="data-panel" id="data-panel">
+                    <span class="dp-dim">点击"下一子步"或"自动播放"开始训练</span>
+                </div>
             </div>
-            <div class="fig-caption">图 5.1-4 &nbsp; DQN 逐步训练演示。每一步展示动作选择、环境反馈、经验存储、mini-batch 采样与 TD 更新的完整流程，使 DQN 的内部机制清晰可见。</div>
+            <div class="fig-caption">图 5.1-4 &nbsp; DQN 算法逐步执行演示。左侧热力图展示所有12个状态的最优Q值（颜色越深值越高），右侧伪代码面板高亮当前执行步骤，底部数据面板显示具体计算过程。</div>
 
             <p>DQN 的基本框架——Q网络 + 经验回放 + 目标网络——已经足以处理许多问题。但在实践中，还有三项重要改进可以显著提升 DQN 的性能：Double DQN（减少Q值过估计）、Dueling 架构（分离状态价值和动作优势）和优先经验回放（让有信息量的样本被更多地学习）。下一节将逐一介绍这三项改进。</p>
 
@@ -619,473 +593,633 @@
 
     <!-- ==================== DQN 逐步训练演示 JavaScript ==================== -->
     <script>
-    (function(){
+    var DQN = (function(){
+        'use strict';
         /* ============================================================
-           逐步 DQN 演示：三区域网约车 MDP（与第三章相同）
-           市中心 c, 郊区 b, 机场 a，每个状态2个动作：接单 / 空驶
-           网络：3维 one-hot → 16 → 16 → 2
+           12-state taxi MDP: 3 zones × 4 time periods
+           State = (zone, period), zone ∈ {c, b, a}, period ∈ {0,1,2,3}
+           Actions: 0=接单(pickup), 1=空驶(deadhead)
+           Network: 7D one-hot → 24 → 24 → 2
            ============================================================ */
 
-        // === 环境定义（3-state taxi MDP） ===
-        var ENV = {
-            c: { a0: {R:8,  nx:{c:.5, b:.3, a:.2}}, a1: {R:-4, nx:{a:1}} },
-            b: { a0: {R:1,  nx:{c:.1, b:.8, a:.1}}, a1: {R:-3, nx:{c:1}} },
-            a: { a0: {R:14, nx:{c:.6, b:.4}},        a1: {R:-5, nx:{c:1}} }
-        };
+        // === 常量 ===
         var ZONES = ['c','b','a'];
+        var PERIODS = [0,1,2,3];
         var ZONE_NAMES = {c:'市中心', b:'郊区', a:'机场'};
+        var PERIOD_NAMES = ['早高峰','白天','晚高峰','夜间'];
         var ACT_NAMES = ['接单','空驶'];
         var GAMMA = 0.9;
+        var BUF_SIZE = 200, BATCH = 8, TARGET_FREQ = 50, LR = 0.005;
+        var EPS_START = 1.0, EPS_END = 0.05, EPS_DECAY = 500;
+        var NUM_SUBSTEPS = 7; // (i) through (vii)
 
-        // === 极简神经网络（纯JS） ===
-        function randn(){ var u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+        // === 环境定义 ===
+        // 接单转移: ENV_PICKUP[zone][period] = [{to, p, r}, ...]
+        // 每次转移后 period' = (period + 1) % 4
+        var ENV_PICKUP = {
+            c: {
+                0: [{to:'c',p:0.5,r:5}, {to:'b',p:0.3,r:8}, {to:'a',p:0.2,r:12}],   // 早高峰
+                1: [{to:'c',p:0.5,r:6}, {to:'b',p:0.3,r:7}, {to:'a',p:0.2,r:10}],   // 白天
+                2: [{to:'c',p:0.4,r:7}, {to:'b',p:0.4,r:6}, {to:'a',p:0.2,r:11}],   // 晚高峰
+                3: [{to:'c',p:0.3,r:3}, {to:'b',p:0.5,r:4}, {to:'a',p:0.2,r:6}]     // 夜间
+            },
+            b: {
+                0: [{to:'c',p:0.1,r:5}, {to:'b',p:0.8,r:1}, {to:'a',p:0.1,r:8}],
+                1: [{to:'c',p:0.15,r:5},{to:'b',p:0.7,r:2}, {to:'a',p:0.15,r:7}],
+                2: [{to:'c',p:0.2,r:4}, {to:'b',p:0.7,r:2}, {to:'a',p:0.1,r:7}],
+                3: [{to:'c',p:0.1,r:4}, {to:'b',p:0.8,r:1}, {to:'a',p:0.1,r:6}]
+            },
+            a: {
+                0: [{to:'c',p:0.6,r:14},{to:'b',p:0.4,r:10}],                         // 早高峰
+                1: [{to:'c',p:0.5,r:12},{to:'b',p:0.5,r:9}],                          // 白天
+                2: [{to:'c',p:0.5,r:13},{to:'b',p:0.5,r:10}],                         // 晚高峰
+                3: [{to:'c',p:0.7,r:16},{to:'b',p:0.3,r:10}]                          // 夜间
+            }
+        };
+        // 空驶转移: ENV_DEADHEAD[zone] = {to, r}
+        var ENV_DEADHEAD = {
+            c: {to:'a', r:-4},
+            b: {to:'c', r:-3},
+            a: {to:'c', r:-5}
+        };
 
-        function createNet(){
-            var sizes=[3,16,16,2], layers=[];
-            for(var i=0;i<sizes.length-1;i++){
-                var fi=sizes[i], fo=sizes[i+1], sc=Math.sqrt(2/fi), W=[], b=[];
-                for(var r=0;r<fo;r++){
-                    var row=[];
-                    for(var ci=0;ci<fi;ci++) row.push(randn()*sc);
-                    W.push(row); b.push(0);
+        function stepEnv(zone, period, action) {
+            var reward, nextZone;
+            if (action === 0) { // 接单
+                var transitions = ENV_PICKUP[zone][period];
+                var roll = Math.random(), cum = 0;
+                for (var i = 0; i < transitions.length; i++) {
+                    cum += transitions[i].p;
+                    if (roll < cum) { nextZone = transitions[i].to; reward = transitions[i].r; break; }
                 }
-                layers.push({W:W,b:b});
+                if (nextZone === undefined) { var last = transitions[transitions.length-1]; nextZone = last.to; reward = last.r; }
+            } else { // 空驶
+                var dh = ENV_DEADHEAD[zone];
+                nextZone = dh.to; reward = dh.r;
+            }
+            var nextPeriod = (period + 1) % 4;
+            return {nextZone: nextZone, nextPeriod: nextPeriod, reward: reward};
+        }
+
+        // === 极简神经网络 ===
+        function randn() { var u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+
+        function createNet() {
+            // 7 → 24 → 24 → 2
+            // Output layer: zero-init weights and biases (so Q ≈ 0 initially)
+            var sizes = [7, 24, 24, 2], layers = [];
+            for (var i = 0; i < sizes.length - 1; i++) {
+                var fi = sizes[i], fo = sizes[i+1];
+                var sc = (i < sizes.length - 2) ? Math.sqrt(2/fi) : 0; // zero-init output layer
+                var W = [], b = [];
+                for (var r = 0; r < fo; r++) {
+                    var row = [];
+                    for (var ci = 0; ci < fi; ci++) row.push(sc > 0 ? randn()*sc*0.3 : 0);
+                    W.push(row);
+                    b.push(0);
+                }
+                layers.push({W:W, b:b});
             }
             return layers;
         }
 
-        function copyNet(src){
-            var dst=[];
-            for(var l=0;l<src.length;l++){
-                var W=[],b=[];
-                for(var r=0;r<src[l].W.length;r++){W.push(src[l].W[r].slice());b.push(src[l].b[r]);}
-                dst.push({W:W,b:b});
+        function copyNet(src) {
+            var dst = [];
+            for (var l = 0; l < src.length; l++) {
+                var W = [], b = [];
+                for (var r = 0; r < src[l].W.length; r++) { W.push(src[l].W[r].slice()); b.push(src[l].b[r]); }
+                dst.push({W:W, b:b});
             }
             return dst;
         }
 
-        function forward(net,x){
-            var acts=[x.slice()], preacts=[];
-            for(var l=0;l<net.length;l++){
-                var W=net[l].W, b=net[l].b, z=[];
-                for(var r=0;r<W.length;r++){
-                    var s=b[r];
-                    for(var c=0;c<W[r].length;c++) s+=W[r][c]*acts[l][c];
+        function forward(net, x) {
+            var acts = [x.slice()], preacts = [];
+            for (var l = 0; l < net.length; l++) {
+                var W = net[l].W, b = net[l].b, z = [];
+                for (var r = 0; r < W.length; r++) {
+                    var s = b[r];
+                    for (var c = 0; c < W[r].length; c++) s += W[r][c] * acts[l][c];
                     z.push(s);
                 }
                 preacts.push(z);
-                var h=[];
-                if(l<net.length-1){ for(var j=0;j<z.length;j++) h.push(z[j]>0?z[j]:0); }
-                else { h=z.slice(); }
+                var h = [];
+                if (l < net.length - 1) { for (var j = 0; j < z.length; j++) h.push(z[j] > 0 ? z[j] : 0); }
+                else { h = z.slice(); }
                 acts.push(h);
             }
-            return {acts:acts,preacts:preacts};
+            return {acts: acts, preacts: preacts};
         }
 
-        function predict(net,x){ return forward(net,x).acts[net.length]; }
+        function predict(net, x) { return forward(net, x).acts[net.length]; }
 
-        function backward(net,fwd,tidx,tval,lr){
-            var acts=fwd.acts, preacts=fwd.preacts, nL=net.length;
-            var out=acts[nL];
-            var dOut=new Array(out.length).fill(0);
-            dOut[tidx]=2*(out[tidx]-tval);
-            var loss=(out[tidx]-tval)*(out[tidx]-tval);
-            var delta=dOut;
-            for(var l=nL-1;l>=0;l--){
-                var W=net[l].W, b=net[l].b, pa=acts[l], z=preacts[l];
-                var dz=[];
-                if(l<nL-1){for(var j=0;j<delta.length;j++)dz.push(z[j]>0?delta[j]:0);}
-                else{dz=delta.slice();}
-                var dp=new Array(pa.length).fill(0);
-                for(var r=0;r<W.length;r++){
-                    for(var c=0;c<W[r].length;c++){dp[c]+=W[r][c]*dz[r]; W[r][c]-=lr*dz[r]*pa[c];}
-                    b[r]-=lr*dz[r];
+        function backward(net, fwd, tidx, tval, lr) {
+            var acts = fwd.acts, preacts = fwd.preacts, nL = net.length;
+            var out = acts[nL];
+            var dOut = new Array(out.length).fill(0);
+            dOut[tidx] = 2 * (out[tidx] - tval);
+            var delta = dOut;
+            for (var l = nL - 1; l >= 0; l--) {
+                var W = net[l].W, b = net[l].b, pa = acts[l], z = preacts[l];
+                var dz = [];
+                if (l < nL - 1) { for (var j = 0; j < delta.length; j++) dz.push(z[j] > 0 ? delta[j] : 0); }
+                else { dz = delta.slice(); }
+                var dp = new Array(pa.length).fill(0);
+                for (var r = 0; r < W.length; r++) {
+                    for (var c = 0; c < W[r].length; c++) { dp[c] += W[r][c]*dz[r]; W[r][c] -= lr*dz[r]*pa[c]; }
+                    b[r] -= lr*dz[r];
                 }
-                delta=dp;
+                delta = dp;
             }
-            return loss;
         }
 
         // === 辅助函数 ===
-        function stateVec(z){ var v=[0,0,0]; v[ZONES.indexOf(z)]=1; return v; }
-        function sampleNext(nx){ var r=Math.random(),cum=0; for(var s in nx){cum+=nx[s];if(r<cum)return s;} return s; }
-        function el(id){ return document.getElementById(id); }
-
-        // === DQN 超参数 ===
-        var BUF_SIZE=200, BATCH=4, TARGET_FREQ=50, LR=0.003;
-        var EPS_START=1.0, EPS_END=0.05, EPS_DECAY=1000;
+        function stateVec(zone, period) {
+            var v = [0,0,0, 0,0,0,0];
+            v[ZONES.indexOf(zone)] = 1;
+            v[3 + period] = 1;
+            return v;
+        }
+        function el(id) { return document.getElementById(id); }
+        function rerenderMath(elem) {
+            if (window.renderMathInElement) {
+                try { renderMathInElement(elem, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]}); } catch(e){}
+            }
+        }
+        function stateName(zone, period) {
+            return ZONE_NAMES[zone] + '\u00b7' + PERIOD_NAMES[period];
+        }
+        function stateNameShort(zone, period) {
+            return zone + period;
+        }
 
         // === DQN 状态 ===
-        var onlineNet, targetNet, replayBuf, totalSteps, curZone, epsilon;
-        var lastStepInfo = null;  // 上一步的详细信息，用于UI展示
-        var prevQValues = {};     // 上一步各 (s,a) 的Q值，用于检测变化
+        var onlineNet, targetNet, replayBuf, totalSteps, curZone, curPeriod, epsilon;
+        var autoTimer = null;
+        var subStep = -1; // -1 = idle, 0..6 = substeps (i)..(vii)
+        // 临时存储当前训练步各子步的中间结果
+        var stepData = {};
+        var prevQAll = {};
 
-        function initDQN(){
-            onlineNet=createNet();
-            targetNet=copyNet(onlineNet);
-            replayBuf=[];
-            totalSteps=0;
-            curZone='c';
-            epsilon=EPS_START;
-            lastStepInfo=null;
-            prevQValues={};
-            ZONES.forEach(function(z){
-                var q=predict(onlineNet,stateVec(z));
-                prevQValues[z]=[q[0],q[1]];
+        function initDQN() {
+            onlineNet = createNet();
+            targetNet = copyNet(onlineNet);
+            replayBuf = [];
+            totalSteps = 0;
+            curZone = 'c';
+            curPeriod = 0;
+            epsilon = EPS_START;
+            subStep = -1;
+            stepData = {};
+            prevQAll = {};
+            // 记录初始Q值
+            ZONES.forEach(function(z) {
+                PERIODS.forEach(function(p) {
+                    var q = predict(onlineNet, stateVec(z, p));
+                    prevQAll[z+'_'+p] = [q[0], q[1]];
+                });
             });
         }
 
-        // === 执行一步并记录所有细节 ===
-        function doOneStep(){
-            var info = {};
-            info.step = totalSteps + 1;
-            info.state = curZone;
-            info.epsilon = epsilon;
-
-            // 1) ε-greedy 选择动作
-            var qCur = predict(onlineNet, stateVec(curZone));
-            info.qValues = [qCur[0], qCur[1]];
-            var isRandom = Math.random() < epsilon;
-            var ai;
-            if(isRandom){
-                ai = Math.floor(Math.random()*2);
+        // === Q值颜色映射 ===
+        function qColor(v) {
+            var minQ = -10, maxQ = 80;
+            var norm = Math.max(0, Math.min(1, (v - minQ) / (maxQ - minQ)));
+            var r, g, b;
+            if (norm < 0.5) {
+                var t = norm / 0.5;
+                r = Math.round(245 - t*50); g = Math.round(245 - t*20); b = Math.round(245);
             } else {
-                ai = qCur[0]>=qCur[1] ? 0 : 1;
+                var t = (norm - 0.5) / 0.5;
+                r = Math.round(195 - t*152); g = Math.round(225 - t*117); b = Math.round(245 - t*69);
             }
-            info.action = ai;
-            info.isRandom = isRandom;
-
-            // 2) 环境反馈
-            var actKey = 'a'+ai;
-            var tr = ENV[curZone][actKey];
-            var reward = tr.R;
-            var nextZone = sampleNext(tr.nx);
-            info.reward = reward;
-            info.nextState = nextZone;
-
-            // 3) 存入缓冲区
-            replayBuf.push({s:curZone, a:ai, r:reward, ns:nextZone});
-            if(replayBuf.length > BUF_SIZE) replayBuf.shift();
-            info.bufferSize = replayBuf.length;
-
-            // 4) 采样 mini-batch 并训练
-            info.batchDetails = [];
-            info.batchIndices = [];
-            if(replayBuf.length >= BATCH){
-                // 采样索引
-                var indices = [];
-                for(var bi=0;bi<BATCH;bi++) indices.push(Math.floor(Math.random()*replayBuf.length));
-                info.batchIndices = indices;
-
-                for(var bi=0;bi<BATCH;bi++){
-                    var sample = replayBuf[indices[bi]];
-                    var sv = stateVec(sample.s);
-                    var nsv = stateVec(sample.ns);
-                    var qBefore = predict(onlineNet, sv)[sample.a];
-                    var qNextTarget = predict(targetNet, nsv);
-                    var maxQNext = Math.max(qNextTarget[0], qNextTarget[1]);
-                    var tdTarget = sample.r + GAMMA * maxQNext;
-                    var tdError = tdTarget - qBefore;
-
-                    // 执行反向传播
-                    var fwd = forward(onlineNet, sv);
-                    backward(onlineNet, fwd, sample.a, tdTarget, LR/BATCH);
-
-                    info.batchDetails.push({
-                        s: sample.s,
-                        a: sample.a,
-                        r: sample.r,
-                        ns: sample.ns,
-                        qBefore: qBefore,
-                        maxQNext: maxQNext,
-                        tdTarget: tdTarget,
-                        tdError: tdError,
-                        bufIdx: indices[bi]
-                    });
-                }
-            }
-
-            // 5) 更新步数与目标网络
-            totalSteps++;
-            info.syncedTarget = false;
-            if(totalSteps % TARGET_FREQ === 0){
-                targetNet = copyNet(onlineNet);
-                info.syncedTarget = true;
-            }
-
-            // 6) 衰减 ε
-            epsilon = EPS_END + (EPS_START - EPS_END) * Math.exp(-totalSteps / EPS_DECAY);
-
-            // 7) 记录新Q值
-            var newQValues = {};
-            ZONES.forEach(function(z){
-                var q = predict(onlineNet, stateVec(z));
-                newQValues[z] = [q[0], q[1]];
-            });
-            info.prevQ = prevQValues;
-            info.newQ = newQValues;
-            prevQValues = {};
-            ZONES.forEach(function(z){ prevQValues[z] = [newQValues[z][0], newQValues[z][1]]; });
-
-            // 8) 转移到下一状态
-            curZone = nextZone;
-            info.nextCurState = curZone;
-
-            lastStepInfo = info;
-            return info;
+            return {bg: 'rgb('+r+','+g+','+b+')', fg: norm > 0.65 ? 'white' : '#2d3748'};
         }
 
-        // === UI 更新 ===
-        function updateAllPanels(info){
-            if(!info){
-                // 初始状态
-                updateInfoBar();
-                updatePanel1Init();
-                updateHeatmap(null);
-                return;
-            }
-            updateInfoBar();
-            updatePanel1(info);
-            updatePanel2(info);
-            updatePanel3(info);
-            updatePanel4(info);
-            updateHeatmap(info);
-        }
+        // === 更新热力图 ===
+        function updateHeatmap() {
+            ZONES.forEach(function(z) {
+                PERIODS.forEach(function(p) {
+                    var q = predict(onlineNet, stateVec(z, p));
+                    var maxQ = Math.max(q[0], q[1]);
+                    var cellId = 'hm-' + z + '-' + p;
+                    var cell = el(cellId);
+                    if (!cell) return;
+                    cell.textContent = maxQ.toFixed(1);
+                    var col = qColor(maxQ);
+                    cell.style.background = col.bg;
+                    cell.style.color = col.fg;
 
-        function updateInfoBar(){
-            el('dqn-info').innerHTML = '第 <strong>'+totalSteps+'</strong> 步 &nbsp;|&nbsp; ε = <strong>'+epsilon.toFixed(2)+'</strong> &nbsp;|&nbsp; 缓冲区: <strong>'+replayBuf.length+'</strong> 条';
-        }
-
-        // --- Panel 1: 状态与动作选择 ---
-        function updatePanel1Init(){
-            ZONES.forEach(function(z){
-                var circle = el('zone-'+z);
-                if(z===curZone) circle.classList.add('active');
-                else circle.classList.remove('active');
-            });
-            var q = predict(onlineNet, stateVec(curZone));
-            var html = '当前状态：<strong>'+ZONE_NAMES[curZone]+' $'+curZone+'$</strong><br>';
-            html += '$Q('+curZone+', \\text{接单})$ = <span class="val">'+q[0].toFixed(2)+'</span> &nbsp; ';
-            html += '$Q('+curZone+', \\text{空驶})$ = <span class="val">'+q[1].toFixed(2)+'</span><br>';
-            html += '<em>点击"下一步"开始训练</em>';
-            el('action-info').innerHTML = html;
-            rerenderMath(el('action-info'));
-        }
-
-        function updatePanel1(info){
-            ZONES.forEach(function(z){
-                var circle = el('zone-'+z);
-                if(z===info.state) circle.classList.add('active');
-                else circle.classList.remove('active');
-            });
-            var tagClass = info.isRandom ? 'random' : 'greedy';
-            var tagText = info.isRandom ? '随机探索' : '贪心选择';
-            var html = '当前状态：<strong>'+ZONE_NAMES[info.state]+' $'+info.state+'$</strong><br>';
-            html += '$Q('+info.state+', \\text{接单})$ = <span class="val">'+info.qValues[0].toFixed(2)+'</span> &nbsp; ';
-            html += '$Q('+info.state+', \\text{空驶})$ = <span class="val">'+info.qValues[1].toFixed(2)+'</span><br>';
-            html += '选择动作：<span class="chosen">'+ACT_NAMES[info.action]+'</span>';
-            html += ' <span class="explore-tag '+tagClass+'">'+tagText+'</span>';
-            html += ' &nbsp; (ε = '+info.epsilon.toFixed(2)+')';
-            el('action-info').innerHTML = html;
-            rerenderMath(el('action-info'));
-        }
-
-        // --- Panel 2: 环境反馈 ---
-        function updatePanel2(info){
-            var rColor = info.reward >= 0 ? '#276749' : '#c53030';
-            var html = '<div class="feedback-arrow">';
-            html += '<span style="font-weight:600;">'+ZONE_NAMES[info.state]+' $'+info.state+'$</span>';
-            html += ' <span class="arrow-line">&xrarr;</span> ';
-            html += '<span style="font-weight:600;">'+ZONE_NAMES[info.nextState]+' $'+info.nextState+'$</span>';
-            html += '</div>';
-            html += '<div class="feedback-detail">';
-            html += '执行动作：<span class="val">'+ACT_NAMES[info.action]+'</span><br>';
-            html += '获得奖励：<span class="val" style="color:'+rColor+'">'+info.reward+'</span><br>';
-            html += '到达状态：<span class="val">'+ZONE_NAMES[info.nextState]+' $'+info.nextState+'$</span>';
-            html += '</div>';
-            if(info.syncedTarget){
-                html += '<div style="margin-top:0.5rem;padding:0.3rem 0.5rem;background:#fed7d7;border-radius:4px;font-size:0.82rem;color:#c53030;font-weight:600;">';
-                html += '目标网络已同步！$\\theta^- \\leftarrow \\theta$（第 '+totalSteps+' 步）';
-                html += '</div>';
-            }
-            el('feedback-info').innerHTML = html;
-            rerenderMath(el('feedback-info'));
-        }
-
-        // --- Panel 3: 经验缓冲区 ---
-        function updatePanel3(info){
-            el('buffer-count').textContent = '('+replayBuf.length+'/'+BUF_SIZE+' 条)';
-
-            // 显示最近6条
-            var showCount = Math.min(6, replayBuf.length);
-            var startIdx = replayBuf.length - showCount;
-            var sampledSet = {};
-            if(info.batchIndices){
-                for(var i=0;i<info.batchIndices.length;i++) sampledSet[info.batchIndices[i]] = true;
-            }
-            var newIdx = replayBuf.length - 1; // 最新添加的那条
-
-            var html = '';
-            for(var i=startIdx; i<replayBuf.length; i++){
-                var t = replayBuf[i];
-                var isNew = (i === newIdx);
-                var isSampled = !!sampledSet[i];
-                var rowClass = '';
-                if(isNew && isSampled) rowClass = 'both-row';
-                else if(isNew) rowClass = 'new-row';
-                else if(isSampled) rowClass = 'sampled-row';
-
-                html += '<tr class="'+rowClass+'">';
-                html += '<td>'+(i+1)+'</td>';
-                html += '<td>'+ZONE_NAMES[t.s]+' $'+t.s+'$</td>';
-                html += '<td>'+ACT_NAMES[t.a]+'</td>';
-                html += '<td>'+t.r+'</td>';
-                html += '<td>'+ZONE_NAMES[t.ns]+' $'+t.ns+'$</td>';
-                html += '</tr>';
-            }
-
-            if(showCount < replayBuf.length){
-                html = '<tr><td colspan="5" style="color:#a0aec0;font-size:0.78rem;">...更早的 '+(replayBuf.length-showCount)+' 条已省略</td></tr>' + html;
-            }
-
-            // 图例
-            html += '<tr><td colspan="5" style="font-size:0.75rem;color:#718096;padding:0.3rem;">';
-            html += '<span style="display:inline-block;width:12px;height:12px;background:#fefcbf;border:1px solid #d69e2e;vertical-align:middle;margin-right:2px;"></span> 新存入 &nbsp;';
-            html += '<span style="display:inline-block;width:12px;height:12px;background:#dbeafe;border:1px solid #2b6cb0;vertical-align:middle;margin-right:2px;"></span> 被采样到 mini-batch';
-            html += '</td></tr>';
-
-            el('buffer-tbody').innerHTML = html;
-            rerenderMath(el('buffer-tbody'));
-        }
-
-        // --- Panel 4: TD目标与更新 ---
-        function updatePanel4(info){
-            if(info.batchDetails.length === 0){
-                var remaining = BATCH - replayBuf.length;
-                if(remaining > 0){
-                    el('td-info').innerHTML = '<div style="color:#a0aec0;padding:0.5rem 0;">缓冲区还需 '+remaining+' 条样本才能开始训练（需要 ≥ '+BATCH+' 条）</div>';
-                } else {
-                    el('td-info').innerHTML = '<div style="color:#a0aec0;padding:0.5rem 0;">等待采样...</div>';
-                }
-                return;
-            }
-
-            var html = '<div style="font-size:0.78rem;color:#718096;margin-bottom:0.4rem;">从缓冲区随机抽取 '+BATCH+' 条样本，计算 TD 目标并更新 $\\theta$：</div>';
-            for(var i=0;i<info.batchDetails.length;i++){
-                var d = info.batchDetails[i];
-                var errClass = d.tdError >= 0 ? 'td-error-pos' : 'td-error-neg';
-                var arrow = d.tdError >= 0 ? '↑' : '↓';
-                html += '<div class="td-update-item">';
-                html += '<div><strong>#'+(d.bufIdx+1)+'</strong> &nbsp; $('+d.s+', \\text{'+ACT_NAMES[d.a]+'})$</div>';
-                html += '<div class="td-formula">';
-                html += '当前 $Q$ = '+d.qBefore.toFixed(2)+' &nbsp;';
-                html += 'TD目标 = '+d.r+' + '+GAMMA+' × '+d.maxQNext.toFixed(2)+' = <strong>'+d.tdTarget.toFixed(2)+'</strong>';
-                html += '</div>';
-                html += '<div class="td-formula">';
-                html += 'TD误差 = <span class="'+errClass+'">'+d.tdError.toFixed(2)+' '+arrow+'</span>';
-                html += '</div>';
-                html += '</div>';
-            }
-            if(info.syncedTarget){
-                html += '<div style="margin-top:0.4rem;padding:0.3rem 0.5rem;background:#fed7d7;border-radius:4px;font-size:0.82rem;color:#c53030;text-align:center;">';
-                html += '<strong>目标网络同步</strong>（每 '+TARGET_FREQ+' 步）';
-                html += '</div>';
-            }
-            el('td-info').innerHTML = html;
-            rerenderMath(el('td-info'));
-        }
-
-        // --- Panel 5: Q值热力图 ---
-        function updateHeatmap(info){
-            ZONES.forEach(function(z){
-                var q = predict(onlineNet, stateVec(z));
-                for(var ai=0;ai<2;ai++){
-                    var cell = el('hm-'+z+'-'+ai);
-                    cell.textContent = q[ai].toFixed(2);
-
-                    // 颜色映射：值越大越深蓝，值越小越深红
-                    var v = q[ai];
-                    var maxQ = 80; // 大致的参考上界
-                    var minQ = -20;
-                    var norm = Math.max(0, Math.min(1, (v - minQ)/(maxQ - minQ)));
-                    // 从红(0)到白(0.5)到蓝(1)
-                    var r,g,b;
-                    if(norm < 0.5){
-                        var t = norm/0.5;
-                        r = Math.round(220 - t*40);
-                        g = Math.round(160 + t*60);
-                        b = Math.round(160 + t*90);
+                    // 当前状态高亮
+                    if (z === curZone && p === curPeriod) {
+                        cell.classList.add('current-state');
                     } else {
-                        var t = (norm-0.5)/0.5;
-                        r = Math.round(180 - t*60);
-                        g = Math.round(220 - t*40);
-                        b = Math.round(250);
+                        cell.classList.remove('current-state');
                     }
-                    cell.style.background = 'rgb('+r+','+g+','+b+')';
-                    cell.style.color = norm > 0.7 ? 'white' : '#2d3748';
 
-                    // 检测变化并闪烁
-                    if(info && info.prevQ && info.prevQ[z]){
-                        var oldVal = info.prevQ[z][ai];
-                        if(Math.abs(q[ai] - oldVal) > 0.001){
+                    // 闪烁检测
+                    var key = z+'_'+p;
+                    if (prevQAll[key]) {
+                        var oldMax = Math.max(prevQAll[key][0], prevQAll[key][1]);
+                        if (Math.abs(maxQ - oldMax) > 0.05) {
                             cell.classList.remove('flash');
-                            void cell.offsetWidth; // 触发 reflow
+                            void cell.offsetWidth;
                             cell.classList.add('flash');
                         }
                     }
-                }
-                // 最优动作
-                var qz = predict(onlineNet, stateVec(z));
-                var bestA = qz[0] >= qz[1] ? 0 : 1;
-                el('best-'+z).innerHTML = '<strong>'+ACT_NAMES[bestA]+'</strong>';
+                });
             });
+            // 更新策略行
+            updatePolicyRow();
         }
 
-        // === KaTeX 重新渲染 ===
-        function rerenderMath(elem){
-            if(window.renderMathInElement){
-                try {
-                    renderMathInElement(elem, {
-                        delimiters: [
-                            {left:'$$',right:'$$',display:true},
-                            {left:'$',right:'$',display:false}
-                        ]
-                    });
-                } catch(e){}
+        function updatePolicyRow() {
+            var parts = [];
+            ZONES.forEach(function(z) {
+                var actions = [];
+                PERIODS.forEach(function(p) {
+                    var q = predict(onlineNet, stateVec(z, p));
+                    actions.push(q[0] >= q[1] ? '接' : '驶');
+                });
+                parts.push(ZONE_NAMES[z] + ': ' + actions.join('/'));
+            });
+            var ptEl = el('policy-text');
+            if (ptEl) { ptEl.textContent = parts.join('  |  '); ptEl.style.color = '#4a5568'; }
+        }
+
+        // === 算法步骤高亮 ===
+        function highlightStep(idx) {
+            for (var i = 0; i < NUM_SUBSTEPS; i++) {
+                var step = el('algo-step-' + i);
+                if (!step) continue;
+                step.classList.remove('active', 'done');
+                if (i < idx) step.classList.add('done');
+                else if (i === idx) step.classList.add('active');
             }
         }
 
-        // === 公开接口 ===
-        window._dqnNextStep = function(){
-            var info = doOneStep();
-            updateAllPanels(info);
-        };
-
-        window._dqnFast100 = function(){
-            var info;
-            for(var i=0;i<100;i++){
-                info = doOneStep();
+        function clearStepHighlight() {
+            for (var i = 0; i < NUM_SUBSTEPS; i++) {
+                var step = el('algo-step-' + i);
+                if (step) step.classList.remove('active', 'done');
             }
-            updateAllPanels(info);
-        };
+        }
 
-        window._dqnReset = function(){
+        // === 更新信息栏 ===
+        function updateInfoBar() {
+            el('dqn-info').innerHTML = '训练步 <strong>' + totalSteps + '</strong> &nbsp;|&nbsp; $\\varepsilon$ = <strong>' + epsilon.toFixed(2) + '</strong> &nbsp;|&nbsp; 缓冲区: <strong>' + replayBuf.length + '</strong>/' + BUF_SIZE;
+            rerenderMath(el('dqn-info'));
+        }
+
+        // === 数据面板 ===
+        function setDataPanel(html) {
+            var dp = el('data-panel');
+            dp.innerHTML = html;
+            rerenderMath(dp);
+        }
+
+        // ==================== 子步执行逻辑 ====================
+
+        function doSubStep0() {
+            // (i) ε-greedy 选择动作
+            stepData.state = curZone;
+            stepData.period = curPeriod;
+            var qCur = predict(onlineNet, stateVec(curZone, curPeriod));
+            stepData.qValues = [qCur[0], qCur[1]];
+            var isRandom = Math.random() < epsilon;
+            var ai;
+            if (isRandom) { ai = Math.floor(Math.random() * 2); }
+            else { ai = qCur[0] >= qCur[1] ? 0 : 1; }
+            stepData.action = ai;
+            stepData.isRandom = isRandom;
+
+            highlightStep(0);
+            var sn = stateName(curZone, curPeriod);
+            var tag = isRandom
+                ? '<span style="color:#c53030;font-weight:600;">随机探索</span>'
+                : '<span style="color:#276749;font-weight:600;">贪心选择</span>';
+            setDataPanel(
+                '<span class="dp-label">状态:</span> ' + sn +
+                ' &nbsp;|&nbsp; $Q$(接单)=' + qCur[0].toFixed(2) + ', $Q$(空驶)=' + qCur[1].toFixed(2) +
+                ' &nbsp;|&nbsp; $\\varepsilon$=' + epsilon.toFixed(2) +
+                ' &rarr; ' + tag + ' <span class="dp-val">' + ACT_NAMES[ai] + '</span>'
+            );
+        }
+
+        function doSubStep1() {
+            // (ii) 执行动作，观察 R, S'
+            var result = stepEnv(stepData.state, stepData.period, stepData.action);
+            stepData.nextZone = result.nextZone;
+            stepData.nextPeriod = result.nextPeriod;
+            stepData.reward = result.reward;
+
+            highlightStep(1);
+            var rColor = result.reward >= 0 ? 'dp-pos' : 'dp-neg';
+            var destLabel = stepData.action === 0 ? '乘客去' + ZONE_NAMES[result.nextZone] : '空驶到' + ZONE_NAMES[result.nextZone];
+            setDataPanel(
+                '<span class="dp-label">执行</span> ' + ACT_NAMES[stepData.action] +
+                ' &rarr; ' + destLabel +
+                ' &nbsp;|&nbsp; 车费 $r$=<span class="' + rColor + '">' + result.reward + '</span>' +
+                ' &nbsp;|&nbsp; 下一状态: ' + stateName(result.nextZone, result.nextPeriod)
+            );
+        }
+
+        function doSubStep2() {
+            // (iii) 存入经验缓冲区
+            replayBuf.push({
+                sz: stepData.state, sp: stepData.period,
+                a: stepData.action, r: stepData.reward,
+                nsz: stepData.nextZone, nsp: stepData.nextPeriod
+            });
+            if (replayBuf.length > BUF_SIZE) replayBuf.shift();
+            stepData.bufferSize = replayBuf.length;
+
+            highlightStep(2);
+            setDataPanel(
+                '<span class="dp-label">缓冲区:</span> ' + replayBuf.length + '条 (容量' + BUF_SIZE + ')' +
+                ' &nbsp;|&nbsp; 新增: (' + stateName(stepData.state, stepData.period) +
+                ', ' + ACT_NAMES[stepData.action] + ', ' + stepData.reward +
+                ', ' + stateName(stepData.nextZone, stepData.nextPeriod) + ')'
+            );
+            updateInfoBar();
+        }
+
+        function doSubStep3() {
+            // (iv) 从缓冲区采样 mini-batch
+            stepData.batchSamples = [];
+            stepData.canTrain = replayBuf.length >= BATCH;
+            if (!stepData.canTrain) {
+                highlightStep(3);
+                setDataPanel('<span class="dp-dim">缓冲区样本不足（' + replayBuf.length + '/' + BATCH + '），跳过训练</span>');
+                return;
+            }
+            var indices = [];
+            for (var i = 0; i < BATCH; i++) indices.push(Math.floor(Math.random() * replayBuf.length));
+            for (var i = 0; i < BATCH; i++) {
+                stepData.batchSamples.push(Object.assign({}, replayBuf[indices[i]], {idx: indices[i]}));
+            }
+
+            highlightStep(3);
+            var samplesStr = stepData.batchSamples.map(function(s) {
+                return '(' + stateNameShort(s.sz, s.sp) + ',' + ACT_NAMES[s.a] + ',' + s.r + ',' + stateNameShort(s.nsz, s.nsp) + ')';
+            }).join(' &nbsp;');
+            setDataPanel(
+                '<span class="dp-label">采样' + BATCH + '条经验:</span> ' + samplesStr
+            );
+        }
+
+        function doSubStep4() {
+            // (v) 计算 TD 目标
+            if (!stepData.canTrain) {
+                highlightStep(4);
+                setDataPanel('<span class="dp-dim">跳过（无mini-batch）</span>');
+                return;
+            }
+            stepData.tdDetails = [];
+            for (var i = 0; i < stepData.batchSamples.length; i++) {
+                var s = stepData.batchSamples[i];
+                var qCur = predict(onlineNet, stateVec(s.sz, s.sp))[s.a];
+                var qNextTarget = predict(targetNet, stateVec(s.nsz, s.nsp));
+                var maxQNext = Math.max(qNextTarget[0], qNextTarget[1]);
+                var tdTarget = s.r + GAMMA * maxQNext;
+                var tdError = tdTarget - qCur;
+                stepData.tdDetails.push({qCur: qCur, maxQNext: maxQNext, tdTarget: tdTarget, tdError: tdError, sample: s});
+            }
+
+            highlightStep(4);
+            // 只显示第一条的详细计算，其余简略
+            var d0 = stepData.tdDetails[0];
+            var errStr = d0.tdError >= 0 ? '<span class="dp-pos">+' + d0.tdError.toFixed(1) + '</span>' : '<span class="dp-neg">' + d0.tdError.toFixed(1) + '</span>';
+            var html = '<span class="dp-label">TD目标(样本1):</span> $y$ = ' + d0.sample.r + ' + ' + GAMMA + ' &times; ' + d0.maxQNext.toFixed(2) + ' = <span class="dp-highlight">' + d0.tdTarget.toFixed(2) + '</span>';
+            html += ' &nbsp;|&nbsp; 当前$Q$ = ' + d0.qCur.toFixed(2) + ' &nbsp;|&nbsp; TD误差 = ' + errStr;
+            if (stepData.tdDetails.length > 1) {
+                html += '<br><span class="dp-dim">其余' + (stepData.tdDetails.length - 1) + '条: 误差分别为 ';
+                html += stepData.tdDetails.slice(1).map(function(d) {
+                    return (d.tdError >= 0 ? '+' : '') + d.tdError.toFixed(1);
+                }).join(', ');
+                html += '</span>';
+            }
+            setDataPanel(html);
+        }
+
+        function doSubStep5() {
+            // (vi) 梯度下降更新 θ
+            if (!stepData.canTrain) {
+                highlightStep(5);
+                setDataPanel('<span class="dp-dim">跳过（无mini-batch）</span>');
+                return;
+            }
+
+            // 记录更新前Q值
+            var beforeQ = {};
+            stepData.batchSamples.forEach(function(s) {
+                var key = s.sz + '_' + s.sp + '_' + s.a;
+                if (!(key in beforeQ)) {
+                    beforeQ[key] = predict(onlineNet, stateVec(s.sz, s.sp))[s.a];
+                }
+            });
+
+            // 执行梯度下降
+            for (var i = 0; i < stepData.tdDetails.length; i++) {
+                var td = stepData.tdDetails[i];
+                var s = td.sample;
+                var fwd = forward(onlineNet, stateVec(s.sz, s.sp));
+                backward(onlineNet, fwd, s.a, td.tdTarget, LR / BATCH);
+            }
+
+            // 记录更新后Q值
+            var afterQ = {};
+            stepData.batchSamples.forEach(function(s) {
+                var key = s.sz + '_' + s.sp + '_' + s.a;
+                if (!(key in afterQ)) {
+                    afterQ[key] = predict(onlineNet, stateVec(s.sz, s.sp))[s.a];
+                }
+            });
+
+            highlightStep(5);
+            var changes = [];
+            for (var key in beforeQ) {
+                var parts = key.split('_');
+                var diff = afterQ[key] - beforeQ[key];
+                var diffStr = diff >= 0 ? '<span class="dp-pos">+' + diff.toFixed(2) + '</span>' : '<span class="dp-neg">' + diff.toFixed(2) + '</span>';
+                changes.push('$Q$(' + stateNameShort(parts[0], parseInt(parts[1])) + ',' + ACT_NAMES[parseInt(parts[2])] + '): ' + beforeQ[key].toFixed(2) + '&rarr;' + afterQ[key].toFixed(2) + ' (' + diffStr + ')');
+            }
+            setDataPanel('<span class="dp-label">参数更新:</span> ' + changes.join(' &nbsp;|&nbsp; '));
+
+            // 更新热力图
+            // 先保存前Q值用于闪烁
+            var newQAll = {};
+            ZONES.forEach(function(z) {
+                PERIODS.forEach(function(p) {
+                    var q = predict(onlineNet, stateVec(z, p));
+                    newQAll[z+'_'+p] = [q[0], q[1]];
+                });
+            });
+            updateHeatmap();
+            prevQAll = newQAll;
+        }
+
+        function doSubStep6() {
+            // (vii) 每C步同步目标网络
+            totalSteps++;
+            epsilon = EPS_END + (EPS_START - EPS_END) * Math.exp(-totalSteps / EPS_DECAY);
+            var synced = false;
+            if (totalSteps % TARGET_FREQ === 0) {
+                targetNet = copyNet(onlineNet);
+                synced = true;
+            }
+            stepData.synced = synced;
+
+            // 转移到下一状态
+            if (stepData.nextZone !== undefined) {
+                curZone = stepData.nextZone;
+                curPeriod = stepData.nextPeriod;
+            }
+
+            highlightStep(6);
+            if (synced) {
+                setDataPanel('<span class="dp-label" style="color:#c53030;">第' + totalSteps + '步: $\\theta^- \\leftarrow \\theta$ 同步!</span> &nbsp; 目标网络参数已更新');
+            } else {
+                var nextSync = TARGET_FREQ - (totalSteps % TARGET_FREQ);
+                setDataPanel('<span class="dp-dim">未到同步时刻（还差' + nextSync + '步）</span>');
+            }
+            updateInfoBar();
+            updateHeatmap();
+        }
+
+        var subStepFuncs = [doSubStep0, doSubStep1, doSubStep2, doSubStep3, doSubStep4, doSubStep5, doSubStep6];
+
+        // === 执行一个完整步（不更新UI中间过程） ===
+        function doOneFullStepSilent() {
+            stepData = {};
+            // (i) ε-greedy
+            var qCur = predict(onlineNet, stateVec(curZone, curPeriod));
+            var isRandom = Math.random() < epsilon;
+            var ai = isRandom ? Math.floor(Math.random()*2) : (qCur[0]>=qCur[1]?0:1);
+
+            // (ii) step env
+            var result = stepEnv(curZone, curPeriod, ai);
+
+            // (iii) store
+            replayBuf.push({sz:curZone, sp:curPeriod, a:ai, r:result.reward, nsz:result.nextZone, nsp:result.nextPeriod});
+            if (replayBuf.length > BUF_SIZE) replayBuf.shift();
+
+            // (iv)+(v)+(vi) train
+            if (replayBuf.length >= BATCH) {
+                for (var bi = 0; bi < BATCH; bi++) {
+                    var idx = Math.floor(Math.random()*replayBuf.length);
+                    var s = replayBuf[idx];
+                    var qNext = predict(targetNet, stateVec(s.nsz, s.nsp));
+                    var maxQN = Math.max(qNext[0], qNext[1]);
+                    var tdT = s.r + GAMMA * maxQN;
+                    var fwd = forward(onlineNet, stateVec(s.sz, s.sp));
+                    backward(onlineNet, fwd, s.a, tdT, LR / BATCH);
+                }
+            }
+
+            // (vii) sync + advance
+            totalSteps++;
+            epsilon = EPS_END + (EPS_START - EPS_END) * Math.exp(-totalSteps / EPS_DECAY);
+            if (totalSteps % TARGET_FREQ === 0) targetNet = copyNet(onlineNet);
+            curZone = result.nextZone;
+            curPeriod = result.nextPeriod;
+        }
+
+        // ==================== 公开接口 ====================
+
+        function nextSubStep() {
+            if (subStep >= NUM_SUBSTEPS - 1 || subStep < 0) {
+                // 开始新的一步
+                subStep = 0;
+                stepData = {};
+            } else {
+                subStep++;
+            }
+            subStepFuncs[subStep]();
+
+            // 如果完成了最后一个子步，重置 subStep 以便下次开始新步
+            if (subStep >= NUM_SUBSTEPS - 1) {
+                subStep = NUM_SUBSTEPS; // 标记完成
+            }
+        }
+
+        function nextFullStep() {
+            // 执行所有子步骤
+            stepData = {};
+            for (var i = 0; i < NUM_SUBSTEPS; i++) {
+                subStep = i;
+                subStepFuncs[i]();
+            }
+            subStep = NUM_SUBSTEPS;
+        }
+
+        function toggleAuto() {
+            var btn = el('dqn-btn-auto');
+            if (autoTimer) {
+                clearInterval(autoTimer);
+                autoTimer = null;
+                btn.textContent = '自动播放';
+                btn.classList.remove('active-btn');
+            } else {
+                btn.textContent = '暂停';
+                btn.classList.add('active-btn');
+                autoTimer = setInterval(function() {
+                    nextSubStep();
+                    // 检查是否运行了很多步
+                    if (totalSteps >= 2000) {
+                        clearInterval(autoTimer);
+                        autoTimer = null;
+                        btn.textContent = '自动播放';
+                        btn.classList.remove('active-btn');
+                    }
+                }, 400);
+            }
+        }
+
+        function fastConverge() {
+            if (autoTimer) { clearInterval(autoTimer); autoTimer = null; el('dqn-btn-auto').textContent = '自动播放'; el('dqn-btn-auto').classList.remove('active-btn'); }
+
+            // 保存前Q值
+            ZONES.forEach(function(z) {
+                PERIODS.forEach(function(p) {
+                    var q = predict(onlineNet, stateVec(z, p));
+                    prevQAll[z+'_'+p] = [q[0], q[1]];
+                });
+            });
+
+            for (var i = 0; i < 1000; i++) doOneFullStepSilent();
+            subStep = NUM_SUBSTEPS;
+            updateInfoBar();
+            updateHeatmap();
+            setDataPanel(
+                '<span class="dp-label">快进完成!</span> 已执行1000步训练。$\\varepsilon$ = ' + epsilon.toFixed(3) + '，缓冲区 ' + replayBuf.length + '/' + BUF_SIZE + ' 条。Q值热力图已更新。'
+            );
+            clearStepHighlight();
+        }
+
+        function reset() {
+            if (autoTimer) { clearInterval(autoTimer); autoTimer = null; el('dqn-btn-auto').textContent = '自动播放'; el('dqn-btn-auto').classList.remove('active-btn'); }
             initDQN();
-            lastStepInfo = null;
-            // 清空所有面板
-            el('feedback-info').innerHTML = '<div style="color:#a0aec0;padding:1.5rem 0;">等待第一步...</div>';
-            el('buffer-tbody').innerHTML = '<tr><td colspan="5" style="color:#a0aec0;padding:0.8rem;">缓冲区为空</td></tr>';
-            el('buffer-count').textContent = '(0/'+BUF_SIZE+' 条)';
-            el('td-info').innerHTML = '<div style="color:#a0aec0;padding:0.5rem 0;">缓冲区积累足够样本后开始更新</div>';
-            updateAllPanels(null);
-        };
+            updateInfoBar();
+            updateHeatmap();
+            clearStepHighlight();
+            setDataPanel('<span class="dp-dim">点击"下一子步"或"自动播放"开始训练</span>');
+        }
 
         // === 初始化 ===
         initDQN();
-        setTimeout(function(){
-            updateAllPanels(null);
+        setTimeout(function() {
+            updateInfoBar();
+            updateHeatmap();
         }, 200);
 
+        return {
+            nextSubStep: nextSubStep,
+            nextFullStep: nextFullStep,
+            toggleAuto: toggleAuto,
+            fastConverge: fastConverge,
+            reset: reset
+        };
     })();
     </script>
 </body>
