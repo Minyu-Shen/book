@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>5.1 Deep Q-Network - 运筹智能</title>
+    <title>5.1.2 DQN的关键改进 - 运筹智能</title>
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -97,9 +97,9 @@
                 <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
                 <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
                 <li class="sidebar-chapter">第五章 深度强化学习算法</li>
-                <li><a href="../ch05/5.1.html" class="active">5.1 Deep Q-Network</a></li>
-                <li class="sidebar-subsection"><a href="../ch05/5.1.1.html">5.1 Deep Q-Network</a></li>
-                <li class="sidebar-subsection"><a href="../ch05/5.1.2.html">5.1.2 DQN的关键改进</a></li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.1.1.html">5.1.2 DQN的关键改进</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.1.2.html" class="active">5.1.2 DQN的关键改进</a></li>
                 <li class="sidebar-subsection"><a href="../ch05/5.1.3.html">5.1.3 例子：库存管理</a></li>
                 <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
                 <li><a href="../ch05/5.3.html">5.3 DDPG与TD3</a></li>
@@ -129,36 +129,104 @@
                 <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
 
         <main class="main-content">
-            <h1>5.1 Deep Q-Network</h1>
+            <h1>5.1.2 DQN的关键改进</h1>
 
-            <p>在第三章中，Q-learning 用一张表格存储所有状态-动作对的 Q 值。当状态空间很小时（如网约车的3个区域），这种方式简单有效。但在实际的管理科学问题中，状态空间往往是高维甚至连续的，表格方法不再可行。Deep Q-Network（DQN）用神经网络替代Q表格，开创了深度强化学习的时代。</p>
+            <p>上一节介绍了 DQN 的基本框架：Q网络 + 经验回放 + 目标网络。这个框架虽然已经能工作，但在实践中存在三个可以改进的地方。本节介绍三项改进，它们相互独立，可以自由组合。</p>
 
-            <p>本节分为三个部分：</p>
+            <h2>从DQN到Double DQN</h2>
 
-            <ul class="section-list">
-                <li>
-                    <a href="5.1.1.html">
-                        <div class="sec-title">5.1.1 DQN基本算法</div>
-                        <div class="sec-desc">用神经网络近似Q值函数，引入经验回放和目标网络两个关键技巧解决训练不稳定问题。在网约车调度问题上演示DQN的训练过程。</div>
-                    </a>
-                </li>
-                <li>
-                    <a href="5.1.2.html">
-                        <div class="sec-title">5.1.2 DQN的关键改进</div>
-                        <div class="sec-desc">三项独立的改进：Double DQN（减少Q值过估计）、Dueling架构（分离状态价值与动作优势）、优先经验回放（按信息量分配采样概率）。</div>
-                    </a>
-                </li>
-                <li>
-                    <a href="5.1.3.html">
-                        <div class="sec-title">5.1.3 例子：库存管理</div>
-                        <div class="sec-desc">在一个库存管理问题上，通过交互式的ablation study，逐一展示每项改进对训练过程的影响。学生可以自由组合不同改进，观察学习曲线的变化。</div>
-                    </a>
-                </li>
-            </ul>
+            <p>DQN虽然效果显著，但存在一个系统性的问题：<strong>Q值过高估计</strong>（overestimation）。</p>
+
+            <p>问题出在TD目标中的 $\max$ 运算。考虑公式(5.1-5)中的TD目标：</p>
+
+            $$y = R + \gamma \max_{a'} Q(S', a'; \theta^-)$$
+
+            <p>$\max$ 运算符同时承担了两个角色：<strong>选择</strong>哪个动作最好，以及<strong>估计</strong>该动作的Q值。当Q值的估计存在噪声时（训练初期必然如此），$\max$ 倾向于选出那个被<strong>高估</strong>的动作。这就像从一组有误差的成绩中选最高分，选出来的往往比真实最高分偏高。这种偏差会在训练过程中不断积累，导致所有Q值被系统性地高估。</p>
+
+            <details class="derivation">
+                <summary>推导：为什么 max 会导致过高估计</summary>
+                <p style="margin-top:0.5rem;">假设真实Q值为 $Q^*(s',a_1) = Q^*(s',a_2) = V$，但估计值含有均值为零的噪声：$\hat{Q}(s',a_i) = V + \epsilon_i$，其中 $\epsilon_i$ 独立且 $\mathbb{E}[\epsilon_i]=0$。则：</p>
+                $$\mathbb{E}\left[\max(\hat{Q}(s',a_1), \hat{Q}(s',a_2))\right] = \mathbb{E}\left[\max(V+\epsilon_1, V+\epsilon_2)\right] = V + \mathbb{E}\left[\max(\epsilon_1, \epsilon_2)\right] \geq V$$
+                <p>最后一个不等式严格成立（只要 $\epsilon_i$ 不恒为零），因为两个均值为零的随机变量的最大值的期望严格大于零。动作越多，过高估计越严重。</p>
+            </details>
+
+            <p><strong>Double DQN</strong>（van Hasselt et al., 2016）的解决方案很巧妙：将动作选择和Q值估计分开，用两个不同的网络分别完成。具体地，用<strong>在线网络</strong> $\theta$ 来选择动作，用<strong>目标网络</strong> $\theta^-$ 来估计该动作的Q值：</p>
+
+            <div class="concept-card">
+                <div class="concept-name">Double DQN 的 TD 目标</div>
+                $$y^{\text{DDQN}} = R + \gamma\, Q\!\left(S',\; \underbrace{\arg\max_{a'} Q(S', a'; \theta)}_{\text{在线网络选动作}}\;;\; \underbrace{\theta^-}_{\text{目标网络估值}}\right) \tag{5.1-8}$$
+            </div>
+
+            <p>对比DQN的TD目标 $y = R + \gamma \max_{a'} Q(S', a'; \theta^-)$，Double DQN的改动很小（只需将动作选择从 $\theta^-$ 改为 $\theta$），但能显著减少过高估计。直觉上，即使在线网络由于噪声选择了一个被高估的动作，目标网络对该动作的估值通常不会同样偏高（因为两个网络的噪声不同），从而纠正了偏差。</p>
+
+            <p>在实现层面，Double DQN只需修改DQN算法第2(b)(v)步中计算TD目标的方式，其余完全相同。这种微小的修改带来了稳定的性能提升，因此在实践中，Double DQN已经基本取代了原始DQN。</p>
+
+            <!-- ==================== Dueling DQN ==================== -->
+            <h2>Dueling DQN：分离状态价值与动作优势</h2>
+
+            <p>标准DQN的网络直接输出每个动作的 $Q(s,a)$。但在很多状态下，不同动作的Q值差异其实很小——真正重要的是"这个状态本身好不好"（状态价值 $V(s)$），而非"这个动作比平均水平好多少"（优势 $A(s,a)$）。</p>
+
+            <p>Dueling DQN（Wang et al., 2016）将网络的输出层拆分为两个分支：</p>
+
+            <div class="concept-card">
+                <div class="concept-name">Dueling 架构</div>
+                $$Q(s, a;\, \theta) = V(s;\, \theta_V) + \left[A(s, a;\, \theta_A) - \frac{1}{|\mathcal{A}|}\sum_{a'} A(s, a';\, \theta_A)\right] \tag{5.1-9}$$
+                <p style="margin-top:0.5rem;">$V$ 分支输出一个标量（状态价值），$A$ 分支输出 $|\mathcal{A}|$ 个值（每个动作的优势）。减去均值是为了可辨识性：保证 $V$ 分支确实学到状态价值，而非被 $A$ 分支吸收。</p>
+            </div>
+
+            <p>两个分支共享前面的特征提取层，只在最后一两层分叉。这个架构的好处是：在很多状态下（特别是所有动作的Q值都差不多时），网络可以先把 $V(s)$ 学准，不必通过每个动作单独学习。这在动作空间较大时尤其有效。</p>
+
+            <p>Dueling DQN 只改变了网络结构，不改变训练流程——仍然使用经验回放、目标网络和（通常搭配）Double DQN 的 TD 目标。在实现上只需将网络最后一层从直接输出Q值改为分支输出再合并。</p>
+
+            <!-- ==================== Prioritized Experience Replay ==================== -->
+            <h2>优先经验回放（Prioritized Experience Replay）</h2>
+
+            <p>标准DQN的经验回放从缓冲区中<strong>均匀随机</strong>抽取样本。但直觉上，有些经验比其他经验更"值得学习"——那些TD误差较大的样本意味着当前Q网络的预测与实际差距很大，包含更多可学习的信息。</p>
+
+            <p>优先经验回放（Schaul et al., 2016）正是基于这个直觉：按TD误差的大小为每个样本分配采样优先级。TD误差越大，被采样到的概率越高：</p>
+
+            <div class="concept-card">
+                <div class="concept-name">优先采样概率</div>
+                $$P(i) = \frac{p_i^\alpha}{\sum_k p_k^\alpha} \tag{5.1-10}$$
+                <p style="margin-top:0.5rem;">其中 $p_i = |\delta_i| + \epsilon$（TD误差的绝对值加一个小常数 $\epsilon$ 防止优先级为零），$\alpha \in [0, 1]$ 控制优先化的程度：$\alpha = 0$ 退化为均匀采样，$\alpha = 1$ 完全按优先级采样。</p>
+            </div>
+
+            <p>优先采样改变了样本的分布，可能引入偏差。为此需要用<strong>重要性采样权重</strong>来修正：</p>
+
+            $$w_i = \left(\frac{1}{N \cdot P(i)}\right)^\beta \tag{5.1-11}$$
+
+            <p>其中 $\beta$ 从一个较小的值线性递增到 $1$（训练结束时完全修正偏差）。每个样本的梯度乘以 $w_i$ 后再更新网络。</p>
+
+            <p>在实现上，优先经验回放通常用 sum-tree 数据结构高效地按优先级采样，时间复杂度为 $O(\log N)$。</p>
+
+            <!-- ==================== 实践中的组合 ==================== -->
+            <h3>实践中的组合</h3>
+
+            <p>上述三项改进（Double DQN、Dueling 架构、优先经验回放）相互独立，可以自由组合。实践中通常同时启用全部三项，这个组合有时被称为 "D3QN"。Rainbow（Hessel et al., 2018）则进一步整合了六项 DQN 改进，证明这些改进具有互补性。对于管理科学中的离散决策问题，至少启用 Double DQN 和 Dueling 架构是推荐做法，因为代码改动极小但收益显著。</p>
+
+            <!-- ==================== 库存管理小例子 ==================== -->
+
+            <!-- ==================== 小结 ==================== -->
+            <h2>小结</h2>
+
+            <table class="trans-table" style="width:100%;">
+                <thead>
+                    <tr><th>改进</th><th>解决的问题</th><th>核心思想</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Double DQN</td><td>$\max$ 导致的Q值过高估计</td><td>用在线网络选动作、目标网络估值，分离两个角色</td></tr>
+                    <tr><td>Dueling DQN</td><td>无法高效学习状态本身的价值</td><td>将Q网络拆分为 $V$ 和 $A$ 两个分支</td></tr>
+                    <tr><td>优先经验回放</td><td>均匀采样浪费低信息量的样本</td><td>按TD误差大小分配采样优先级</td></tr>
+                </tbody>
+            </table>
+
+            <p>这三项改进相互独立，可以自由组合。Rainbow（Hessel et al., 2018）整合了六项 DQN 改进，证明它们具有互补性。对于管理科学中的离散决策问题，推荐至少启用 Double DQN + Dueling 架构。</p>
+
+            <p>下一节用一个库存管理问题来演示这些改进的实际效果。通过交互式的 ablation study，可以直观地看到每项改进对训练过程的影响。</p>
 
             <div class="chapter-nav">
-                <a href="../ch04/4.4.html">&larr; 4.4 图神经网络</a>
-                <a href="../ch05/5.1.1.html">5.1.1 DQN基本算法 &rarr;</a>
+                <a href="../ch05/5.1.1.html">&larr; 5.1.1 DQN基本算法</a>
+                <a href="../ch05/5.1.3.html">5.1.3 例子：库存管理 &rarr;</a>
             </div>
         </main>
     </div>
