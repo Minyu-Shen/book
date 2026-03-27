@@ -178,13 +178,21 @@
             <p>类似于 $V^*$ 满足贝尔曼最优方程(2.2-4)，$Q^*$ 也满足对应的方程。将(2.2-4)中的 $V^*(s') = \max_{a'} Q^*(s',a')$ 代入公式(2.1-9)的 $Q$-$V$ 关系，得到：</p>
 
             <div class="formula-block">
-                $$\boxed{Q^*(s,a) = R(s,a) + \gamma \sum_{s'} P(s' \mid s,a)\, \max_{a'} Q^*(s',a')} \tag{2.2-9}$$
+                $$\boxed{Q^*(s,a) = \sum_{s'} P(s' \mid s,a)\left[R(s,a,s') + \gamma \, \max_{a'} Q^*(s',a')\right]} \tag{2.2-9}$$
             </div>
+
+            <p>这里 $R(s,a,s')$ 是在状态 $s$ 执行动作 $a$ 后转移到状态 $s'$ 时获得的奖励。在网约车例子中，司机在市中心接单后去郊区的车费是 $R(c,\text{接单},b) = 8$，去机场则是 $R(c,\text{接单},a) = 12$——奖励取决于具体转移到了哪个状态。求和 $\sum_{s'} P(s'|s,a)[\cdots]$ 对所有可能的下一状态取期望。</p>
+
+            <p>这个公式也可以写成更紧凑的期望形式：</p>
+
+            $$Q^*(s,a) = \mathbb{E}_{S' \sim P(\cdot|s,a)}\!\left[R(s,a,S') + \gamma\, \max_{a'} Q^*(S',a')\right] \tag{2.2-9'}$$
+
+            <p>后面第五章的 DQN 算法正是从这个期望形式出发，用采样来逼近期望。</p>
 
             <p>对比 $Q$ 的贝尔曼期望方程(2.1-10)：期望方程对下一步动作按策略 $\pi$ 做<strong>加权平均</strong> $\sum_{a'} \pi(a'|s') Q(s',a')$，最优方程则取<strong>最大值</strong> $\max_{a'} Q^*(s',a')$。将(2.2-9)当作迭代规则使用，就得到基于 $Q$ 值的值迭代：</p>
 
             <div class="formula-block">
-                $$q_{k+1}(s,a) = R(s,a) + \gamma \sum_{s'} P(s' \mid s,a)\, \max_{a'} q_k(s',a') \tag{2.2-10}$$
+                $$q_{k+1}(s,a) = \sum_{s'} P(s' \mid s,a)\left[R(s,a,s') + \gamma\, \max_{a'} q_k(s',a')\right] \tag{2.2-10}$$
             </div>
 
             <p>对网约车例子运行 $Q$ 值迭代至收敛，得到所有6个 $Q^*$ 值：</p>
