@@ -78,9 +78,9 @@
                 <li class="sidebar-chapter">第五章 深度强化学习算法</li>
                 <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
                 <li><a href="../ch05/5.2.html" class="active">5.2 Policy Gradient与PPO</a></li>
-                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
-                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
-                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li><a href="../ch05/5.4.html">5.4 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.5.html">5.5 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.6.html">5.6 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
                 <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
                 <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
                 <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
@@ -477,11 +477,11 @@
 
             <h3>广义优势估计（GAE）</h3>
 
-            <p>PPO实践中通常使用<strong>广义优势估计</strong>（Generalized Advantage Estimation, GAE, Schulman et al., 2016）来计算 $\hat{A}_t$。GAE是不同步数TD误差的指数加权平均，通过一个参数 $\lambda \in [0, 1]$ 控制偏差-方差的平衡：</p>
+            <p>PPO实践中通常使用<strong>广义优势估计</strong>（Generalized Advantage Estimation, GAE, Schulman et al., 2016）来计算 $\hat{A}_t$。GAE的公式与3.1.4节推导的 $\lambda$-回报 TD 误差表示（式(3.1-14)）形式完全相同——将 $\lambda$-回报的思想应用于优势函数估计：</p>
 
             $$\hat{A}_t^{\text{GAE}} = \sum_{l=0}^{T-t} (\gamma\lambda)^l \delta_{t+l} \tag{5.2-12}$$
 
-            <p>其中 $\delta_t = R_t + \gamma V_\phi(S_{t+1}) - V_\phi(S_t)$。当 $\lambda = 0$ 时，GAE退化为单步TD误差 $\delta_t$（低方差、高偏差）；当 $\lambda = 1$ 时，GAE等价于蒙特卡洛回报减去基线（高方差、低偏差）。实践中 $\lambda = 0.95$ 是常见的选择。</p>
+            <p>其中 $\delta_t = R_t + \gamma V_\phi(S_{t+1}) - V_\phi(S_t)$。参数 $\lambda \in [0, 1]$ 控制偏差-方差的平衡：$\lambda = 0$ 时 GAE 退化为单步 TD 误差 $\delta_t$（低方差、高偏差）；$\lambda = 1$ 时 GAE 等价于蒙特卡洛回报减去基线（高方差、低偏差）。实践中 $\lambda = 0.95$ 是常见的选择。实现上，GAE 在收集的轨迹上从后往前递推计算：$\hat{A}_t^{\text{GAE}} = \delta_t + \gamma\lambda\,\hat{A}_{t+1}^{\text{GAE}}$，只需一次反向遍历即可完成。</p>
 
             <h3>为什么PPO是默认选择</h3>
 
@@ -523,6 +523,134 @@
             </div>
             <div class="fig-caption">图 5.2-2：REINFORCE训练演示。左图为策略概率（柱状图），右图为每个episode的累计回报曲线。拖动学习率滑块可观察收敛速度的变化。</div>
 
+            <!-- ==================== 例子：动态定价 ==================== -->
+            <h2>例子：机票动态定价的PPO实现</h2>
+
+            <p>用一个简化的机票定价问题演示 PPO 的完整实现。航空公司在出发前 $T=30$ 天内每天设定票价，面对价格敏感的随机需求，目标是最大化总收入。</p>
+
+            <ul>
+                <li><strong>状态</strong>：$s = (\text{剩余座位} / 50,\; \text{剩余天数} / 30)$，归一化到 $[0,1]^2$</li>
+                <li><strong>动作</strong>：从4个价格档位中选择——$a \in \{200, 400, 600, 800\}$ 元</li>
+                <li><strong>需求</strong>：每天的购票人数 $D \sim \text{Poisson}(\mu)$，其中 $\mu = 5 \cdot e^{-\text{price}/400}$（价格越高，需求越低）</li>
+                <li><strong>奖励</strong>：$R = \text{price} \times \min(D, \text{剩余座位})$</li>
+            </ul>
+
+<pre><code class="language-python">import torch
+import torch.nn as nn
+import numpy as np
+
+# --- 环境 ---
+class TicketPricingEnv:
+    def __init__(self, capacity=50, horizon=30):
+        self.capacity = capacity
+        self.horizon = horizon
+
+    def reset(self):
+        self.seats = self.capacity
+        self.day = 0
+        return self._obs()
+
+    def _obs(self):
+        return [self.seats / self.capacity, (self.horizon - self.day) / self.horizon]
+
+    def step(self, action_idx):
+        price = [200, 400, 600, 800][action_idx]
+        lam = 5 * np.exp(-price / 400)          # 需求强度
+        demand = np.random.poisson(lam)
+        sold = min(demand, self.seats)
+        reward = price * sold
+        self.seats -= sold
+        self.day += 1
+        done = (self.day >= self.horizon) or (self.seats <= 0)
+        return self._obs(), reward, done
+
+# --- Actor-Critic 网络 ---
+class ActorCritic(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.shared = nn.Sequential(nn.Linear(2, 64), nn.ReLU())
+        self.actor = nn.Linear(64, 4)       # 4个价格档位
+        self.critic = nn.Linear(64, 1)      # V(s)
+
+    def forward(self, x):
+        h = self.shared(x)
+        return torch.softmax(self.actor(h), dim=-1), self.critic(h)
+
+# --- PPO 训练 ---
+env = TicketPricingEnv()
+model = ActorCritic()
+optimizer = torch.optim.Adam(model.parameters(), lr=3e-4)
+gamma, lam, eps_clip = 0.99, 0.95, 0.2
+
+for epoch in range(300):
+    # 收集一批轨迹
+    states, actions, rewards, log_probs_old, values = [], [], [], [], []
+    for _ in range(8):  # 8条轨迹
+        obs = env.reset()
+        done = False
+        while not done:
+            s_t = torch.tensor([obs], dtype=torch.float32)
+            with torch.no_grad():
+                probs, val = model(s_t)
+            dist = torch.distributions.Categorical(probs)
+            a = dist.sample()
+            obs2, r, done = env.step(a.item())
+            states.append(obs); actions.append(a.item())
+            rewards.append(r); log_probs_old.append(dist.log_prob(a).item())
+            values.append(val.item()); obs = obs2
+        values.append(0)  # terminal value
+
+    # GAE计算（式3.1-14的递推形式）
+    advantages, returns = [], []
+    gae = 0
+    for t in reversed(range(len(rewards))):
+        delta = rewards[t] + gamma * values[t+1] - values[t]
+        gae = delta + gamma * lam * gae
+        advantages.insert(0, gae)
+        returns.insert(0, gae + values[t])
+
+    # PPO更新（3轮）
+    s_batch = torch.tensor(states, dtype=torch.float32)
+    a_batch = torch.tensor(actions, dtype=torch.long)
+    adv = torch.tensor(advantages, dtype=torch.float32)
+    adv = (adv - adv.mean()) / (adv.std() + 1e-8)
+    ret = torch.tensor(returns, dtype=torch.float32)
+    old_lp = torch.tensor(log_probs_old, dtype=torch.float32)
+
+    for _ in range(3):
+        probs, vals = model(s_batch)
+        dist = torch.distributions.Categorical(probs)
+        new_lp = dist.log_prob(a_batch)
+        ratio = (new_lp - old_lp).exp()
+        # PPO-Clip损失
+        loss_actor = -torch.min(ratio * adv,
+                                ratio.clamp(1-eps_clip, 1+eps_clip) * adv).mean()
+        loss_critic = nn.functional.mse_loss(vals.squeeze(), ret)
+        loss = loss_actor + 0.5 * loss_critic
+        optimizer.zero_grad(); loss.backward(); optimizer.step()
+
+    if epoch % 50 == 0:
+        # 评估
+        obs = env.reset(); total = 0; done = False
+        while not done:
+            with torch.no_grad():
+                probs, _ = model(torch.tensor([obs], dtype=torch.float32))
+            obs, r, done = env.step(probs.argmax().item())
+            total += r
+        print(f"Epoch {epoch}, 总收入={total:.0f}")
+
+# 查看学到的定价策略
+print("\n学到的定价策略：")
+for seats in [50, 30, 10, 5]:
+    for day_left in [25, 15, 5]:
+        obs = [seats/50, day_left/30]
+        with torch.no_grad():
+            probs, v = model(torch.tensor([obs], dtype=torch.float32))
+        price = [200,400,600,800][probs.argmax().item()]
+        print(f"  剩余{seats:2d}座, 还有{day_left:2d}天 → 定价{price}元 (V={v.item():.0f})")</code></pre>
+
+            <p>可以观察到学到的策略符合收益管理的直觉：座位充裕时低价吸引客流，座位紧张时提高价格。代码中的 GAE 计算直接使用了3.1.4节式(3.1-14)的递推形式。</p>
+
             <!-- ==================== 小结 ==================== -->
             <h2>小结</h2>
 
@@ -550,7 +678,7 @@
 
             <div class="chapter-nav">
                 <a href="../ch05/5.1.html">&larr; 5.1 Deep Q-Network</a>
-                <a href="../ch05/5.3.html">5.3 Soft Actor-Critic &rarr;</a>
+                <a href="../ch05/5.3.html">5.3 DDPG与TD3 &rarr;</a>
             </div>
         </main>
     </div>

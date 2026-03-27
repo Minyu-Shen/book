@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>5.5 训练实践：超参数调优、奖励函数设计与训练稳定性 - 运筹智能</title>
+    <title>5.5 基于模型的深度强化学习 - 运筹智能</title>
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -22,26 +22,18 @@
         .algo-box ol { margin: 0.3rem 0 0.3rem 1.5rem; line-height: 2; }
         .algo-box .algo-note { font-size: 0.9rem; color: #718096; margin-top: 0.5rem; }
         .formula-block { background: var(--sidebar-bg); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; overflow-x: auto; }
-        .checklist-box { background: #f7fafc; border: 2px solid var(--accent-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
-        .checklist-box .checklist-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
-        .checklist-item { margin: 0.8rem 0; padding: 0.6rem 1rem; border-left: 3px solid var(--border-color); background: white; border-radius: 0 6px 6px 0; }
-        .checklist-item .symptom { font-weight: 600; color: #c53030; margin-bottom: 0.3rem; }
-        .checklist-item .diagnosis { font-size: 0.93rem; color: var(--text-color); line-height: 1.7; }
-        .reward-example { background: #fff5f5; border: 2px solid #fc8181; border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
-        .reward-example .example-title { font-weight: 700; color: #c53030; font-size: 1.0rem; margin-bottom: 0.6rem; }
-        .rl-ctrl { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; margin-bottom:0.8rem; font-size:0.88rem; }
-        .rl-ctrl button { padding:0.3rem 0.7rem; border:1px solid #2b6cb0; background:white; color:#2b6cb0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.84rem; transition:all 0.15s; }
-        .rl-ctrl button:hover { background:#2b6cb0; color:white; }
-        .rl-ctrl select { padding:0.3rem 0.5rem; border:1px solid var(--border-color); border-radius:5px; font-family:inherit; font-size:0.84rem; }
-        .demo-panel { border:2px solid var(--border-color); border-radius:8px; padding:1.2rem; margin:1.5rem 0; background:#fafafa; }
-        .demo-panel .demo-title { font-weight:700; color:var(--accent-color); margin-bottom:0.6rem; font-size:1.05rem; }
-        .canvas-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0.6rem 0; }
-        .canvas-grid canvas { width: 100%; border: 1px solid var(--border-color); border-radius: 4px; background: white; }
-        .canvas-label { font-size: 0.82rem; color: #718096; text-align: center; margin-top: 2px; margin-bottom: 8px; }
-        .fig-caption { text-align: center; font-size: 0.9rem; color: #718096; margin-top: 0.8rem; }
-        .takeaway-list { counter-reset: takeaway; list-style: none; padding: 0; }
-        .takeaway-list li { counter-increment: takeaway; padding: 0.4rem 0 0.4rem 2.2rem; position: relative; line-height: 1.8; }
-        .takeaway-list li::before { content: counter(takeaway); position: absolute; left: 0; top: 0.4rem; width: 1.6rem; height: 1.6rem; background: var(--accent-color); color: white; border-radius: 50%; text-align: center; line-height: 1.6rem; font-size: 0.85rem; font-weight: 600; }
+        .note { background: #f0fff4; border-left: 4px solid #48bb78; padding: 0.8rem 1.2rem; margin: 1.2rem 0; border-radius: 0 6px 6px 0; font-size: 0.95rem; }
+        .fig-caption { text-align: center; font-size: 0.9rem; color: #718096; margin-top: 0.5rem; margin-bottom: 1rem; }
+        .optional-reading { background: #f0fff4; border: 1px solid #9ae6b4; border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; }
+        .optional-reading summary { font-weight: 700; color: #276749; cursor: pointer; font-size: 1rem; }
+        .optional-reading summary:hover { color: var(--accent-color); }
+        .scenario-box { background: var(--sidebar-bg); border: 2px solid var(--border-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .scenario-box .scenario-title { font-weight: 700; color: var(--primary-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .spectrum-bar { display: flex; align-items: stretch; margin: 1.5rem 0; border-radius: 8px; overflow: hidden; font-size: 0.9rem; }
+        .spectrum-bar .spec-item { flex: 1; padding: 0.8rem 0.6rem; text-align: center; line-height: 1.5; }
+        .page-nav { display: flex; justify-content: space-between; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); font-size: 0.95rem; }
+        .page-nav a { color: var(--accent-color); text-decoration: none; }
+        .page-nav a:hover { text-decoration: underline; }
     </style>
     <script defer src="../../js/code-copy.js"></script>
 </head>
@@ -84,9 +76,10 @@
                 <li class="sidebar-chapter">第五章 深度强化学习算法</li>
                 <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
                 <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
-                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
-                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
-                <li><a href="../ch05/5.5.html" class="active">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li><a href="../ch05/5.3.html">5.3 DDPG与TD3</a></li>
+                <li><a href="../ch05/5.4.html">5.4 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.5.html" class="active">5.5 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.6.html">5.6 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
                 <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
                 <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
                 <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
@@ -113,725 +106,472 @@
         </aside>
 
         <main class="main-content">
-            <h1>5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</h1>
+            <h1>5.5 基于模型的深度强化学习</h1>
 
-            <p>前面三节介绍了 DQN、PPO 和 SAC 三种主流深度强化学习算法的原理。然而，从理解算法到在实际管理科学问题上训练出有效的智能体，中间还有一段不短的距离。许多初学者在复现论文结果时会遇到这样的困惑：代码没有bug，算法也正确，但智能体就是学不到好策略。问题往往出在三个方面：超参数选取不当、奖励函数设计有缺陷、训练过程不稳定。本节针对这三个方面提供系统性的实践指导。</p>
+            <!-- ==================== 回顾：模型与无模型 ==================== -->
+            <h2>回顾：模型与无模型</h2>
 
-            <!-- ==================== 3.4.1 超参数调优 ==================== -->
-            <h2>超参数调优</h2>
+            <p>在第一章中，我们假设MDP的转移概率 $P(s'|s,a)$ 和奖励函数 $R(s,a)$ 是完全已知的，并以此为基础介绍了策略迭代和值迭代两种动态规划算法。这种方法可以称为<strong>纯粹的基于模型方法</strong>：有了完整的模型，就可以通过计算直接求解最优策略，不需要与环境进行任何交互。</p>
 
-            <p>深度强化学习算法涉及大量超参数，不同超参数对训练效果的影响程度差异很大。下面按照重要性依次介绍最关键的几类超参数。</p>
+            <p>在3.1至5.3节中，我们走向了另一个极端。DQN、PPO和SAC都属于<strong>无模型</strong>（model-free）算法：它们完全不尝试理解环境的运转规律，而是直接从与环境的交互数据中学习值函数或策略。这种方法的优点是通用性强，无论环境多么复杂，只要能与之交互并获得奖励信号，就有可能学到好的策略。</p>
 
-            <h3>学习率</h3>
-
-            <p>学习率 $\alpha$（或写作 $\mathrm{lr}$）是影响训练效果的最重要超参数，没有之一。它控制每次梯度更新的步长：</p>
-
-            <div class="formula-block">
-                $$\theta_{t+1} = \theta_t - \alpha \, \nabla_\theta \mathcal{L}(\theta_t) \tag{5.5-1}$$
-            </div>
-
-            <p>学习率过大，参数在每次更新时跳跃幅度过大，Q值或策略可能剧烈震荡甚至发散；学习率过小，训练进展极其缓慢，可能需要百万级别的时间步才能看到效果，且容易困在局部最优。对于大多数管理科学问题，建议从 $3 \times 10^{-4}$ 开始尝试，这是 Adam 优化器的默认值，也是被大量实验验证过的合理起点。</p>
-
-            <div class="warning">
-                <strong>常见陷阱：</strong>在使用 Actor-Critic 架构（如PPO、SAC）时，Actor 和 Critic 通常需要不同的学习率。Critic 的学习率一般可以略大于 Actor，因为值函数的优化目标是标准的回归问题，而策略梯度更新对学习率更敏感。SAC 中的典型配置是 Actor 和 Critic 都使用 $3 \times 10^{-4}$，但如果训练不稳定，可以尝试将 Actor 的学习率降为 $1 \times 10^{-4}$。
-            </div>
-
-            <h3>折扣因子</h3>
-
-            <p>折扣因子 $\gamma$ 决定了智能体在多大程度上重视未来奖励。$\gamma$ 越接近 $1$，智能体越看重长远回报；$\gamma$ 越小，智能体越倾向于追求眼前利益。</p>
-
-            <p>从实践角度看，$\gamma$ 的选择应与问题的决策时间尺度匹配。对于回合较短（例如几十步内结束）的问题，$\gamma = 0.99$ 是常用选择。对于需要长期规划的管理科学问题（如多周期的库存管理、跨时段的交通调度），可能需要更大的 $\gamma$（如 $0.995$ 或 $0.999$）。但需要注意，$\gamma$ 越大，值函数的方差越大，训练难度也会增加。</p>
-
-            <div class="note">
-                <strong>实践提示：</strong>$\gamma$ 的有效规划时间尺度（即未来多少步的奖励还有显著权重）约为 $\frac{1}{1-\gamma}$ 步。例如，$\gamma = 0.99$ 对应约 $100$ 步的有效规划范围，$\gamma = 0.999$ 对应约 $1000$ 步。选择 $\gamma$ 时可以先估算问题中的关键决策跨度有多少步，再据此设定。
-            </div>
-
-            <h3>批量大小与经验回放缓冲区</h3>
-
-            <p>对于使用经验回放的离策略算法（DQN、SAC），<strong>批量大小</strong>（batch size）和<strong>缓冲区容量</strong>（replay buffer size）是两个关联的超参数。</p>
-
-            <p>批量大小决定了每次梯度更新使用多少条经验。较大的批量能提供更稳定的梯度估计，但会增加计算开销。DQN 和 SAC 中常用的批量大小是 $256$，PPO中则通常将一段收集到的经验切成多个 mini-batch，每个大小在 $32$ 到 $64$ 之间。</p>
-
-            <p>缓冲区容量决定了智能体能"记住"多少历史经验。容量太小，智能体只能看到最近的经验，可能遗忘早期有价值的转移；容量太大，则可能混入大量早期低质量的经验。一般推荐从 $10^5$ 到 $10^6$ 开始。</p>
-
-            <h3>网络架构</h3>
-
-            <p>对于大部分管理科学问题，状态空间是结构化的向量（如库存水平、车辆位置、订单队列长度等），不需要卷积网络或特殊架构，使用标准的全连接网络即可。典型配置是 $2$ 到 $3$ 个隐藏层，每层 $128$ 到 $256$ 个神经元，激活函数使用 ReLU。</p>
-
-            <p>网络不宜太大也不宜太小。太小的网络表达能力不足，无法拟合复杂的值函数或策略；太大的网络参数过多，在有限数据下容易过拟合，且训练速度慢。管理科学问题中状态空间的维度通常在几十到几百之间，$[256, 256]$ 的两层网络在大多数场景下足够。</p>
-
-            <h3>探索参数</h3>
-
-            <p>不同算法的探索机制不同，对应的超参数也不同：</p>
-
-            <ul>
-                <li><strong>DQN 的 $\varepsilon$ 衰减策略：</strong>$\varepsilon$-greedy 中的 $\varepsilon$ 通常从 $1.0$ 线性衰减到 $0.01$ 或 $0.05$，衰减步数约占总训练步数的 $10\%$ 到 $20\%$。衰减过快导致探索不足，过慢则训练效率低下。</li>
-                <li><strong>PPO 的熵系数：</strong>PPO 的目标函数中有一项熵奖励 $c_2 \, H[\pi(\cdot \mid s)]$，系数 $c_2$ 鼓励策略保持一定随机性。典型值为 $0.01$，如果智能体过早收敛到确定性策略，可以增大到 $0.05$。</li>
-                <li><strong>SAC 的温度参数 $\alpha$：</strong>SAC 通过自动调节温度来平衡探索与利用（参见5.3节），一般使用自动调节机制即可，目标熵设为 $-\dim(\mathcal{A})$（连续动作空间的维度取负）。</li>
-            </ul>
-
-            <h3>超参数推荐汇总</h3>
-
-            <p>下表给出三种常用算法在大多数管理科学问题上的推荐起始超参数。这些值来自大量实验的经验总结，可以作为调优的出发点。</p>
-
-            <table class="trans-table">
-                <thead>
-                    <tr>
-                        <th>超参数</th>
-                        <th>DQN</th>
-                        <th>PPO</th>
-                        <th>SAC</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>学习率 $\alpha$</td>
-                        <td>$1 \times 10^{-4}$</td>
-                        <td>$3 \times 10^{-4}$</td>
-                        <td>$3 \times 10^{-4}$</td>
-                    </tr>
-                    <tr>
-                        <td>折扣因子 $\gamma$</td>
-                        <td>$0.99$</td>
-                        <td>$0.99$</td>
-                        <td>$0.99$</td>
-                    </tr>
-                    <tr>
-                        <td>批量大小</td>
-                        <td>$256$</td>
-                        <td>$64$（mini-batch）</td>
-                        <td>$256$</td>
-                    </tr>
-                    <tr>
-                        <td>缓冲区容量</td>
-                        <td>$10^6$</td>
-                        <td>不适用（在策略）</td>
-                        <td>$10^6$</td>
-                    </tr>
-                    <tr>
-                        <td>网络结构</td>
-                        <td>$[256, 256]$</td>
-                        <td>$[256, 256]$</td>
-                        <td>$[256, 256]$</td>
-                    </tr>
-                    <tr>
-                        <td>目标网络更新</td>
-                        <td>每 $1000$ 步硬更新</td>
-                        <td>不适用</td>
-                        <td>$\tau = 0.005$ 软更新</td>
-                    </tr>
-                    <tr>
-                        <td>探索参数</td>
-                        <td>$\varepsilon$：$1.0 \to 0.01$</td>
-                        <td>熵系数：$0.01$</td>
-                        <td>自动温度调节</td>
-                    </tr>
-                    <tr>
-                        <td>优化器</td>
-                        <td>Adam</td>
-                        <td>Adam</td>
-                        <td>Adam</td>
-                    </tr>
-                    <tr>
-                        <td>PPO clip 范围</td>
-                        <td>不适用</td>
-                        <td>$\epsilon_{\mathrm{clip}} = 0.2$</td>
-                        <td>不适用</td>
-                    </tr>
-                    <tr>
-                        <td>GAE $\lambda$</td>
-                        <td>不适用</td>
-                        <td>$0.95$</td>
-                        <td>不适用</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div class="note">
-                <strong>调参策略：</strong>永远从已发表的默认值开始，而不是凭直觉设定参数。如果训练效果不理想，先确认代码和环境没有bug（这是最常见的问题来源），然后每次只调一个参数，观察其对训练曲线的影响。学习率是第一个应该调整的参数，其次是网络结构和探索参数。
-            </div>
-
-            <!-- ==================== 3.4.2 奖励函数设计 ==================== -->
-            <h2>奖励函数设计</h2>
-
-            <p>如果说超参数调优是"术"，那么奖励函数设计就是"道"。超参数影响的是训练效率，而奖励函数决定了智能体究竟在学什么。一个精心调参的算法在错误的奖励函数下只会更高效地学到错误的行为。</p>
-
-            <h3>稀疏奖励与稠密奖励</h3>
-
-            <p>奖励信号按照频率可以分为两大类：</p>
-
-            <ul>
-                <li><strong>稀疏奖励（sparse reward）：</strong>只在回合结束时或特定事件发生时给出非零奖励。例如，物流配送中只在所有订单送达后给出总用时的负值作为奖励。</li>
-                <li><strong>稠密奖励（dense reward）：</strong>每一步都给出反馈。例如，库存管理中每个时段都给出当期利润（销售收入减去持有成本和缺货惩罚）。</li>
-            </ul>
-
-            <p>稀疏奖励更接近真实目标的定义，但学习难度极大——智能体在获得第一个非零奖励之前完全靠随机探索，在高维动作空间中这可能需要天文数字般的探索量。稠密奖励大大降低了学习难度，但设计不当可能引导智能体走向偏离真实目标的行为。</p>
-
-            <div class="note">
-                <strong>实践建议：</strong>在管理科学应用中，优先设计稠密奖励。大多数管理科学问题本身就有自然的阶段性反馈（如每日利润、每时段服务质量指标），将这些作为每步奖励比设计纯稀疏奖励更合理，也更容易训练。
-            </div>
-
-            <h3>奖励塑形的陷阱</h3>
-
-            <p><strong>奖励塑形</strong>（reward shaping）是指在原始奖励基础上添加额外的引导信号，帮助智能体更快学习。它的核心原则可以用一句话概括：</p>
+            <p>但无模型方法有一个显而易见的代价：<strong>样本效率低</strong>。DQN在Atari游戏上需要约两亿帧画面才能达到人类水平的表现，PPO训练一个机器人行走策略通常需要数千万步交互。在游戏或仿真环境中，交互的成本几乎为零，这不是问题。然而在管理科学的许多实际场景中，每一次交互都意味着真实的业务决策：一次库存补货、一次车辆调度、一次价格调整。这些决策的试错成本可能非常高昂。</p>
 
             <div class="concept-card">
-                <div class="concept-name">奖励设计的基本法则</div>
-                <p>智能体会最大化你测量的指标，而不是你真正想要的目标。如果奖励函数与真实目标之间存在缝隙，智能体一定会找到并利用这个缝隙。</p>
+                <div class="concept-name">管理科学中的样本效率困境</div>
+                <p>考虑一个零售库存管理问题。每天做一次补货决策，一年只有365个决策步。如果无模型算法需要100万步交互才能收敛，那意味着需要大约2740年的运营数据。即使用仿真器加速，仿真器本身的构建和校准也需要大量真实数据。能否从更少的真实交互中学到更好的策略？</p>
             </div>
 
-            <p>以一个库存管理问题为例。假设我们希望智能体在满足服务水平（缺货率低于 $5\%$）的前提下最小化总成本。如果奖励函数设计为：</p>
+            <p>本节介绍的<strong>基于模型的深度强化学习</strong>（model-based deep RL）正是为了回答这个问题。它的核心思想是：先从有限的交互数据中<strong>学习一个环境的预测模型</strong>（通常称为<strong>世界模型</strong>，world model），然后利用这个学到的模型来<strong>想象</strong>更多的经验，从而大幅减少对真实交互的需求。</p>
+
+            <p>可以把这三种路径看作一个光谱：</p>
+
+            <div class="spectrum-bar">
+                <div class="spec-item" style="background:#dbeafe; border-right:1px solid #93c5fd;">
+                    <strong>纯粹基于模型</strong><br>
+                    已知 $P$, $R$<br>
+                    动态规划<br>
+                    <span style="font-size:0.82rem;color:#718096;">（第一章）</span>
+                </div>
+                <div class="spec-item" style="background:#fed7d7; border-right:1px solid #feb2b2;">
+                    <strong>学习模型后规划</strong><br>
+                    从数据中学 $\hat{P}$, $\hat{R}$<br>
+                    模型内想象 + 策略优化<br>
+                    <span style="font-size:0.82rem;color:#718096;">（本节）</span>
+                </div>
+                <div class="spec-item" style="background:#fefcbf;">
+                    <strong>纯粹无模型</strong><br>
+                    不学模型<br>
+                    直接从交互中学策略<br>
+                    <span style="font-size:0.82rem;color:#718096;">（3.1 &ndash; 3.3）</span>
+                </div>
+            </div>
+            <div class="fig-caption">图 5.4-1 &nbsp; 从纯粹基于模型到纯粹无模型的方法光谱。本节聚焦于中间路径：从数据中学习模型，再用模型辅助策略优化。</div>
+
+            <!-- ==================== 学习世界模型 ==================== -->
+            <h2>学习世界模型</h2>
+
+            <h3>什么是世界模型</h3>
+
+            <p>世界模型的目标很直接：给定当前状态 $s_t$ 和动作 $a_t$，预测下一个状态 $s_{t+1}$ 和即时奖励 $r_t$。我们用两个带参数 $\phi$ 的神经网络来实现这个预测：</p>
 
             <div class="formula-block">
-                $$r_t = -c_h \cdot I_t^+ - c_s \cdot I_t^- \tag{5.5-2}$$
+            $$\hat{s}_{t+1} = f_\phi(s_t,\, a_t) \tag{5.5-1}$$
+            </div>
+            <div class="formula-block">
+            $$\hat{r}_t = g_\phi(s_t,\, a_t) \tag{5.5-2}$$
             </div>
 
-            <p>其中 $I_t^+ = \max(I_t, 0)$ 是正库存（持有成本系数 $c_h$），$I_t^- = \max(-I_t, 0)$ 是缺货量（缺货惩罚系数 $c_s$）。如果 $c_s$ 设得不够大，智能体可能学到一个"聪明"的策略：极少补货以避免持有成本，代价是频繁缺货。从奖励数值上看，这个策略确实最大化了奖励，但完全违背了服务水平约束。</p>
+            <p>其中 $f_\phi$ 是<strong>状态转移模型</strong>，$g_\phi$ 是<strong>奖励模型</strong>。有了这两个模型，我们就可以在不与真实环境交互的情况下，从任意状态出发，逐步"想象"出一条完整的轨迹。</p>
 
-            <div class="reward-example">
-                <div class="example-title">反面案例：网约车调度中的奖励漏洞</div>
-                <p>考虑一个网约车派单问题，目标是最小化乘客平均等待时间。如果奖励函数设计为每成功派单一次给 $+1$ 奖励，智能体可能学到"优先接近程车辆派单、忽略偏远乘客"的策略。这个策略最大化了成功派单次数，但导致偏远地区的乘客完全得不到服务，平均等待时间反而可能更长。正确的做法是将等待时间本身作为奖励信号的一部分：$r_t = -\bar{w}_t$，其中 $\bar{w}_t$ 是当前时刻所有未服务乘客的平均等待时间。</p>
+            <p>用管理科学的语言来说，世界模型就是一个<strong>数据驱动的仿真器</strong>。与传统运筹学中手工构建的仿真模型不同，这里的仿真器是从数据中自动学习得到的。</p>
+
+            <h3>训练世界模型</h3>
+
+            <p>训练世界模型的过程其实就是一个标准的<strong>监督学习</strong>问题。首先，通过与真实环境交互，收集一批转移数据 $(s_t, a_t, r_t, s_{t+1})$，存入数据缓冲区 $\mathcal{D}$。然后，最小化模型预测与真实数据之间的误差：</p>
+
+            <div class="formula-block">
+            $$L_{\text{model}}(\phi) = \mathbb{E}_{(s,a,r,s') \sim \mathcal{D}}\!\Big[\big\|f_\phi(s,a) - s'\big\|^2 + \big\|g_\phi(s,a) - r\big\|^2\Big] \tag{5.5-3}$$
             </div>
 
-            <h3>管理科学中的常见奖励设计模式</h3>
+            <p>公式(5.4-3)的含义非常直观：对于缓冲区中的每一条真实转移，我们要求状态转移模型 $f_\phi$ 的预测尽量接近真实的下一状态 $s'$，奖励模型 $g_\phi$ 的预测尽量接近真实的奖励 $r$。这与第四章中介绍的回归任务训练方式完全一致。</p>
 
-            <p>管理科学问题往往涉及多个冲突目标，奖励函数需要在它们之间找到平衡。以下是三类典型场景的奖励设计思路：</p>
+            <h3>确定性模型与随机性模型</h3>
 
-            <table class="trans-table">
-                <thead>
-                    <tr>
-                        <th>应用领域</th>
-                        <th>核心权衡</th>
-                        <th>典型奖励结构</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>交通调度</td>
-                        <td>运营效率 vs 服务公平</td>
-                        <td>$r_t = -\alpha_1 \bar{d}_t - \alpha_2 \max_i(w_{i,t})$</td>
-                    </tr>
-                    <tr>
-                        <td>库存管理</td>
-                        <td>持有成本 vs 缺货风险</td>
-                        <td>$r_t = p \cdot \min(D_t, I_t) - c_h \cdot I_t^+ - c_s \cdot I_t^-$</td>
-                    </tr>
-                    <tr>
-                        <td>生产排程</td>
-                        <td>产量 vs 公平/延迟</td>
-                        <td>$r_t = -\alpha_1 C_{\max} - \alpha_2 \sum_j T_j$</td>
-                    </tr>
-                </tbody>
-            </table>
+            <p>公式(5.4-1)描述的是<strong>确定性模型</strong>：给定 $(s_t, a_t)$，模型输出一个确定的预测 $\hat{s}_{t+1}$。这种方式简单高效，但忽略了环境中固有的随机性。</p>
 
-            <p>在交通调度的奖励中，$\bar{d}_t$ 是平均延误，$\max_i(w_{i,t})$ 是最长等待时间（衡量公平性）。在库存管理中，$p$ 是单位售价，$D_t$ 是需求，$I_t$ 是库存水平。在生产排程中，$C_{\max}$ 是最大完工时间，$T_j$ 是第 $j$ 个工件的拖期量。权重 $\alpha_1, \alpha_2$ 反映了决策者对不同目标的偏好。</p>
+            <p>在管理科学中，许多问题的动力学具有显著的随机性：顾客到达是随机的，需求量是不确定的，供应商的交货时间有波动。对于这类问题，更合理的做法是让模型输出一个<strong>概率分布</strong>：</p>
 
-            <h3>奖励设计的实践准则</h3>
+            $$s_{t+1} \sim p_\phi(s_{t+1} \mid s_t, a_t) \tag{5.5-4}$$
+
+            <p>一种常见的实现方式是让神经网络同时输出均值 $\mu_\phi(s_t, a_t)$ 和方差 $\sigma^2_\phi(s_t, a_t)$，假设下一状态服从高斯分布。训练时使用负对数似然作为损失函数，而不是均方误差。</p>
+
+            <h3>集成模型</h3>
+
+            <p>单个神经网络模型虽然可以拟合训练数据，但我们很难知道它在训练数据之外的区域是否可靠。<strong>集成模型</strong>（ensemble model）的思路是：同时训练 $M$ 个结构相同但随机初始化不同的模型 $\{f_{\phi_1}, f_{\phi_2}, \ldots, f_{\phi_M}\}$，用它们预测的一致程度来衡量不确定性。</p>
+
+            <p>如果 $M$ 个模型对某个状态-动作对的预测高度一致，说明该区域的数据充足、模型可信；如果预测之间差异很大，则说明该区域数据稀疏，模型的预测不可靠。这种<strong>认识论不确定性</strong>（epistemic uncertainty）的量化，对于后续在模型中进行想象时控制误差至关重要。</p>
+
+            <div class="note">
+                <strong>集成模型的实际规模：</strong>在大多数实现中，$M = 5 \sim 7$ 个模型就足以提供有效的不确定性估计。虽然训练 $M$ 个模型增加了计算量，但相比节省的真实环境交互次数，这个计算成本通常是值得的。
+            </div>
+
+            <!-- ==================== Dyna架构 ==================== -->
+            <h2>利用模型：Dyna架构</h2>
+
+            <p>有了学到的世界模型，如何用它来加速策略学习？最经典也最直观的框架是 Sutton (1991) 提出的 <strong>Dyna</strong> 架构。Dyna 的核心思想可以用一句话概括：<strong>每次与真实环境交互后，额外在世界模型中进行多次想象交互，然后用真实和想象的数据一起训练策略</strong>。</p>
+
+            <p>我们用一个库存管理的场景来理解这个过程。</p>
+
+            <div class="scenario-box">
+                <div class="scenario-title">场景：零售商补货决策</div>
+                <p>某零售商每天观察库存水平 $s_t$（状态），决定补货数量 $a_t$（动作），随后面对随机的顾客需求 $d_t$，产生持有成本和缺货惩罚（奖励）。新的库存水平 $s_{t+1}$ 由库存平衡方程决定。</p>
+                <p>无模型方法（如DQN）的做法：每天做一次真实的补货决策，观察结果，用这一条经验更新Q网络。学到好策略可能需要数千天的真实运营。</p>
+                <p>Dyna的做法：每天做完真实决策后，用已收集的数据训练一个需求预测模型。然后在<strong>模型中想象</strong>10次不同的补货场景，用这10条想象经验额外更新Q网络。这样一天的真实交互就产生了11次学习机会。</p>
+            </div>
+
+            <p>Dyna架构的一般流程如下：</p>
 
             <div class="algo-box">
-                <div class="algo-title">奖励函数设计检查清单</div>
+                <div class="algo-title">Dyna框架</div>
                 <ol>
-                    <li><strong>奖励归一化：</strong>将奖励缩放到合理范围（如 $[-1, 1]$ 或 $[-10, 10]$）。奖励的绝对值过大会导致 Q 值爆炸，过小则梯度信号微弱。</li>
-                    <li><strong>检查极端策略：</strong>在提交训练之前，手动计算"全不操作"和"全随机"策略的平均奖励。如果某个极端策略的奖励已经很高，说明奖励函数设计有漏洞。</li>
-                    <li><strong>避免符号冲突：</strong>确保所有奖励项的符号一致——要么全部是"越大越好"的正向奖励，要么全部是"越大越差"的成本（取负号）。混合使用容易引起混淆和调参困难。</li>
-                    <li><strong>渐进式设计：</strong>先从最简单的奖励函数开始（如直接使用目标函数的负值），确认智能体能学习后，再逐步添加塑形项。</li>
-                    <li><strong>课程学习：</strong>对于特别困难的问题，可以先在简化版本上训练（如更少的客户、更短的时间范围），再逐步增加难度。这能帮助智能体先建立基本的策略骨架。</li>
+                    <li>在真实环境中，根据当前策略 $\pi$ 选择动作 $a_t$，执行后观察 $r_t, s_{t+1}$</li>
+                    <li>将真实转移 $(s_t, a_t, r_t, s_{t+1})$ 存入数据缓冲区 $\mathcal{D}$</li>
+                    <li>用 $\mathcal{D}$ 中的数据更新世界模型 $f_\phi, g_\phi$（监督学习）</li>
+                    <li><strong>想象阶段</strong>：重复 $K$ 次
+                        <ul style="margin:0.3rem 0 0.3rem 1rem; list-style:disc;">
+                            <li>从 $\mathcal{D}$ 中采样一个真实状态 $\tilde{s}$ 作为起点</li>
+                            <li>选择动作 $\tilde{a}$（依据当前策略 $\pi$ 或随机探索）</li>
+                            <li>用世界模型预测：$\tilde{s}' = f_\phi(\tilde{s}, \tilde{a})$，$\tilde{r} = g_\phi(\tilde{s}, \tilde{a})$</li>
+                            <li>用想象转移 $(\tilde{s}, \tilde{a}, \tilde{r}, \tilde{s}')$ 更新策略（或值函数）</li>
+                        </ul>
+                    </li>
+                    <li>用真实转移 $(s_t, a_t, r_t, s_{t+1})$ 更新策略（或值函数）</li>
                 </ol>
+                <div class="algo-note">其中 $K$ 是想象步数，控制了模型利用的力度。$K$ 越大，从每次真实交互中提取的学习信号越多，但也更依赖世界模型的准确性。</div>
             </div>
 
-            <!-- ==================== 3.4.3 训练稳定性 ==================== -->
-            <h2>训练稳定性</h2>
+            <p>Dyna框架的关键洞见在于：<strong>每一次真实交互产生 $K+1$ 次学习机会</strong>（1次真实 + $K$ 次想象）。如果设 $K=10$，则策略获得的训练信号是纯无模型方法的11倍。这直接解释了基于模型方法样本效率更高的原因。</p>
 
-            <p>深度强化学习的训练过程远不如监督学习稳定。在监督学习中，数据分布固定，损失函数通常是凸的或接近凸的；而在强化学习中，训练数据由智能体自身产生，策略改变导致数据分布改变，又进一步影响策略更新，形成一个非平稳的、自我强化的反馈环。这使得训练曲线经常出现剧烈波动、突然崩溃等现象。以下介绍几种提升训练稳定性的核心技术。</p>
-
-            <h3>梯度裁剪</h3>
-
-            <p>梯度裁剪（gradient clipping）是防止单次梯度更新幅度过大的最直接手段。它将梯度向量的范数限制在阈值 $g_{\max}$ 以内：</p>
-
-            <div class="formula-block">
-                $$\tilde{\mathbf{g}} = \begin{cases} \mathbf{g}, & \text{if } \|\mathbf{g}\| \le g_{\max} \\ g_{\max} \cdot \dfrac{\mathbf{g}}{\|\mathbf{g}\|}, & \text{if } \|\mathbf{g}\| > g_{\max} \end{cases} \tag{5.5-3}$$
+            <div class="concept-card">
+                <div class="concept-name">想象 = 廉价的仿真</div>
+                <p>Dyna框架中的想象步骤，在管理科学的语境下可以理解为<strong>在学到的仿真器中做蒙特卡洛模拟</strong>。运筹学家长期以来就依赖仿真来评估和优化决策方案。Dyna的独特之处在于，仿真器本身也是从数据中学习得到的，而且它与策略优化过程紧密耦合，形成了学习-想象-优化的闭环。</p>
             </div>
 
-            <p>PPO 默认使用 $g_{\max} = 0.5$，DQN 和 SAC 中常用 $g_{\max} = 1.0$。梯度裁剪几乎没有副作用，建议在所有训练中默认开启。</p>
+            <!-- ==================== 模型误差累积 ==================== -->
+            <h2>模型误差的累积问题</h2>
 
-            <h3>观测值与奖励的标准化</h3>
+            <p>Dyna框架看起来很理想，但实践中有一个严峻的挑战：<strong>世界模型并不完美</strong>。</p>
 
-            <p>神经网络对输入数据的尺度非常敏感。如果状态空间中不同维度的数值范围差异很大（例如库存水平在 $[0, 1000]$，而价格在 $[0, 1]$），网络的训练效率会大打折扣。</p>
+            <p>假设世界模型在每一步预测中的平均误差为 $\epsilon$。当我们从某个真实状态出发，在模型中连续想象 $H$ 步时，会发生什么？第1步的预测状态有 $\epsilon$ 的误差，第2步基于这个已有误差的状态再预测，误差进一步增大。经过 $H$ 步后，累积误差大致按 $H$ 的量级增长。当 $H$ 较大时，想象轨迹的末端可能已经与真实环境的行为毫无关系。</p>
 
-            <p>解决方案是对观测值做<strong>运行标准化</strong>（running normalization）：维护观测各维度的均值 $\mu$ 和标准差 $\sigma$ 的滑动估计，将输入标准化为 $\hat{s} = (s - \mu) / (\sigma + \epsilon)$。类似地，对奖励也可以做标准化或裁剪到固定范围内。</p>
+            <p>更糟糕的是，策略如果在这些不真实的想象数据上训练，可能学会利用模型的漏洞：找到那些在世界模型中获得高奖励、但在真实环境中根本不存在的状态-动作组合。这种现象被称为<strong>模型利用</strong>（model exploitation），是基于模型方法面临的核心挑战。</p>
 
             <div class="warning">
-                <strong>注意：</strong>奖励标准化会改变有效折扣因子和最优策略，在理论上并不总是安全的。一种更温和的做法是只标准化值函数的回报目标（return），而不标准化奖励本身。PPO的主流实现（如 Stable Baselines3）默认采用这种做法。
+                <strong>模型误差累积的直觉：</strong>想象一位基金经理使用收益预测模型来制定投资策略。如果模型对每日收益的预测误差为1%，预测一周（5个交易日）可能还勉强可用，但预测一年（250个交易日）后的组合表现就完全不可信了。在世界模型中进行长期想象也面临同样的困境。
             </div>
 
-            <h3>学习率调度</h3>
+            <p>这个问题意味着，简单地在世界模型中想象很长的轨迹是不可靠的。我们需要更谨慎地使用模型。这正是下面要介绍的MBPO算法所解决的问题。</p>
 
-            <p>固定学习率在训练后期可能过大，导致策略在最优值附近反复震荡。常用的学习率调度策略有两种：</p>
+            <!-- ==================== MBPO ==================== -->
+            <h2>MBPO：基于模型的策略优化</h2>
+
+            <p><strong>MBPO</strong>（Model-Based Policy Optimization，Janner et al., 2019）是现代基于模型深度强化学习的代表性算法。它对Dyna框架做了一个关键改进：<strong>用短距离的分支想象代替长距离的完整想象</strong>。</p>
+
+            <h3>核心思想：短分支想象</h3>
+
+            <p>MBPO不从某个初始状态开始想象一整条长轨迹，而是：</p>
+            <ol>
+                <li>从真实数据缓冲区 $\mathcal{D}$ 中采样一批<strong>真实状态</strong>作为起点；</li>
+                <li>从每个真实状态出发，在学到的世界模型中仅向前想象 $h$ 步（$h$ 通常很小，如 $1 \sim 5$）；</li>
+                <li>将这些短想象轨迹存入一个单独的模型数据缓冲区 $\mathcal{D}_{\text{model}}$；</li>
+                <li>用 $\mathcal{D} \cup \mathcal{D}_{\text{model}}$ 中的数据训练一个无模型算法（如SAC）。</li>
+            </ol>
+
+            <p>这样做的好处是双重的。第一，每条想象轨迹都<strong>从真实状态出发</strong>，保证了起点的可靠性。第二，想象步数 $h$ 很短，限制了误差的累积。想象轨迹的末端距离真实数据只有 $h$ 步，模型误差不会失控。</p>
+
+            <h3>理论保证</h3>
+
+            <p>MBPO为短分支想象提供了理论支撑。设 $\eta[\pi]$ 为策略 $\pi$ 在真实环境中的期望回报，$\hat{\eta}[\pi]$ 为在学到的模型中的期望回报，则有：</p>
+
+            <div class="formula-block">
+            $$\eta[\pi] \geq \hat{\eta}[\pi] - C \cdot \big(\epsilon_m + (h-1)\,\epsilon_\pi\big) \tag{5.5-5}$$
+            </div>
+
+            <p>其中 $\epsilon_m$ 是世界模型的预测误差，$h$ 是想象步数，$\epsilon_\pi$ 是策略相对于数据收集策略的偏移量，$C$ 是与折扣因子相关的常数。</p>
+
+            <p>公式(5.4-5)给出了一个<strong>策略表现下界</strong>：在模型中优化得到的策略表现 $\hat{\eta}[\pi]$，与其在真实环境中的实际表现 $\eta[\pi]$ 之间的差距，受模型误差 $\epsilon_m$ 和想象步数 $h$ 共同控制。想象步数 $h$ 越短，这个下界越紧，也就越安全。</p>
+
+            <details class="optional-reading">
+                <summary>选读：公式(5.4-5)的直觉解释</summary>
+                <p style="margin-top:0.5rem;">公式(5.4-5)本质上在说：模型中的策略回报与真实回报之间的差距来自两个误差源。第一个是 $\epsilon_m$，即模型本身的预测偏差，这在第0步就存在。第二个是 $(h-1)\,\epsilon_\pi$，即随着想象步数增加，策略与收集数据时所用策略的偏移不断放大模型误差。当 $h=1$ 时，第二项消失，差距仅由模型精度决定。这解释了为什么MBPO倾向于使用非常短的想象步数。</p>
+                <p>在实践中，MBPO会随着模型精度的提升逐步增加 $h$。训练初期模型不准确，用 $h=1$；模型改善后，可以适当增加到 $h=3$ 或 $h=5$。</p>
+            </details>
+
+            <h3>MBPO算法流程</h3>
+
+            <div class="algo-box">
+                <div class="algo-title">MBPO算法</div>
+                <p><strong>初始化：</strong>策略 $\pi_\theta$，Q网络 $Q_\psi$（SAC框架），集成世界模型 $\{f_{\phi_1}, \ldots, f_{\phi_M}\}$，真实数据缓冲区 $\mathcal{D}$，模型数据缓冲区 $\mathcal{D}_{\text{model}}$</p>
+                <ol>
+                    <li><strong>收集真实数据：</strong>用当前策略 $\pi_\theta$ 在真实环境中交互，收集转移并存入 $\mathcal{D}$</li>
+                    <li><strong>更新世界模型：</strong>在 $\mathcal{D}$ 上训练集成模型 $\{f_{\phi_i}\}$，最小化预测误差（公式 3.4-3）</li>
+                    <li><strong>模型内想象：</strong>
+                        <ul style="margin:0.3rem 0 0.3rem 1rem; list-style:disc;">
+                            <li>从 $\mathcal{D}$ 中均匀采样一批真实状态 $\{s^{(j)}\}$</li>
+                            <li>对每个 $s^{(j)}$，在随机选取的一个集成成员 $f_{\phi_i}$ 中，按当前策略 $\pi_\theta$ 向前展开 $h$ 步</li>
+                            <li>将产生的所有想象转移存入 $\mathcal{D}_{\text{model}}$</li>
+                        </ul>
+                    </li>
+                    <li><strong>策略优化：</strong>从 $\mathcal{D} \cup \mathcal{D}_{\text{model}}$ 中采样 mini-batch，用 SAC 更新 $\pi_\theta$ 和 $Q_\psi$</li>
+                    <li>重复步骤1-4</li>
+                </ol>
+                <div class="algo-note">步骤3中，每次想象时随机选择一个集成成员，等效于从模型的后验分布中采样，自然地引入了对模型不确定性的考量。</div>
+            </div>
+
+            <div class="note">
+                <strong>MBPO与SAC的关系：</strong>MBPO并不是一个全新的算法，而是在SAC（或任何无模型算法）的基础上，添加了世界模型和想象数据生成这两个模块。可以将MBPO理解为一个<strong>数据增强框架</strong>：用世界模型为无模型算法生产额外的训练数据。这种模块化的设计使得MBPO非常灵活，将SAC替换为PPO或其他算法同样可行。
+            </div>
+
+            <h3>样本效率的提升</h3>
+
+            <p>MBPO在多个连续控制基准任务上展示了显著的样本效率优势。例如，在 HalfCheetah 任务上，SAC 需要约 $3 \times 10^5$ 步真实交互才能达到良好性能，而MBPO只需约 $3 \times 10^4$ 步，提升了大约一个数量级。在某些任务上，MBPO的样本效率比纯无模型方法高出 $10 \sim 100$ 倍。</p>
+
+            <p>对于管理科学应用而言，这种样本效率的提升具有实际意义。如果一个库存优化问题用SAC需要10万步仿真交互（约274年的每日决策），用MBPO可能只需要1万步（约27年），再结合历史数据的利用，实际部署就变得可行了。</p>
+
+            <!-- ==================== 潜空间世界模型 ==================== -->
+            <h2>世界模型与潜空间想象</h2>
+
+            <p>前面介绍的世界模型直接在<strong>原始状态空间</strong>中进行预测：输入 $(s_t, a_t)$，输出 $\hat{s}_{t+1}$。当状态空间维度较低时（如库存水平、车辆位置等），这种方式工作良好。但当状态空间很高维时，例如用摄像头图像作为状态，直接预测下一帧图像的每个像素就变得既困难又浪费。图像中大量的像素信息（如背景颜色、光照变化）对于决策来说并不重要。</p>
+
+            <p>现代世界模型的解决方案是：在一个<strong>压缩的潜空间</strong>（latent space）中进行想象。</p>
+
+            <h3>潜空间世界模型的结构</h3>
+
+            <p>潜空间世界模型由四个组件构成：</p>
 
             <ul>
-                <li><strong>线性衰减：</strong>从初始值线性降低到 $0$，即 $\alpha_t = \alpha_0 \cdot (1 - t / T)$，其中 $T$ 是总训练步数。PPO 的标准实现常用此方案。</li>
-                <li><strong>余弦退火：</strong>$\alpha_t = \frac{\alpha_0}{2}\left(1 + \cos\frac{\pi t}{T}\right)$，变化更平滑，训练初期衰减较慢。</li>
+                <li><strong>编码器</strong>（encoder）：$z_t = \text{enc}_\phi(s_t)$，将高维观测压缩为低维潜状态</li>
+                <li><strong>潜空间动力学模型</strong>（latent dynamics）：$\hat{z}_{t+1} = f_\phi(z_t, a_t)$，在潜空间中预测下一步</li>
+                <li><strong>奖励预测器</strong>（reward predictor）：$\hat{r}_t = g_\phi(z_t, a_t)$，从潜状态预测奖励</li>
+                <li><strong>解码器</strong>（decoder，可选）：$\hat{s}_t = \text{dec}_\phi(z_t)$，将潜状态还原为观测</li>
             </ul>
 
-            <p>对于 SAC 等离策略算法，通常使用固定学习率即可；对于 PPO 等在策略算法，线性衰减是更稳健的选择。</p>
+            <p>训练后，整个想象过程都在潜空间中完成：编码真实状态 $\to$ 在潜空间中展开轨迹 $\to$ 用潜空间轨迹训练策略。无需解码回原始状态空间，大幅降低了计算成本。</p>
 
-            <h3>训练监控：该看哪些指标</h3>
+            <div class="formula-block">
+            $$z_t = \text{enc}_\phi(s_t), \quad \hat{z}_{t+1} = f_\phi(z_t, a_t), \quad \hat{r}_t = g_\phi(z_t, a_t) \tag{5.5-6}$$
+            </div>
 
-            <p>训练过程中应当持续监控以下四个关键指标，它们共同构成判断训练状态的"仪表盘"：</p>
+            <h3>Dreamer算法简介</h3>
+
+            <p><strong>Dreamer</strong>（Hafner et al., 2020）是潜空间世界模型的代表性算法。它的工作流程可以概括为三个阶段：</p>
+
+            <ol>
+                <li><strong>学习世界模型</strong>：用真实交互数据训练编码器、潜空间动力学模型和奖励预测器</li>
+                <li><strong>在潜空间中做梦</strong>：从真实状态编码出的 $z_t$ 出发，在潜空间中展开想象轨迹 $z_t, z_{t+1}, z_{t+2}, \ldots$</li>
+                <li><strong>从梦中学习</strong>：在想象的潜空间轨迹上训练actor-critic，完全不需要与真实环境交互</li>
+            </ol>
+
+            <p>Dreamer的名字来源于它的学习方式：智能体通过在内心世界中反复"做梦"来学习策略，这与人类在睡眠中通过梦境巩固记忆和技能的过程有异曲同工之妙。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">潜状态的管理科学解读</div>
+                <p>在管理科学中，潜空间的概念有一个很自然的对应物。考虑一个大型供应链系统，其原始状态可能包含成千上万个SKU的库存、在途订单、供应商状态等信息。但驱动系统行为的关键因素可能只有少数几个：整体库存健康度、供应紧张程度、需求趋势等。潜空间世界模型学到的 $z_t$ 就类似于一个<strong>高层管理仪表盘</strong>，它从海量运营数据中提炼出了决策所需的关键指标。在这个压缩表示上做规划，既高效又抓住了本质。</p>
+            </div>
+
+            <!-- ==================== 领域知识 ==================== -->
+            <h2>当领域知识遇上学习</h2>
+
+            <p>前面介绍的世界模型都是<strong>纯粹从数据中学习</strong>的：神经网络从零开始拟合环境的动力学。但在管理科学中，我们通常并不是对环境一无所知。许多管理系统的动力学中，有一部分是已知的、确定性的，另一部分才是未知的、需要从数据中学习的。</p>
+
+            <div class="scenario-box">
+                <div class="scenario-title">已知与未知的动力学</div>
+                <ul style="margin:0.3rem 0 0 1.2rem; line-height:2.2;">
+                    <li><strong>库存管理</strong>：库存平衡方程 $I_{t+1} = I_t + q_t - d_t$（$q_t$ 为补货量）是确定性的、已知的；顾客需求 $d_t$ 的分布是未知的、需要学习的</li>
+                    <li><strong>交通网络</strong>：流量守恒定律（驶入车辆数 = 驶出车辆数 + 滞留车辆数变化量）是已知的；驾驶员的路径选择行为是随机的、需要学习的</li>
+                    <li><strong>供应链</strong>：物料清单（BOM）中的组装关系和产能约束是已知的；供应商交货可靠性是不确定的、需要学习的</li>
+                    <li><strong>排队系统</strong>：服务完成后顾客离开、新顾客加入队列的逻辑是已知的；到达过程的参数和服务时间的分布是需要学习的</li>
+                </ul>
+            </div>
+
+            <p>纯粹的数据驱动世界模型忽视了这些已知的结构信息，让神经网络从头学习那些我们已经知道的物理定律和业务逻辑。这不仅浪费了宝贵的样本，还可能导致模型在数据稀疏区域违反这些已知的约束（例如预测出负库存）。</p>
+
+            <h3>混合世界模型</h3>
+
+            <p>更明智的做法是构建<strong>混合世界模型</strong>（hybrid world model）：将已知的动力学写成解析形式，只让神经网络学习未知的部分。一种常用的结构是<strong>残差模型</strong>：</p>
+
+            <div class="formula-block">
+            $$\hat{s}_{t+1} = \underbrace{f_{\text{known}}(s_t, a_t)}_{\text{已知动力学}} + \underbrace{f_\phi(s_t, a_t)}_{\text{学习的残差}} \tag{5.5-7}$$
+            </div>
+
+            <p>以库存管理为例。设状态 $s_t = I_t$（当前库存），动作 $a_t = q_t$（补货量），则混合模型为：</p>
+
+            $$\hat{I}_{t+1} = \underbrace{(I_t + q_t)}_{\text{已知：补货后的库存}} - \underbrace{\hat{d}_\phi(I_t, q_t, \text{context}_t)}_{\text{学习：预测的需求量}} \tag{5.5-8}$$
+
+            <p>其中 $\text{context}_t$ 可以包含星期几、是否节假日、促销信息等特征。神经网络 $\hat{d}_\phi$ 只需要学习需求预测这一个子任务，而不是从零学习整个库存动力学。这大大降低了学习难度，同时保证了库存平衡这一基本物理约束始终被满足。</p>
+
+            <h3>为什么混合模型特别适合管理科学</h3>
+
+            <p>在视频游戏或机器人控制等典型的强化学习基准任务中，环境的动力学要么完全未知（游戏的内部逻辑），要么虽然基于物理定律但难以精确建模（复杂的接触力学）。因此，纯数据驱动的世界模型是自然的选择。</p>
+
+            <p>但管理科学问题有一个独特优势：<strong>系统的结构通常是已知的</strong>。库存平衡方程、流量守恒、会计恒等式、排队论的基本关系——这些都是确定性的、经过验证的数学关系。不确定性主要来自外部因素（需求、天气、市场波动）和人类行为（顾客选择、驾驶员决策）。</p>
+
+            <p>混合世界模型充分利用了这一结构优势：</p>
+            <ul>
+                <li><strong>样本效率更高</strong>：神经网络只需要学习未知的部分，所需数据更少</li>
+                <li><strong>泛化能力更强</strong>：已知的结构约束在任何数据区域都成立，避免了模型在数据稀疏处的荒谬预测</li>
+                <li><strong>可解释性更好</strong>：模型的已知部分对应着明确的业务逻辑，决策者更容易信任和审查</li>
+            </ul>
+
+            <div class="note">
+                <strong>与传统运筹学的联系：</strong>混合世界模型的理念在传统运筹学中早有实践。许多运筹优化模型先建立确定性的数学规划框架（如线性规划、网络流模型），再通过随机规划或鲁棒优化处理不确定性。混合世界模型继承了这一思路，只是用神经网络替代了传统的概率分布假设来建模不确定性，表达能力更强。
+            </div>
+
+            <!-- ==================== 例子 ==================== -->
+            <h2>例子：世界模型辅助的库存管理</h2>
+
+            <p>我们通过一个完整的例子，展示基于模型的方法如何应用于管理科学问题。</p>
+
+            <div class="scenario-box">
+                <div class="scenario-title">问题设定</div>
+                <p>某零售商管理一种商品的库存。每天（$t = 0, 1, 2, \ldots$）执行以下流程：</p>
+                <ul style="margin:0.3rem 0 0 1.2rem; line-height:2;">
+                    <li><strong>状态</strong>：当前库存水平 $I_t \in \{0, 1, \ldots, 100\}$</li>
+                    <li><strong>动作</strong>：补货数量 $q_t \in \{0, 1, \ldots, 50\}$，补货立即到达（无提前期）</li>
+                    <li><strong>需求</strong>：$d_t$ 随机，依赖于星期几和天气等因素</li>
+                    <li><strong>状态转移</strong>：$I_{t+1} = \max(I_t + q_t - d_t,\; 0)$，库存不能为负</li>
+                    <li><strong>奖励</strong>：
+                        $$r_t = -c_h \cdot I_{t+1} - c_s \cdot \max(d_t - I_t - q_t,\; 0) - c_o \cdot q_t \tag{5.5-9}$$
+                        其中 $c_h = 1$ 为单位持有成本，$c_s = 10$ 为单位缺货惩罚，$c_o = 2$ 为单位订购成本
+                    </li>
+                </ul>
+            </div>
+
+            <h3>无模型方法的做法</h3>
+
+            <p>用DQN直接学习 $Q(I_t, q_t)$。智能体每天做一次补货决策，观察结果，更新Q网络。由于需求 $d_t$ 的随机性，Q值的估计方差较大，需要大量交互才能稳定收敛。假设收敛需要 $5 \times 10^4$ 步交互，相当于137年的每日运营数据。</p>
+
+            <h3>MBPO方法的做法</h3>
+
+            <p><strong>第一步：构建混合世界模型。</strong>库存平衡方程是已知的，只需要学习需求模型。构建一个神经网络 $\hat{d}_\phi$，输入当前库存、星期几（one-hot编码）、历史需求等特征，输出需求的预测分布（均值和标准差）。</p>
+
+            <p><strong>第二步：用少量真实数据训练需求模型。</strong>假设有90天（约3个月）的历史运营数据，用这些数据训练 $\hat{d}_\phi$。3个月的数据量远少于无模型方法所需的137年。</p>
+
+            <p><strong>第三步：在模型中想象。</strong>从历史数据中采样真实库存状态，对每个状态尝试不同的补货决策，用需求模型采样生成想象的需求，计算想象的下一状态和奖励。每个真实状态生成 $K = 10$ 条想象转移。</p>
+
+            <p><strong>第四步：训练策略。</strong>将真实数据和想象数据合并，用DQN或SAC训练策略网络。由于想象步数 $h = 1$（只向前想象一步），模型误差不会累积。</p>
+
+            <div class="result-box">
+                <strong>对比结果</strong>（概念性）：无模型DQN需要约 $5 \times 10^4$ 步真实交互；MBPO搭配混合世界模型，仅需约 $5 \times 10^3$ 步真实交互即可达到相近的策略质量，样本效率提升约 $10$ 倍。
+            </div>
+
+            <p>这个例子展示了基于模型方法在管理科学中的两个核心优势：<strong>利用已知结构降低学习难度</strong>（库存平衡方程）和<strong>通过想象扩充训练数据</strong>（需求模型生成的模拟数据）。</p>
+
+            <!-- ==================== 对比 ==================== -->
+            <h2>基于模型与无模型方法的对比</h2>
+
+            <p>学完本节内容后，读者可能会问：既然基于模型的方法样本效率更高，为什么3.1至5.3节还要花大量篇幅介绍无模型方法？答案是，两类方法各有优劣，适用于不同的场景。</p>
 
             <table class="trans-table">
                 <thead>
                     <tr>
-                        <th>指标</th>
-                        <th>含义</th>
-                        <th>健康信号</th>
-                        <th>异常信号</th>
+                        <th>比较维度</th>
+                        <th>无模型方法（3.1 &ndash; 3.3）</th>
+                        <th>基于模型方法（3.4）</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>回合回报</td>
-                        <td>每个回合的累积奖励</td>
-                        <td>波动中上升，最终趋于平稳</td>
-                        <td>长时间不增长，或上升后突然崩溃</td>
+                        <td><strong>样本效率</strong></td>
+                        <td>低，需要大量真实交互</td>
+                        <td>高，通过想象扩充数据</td>
                     </tr>
                     <tr>
-                        <td>Q 值/值函数</td>
-                        <td>网络预测的期望回报</td>
-                        <td>缓慢上升，与实际回报趋势一致</td>
-                        <td>持续膨胀（远超实际回报），或剧烈震荡</td>
+                        <td><strong>计算开销</strong></td>
+                        <td>每步计算量较少</td>
+                        <td>更多（模型训练 + 想象生成）</td>
                     </tr>
                     <tr>
-                        <td>损失函数</td>
-                        <td>Critic 的 TD 误差或策略损失</td>
-                        <td>先快速下降，然后在低位波动</td>
-                        <td>持续增大，或出现 NaN</td>
+                        <td><strong>渐近性能</strong></td>
+                        <td>不受模型精度限制，上限高</td>
+                        <td>受世界模型精度制约</td>
                     </tr>
                     <tr>
-                        <td>策略熵</td>
-                        <td>策略的随机程度</td>
-                        <td>缓慢下降（策略逐渐确定化）</td>
-                        <td>突然降到极低（过早收敛）或始终很高（没学到东西）</td>
+                        <td><strong>领域知识利用</strong></td>
+                        <td>难以直接融入</td>
+                        <td>可通过混合模型自然融入</td>
+                    </tr>
+                    <tr>
+                        <td><strong>适用场景</strong></td>
+                        <td>仿真器廉价、动力学极其复杂</td>
+                        <td>真实数据稀缺、动力学部分已知</td>
+                    </tr>
+                    <tr>
+                        <td><strong>管理科学适配度</strong></td>
+                        <td>适合有高质量仿真器的场景</td>
+                        <td>适合真实部署、历史数据驱动的场景</td>
                     </tr>
                 </tbody>
             </table>
+            <div class="fig-caption">图 5.4-2 &nbsp; 无模型方法与基于模型方法的系统对比。</div>
 
-            <p>这四条曲线的典型模式将在下面的交互演示中直观展现。</p>
+            <p>简而言之：当仿真器的运行成本可以忽略不计时（如使用已有的高质量仿真器），无模型方法因为不受模型精度的限制，往往能达到更高的最终性能。但当真实交互成本高昂、或者我们拥有关于系统动力学的先验知识时，基于模型的方法是更明智的选择。</p>
 
-            <!-- ==================== 3.4.4 交互演示 ==================== -->
-            <h2>交互演示：训练监控面板</h2>
-
-            <p>下面的演示模拟了四种典型训练场景的监控曲线。选择不同场景后点击"开始"，观察四个面板中各指标的变化特征，学会识别正常训练与各类异常情况。</p>
-
-            <div class="demo-panel">
-                <div class="demo-title">训练监控面板</div>
-                <div class="rl-ctrl">
-                    <label for="scenario-select" style="font-weight:600;">训练场景：</label>
-                    <select id="scenario-select">
-                        <option value="normal">正常训练</option>
-                        <option value="lr-too-high">学习率过大</option>
-                        <option value="reward-scale">奖励尺度问题</option>
-                        <option value="low-explore">探索不足</option>
-                    </select>
-                    <button id="btn-start" onclick="startTraining()">开始</button>
-                    <button id="btn-pause" onclick="pauseTraining()">暂停</button>
-                    <button id="btn-reset" onclick="resetTraining()">重置</button>
-                    <span id="train-step-info" style="margin-left:0.5rem; color:#718096;">步数: 0 / 500</span>
-                </div>
-                <div class="canvas-grid">
-                    <div>
-                        <canvas id="cv-return" width="380" height="200"></canvas>
-                        <div class="canvas-label">回合回报（Episode Return）</div>
-                    </div>
-                    <div>
-                        <canvas id="cv-loss" width="380" height="200"></canvas>
-                        <div class="canvas-label">损失函数（Loss）</div>
-                    </div>
-                    <div>
-                        <canvas id="cv-qval" width="380" height="200"></canvas>
-                        <div class="canvas-label">Q 值幅度（Q-value Magnitude）</div>
-                    </div>
-                    <div>
-                        <canvas id="cv-entropy" width="380" height="200"></canvas>
-                        <div class="canvas-label">策略熵（Entropy）</div>
-                    </div>
-                </div>
-                <div id="scenario-desc" style="font-size:0.9rem; color:#4a5568; margin-top:0.6rem; padding:0.5rem 0.8rem; background:#ebf4ff; border-radius:6px;">
-                    选择场景并点击"开始"以观察训练曲线。
-                </div>
-            </div>
-            <div class="fig-caption">图 5.5-1 训练监控面板：四种典型训练场景的曲线特征</div>
-
-            <!-- ==================== 3.4.5 常见陷阱与排查清单 ==================== -->
-            <h2>常见陷阱与排查清单</h2>
-
-            <p>当训练出现异常时，按照以下清单逐步排查。大部分问题都可以归结为下列几类。</p>
-
-            <div class="checklist-box">
-                <div class="checklist-title">训练问题排查清单</div>
-
-                <div class="checklist-item">
-                    <div class="symptom">症状一：智能体完全不学习，回报始终在初始值附近</div>
-                    <div class="diagnosis">
-                        <ul>
-                            <li>检查奖励信号是否正确传入——打印前几步的 $(s, a, r, s')$，确认奖励不全为零</li>
-                            <li>检查环境的 <code>reset()</code> 和 <code>step()</code> 是否正确实现，状态是否真的在变化</li>
-                            <li>检查网络输入——观测值是否被正确预处理，是否存在 NaN 或极端值</li>
-                            <li>检查动作输出——网络的输出是否在环境的合法动作范围内</li>
-                            <li>尝试用随机策略跑几个回合，确认随机策略的回报不为零</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="checklist-item">
-                    <div class="symptom">症状二：智能体先学习后崩溃，回报达到一定水平后突然下降</div>
-                    <div class="diagnosis">
-                        <ul>
-                            <li>学习率可能过大——尝试减半</li>
-                            <li>DQN 中目标网络更新频率可能过高——增大更新间隔或改用软更新</li>
-                            <li>经验回放缓冲区可能太小——旧经验被覆盖后缺乏多样性</li>
-                            <li>PPO 中 clip 范围可能太大——策略更新步幅过大导致"策略崩溃"</li>
-                            <li>检查 Q 值是否发散——如果 Q 值远超奖励的合理范围，说明存在过估计问题</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="checklist-item">
-                    <div class="symptom">症状三：智能体学到了"意料之外"的策略，奖励高但行为不合理</div>
-                    <div class="diagnosis">
-                        <ul>
-                            <li>这几乎一定是奖励函数的问题——可视化智能体的行为，找出它在利用哪个漏洞</li>
-                            <li>检查是否存在"捷径"：智能体是否通过某种退化行为（如始终不操作、重复同一动作）获得了高奖励</li>
-                            <li>重新审视奖励函数中各项的权重比例是否合理</li>
-                            <li>考虑添加约束惩罚项，或使用约束强化学习方法</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="checklist-item">
-                    <div class="symptom">症状四：训练曲线剧烈震荡，不收敛</div>
-                    <div class="diagnosis">
-                        <ul>
-                            <li>开启梯度裁剪（$g_{\max} = 0.5$ 或 $1.0$）</li>
-                            <li>减小学习率</li>
-                            <li>增大批量大小，使梯度估计更稳定</li>
-                            <li>对观测值和奖励进行标准化</li>
-                            <li>如果使用 DQN，检查是否启用了 Double DQN 和 Dueling DQN 等稳定化技巧</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="checklist-item">
-                    <div class="symptom">症状五：训练非常慢，几十万步后仍然没有明显进展</div>
-                    <div class="diagnosis">
-                        <ul>
-                            <li>学习率可能过小——尝试增大 $2$ 到 $5$ 倍</li>
-                            <li>网络可能太深或太大——对于简单问题，$[64, 64]$ 两层网络可能就够了</li>
-                            <li>奖励可能过于稀疏——考虑添加中间步骤的稠密奖励</li>
-                            <li>折扣因子 $\gamma$ 可能过大——在短回合任务中尝试 $\gamma = 0.95$ 或更小</li>
-                            <li>环境中每步的信息量太少——检查状态表示是否包含了足够的决策相关信息</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ==================== 3.4.6 从训练到部署 ==================== -->
-            <h2>从训练到部署</h2>
-
-            <p>当智能体在仿真环境中达到满意的性能后，下一步是将其应用到真实场景。然而，仿真环境与真实世界之间总存在差距（sim-to-real gap），在仿真中表现优异的策略未必能直接在真实环境中运行。这涉及模型鲁棒性、安全约束、在线微调等一系列问题，我们将在<a href="../ch10/10.2.html">第 8.2 节</a>专门讨论从仿真到实际部署的迁移技术。</p>
-
-            <p>在此之前，有两个简单的"烟雾测试"可以初步评估策略的鲁棒性：</p>
-
-            <ul>
-                <li><strong>参数扰动测试：</strong>在仿真器中对关键参数（如需求均值、行驶时间、服务率）施加 $\pm 10\%$ 到 $\pm 20\%$ 的随机扰动，观察策略性能的退化幅度。如果性能急剧下降，说明策略过拟合了训练环境的特定参数。</li>
-                <li><strong>基线对比测试：</strong>将 RL 策略与简单的规则基线（如 $(s, S)$ 策略、最近邻派单、先到先服务）做比较。如果 RL 策略仅在特定场景下略优于基线，在其他场景下表现更差，部署时的风险就较高。</li>
-            </ul>
-
-            <!-- ==================== 3.4.7 小结 ==================== -->
-            <h2>小结</h2>
-
-            <p>本节介绍了深度强化学习从算法实现到成功训练之间的关键实践知识。核心要点总结如下：</p>
-
-            <ol class="takeaway-list">
-                <li>学习率是最重要的超参数。从 $3 \times 10^{-4}$ 开始，先确认训练能正常进行，再做精细调节。</li>
-                <li>每次只调一个超参数。先用已发表的默认值作为基线，系统地逐个调整，记录每次实验的配置和结果。</li>
-                <li>奖励函数决定智能体学什么。永远记住：智能体会最大化你测量的指标，而非你心中的目标。设计前先手动检查极端策略的奖励。</li>
-                <li>优先使用稠密奖励。管理科学问题通常自带阶段性反馈，充分利用这些自然信号。</li>
-                <li>梯度裁剪和观测标准化是零成本的稳定化手段，建议默认开启。</li>
-                <li>监控四条曲线——回合回报、Q 值幅度、损失函数、策略熵。学会从曲线形态诊断训练问题。</li>
-                <li>当训练出现问题时，先排查代码和环境的 bug，再考虑调参。代码错误是训练失败最常见也最容易被忽视的原因。</li>
+            <p>在管理科学的实际研究中，二者也经常结合使用。一种常见的策略是：</p>
+            <ol>
+                <li>先用基于模型方法，利用少量真实数据快速得到一个尚可的策略；</li>
+                <li>将这个策略部署到仿真器或受控的真实环境中收集更多数据；</li>
+                <li>如有需要，切换到无模型方法进一步提升性能。</li>
             </ol>
 
-            <div class="chapter-nav">
-                <a href="../ch05/5.4.html">&larr; 5.4 基于模型的深度强化学习</a>
-                <a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP &rarr;</a>
+            <!-- ==================== 小结 ==================== -->
+            <h2>小结</h2>
+
+            <p>本节介绍了基于模型的深度强化学习方法，弥补了前三节纯无模型方法在样本效率上的不足。核心思路是：<strong>从交互数据中学习一个世界模型，再利用这个模型想象额外的经验来加速策略优化</strong>。</p>
+
+            <p>我们依次介绍了以下内容：</p>
+            <ul>
+                <li><strong>世界模型的学习</strong>：通过监督学习训练状态转移模型 $f_\phi$ 和奖励模型 $g_\phi$，支持确定性模型、随机模型和集成模型三种形式</li>
+                <li><strong>Dyna架构</strong>：每次真实交互后在模型中进行 $K$ 次想象，将样本效率提升 $K+1$ 倍</li>
+                <li><strong>MBPO算法</strong>：通过短分支想象控制模型误差的累积，结合集成模型量化不确定性，实现安全且高效的模型利用</li>
+                <li><strong>潜空间世界模型</strong>：将想象过程压缩到低维潜空间中进行，适用于高维状态空间</li>
+                <li><strong>混合世界模型</strong>：将已知的系统动力学与数据驱动的学习相结合，充分利用管理科学问题中丰富的领域知识</li>
+            </ul>
+
+            <p>至此，第五章介绍的算法构成了一个完整的工具箱：</p>
+
+            <table class="trans-table">
+                <thead>
+                    <tr>
+                        <th>算法</th>
+                        <th>类型</th>
+                        <th>动作空间</th>
+                        <th>核心特征</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>DQN（3.1）</td>
+                        <td>基于值函数，无模型</td>
+                        <td>离散</td>
+                        <td>经验回放、目标网络</td>
+                    </tr>
+                    <tr>
+                        <td>PPO（3.2）</td>
+                        <td>策略梯度，无模型</td>
+                        <td>离散/连续</td>
+                        <td>裁剪目标、在策略</td>
+                    </tr>
+                    <tr>
+                        <td>SAC（3.3）</td>
+                        <td>Actor-Critic，无模型</td>
+                        <td>连续</td>
+                        <td>熵正则化、离策略</td>
+                    </tr>
+                    <tr>
+                        <td>MBPO（3.4）</td>
+                        <td>基于模型</td>
+                        <td>离散/连续</td>
+                        <td>世界模型、想象数据、高样本效率</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="fig-caption">图 5.4-3 &nbsp; 第五章四种算法的定位与特点。</div>
+
+            <p>面对具体的管理科学问题，算法的选择取决于三个关键因素：</p>
+            <ol>
+                <li><strong>动作空间</strong>：离散动作优先考虑DQN，连续动作优先考虑SAC或PPO</li>
+                <li><strong>样本预算</strong>：交互成本高、数据稀缺时优先考虑MBPO；有廉价仿真器时可使用无模型方法</li>
+                <li><strong>领域知识</strong>：如果系统动力学部分已知，混合世界模型能充分利用这些先验知识</li>
+            </ol>
+
+            <div class="page-nav">
+                <a href="5.4.html">&larr; 5.4 Soft Actor-Critic</a>
+                <a href="5.6.html">5.6 训练实践 &rarr;</a>
             </div>
+
         </main>
     </div>
-
-    <!-- ==================== 交互演示 JavaScript ==================== -->
-    <script>
-    (function() {
-        // ---------- 场景数据生成器 ----------
-        const TOTAL_STEPS = 500;
-        const scenarios = {
-            'normal': {
-                desc: '正常训练：回报稳步上升后趋于平稳，损失先降后稳定在低位波动，Q值与回报趋势一致，策略熵缓慢下降。',
-                generate: function(t) {
-                    const p = t / TOTAL_STEPS;
-                    return {
-                        ret:    80 * (1 - Math.exp(-4 * p)) + 8 * Math.sin(0.15 * t) * (1 - p) + randN(0, 5 * (1 - 0.6 * p)),
-                        loss:   2.0 * Math.exp(-3 * p) + 0.15 + randN(0, 0.08 * (1 - 0.5 * p)),
-                        qval:   75 * (1 - Math.exp(-3.5 * p)) + randN(0, 4 * (1 - 0.5 * p)),
-                        entropy: 2.0 * Math.exp(-2 * p) + 0.3 + randN(0, 0.06)
-                    };
-                }
-            },
-            'lr-too-high': {
-                desc: '学习率过大：回报和Q值剧烈震荡甚至发散，损失不降反升，策略反复跳变导致熵忽高忽低。',
-                generate: function(t) {
-                    const p = t / TOTAL_STEPS;
-                    const osc = 40 * Math.sin(0.3 * t) + 20 * Math.sin(0.7 * t);
-                    const diverge = p > 0.5 ? 30 * (p - 0.5) * Math.sin(0.5 * t) : 0;
-                    return {
-                        ret:    30 * (1 - Math.exp(-2 * p)) + osc + diverge + randN(0, 15),
-                        loss:   1.5 + 0.8 * p + 0.6 * Math.abs(Math.sin(0.25 * t)) + randN(0, 0.3),
-                        qval:   40 * p + 30 * Math.sin(0.2 * t) * p + randN(0, 10 * p + 2),
-                        entropy: 1.2 + 0.8 * Math.sin(0.15 * t) + 0.4 * Math.sin(0.4 * t) + randN(0, 0.15)
-                    };
-                }
-            },
-            'reward-scale': {
-                desc: '奖励尺度问题：奖励值过大导致Q值持续膨胀（远超合理范围），损失居高不下，回报表面上很高但实际策略质量不佳。',
-                generate: function(t) {
-                    const p = t / TOTAL_STEPS;
-                    return {
-                        ret:    500 * (1 - Math.exp(-1.5 * p)) + randN(0, 40) + 100 * Math.sin(0.08 * t) * p,
-                        loss:   5 + 10 * p + randN(0, 2 * (1 + p)),
-                        qval:   200 * p + 150 * p * p + 30 * Math.sin(0.1 * t) * p + randN(0, 15 * p + 3),
-                        entropy: 1.8 * Math.exp(-5 * p) + 0.05 + randN(0, 0.04)
-                    };
-                }
-            },
-            'low-explore': {
-                desc: '探索不足：策略过早收敛到局部最优，回报上升到较低水平后停滞不前，策略熵迅速降到极低值，Q值收敛但到次优水平。',
-                generate: function(t) {
-                    const p = t / TOTAL_STEPS;
-                    return {
-                        ret:    25 * (1 - Math.exp(-8 * p)) + randN(0, 3 * (1 - 0.8 * p)),
-                        loss:   1.5 * Math.exp(-6 * p) + 0.1 + randN(0, 0.04 * (1 - 0.7 * p)),
-                        qval:   22 * (1 - Math.exp(-7 * p)) + randN(0, 2 * (1 - 0.7 * p)),
-                        entropy: 2.0 * Math.exp(-10 * p) + 0.02 + randN(0, 0.02 * Math.exp(-3 * p))
-                    };
-                }
-            }
-        };
-
-        function randN(mu, sigma) {
-            // Box-Muller
-            const u1 = Math.random() || 1e-10;
-            const u2 = Math.random();
-            return mu + sigma * Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-        }
-
-        // ---------- 绘图状态 ----------
-        let data = { ret: [], loss: [], qval: [], entropy: [] };
-        let animId = null;
-        let step = 0;
-        let paused = false;
-
-        const canvases = {
-            ret:     document.getElementById('cv-return'),
-            loss:    document.getElementById('cv-loss'),
-            qval:    document.getElementById('cv-qval'),
-            entropy: document.getElementById('cv-entropy')
-        };
-
-        const colors = {
-            ret:     '#2b6cb0',
-            loss:    '#c53030',
-            qval:    '#2f855a',
-            entropy: '#d69e2e'
-        };
-
-        const labels = {
-            ret:     'Return',
-            loss:    'Loss',
-            qval:    'Q-value',
-            entropy: 'Entropy'
-        };
-
-        function resizeCanvases() {
-            Object.values(canvases).forEach(cv => {
-                const rect = cv.getBoundingClientRect();
-                cv.width  = rect.width * (window.devicePixelRatio || 1);
-                cv.height = rect.height * (window.devicePixelRatio || 1);
-            });
-        }
-
-        function drawChart(key) {
-            const cv = canvases[key];
-            const ctx = cv.getContext('2d');
-            const dpr = window.devicePixelRatio || 1;
-            const W = cv.width;
-            const H = cv.height;
-            ctx.clearRect(0, 0, W, H);
-
-            const arr = data[key];
-            if (arr.length < 2) return;
-
-            // compute range
-            let yMin = Infinity, yMax = -Infinity;
-            for (let i = 0; i < arr.length; i++) {
-                if (arr[i] < yMin) yMin = arr[i];
-                if (arr[i] > yMax) yMax = arr[i];
-            }
-            const yRange = (yMax - yMin) || 1;
-            yMin -= yRange * 0.08;
-            yMax += yRange * 0.08;
-
-            const pad = { l: 50 * dpr, r: 14 * dpr, t: 10 * dpr, b: 24 * dpr };
-            const plotW = W - pad.l - pad.r;
-            const plotH = H - pad.t - pad.b;
-
-            // axes
-            ctx.strokeStyle = '#cbd5e0';
-            ctx.lineWidth = 1 * dpr;
-            ctx.beginPath();
-            ctx.moveTo(pad.l, pad.t);
-            ctx.lineTo(pad.l, H - pad.b);
-            ctx.lineTo(W - pad.r, H - pad.b);
-            ctx.stroke();
-
-            // y ticks
-            ctx.fillStyle = '#a0aec0';
-            ctx.font = (10 * dpr) + 'px sans-serif';
-            ctx.textAlign = 'right';
-            ctx.textBaseline = 'middle';
-            for (let i = 0; i <= 4; i++) {
-                const yVal = yMin + (yMax - yMin) * i / 4;
-                const yPx  = H - pad.b - plotH * i / 4;
-                ctx.fillText(yVal.toFixed(1), pad.l - 4 * dpr, yPx);
-                if (i > 0 && i < 4) {
-                    ctx.save();
-                    ctx.strokeStyle = '#edf2f7';
-                    ctx.setLineDash([3 * dpr, 3 * dpr]);
-                    ctx.beginPath();
-                    ctx.moveTo(pad.l, yPx);
-                    ctx.lineTo(W - pad.r, yPx);
-                    ctx.stroke();
-                    ctx.restore();
-                }
-            }
-
-            // x label
-            ctx.fillStyle = '#a0aec0';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'top';
-            ctx.fillText('step', W / 2, H - pad.b + 6 * dpr);
-
-            // curve
-            ctx.strokeStyle = colors[key];
-            ctx.lineWidth = 1.8 * dpr;
-            ctx.lineJoin = 'round';
-            ctx.beginPath();
-            for (let i = 0; i < arr.length; i++) {
-                const x = pad.l + plotW * (i / (TOTAL_STEPS - 1));
-                const y = H - pad.b - plotH * ((arr[i] - yMin) / (yMax - yMin));
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.stroke();
-
-            // smoothed overlay (moving average, window=20)
-            if (arr.length > 25) {
-                const winSize = 20;
-                ctx.strokeStyle = colors[key];
-                ctx.lineWidth = 2.5 * dpr;
-                ctx.globalAlpha = 0.35;
-                // re-draw raw thinner
-                ctx.globalAlpha = 1;
-                // draw smooth
-                const smooth = [];
-                let sum = 0;
-                for (let i = 0; i < arr.length; i++) {
-                    sum += arr[i];
-                    if (i >= winSize) sum -= arr[i - winSize];
-                    const cnt = Math.min(i + 1, winSize);
-                    smooth.push(sum / cnt);
-                }
-                ctx.strokeStyle = colors[key];
-                ctx.lineWidth = 2.8 * dpr;
-                ctx.globalAlpha = 0.6;
-                ctx.beginPath();
-                for (let i = 0; i < smooth.length; i++) {
-                    const x = pad.l + plotW * (i / (TOTAL_STEPS - 1));
-                    const y = H - pad.b - plotH * ((smooth[i] - yMin) / (yMax - yMin));
-                    if (i === 0) ctx.moveTo(x, y);
-                    else ctx.lineTo(x, y);
-                }
-                ctx.stroke();
-                ctx.globalAlpha = 1;
-            }
-        }
-
-        function drawAll() {
-            ['ret', 'loss', 'qval', 'entropy'].forEach(drawChart);
-        }
-
-        // ---------- 动画控制 ----------
-        function animStep() {
-            if (paused || step >= TOTAL_STEPS) {
-                animId = null;
-                return;
-            }
-            const scenario = scenarios[document.getElementById('scenario-select').value];
-            const vals = scenario.generate(step);
-            data.ret.push(vals.ret);
-            data.loss.push(Math.max(vals.loss, 0));
-            data.qval.push(vals.qval);
-            data.entropy.push(Math.max(vals.entropy, 0));
-            step++;
-            document.getElementById('train-step-info').textContent = '步数: ' + step + ' / ' + TOTAL_STEPS;
-            drawAll();
-            animId = requestAnimationFrame(animStep);
-        }
-
-        window.startTraining = function() {
-            if (step >= TOTAL_STEPS) resetTraining();
-            paused = false;
-            const scenario = scenarios[document.getElementById('scenario-select').value];
-            document.getElementById('scenario-desc').textContent = scenario.desc;
-            if (!animId) animId = requestAnimationFrame(animStep);
-        };
-
-        window.pauseTraining = function() {
-            paused = true;
-        };
-
-        window.resetTraining = function() {
-            paused = true;
-            if (animId) { cancelAnimationFrame(animId); animId = null; }
-            step = 0;
-            data = { ret: [], loss: [], qval: [], entropy: [] };
-            document.getElementById('train-step-info').textContent = '步数: 0 / ' + TOTAL_STEPS;
-            document.getElementById('scenario-desc').textContent = '选择场景并点击"开始"以观察训练曲线。';
-            resizeCanvases();
-            // clear all canvases
-            Object.values(canvases).forEach(cv => {
-                cv.getContext('2d').clearRect(0, 0, cv.width, cv.height);
-            });
-        };
-
-        // init
-        window.addEventListener('load', function() {
-            resizeCanvases();
-        });
-        window.addEventListener('resize', function() {
-            resizeCanvases();
-            drawAll();
-        });
-    })();
-    </script>
 </body>
 </html>

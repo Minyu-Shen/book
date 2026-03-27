@@ -73,9 +73,10 @@
                 <li class="sidebar-chapter">第五章 深度强化学习算法</li>
                 <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
                 <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
-                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
-                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
-                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li><a href="../ch05/5.3.html">5.3 DDPG与TD3</a></li>
+                <li><a href="../ch05/5.4.html">5.4 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.5.html">5.5 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.6.html">5.6 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
                 <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
                 <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
                 <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
@@ -196,6 +197,19 @@
                 </ol>
                 <div class="algo-note">与REINFORCE不同，Actor-Critic<strong>每步</strong>都更新（像TD一样），无需等到回合结束。Critic的更新与3.1.2节的TD(0)完全相同；Actor使用TD误差 $\delta_t$ 替代MC回报 $G_t$，方差显著降低。</div>
             </div>
+
+            <!-- ==================== 从TD(0)到λ-回报 ==================== -->
+            <h3>Critic 的改进：从 TD(0) 到 $\lambda$-回报</h3>
+
+            <p>上面的 Actor-Critic 用单步 TD 误差 $\delta_t = R_t + \gamma V(S_{t+1}) - V(S_t)$ 作为优势函数的估计。这是 $\lambda = 0$ 的情况——偏差较高但方差低。回忆3.1.4节的结论：$\lambda$-回报通过参数 $\lambda \in [0, 1]$ 在 TD(0) 和 MC 之间连续滑动，取得更好的偏差-方差权衡。同样的思想可以直接用于 Actor-Critic 的优势估计。</p>
+
+            <p>具体来说，将 Actor 的更新信号从单步 TD 误差 $\delta_t$ 替换为 $\lambda$-加权的 TD 误差（3.1.4节式(3.1-14)）：</p>
+
+            $$\hat{A}_t = \sum_{l=0}^{T-t} (\gamma\lambda)^l\, \delta_{t+l} \tag{3.3-8}$$
+
+            <p>$\lambda = 0$ 时退化为上面的 $\delta_t$（单步 Actor-Critic）；$\lambda = 1$ 时退化为 $G_t - V(S_t)$（REINFORCE with baseline）。在实践中取 $\lambda \in [0.9, 0.99]$ 通常效果较好。</p>
+
+            <p>这个 $\hat{A}_t$ 正是5.2节 PPO 算法中<strong>广义优势估计</strong>（GAE，式(5.2-12)）的公式。因此，PPO 可以理解为 Actor-Critic 框架在两个方向上的升级：Critic 和 Actor 都用神经网络参数化（第五章），优势估计从 TD(0) 升级为 GAE（式(3.3-8)）。从表格 Actor-Critic 到 PPO 的路径是连贯的。</p>
 
             <!-- ==================== 例子：网约车 Actor-Critic ==================== -->
             <h2>例子：网约车司机的Actor-Critic</h2>
