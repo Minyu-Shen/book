@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>5.4 基于模型的深度强化学习 - 运筹智能</title>
+    <title>5.4 Soft Actor-Critic - 运筹智能</title>
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
     <style>
         .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
         .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
@@ -21,19 +24,23 @@
         .algo-box .algo-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
         .algo-box ol { margin: 0.3rem 0 0.3rem 1.5rem; line-height: 2; }
         .algo-box .algo-note { font-size: 0.9rem; color: #718096; margin-top: 0.5rem; }
-        .formula-block { background: var(--sidebar-bg); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; overflow-x: auto; }
+        .derivation { background: #fffff0; border: 1px solid #ecc94b; border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; }
+        .derivation .deriv-title { font-weight: 700; color: #975a16; font-size: 1.0rem; margin-bottom: 0.5rem; }
         .note { background: #f0fff4; border-left: 4px solid #48bb78; padding: 0.8rem 1.2rem; margin: 1.2rem 0; border-radius: 0 6px 6px 0; font-size: 0.95rem; }
-        .fig-caption { text-align: center; font-size: 0.9rem; color: #718096; margin-top: 0.5rem; margin-bottom: 1rem; }
-        .optional-reading { background: #f0fff4; border: 1px solid #9ae6b4; border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; }
-        .optional-reading summary { font-weight: 700; color: #276749; cursor: pointer; font-size: 1rem; }
-        .optional-reading summary:hover { color: var(--accent-color); }
-        .scenario-box { background: var(--sidebar-bg); border: 2px solid var(--border-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
-        .scenario-box .scenario-title { font-weight: 700; color: var(--primary-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
-        .spectrum-bar { display: flex; align-items: stretch; margin: 1.5rem 0; border-radius: 8px; overflow: hidden; font-size: 0.9rem; }
-        .spectrum-bar .spec-item { flex: 1; padding: 0.8rem 0.6rem; text-align: center; line-height: 1.5; }
-        .page-nav { display: flex; justify-content: space-between; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); font-size: 0.95rem; }
-        .page-nav a { color: var(--accent-color); text-decoration: none; }
-        .page-nav a:hover { text-decoration: underline; }
+        .formula-block { background: var(--sidebar-bg); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; text-align: center; }
+        .rl-ctrl { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; margin-bottom:0.8rem; font-size:0.88rem; }
+        .rl-ctrl button { padding:0.3rem 0.7rem; border:1px solid #2b6cb0; background:white; color:#2b6cb0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.84rem; transition:all 0.15s; }
+        .rl-ctrl button:hover { background:#2b6cb0; color:white; }
+        .rl-ctrl label { font-size:0.86rem; color:#4a5568; }
+        .rl-ctrl select { padding:0.2rem 0.4rem; border:1px solid var(--border-color); border-radius:4px; font-size:0.84rem; }
+        .rl-info { background:#ebf4ff; border-radius:6px; padding:0.4rem 0.8rem; font-size:0.88rem; margin-top:0.6rem; }
+        .demo-container { border:2px solid var(--border-color); border-radius:8px; padding:1.2rem; margin:1.5rem 0; background:#fafafa; }
+        .demo-title { font-weight:700; color:var(--accent-color); margin-bottom:0.6rem; font-size:1.05rem; }
+        .demo-row { display:flex; gap:1rem; flex-wrap:wrap; justify-content:center; margin:0.8rem 0; }
+        .demo-panel { flex:1; min-width:280px; max-width:480px; }
+        .demo-panel canvas { width:100%; border:1px solid var(--border-color); border-radius:4px; background:white; }
+        .fig-caption { text-align:center; font-size:0.9rem; color:#718096; margin-top:0.5rem; margin-bottom:1rem; }
+        .arch-svg { display:block; margin:1rem auto; max-width:100%; }
     </style>
     <script defer src="../../js/code-copy.js"></script>
 </head>
@@ -76,9 +83,10 @@
                 <li class="sidebar-chapter">第五章 深度强化学习算法</li>
                 <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
                 <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
-                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
-                <li><a href="../ch05/5.4.html" class="active">5.4 基于模型的深度强化学习</a></li>
-                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li><a href="../ch05/5.3.html">5.3 DDPG与TD3</a></li>
+                <li><a href="../ch05/5.4.html" class="active">5.4 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.5.html">5.5 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.6.html">5.6 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
                 <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
                 <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
                 <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
@@ -105,472 +113,987 @@
         </aside>
 
         <main class="main-content">
-            <h1>5.4 基于模型的深度强化学习</h1>
+            <h1>5.4 Soft Actor-Critic</h1>
 
-            <!-- ==================== 回顾：模型与无模型 ==================== -->
-            <h2>回顾：模型与无模型</h2>
+            <!-- ==================== 为什么需要SAC ==================== -->
+            <h2>为什么需要SAC</h2>
 
-            <p>在第一章中，我们假设MDP的转移概率 $P(s'|s,a)$ 和奖励函数 $R(s,a)$ 是完全已知的，并以此为基础介绍了策略迭代和值迭代两种动态规划算法。这种方法可以称为<strong>纯粹的基于模型方法</strong>：有了完整的模型，就可以通过计算直接求解最优策略，不需要与环境进行任何交互。</p>
+            <p>回顾前几节：5.1节的DQN将Q-learning与深度神经网络结合，实现了离策略学习，能通过经验回放缓冲区高效利用历史数据，但它只能处理<strong>离散动作空间</strong>。5.2节的PPO采用策略梯度方法，天然支持连续动作空间，训练也比较稳定，但它是on-policy算法，每批数据用完后就必须丢弃，样本效率较低。5.3节的DDPG和TD3虽然支持连续动作空间且是off-policy的，但它们使用确定性策略，探索能力依赖外部噪声，训练稳定性仍有不足。</p>
 
-            <p>在3.1至5.3节中，我们走向了另一个极端。DQN、PPO和SAC都属于<strong>无模型</strong>（model-free）算法：它们完全不尝试理解环境的运转规律，而是直接从与环境的交互数据中学习值函数或策略。这种方法的优点是通用性强，无论环境多么复杂，只要能与之交互并获得奖励信号，就有可能学到好的策略。</p>
-
-            <p>但无模型方法有一个显而易见的代价：<strong>样本效率低</strong>。DQN在Atari游戏上需要约两亿帧画面才能达到人类水平的表现，PPO训练一个机器人行走策略通常需要数千万步交互。在游戏或仿真环境中，交互的成本几乎为零，这不是问题。然而在管理科学的许多实际场景中，每一次交互都意味着真实的业务决策：一次库存补货、一次车辆调度、一次价格调整。这些决策的试错成本可能非常高昂。</p>
-
-            <div class="concept-card">
-                <div class="concept-name">管理科学中的样本效率困境</div>
-                <p>考虑一个零售库存管理问题。每天做一次补货决策，一年只有365个决策步。如果无模型算法需要100万步交互才能收敛，那意味着需要大约2740年的运营数据。即使用仿真器加速，仿真器本身的构建和校准也需要大量真实数据。能否从更少的真实交互中学到更好的策略？</p>
-            </div>
-
-            <p>本节介绍的<strong>基于模型的深度强化学习</strong>（model-based deep RL）正是为了回答这个问题。它的核心思想是：先从有限的交互数据中<strong>学习一个环境的预测模型</strong>（通常称为<strong>世界模型</strong>，world model），然后利用这个学到的模型来<strong>想象</strong>更多的经验，从而大幅减少对真实交互的需求。</p>
-
-            <p>可以把这三种路径看作一个光谱：</p>
-
-            <div class="spectrum-bar">
-                <div class="spec-item" style="background:#dbeafe; border-right:1px solid #93c5fd;">
-                    <strong>纯粹基于模型</strong><br>
-                    已知 $P$, $R$<br>
-                    动态规划<br>
-                    <span style="font-size:0.82rem;color:#718096;">（第一章）</span>
-                </div>
-                <div class="spec-item" style="background:#fed7d7; border-right:1px solid #feb2b2;">
-                    <strong>学习模型后规划</strong><br>
-                    从数据中学 $\hat{P}$, $\hat{R}$<br>
-                    模型内想象 + 策略优化<br>
-                    <span style="font-size:0.82rem;color:#718096;">（本节）</span>
-                </div>
-                <div class="spec-item" style="background:#fefcbf;">
-                    <strong>纯粹无模型</strong><br>
-                    不学模型<br>
-                    直接从交互中学策略<br>
-                    <span style="font-size:0.82rem;color:#718096;">（3.1 &ndash; 3.3）</span>
-                </div>
-            </div>
-            <div class="fig-caption">图 5.4-1 &nbsp; 从纯粹基于模型到纯粹无模型的方法光谱。本节聚焦于中间路径：从数据中学习模型，再用模型辅助策略优化。</div>
-
-            <!-- ==================== 学习世界模型 ==================== -->
-            <h2>学习世界模型</h2>
-
-            <h3>什么是世界模型</h3>
-
-            <p>世界模型的目标很直接：给定当前状态 $s_t$ 和动作 $a_t$，预测下一个状态 $s_{t+1}$ 和即时奖励 $r_t$。我们用两个带参数 $\phi$ 的神经网络来实现这个预测：</p>
-
-            <div class="formula-block">
-            $$\hat{s}_{t+1} = f_\phi(s_t,\, a_t) \tag{5.4-1}$$
-            </div>
-            <div class="formula-block">
-            $$\hat{r}_t = g_\phi(s_t,\, a_t) \tag{5.4-2}$$
-            </div>
-
-            <p>其中 $f_\phi$ 是<strong>状态转移模型</strong>，$g_\phi$ 是<strong>奖励模型</strong>。有了这两个模型，我们就可以在不与真实环境交互的情况下，从任意状态出发，逐步"想象"出一条完整的轨迹。</p>
-
-            <p>用管理科学的语言来说，世界模型就是一个<strong>数据驱动的仿真器</strong>。与传统运筹学中手工构建的仿真模型不同，这里的仿真器是从数据中自动学习得到的。</p>
-
-            <h3>训练世界模型</h3>
-
-            <p>训练世界模型的过程其实就是一个标准的<strong>监督学习</strong>问题。首先，通过与真实环境交互，收集一批转移数据 $(s_t, a_t, r_t, s_{t+1})$，存入数据缓冲区 $\mathcal{D}$。然后，最小化模型预测与真实数据之间的误差：</p>
-
-            <div class="formula-block">
-            $$L_{\text{model}}(\phi) = \mathbb{E}_{(s,a,r,s') \sim \mathcal{D}}\!\Big[\big\|f_\phi(s,a) - s'\big\|^2 + \big\|g_\phi(s,a) - r\big\|^2\Big] \tag{5.4-3}$$
-            </div>
-
-            <p>公式(5.4-3)的含义非常直观：对于缓冲区中的每一条真实转移，我们要求状态转移模型 $f_\phi$ 的预测尽量接近真实的下一状态 $s'$，奖励模型 $g_\phi$ 的预测尽量接近真实的奖励 $r$。这与第四章中介绍的回归任务训练方式完全一致。</p>
-
-            <h3>确定性模型与随机性模型</h3>
-
-            <p>公式(5.4-1)描述的是<strong>确定性模型</strong>：给定 $(s_t, a_t)$，模型输出一个确定的预测 $\hat{s}_{t+1}$。这种方式简单高效，但忽略了环境中固有的随机性。</p>
-
-            <p>在管理科学中，许多问题的动力学具有显著的随机性：顾客到达是随机的，需求量是不确定的，供应商的交货时间有波动。对于这类问题，更合理的做法是让模型输出一个<strong>概率分布</strong>：</p>
-
-            $$s_{t+1} \sim p_\phi(s_{t+1} \mid s_t, a_t) \tag{5.4-4}$$
-
-            <p>一种常见的实现方式是让神经网络同时输出均值 $\mu_\phi(s_t, a_t)$ 和方差 $\sigma^2_\phi(s_t, a_t)$，假设下一状态服从高斯分布。训练时使用负对数似然作为损失函数，而不是均方误差。</p>
-
-            <h3>集成模型</h3>
-
-            <p>单个神经网络模型虽然可以拟合训练数据，但我们很难知道它在训练数据之外的区域是否可靠。<strong>集成模型</strong>（ensemble model）的思路是：同时训练 $M$ 个结构相同但随机初始化不同的模型 $\{f_{\phi_1}, f_{\phi_2}, \ldots, f_{\phi_M}\}$，用它们预测的一致程度来衡量不确定性。</p>
-
-            <p>如果 $M$ 个模型对某个状态-动作对的预测高度一致，说明该区域的数据充足、模型可信；如果预测之间差异很大，则说明该区域数据稀疏，模型的预测不可靠。这种<strong>认识论不确定性</strong>（epistemic uncertainty）的量化，对于后续在模型中进行想象时控制误差至关重要。</p>
-
-            <div class="note">
-                <strong>集成模型的实际规模：</strong>在大多数实现中，$M = 5 \sim 7$ 个模型就足以提供有效的不确定性估计。虽然训练 $M$ 个模型增加了计算量，但相比节省的真实环境交互次数，这个计算成本通常是值得的。
-            </div>
-
-            <!-- ==================== Dyna架构 ==================== -->
-            <h2>利用模型：Dyna架构</h2>
-
-            <p>有了学到的世界模型，如何用它来加速策略学习？最经典也最直观的框架是 Sutton (1991) 提出的 <strong>Dyna</strong> 架构。Dyna 的核心思想可以用一句话概括：<strong>每次与真实环境交互后，额外在世界模型中进行多次想象交互，然后用真实和想象的数据一起训练策略</strong>。</p>
-
-            <p>我们用一个库存管理的场景来理解这个过程。</p>
-
-            <div class="scenario-box">
-                <div class="scenario-title">场景：零售商补货决策</div>
-                <p>某零售商每天观察库存水平 $s_t$（状态），决定补货数量 $a_t$（动作），随后面对随机的顾客需求 $d_t$，产生持有成本和缺货惩罚（奖励）。新的库存水平 $s_{t+1}$ 由库存平衡方程决定。</p>
-                <p>无模型方法（如DQN）的做法：每天做一次真实的补货决策，观察结果，用这一条经验更新Q网络。学到好策略可能需要数千天的真实运营。</p>
-                <p>Dyna的做法：每天做完真实决策后，用已收集的数据训练一个需求预测模型。然后在<strong>模型中想象</strong>10次不同的补货场景，用这10条想象经验额外更新Q网络。这样一天的真实交互就产生了11次学习机会。</p>
-            </div>
-
-            <p>Dyna架构的一般流程如下：</p>
-
-            <div class="algo-box">
-                <div class="algo-title">Dyna框架</div>
-                <ol>
-                    <li>在真实环境中，根据当前策略 $\pi$ 选择动作 $a_t$，执行后观察 $r_t, s_{t+1}$</li>
-                    <li>将真实转移 $(s_t, a_t, r_t, s_{t+1})$ 存入数据缓冲区 $\mathcal{D}$</li>
-                    <li>用 $\mathcal{D}$ 中的数据更新世界模型 $f_\phi, g_\phi$（监督学习）</li>
-                    <li><strong>想象阶段</strong>：重复 $K$ 次
-                        <ul style="margin:0.3rem 0 0.3rem 1rem; list-style:disc;">
-                            <li>从 $\mathcal{D}$ 中采样一个真实状态 $\tilde{s}$ 作为起点</li>
-                            <li>选择动作 $\tilde{a}$（依据当前策略 $\pi$ 或随机探索）</li>
-                            <li>用世界模型预测：$\tilde{s}' = f_\phi(\tilde{s}, \tilde{a})$，$\tilde{r} = g_\phi(\tilde{s}, \tilde{a})$</li>
-                            <li>用想象转移 $(\tilde{s}, \tilde{a}, \tilde{r}, \tilde{s}')$ 更新策略（或值函数）</li>
-                        </ul>
-                    </li>
-                    <li>用真实转移 $(s_t, a_t, r_t, s_{t+1})$ 更新策略（或值函数）</li>
-                </ol>
-                <div class="algo-note">其中 $K$ 是想象步数，控制了模型利用的力度。$K$ 越大，从每次真实交互中提取的学习信号越多，但也更依赖世界模型的准确性。</div>
-            </div>
-
-            <p>Dyna框架的关键洞见在于：<strong>每一次真实交互产生 $K+1$ 次学习机会</strong>（1次真实 + $K$ 次想象）。如果设 $K=10$，则策略获得的训练信号是纯无模型方法的11倍。这直接解释了基于模型方法样本效率更高的原因。</p>
-
-            <div class="concept-card">
-                <div class="concept-name">想象 = 廉价的仿真</div>
-                <p>Dyna框架中的想象步骤，在管理科学的语境下可以理解为<strong>在学到的仿真器中做蒙特卡洛模拟</strong>。运筹学家长期以来就依赖仿真来评估和优化决策方案。Dyna的独特之处在于，仿真器本身也是从数据中学习得到的，而且它与策略优化过程紧密耦合，形成了学习-想象-优化的闭环。</p>
-            </div>
-
-            <!-- ==================== 模型误差累积 ==================== -->
-            <h2>模型误差的累积问题</h2>
-
-            <p>Dyna框架看起来很理想，但实践中有一个严峻的挑战：<strong>世界模型并不完美</strong>。</p>
-
-            <p>假设世界模型在每一步预测中的平均误差为 $\epsilon$。当我们从某个真实状态出发，在模型中连续想象 $H$ 步时，会发生什么？第1步的预测状态有 $\epsilon$ 的误差，第2步基于这个已有误差的状态再预测，误差进一步增大。经过 $H$ 步后，累积误差大致按 $H$ 的量级增长。当 $H$ 较大时，想象轨迹的末端可能已经与真实环境的行为毫无关系。</p>
-
-            <p>更糟糕的是，策略如果在这些不真实的想象数据上训练，可能学会利用模型的漏洞：找到那些在世界模型中获得高奖励、但在真实环境中根本不存在的状态-动作组合。这种现象被称为<strong>模型利用</strong>（model exploitation），是基于模型方法面临的核心挑战。</p>
-
-            <div class="warning">
-                <strong>模型误差累积的直觉：</strong>想象一位基金经理使用收益预测模型来制定投资策略。如果模型对每日收益的预测误差为1%，预测一周（5个交易日）可能还勉强可用，但预测一年（250个交易日）后的组合表现就完全不可信了。在世界模型中进行长期想象也面临同样的困境。
-            </div>
-
-            <p>这个问题意味着，简单地在世界模型中想象很长的轨迹是不可靠的。我们需要更谨慎地使用模型。这正是下面要介绍的MBPO算法所解决的问题。</p>
-
-            <!-- ==================== MBPO ==================== -->
-            <h2>MBPO：基于模型的策略优化</h2>
-
-            <p><strong>MBPO</strong>（Model-Based Policy Optimization，Janner et al., 2019）是现代基于模型深度强化学习的代表性算法。它对Dyna框架做了一个关键改进：<strong>用短距离的分支想象代替长距离的完整想象</strong>。</p>
-
-            <h3>核心思想：短分支想象</h3>
-
-            <p>MBPO不从某个初始状态开始想象一整条长轨迹，而是：</p>
-            <ol>
-                <li>从真实数据缓冲区 $\mathcal{D}$ 中采样一批<strong>真实状态</strong>作为起点；</li>
-                <li>从每个真实状态出发，在学到的世界模型中仅向前想象 $h$ 步（$h$ 通常很小，如 $1 \sim 5$）；</li>
-                <li>将这些短想象轨迹存入一个单独的模型数据缓冲区 $\mathcal{D}_{\text{model}}$；</li>
-                <li>用 $\mathcal{D} \cup \mathcal{D}_{\text{model}}$ 中的数据训练一个无模型算法（如SAC）。</li>
-            </ol>
-
-            <p>这样做的好处是双重的。第一，每条想象轨迹都<strong>从真实状态出发</strong>，保证了起点的可靠性。第二，想象步数 $h$ 很短，限制了误差的累积。想象轨迹的末端距离真实数据只有 $h$ 步，模型误差不会失控。</p>
-
-            <h3>理论保证</h3>
-
-            <p>MBPO为短分支想象提供了理论支撑。设 $\eta[\pi]$ 为策略 $\pi$ 在真实环境中的期望回报，$\hat{\eta}[\pi]$ 为在学到的模型中的期望回报，则有：</p>
-
-            <div class="formula-block">
-            $$\eta[\pi] \geq \hat{\eta}[\pi] - C \cdot \big(\epsilon_m + (h-1)\,\epsilon_\pi\big) \tag{5.4-5}$$
-            </div>
-
-            <p>其中 $\epsilon_m$ 是世界模型的预测误差，$h$ 是想象步数，$\epsilon_\pi$ 是策略相对于数据收集策略的偏移量，$C$ 是与折扣因子相关的常数。</p>
-
-            <p>公式(5.4-5)给出了一个<strong>策略表现下界</strong>：在模型中优化得到的策略表现 $\hat{\eta}[\pi]$，与其在真实环境中的实际表现 $\eta[\pi]$ 之间的差距，受模型误差 $\epsilon_m$ 和想象步数 $h$ 共同控制。想象步数 $h$ 越短，这个下界越紧，也就越安全。</p>
-
-            <details class="optional-reading">
-                <summary>选读：公式(5.4-5)的直觉解释</summary>
-                <p style="margin-top:0.5rem;">公式(5.4-5)本质上在说：模型中的策略回报与真实回报之间的差距来自两个误差源。第一个是 $\epsilon_m$，即模型本身的预测偏差，这在第0步就存在。第二个是 $(h-1)\,\epsilon_\pi$，即随着想象步数增加，策略与收集数据时所用策略的偏移不断放大模型误差。当 $h=1$ 时，第二项消失，差距仅由模型精度决定。这解释了为什么MBPO倾向于使用非常短的想象步数。</p>
-                <p>在实践中，MBPO会随着模型精度的提升逐步增加 $h$。训练初期模型不准确，用 $h=1$；模型改善后，可以适当增加到 $h=3$ 或 $h=5$。</p>
-            </details>
-
-            <h3>MBPO算法流程</h3>
-
-            <div class="algo-box">
-                <div class="algo-title">MBPO算法</div>
-                <p><strong>初始化：</strong>策略 $\pi_\theta$，Q网络 $Q_\psi$（SAC框架），集成世界模型 $\{f_{\phi_1}, \ldots, f_{\phi_M}\}$，真实数据缓冲区 $\mathcal{D}$，模型数据缓冲区 $\mathcal{D}_{\text{model}}$</p>
-                <ol>
-                    <li><strong>收集真实数据：</strong>用当前策略 $\pi_\theta$ 在真实环境中交互，收集转移并存入 $\mathcal{D}$</li>
-                    <li><strong>更新世界模型：</strong>在 $\mathcal{D}$ 上训练集成模型 $\{f_{\phi_i}\}$，最小化预测误差（公式 3.4-3）</li>
-                    <li><strong>模型内想象：</strong>
-                        <ul style="margin:0.3rem 0 0.3rem 1rem; list-style:disc;">
-                            <li>从 $\mathcal{D}$ 中均匀采样一批真实状态 $\{s^{(j)}\}$</li>
-                            <li>对每个 $s^{(j)}$，在随机选取的一个集成成员 $f_{\phi_i}$ 中，按当前策略 $\pi_\theta$ 向前展开 $h$ 步</li>
-                            <li>将产生的所有想象转移存入 $\mathcal{D}_{\text{model}}$</li>
-                        </ul>
-                    </li>
-                    <li><strong>策略优化：</strong>从 $\mathcal{D} \cup \mathcal{D}_{\text{model}}$ 中采样 mini-batch，用 SAC 更新 $\pi_\theta$ 和 $Q_\psi$</li>
-                    <li>重复步骤1-4</li>
-                </ol>
-                <div class="algo-note">步骤3中，每次想象时随机选择一个集成成员，等效于从模型的后验分布中采样，自然地引入了对模型不确定性的考量。</div>
-            </div>
-
-            <div class="note">
-                <strong>MBPO与SAC的关系：</strong>MBPO并不是一个全新的算法，而是在SAC（或任何无模型算法）的基础上，添加了世界模型和想象数据生成这两个模块。可以将MBPO理解为一个<strong>数据增强框架</strong>：用世界模型为无模型算法生产额外的训练数据。这种模块化的设计使得MBPO非常灵活，将SAC替换为PPO或其他算法同样可行。
-            </div>
-
-            <h3>样本效率的提升</h3>
-
-            <p>MBPO在多个连续控制基准任务上展示了显著的样本效率优势。例如，在 HalfCheetah 任务上，SAC 需要约 $3 \times 10^5$ 步真实交互才能达到良好性能，而MBPO只需约 $3 \times 10^4$ 步，提升了大约一个数量级。在某些任务上，MBPO的样本效率比纯无模型方法高出 $10 \sim 100$ 倍。</p>
-
-            <p>对于管理科学应用而言，这种样本效率的提升具有实际意义。如果一个库存优化问题用SAC需要10万步仿真交互（约274年的每日决策），用MBPO可能只需要1万步（约27年），再结合历史数据的利用，实际部署就变得可行了。</p>
-
-            <!-- ==================== 潜空间世界模型 ==================== -->
-            <h2>世界模型与潜空间想象</h2>
-
-            <p>前面介绍的世界模型直接在<strong>原始状态空间</strong>中进行预测：输入 $(s_t, a_t)$，输出 $\hat{s}_{t+1}$。当状态空间维度较低时（如库存水平、车辆位置等），这种方式工作良好。但当状态空间很高维时，例如用摄像头图像作为状态，直接预测下一帧图像的每个像素就变得既困难又浪费。图像中大量的像素信息（如背景颜色、光照变化）对于决策来说并不重要。</p>
-
-            <p>现代世界模型的解决方案是：在一个<strong>压缩的潜空间</strong>（latent space）中进行想象。</p>
-
-            <h3>潜空间世界模型的结构</h3>
-
-            <p>潜空间世界模型由四个组件构成：</p>
+            <p>在管理科学的实际应用中，许多决策变量天然是连续的：物流中的车辆调度速度、库存管理中的补货数量、金融中的投资组合权重、交通信号的绿灯时长等。对于这类问题，我们希望算法同时具备以下三个特性：</p>
 
             <ul>
-                <li><strong>编码器</strong>（encoder）：$z_t = \text{enc}_\phi(s_t)$，将高维观测压缩为低维潜状态</li>
-                <li><strong>潜空间动力学模型</strong>（latent dynamics）：$\hat{z}_{t+1} = f_\phi(z_t, a_t)$，在潜空间中预测下一步</li>
-                <li><strong>奖励预测器</strong>（reward predictor）：$\hat{r}_t = g_\phi(z_t, a_t)$，从潜状态预测奖励</li>
-                <li><strong>解码器</strong>（decoder，可选）：$\hat{s}_t = \text{dec}_\phi(z_t)$，将潜状态还原为观测</li>
+                <li><strong>支持连续动作空间</strong>，不需要将决策变量人为离散化；</li>
+                <li><strong>离策略学习</strong>，能够重复利用历史经验，提高样本效率；</li>
+                <li><strong>训练稳定</strong>，不容易因超参数设置不当而崩溃。</li>
             </ul>
 
-            <p>训练后，整个想象过程都在潜空间中完成：编码真实状态 $\to$ 在潜空间中展开轨迹 $\to$ 用潜空间轨迹训练策略。无需解码回原始状态空间，大幅降低了计算成本。</p>
-
-            <div class="formula-block">
-            $$z_t = \text{enc}_\phi(s_t), \quad \hat{z}_{t+1} = f_\phi(z_t, a_t), \quad \hat{r}_t = g_\phi(z_t, a_t) \tag{5.4-6}$$
-            </div>
-
-            <h3>Dreamer算法简介</h3>
-
-            <p><strong>Dreamer</strong>（Hafner et al., 2020）是潜空间世界模型的代表性算法。它的工作流程可以概括为三个阶段：</p>
-
-            <ol>
-                <li><strong>学习世界模型</strong>：用真实交互数据训练编码器、潜空间动力学模型和奖励预测器</li>
-                <li><strong>在潜空间中做梦</strong>：从真实状态编码出的 $z_t$ 出发，在潜空间中展开想象轨迹 $z_t, z_{t+1}, z_{t+2}, \ldots$</li>
-                <li><strong>从梦中学习</strong>：在想象的潜空间轨迹上训练actor-critic，完全不需要与真实环境交互</li>
-            </ol>
-
-            <p>Dreamer的名字来源于它的学习方式：智能体通过在内心世界中反复"做梦"来学习策略，这与人类在睡眠中通过梦境巩固记忆和技能的过程有异曲同工之妙。</p>
-
-            <div class="concept-card">
-                <div class="concept-name">潜状态的管理科学解读</div>
-                <p>在管理科学中，潜空间的概念有一个很自然的对应物。考虑一个大型供应链系统，其原始状态可能包含成千上万个SKU的库存、在途订单、供应商状态等信息。但驱动系统行为的关键因素可能只有少数几个：整体库存健康度、供应紧张程度、需求趋势等。潜空间世界模型学到的 $z_t$ 就类似于一个<strong>高层管理仪表盘</strong>，它从海量运营数据中提炼出了决策所需的关键指标。在这个压缩表示上做规划，既高效又抓住了本质。</p>
-            </div>
-
-            <!-- ==================== 领域知识 ==================== -->
-            <h2>当领域知识遇上学习</h2>
-
-            <p>前面介绍的世界模型都是<strong>纯粹从数据中学习</strong>的：神经网络从零开始拟合环境的动力学。但在管理科学中，我们通常并不是对环境一无所知。许多管理系统的动力学中，有一部分是已知的、确定性的，另一部分才是未知的、需要从数据中学习的。</p>
-
-            <div class="scenario-box">
-                <div class="scenario-title">已知与未知的动力学</div>
-                <ul style="margin:0.3rem 0 0 1.2rem; line-height:2.2;">
-                    <li><strong>库存管理</strong>：库存平衡方程 $I_{t+1} = I_t + q_t - d_t$（$q_t$ 为补货量）是确定性的、已知的；顾客需求 $d_t$ 的分布是未知的、需要学习的</li>
-                    <li><strong>交通网络</strong>：流量守恒定律（驶入车辆数 = 驶出车辆数 + 滞留车辆数变化量）是已知的；驾驶员的路径选择行为是随机的、需要学习的</li>
-                    <li><strong>供应链</strong>：物料清单（BOM）中的组装关系和产能约束是已知的；供应商交货可靠性是不确定的、需要学习的</li>
-                    <li><strong>排队系统</strong>：服务完成后顾客离开、新顾客加入队列的逻辑是已知的；到达过程的参数和服务时间的分布是需要学习的</li>
-                </ul>
-            </div>
-
-            <p>纯粹的数据驱动世界模型忽视了这些已知的结构信息，让神经网络从头学习那些我们已经知道的物理定律和业务逻辑。这不仅浪费了宝贵的样本，还可能导致模型在数据稀疏区域违反这些已知的约束（例如预测出负库存）。</p>
-
-            <h3>混合世界模型</h3>
-
-            <p>更明智的做法是构建<strong>混合世界模型</strong>（hybrid world model）：将已知的动力学写成解析形式，只让神经网络学习未知的部分。一种常用的结构是<strong>残差模型</strong>：</p>
-
-            <div class="formula-block">
-            $$\hat{s}_{t+1} = \underbrace{f_{\text{known}}(s_t, a_t)}_{\text{已知动力学}} + \underbrace{f_\phi(s_t, a_t)}_{\text{学习的残差}} \tag{5.4-7}$$
-            </div>
-
-            <p>以库存管理为例。设状态 $s_t = I_t$（当前库存），动作 $a_t = q_t$（补货量），则混合模型为：</p>
-
-            $$\hat{I}_{t+1} = \underbrace{(I_t + q_t)}_{\text{已知：补货后的库存}} - \underbrace{\hat{d}_\phi(I_t, q_t, \text{context}_t)}_{\text{学习：预测的需求量}} \tag{5.4-8}$$
-
-            <p>其中 $\text{context}_t$ 可以包含星期几、是否节假日、促销信息等特征。神经网络 $\hat{d}_\phi$ 只需要学习需求预测这一个子任务，而不是从零学习整个库存动力学。这大大降低了学习难度，同时保证了库存平衡这一基本物理约束始终被满足。</p>
-
-            <h3>为什么混合模型特别适合管理科学</h3>
-
-            <p>在视频游戏或机器人控制等典型的强化学习基准任务中，环境的动力学要么完全未知（游戏的内部逻辑），要么虽然基于物理定律但难以精确建模（复杂的接触力学）。因此，纯数据驱动的世界模型是自然的选择。</p>
-
-            <p>但管理科学问题有一个独特优势：<strong>系统的结构通常是已知的</strong>。库存平衡方程、流量守恒、会计恒等式、排队论的基本关系——这些都是确定性的、经过验证的数学关系。不确定性主要来自外部因素（需求、天气、市场波动）和人类行为（顾客选择、驾驶员决策）。</p>
-
-            <p>混合世界模型充分利用了这一结构优势：</p>
-            <ul>
-                <li><strong>样本效率更高</strong>：神经网络只需要学习未知的部分，所需数据更少</li>
-                <li><strong>泛化能力更强</strong>：已知的结构约束在任何数据区域都成立，避免了模型在数据稀疏处的荒谬预测</li>
-                <li><strong>可解释性更好</strong>：模型的已知部分对应着明确的业务逻辑，决策者更容易信任和审查</li>
-            </ul>
+            <p><strong>Soft Actor-Critic</strong>（SAC，Haarnoja et al., 2018）正是为了同时满足这三个需求而提出的。它的核心思想是在标准的强化学习目标中加入一个<strong>熵正则化项</strong>：不仅要最大化累积奖励，还要让策略尽可能保持随机性。这个看似简单的改动带来了深远的影响：它自然地鼓励探索，显著提升了训练的稳定性和鲁棒性。</p>
 
             <div class="note">
-                <strong>与传统运筹学的联系：</strong>混合世界模型的理念在传统运筹学中早有实践。许多运筹优化模型先建立确定性的数学规划框架（如线性规划、网络流模型），再通过随机规划或鲁棒优化处理不确定性。混合世界模型继承了这一思路，只是用神经网络替代了传统的概率分布假设来建模不确定性，表达能力更强。
+                <strong>SAC在管理科学中的优势：</strong>许多管理科学问题的仿真器运行成本高昂（例如，一次完整的交通仿真可能需要数分钟）。SAC的离策略特性使其能够充分利用每一条仿真数据，大幅减少所需的仿真次数。同时，它对超参数不敏感的特性，减少了研究人员的调参负担。
             </div>
 
-            <!-- ==================== 例子 ==================== -->
-            <h2>例子：世界模型辅助的库存管理</h2>
+            <!-- ==================== 最大熵强化学习 ==================== -->
+            <h2>最大熵强化学习</h2>
 
-            <p>我们通过一个完整的例子，展示基于模型的方法如何应用于管理科学问题。</p>
+            <p>标准强化学习的目标是最大化<strong>期望累积折扣奖励</strong>：</p>
 
-            <div class="scenario-box">
-                <div class="scenario-title">问题设定</div>
-                <p>某零售商管理一种商品的库存。每天（$t = 0, 1, 2, \ldots$）执行以下流程：</p>
-                <ul style="margin:0.3rem 0 0 1.2rem; line-height:2;">
-                    <li><strong>状态</strong>：当前库存水平 $I_t \in \{0, 1, \ldots, 100\}$</li>
-                    <li><strong>动作</strong>：补货数量 $q_t \in \{0, 1, \ldots, 50\}$，补货立即到达（无提前期）</li>
-                    <li><strong>需求</strong>：$d_t$ 随机，依赖于星期几和天气等因素</li>
-                    <li><strong>状态转移</strong>：$I_{t+1} = \max(I_t + q_t - d_t,\; 0)$，库存不能为负</li>
-                    <li><strong>奖励</strong>：
-                        $$r_t = -c_h \cdot I_{t+1} - c_s \cdot \max(d_t - I_t - q_t,\; 0) - c_o \cdot q_t \tag{5.4-9}$$
-                        其中 $c_h = 1$ 为单位持有成本，$c_s = 10$ 为单位缺货惩罚，$c_o = 2$ 为单位订购成本
+            $$J_{\text{std}}(\pi) = \mathbb{E}_\pi\left[\sum_{t=0}^{\infty} \gamma^t R_t\right]$$
+
+            <p>SAC在此基础上增加了一个<strong>策略熵</strong>（policy entropy）奖励项，形成<strong>最大熵目标</strong>：</p>
+
+            <div class="formula-block">
+            $$J(\pi) = \mathbb{E}_\pi\left[\sum_{t=0}^{\infty} \gamma^t \Big(R_t + \alpha \,\mathcal{H}\big(\pi(\cdot \mid S_t)\big)\Big)\right] \tag{5.4-1}$$
+            </div>
+
+            <p>其中 $\mathcal{H}\big(\pi(\cdot \mid s)\big)$ 是策略在状态 $s$ 下的熵。对连续动作空间下的策略分布 $\pi(\cdot \mid s)$，熵定义为：</p>
+
+            $$\mathcal{H}\big(\pi(\cdot \mid s)\big) = -\int \pi(a \mid s) \log \pi(a \mid s) \, da = \mathbb{E}_{a \sim \pi(\cdot|s)}\big[-\log \pi(a \mid s)\big] \tag{5.4-2}$$
+
+            <p>参数 $\alpha > 0$ 称为<strong>温度系数</strong>（temperature），它控制了熵项的权重，也就是探索与利用之间的平衡：</p>
+
+            <ul>
+                <li>$\alpha$ 较大时，算法更倾向于保持策略的随机性（多探索）；</li>
+                <li>$\alpha$ 较小时，算法更倾向于追求高奖励（多利用）；</li>
+                <li>$\alpha \to 0$ 时，退化为标准的强化学习目标。</li>
+            </ul>
+
+            <div class="concept-card">
+                <div class="concept-name">最大熵目标的直觉</div>
+                <p>想象一位基金经理需要在多个资产之间分配投资比例（连续动作）。最大熵目标要求他：在保证预期收益的前提下，尽可能分散投资。这样做的好处是：（1）避免过早押注于某个单一方案，在信息不充分时保持灵活性；（2）即使环境发生变化，分散的策略也更具鲁棒性；（3）学习过程中能持续探索不同的投资组合，不会因为偶然发现一个还不错的方案就停止尝试。</p>
+            </div>
+
+            <p>公式(5.4-1)可以等价地写成更紧凑的形式。将熵的定义代入，每一步的奖励变为 $R_t - \alpha \log \pi(A_t \mid S_t)$，即：</p>
+
+            $$J(\pi) = \mathbb{E}_\pi\left[\sum_{t=0}^{\infty} \gamma^t \Big(R_t - \alpha \log \pi(A_t \mid S_t)\Big)\right] \tag{5.4-3}$$
+
+            <p>这个形式更便于后续推导：可以把 $-\alpha \log \pi(a \mid s)$ 看作一个与动作概率相关的额外奖励。策略越随机（概率越分散），$-\log \pi$ 越大，获得的额外奖励越多。</p>
+
+            <!-- ==================== 软贝尔曼方程 ==================== -->
+            <h2>软贝尔曼方程</h2>
+
+            <p>回顾2.1.3节的标准贝尔曼期望方程，状态值函数与动作值函数之间满足：</p>
+
+            $$V^\pi(s) = \mathbb{E}_{a \sim \pi}\big[Q^\pi(s, a)\big], \quad Q^\pi(s, a) = R(s,a) + \gamma \, \mathbb{E}_{s' \sim P}\big[V^\pi(s')\big]$$
+
+            <p>在最大熵框架下，这些方程被修改为<strong>软贝尔曼方程</strong>（soft Bellman equation）。关键变化在于：状态值函数不再是Q值的简单期望，而是要减去策略的对数概率（即加上熵奖励）：</p>
+
+            <div class="formula-block">
+            $$V(s) = \mathbb{E}_{a \sim \pi}\Big[Q(s, a) - \alpha \log \pi(a \mid s)\Big] \tag{5.4-4}$$
+            </div>
+
+            <div class="formula-block">
+            $$Q(s, a) = R(s, a) + \gamma \, \mathbb{E}_{s' \sim P}\Big[V(s')\Big] \tag{5.4-5}$$
+            </div>
+
+            <p>将公式(5.4-4)代入公式(5.4-5)，可以消去 $V$ 得到：</p>
+
+            $$Q(s, a) = R(s,a) + \gamma \, \mathbb{E}_{s'}\Big[\mathbb{E}_{a' \sim \pi}\big[Q(s', a') - \alpha \log \pi(a' \mid s')\big]\Big] \tag{5.4-6}$$
+
+            <p>对比标准贝尔曼方程，软贝尔曼方程唯一的不同是多了 $-\alpha \log \pi(a \mid s)$ 项。这使得在固定点处，Q值不仅反映了累积奖励，还反映了未来策略的随机程度。</p>
+
+            <div class="derivation">
+                <div class="deriv-title">软贝尔曼方程的含义</div>
+                <p>在标准贝尔曼方程中，$V(s)$ 等于在状态 $s$ 下按照策略行动所获得的期望Q值。在软贝尔曼方程中，$V(s)$ 还包含了策略的熵奖励。这意味着：如果两个策略获得相同的Q值，但其中一个更随机（熵更高），那么更随机的策略对应更高的 $V(s)$。由此可以导出最大熵框架下的最优策略形式：</p>
+                $$\pi^*(a \mid s) \propto \exp\!\Big(\frac{1}{\alpha} Q^*(s, a)\Big) \tag{5.4-7}$$
+                <p>这是一个<strong>玻尔兹曼分布</strong>（Boltzmann distribution），温度系数 $\alpha$ 控制分布的尖锐程度。$\alpha$ 越小，分布越集中于Q值最大的动作；$\alpha$ 越大，分布越均匀。</p>
+            </div>
+
+            <!-- ==================== SAC的网络架构 ==================== -->
+            <h2>SAC的网络架构</h2>
+
+            <p>SAC使用三组神经网络协同工作：</p>
+
+            <p><strong>1. 两个Q网络 $Q_{\theta_1}$ 和 $Q_{\theta_2}$</strong></p>
+            <p>输入为状态-动作对 $(s, a)$，输出一个标量Q值。使用两个Q网络并取较小值是为了缓解<strong>Q值过高估计</strong>问题（与5.1节DQN中的Double DQN思想一致）。在计算目标值和更新策略时，总是取两者的最小值：</p>
+
+            $$Q_{\min}(s, a) = \min\big(Q_{\theta_1}(s, a),\; Q_{\theta_2}(s, a)\big) \tag{5.4-8}$$
+
+            <p><strong>2. 策略网络 $\pi_\phi$</strong></p>
+            <p>输入为状态 $s$，输出一个<strong>高斯分布</strong>的均值 $\mu_\phi(s)$ 和标准差 $\sigma_\phi(s)$。动作通过以下方式采样：</p>
+
+            $$a = \tanh\!\big(\mu_\phi(s) + \sigma_\phi(s) \odot \epsilon\big), \quad \epsilon \sim \mathcal{N}(0, I) \tag{5.4-9}$$
+
+            <p>这里的 $\tanh$ 将动作压缩到 $[-1, 1]$ 范围内，$\odot$ 表示逐元素相乘。这种采样方式称为<strong>重参数化技巧</strong>（reparameterization trick）：将随机性从策略网络中分离出来（体现在外部噪声 $\epsilon$ 中），使得梯度可以通过采样的动作反向传播到策略网络参数 $\phi$。</p>
+
+            <p><strong>3. 目标Q网络 $Q_{\bar{\theta}_1}$ 和 $Q_{\bar{\theta}_2}$</strong></p>
+            <p>这是两个Q网络的缓慢更新副本，用于计算TD目标值，以稳定训练过程（与5.1节DQN中的目标网络思想相同）：</p>
+
+            $$\bar{\theta}_i \leftarrow \tau \theta_i + (1 - \tau) \bar{\theta}_i, \quad i = 1, 2 \tag{5.4-10}$$
+
+            <p>其中 $\tau$ 通常取很小的值（如 $0.005$），使得目标网络缓慢跟踪主网络。</p>
+
+            <!-- 架构图 -->
+            <svg class="arch-svg" viewBox="0 0 720 370" width="720" height="370" xmlns="http://www.w3.org/2000/svg" style="font-family: 'Source Han Serif SC', Georgia, serif;">
+                <!-- 背景 -->
+                <rect width="720" height="370" fill="#fafafa" rx="8"/>
+
+                <!-- 经验回放缓冲区 -->
+                <rect x="260" y="10" width="200" height="40" rx="6" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="1.5"/>
+                <text x="360" y="35" text-anchor="middle" font-size="14" fill="#2b6cb0" font-weight="700">经验回放缓冲区</text>
+                <text x="360" y="65" text-anchor="middle" font-size="12" fill="#718096" font-style="italic">(s, a, r, s')</text>
+
+                <!-- 策略网络 -->
+                <rect x="40" y="120" width="160" height="70" rx="8" fill="#f0fff4" stroke="#48bb78" stroke-width="2"/>
+                <text x="120" y="148" text-anchor="middle" font-size="14" fill="#276749" font-weight="700">策略网络</text>
+                <text x="120" y="170" text-anchor="middle" font-size="13" fill="#276749" font-style="italic">&#x03C0;<tspan baseline-shift="sub" font-size="11">&#x03D5;</tspan>(a | s)</text>
+
+                <!-- Q网络1 -->
+                <rect x="280" y="120" width="160" height="70" rx="8" fill="#fffff0" stroke="#ecc94b" stroke-width="2"/>
+                <text x="360" y="148" text-anchor="middle" font-size="14" fill="#975a16" font-weight="700">Q 网络 1</text>
+                <text x="360" y="170" text-anchor="middle" font-size="13" fill="#975a16" font-style="italic">Q<tspan baseline-shift="sub" font-size="11">&#x03B8;&#x2081;</tspan>(s, a)</text>
+
+                <!-- Q网络2 -->
+                <rect x="520" y="120" width="160" height="70" rx="8" fill="#fffff0" stroke="#ecc94b" stroke-width="2"/>
+                <text x="600" y="148" text-anchor="middle" font-size="14" fill="#975a16" font-weight="700">Q 网络 2</text>
+                <text x="600" y="170" text-anchor="middle" font-size="13" fill="#975a16" font-style="italic">Q<tspan baseline-shift="sub" font-size="11">&#x03B8;&#x2082;</tspan>(s, a)</text>
+
+                <!-- 目标Q网络1 -->
+                <rect x="280" y="240" width="160" height="60" rx="8" fill="#fff5f5" stroke="#fc8181" stroke-width="1.5" stroke-dasharray="5,3"/>
+                <text x="360" y="265" text-anchor="middle" font-size="13" fill="#c53030" font-weight="600">目标 Q 网络 1</text>
+                <text x="360" y="283" text-anchor="middle" font-size="12" fill="#c53030" font-style="italic">Q<tspan baseline-shift="sub" font-size="10">&#x03B8;&#x0304;&#x2081;</tspan></text>
+
+                <!-- 目标Q网络2 -->
+                <rect x="520" y="240" width="160" height="60" rx="8" fill="#fff5f5" stroke="#fc8181" stroke-width="1.5" stroke-dasharray="5,3"/>
+                <text x="600" y="265" text-anchor="middle" font-size="13" fill="#c53030" font-weight="600">目标 Q 网络 2</text>
+                <text x="600" y="283" text-anchor="middle" font-size="12" fill="#c53030" font-style="italic">Q<tspan baseline-shift="sub" font-size="10">&#x03B8;&#x0304;&#x2082;</tspan></text>
+
+                <!-- min操作 -->
+                <rect x="410" y="320" width="100" height="35" rx="6" fill="#e9d8fd" stroke="#805ad5" stroke-width="1.5"/>
+                <text x="460" y="342" text-anchor="middle" font-size="13" fill="#553c9a" font-weight="700">min</text>
+
+                <!-- 连线：缓冲区到Q网络 -->
+                <line x1="330" y1="68" x2="360" y2="118" stroke="#718096" stroke-width="1.2" stroke-linecap="round"/>
+                <line x1="390" y1="68" x2="600" y2="118" stroke="#718096" stroke-width="1.2" stroke-linecap="round"/>
+
+                <!-- 连线：缓冲区到策略网络 -->
+                <line x1="290" y1="68" x2="150" y2="118" stroke="#718096" stroke-width="1.2" stroke-linecap="round"/>
+
+                <!-- 连线：Q网络到目标网络（软更新） -->
+                <line x1="360" y1="192" x2="360" y2="238" stroke="#fc8181" stroke-width="1.2" stroke-dasharray="4,3" stroke-linecap="round"/>
+                <text x="380" y="218" font-size="11" fill="#c53030" font-style="italic">&#x03C4;</text>
+                <line x1="600" y1="192" x2="600" y2="238" stroke="#fc8181" stroke-width="1.2" stroke-dasharray="4,3" stroke-linecap="round"/>
+                <text x="620" y="218" font-size="11" fill="#c53030" font-style="italic">&#x03C4;</text>
+
+                <!-- 连线：目标网络到min -->
+                <line x1="390" y1="302" x2="440" y2="318" stroke="#805ad5" stroke-width="1.2" stroke-linecap="round"/>
+                <line x1="570" y1="302" x2="490" y2="318" stroke="#805ad5" stroke-width="1.2" stroke-linecap="round"/>
+
+                <!-- 连线：策略网络输出动作 -->
+                <line x1="120" y1="192" x2="120" y2="340" stroke="#48bb78" stroke-width="1.2" stroke-linecap="round"/>
+                <text x="70" y="270" font-size="12" fill="#276749">采样动作</text>
+                <text x="70" y="286" font-size="11" fill="#276749" font-style="italic">a' ~ &#x03C0;<tspan baseline-shift="sub" font-size="9">&#x03D5;</tspan></text>
+
+                <!-- 连线：策略动作到min（用于计算TD目标） -->
+                <path d="M 150 340 Q 250 355 408 337" fill="none" stroke="#805ad5" stroke-width="1.2" stroke-linecap="round"/>
+
+                <!-- TD目标标注 -->
+                <text x="460" y="365" text-anchor="middle" font-size="11" fill="#553c9a">计算TD目标 y</text>
+            </svg>
+            <div class="fig-caption">图 5.4-1　SAC 的网络架构。策略网络（绿色）输出高斯分布并采样动作；两个 Q 网络（黄色）评估动作价值；目标 Q 网络（红色虚线）通过软更新缓慢跟踪主网络，其最小值用于计算稳定的 TD 目标。</div>
+
+            <!-- ==================== SAC算法 ==================== -->
+            <h2>SAC算法</h2>
+
+            <p>SAC的训练过程包含三个交替进行的更新步骤。每次从经验回放缓冲区中采样一个小批量 $(s, a, r, s')$，依次更新Q网络、策略网络和目标网络。</p>
+
+            <p><strong>第一步：更新Q网络。</strong>首先计算TD目标值。用当前策略网络在下一状态 $s'$ 采样一个动作 $\tilde{a}'$，利用<strong>目标</strong>Q网络计算软Q值：</p>
+
+            $$y = r + \gamma \Big(\min_{i=1,2} Q_{\bar{\theta}_i}(s', \tilde{a}') - \alpha \log \pi_\phi(\tilde{a}' \mid s')\Big), \quad \tilde{a}' \sim \pi_\phi(\cdot \mid s') \tag{5.4-11}$$
+
+            <p>然后最小化每个Q网络的预测值与TD目标之间的均方误差：</p>
+
+            $$L(\theta_i) = \mathbb{E}_{(s,a,r,s')}\left[\Big(Q_{\theta_i}(s, a) - y\Big)^2\right], \quad i = 1, 2 \tag{5.4-12}$$
+
+            <p><strong>第二步：更新策略网络。</strong>策略网络的目标是最大化期望的软Q值，即让策略选出的动作既有高Q值，又保持足够的随机性：</p>
+
+            $$L(\phi) = \mathbb{E}_{s}\left[\mathbb{E}_{\tilde{a} \sim \pi_\phi}\Big[\alpha \log \pi_\phi(\tilde{a} \mid s) - Q_{\min}(s, \tilde{a})\Big]\right] \tag{5.4-13}$$
+
+            <p>这里 $Q_{\min}(s, \tilde{a}) = \min(Q_{\theta_1}(s, \tilde{a}),\; Q_{\theta_2}(s, \tilde{a}))$。利用公式(5.4-9)的重参数化技巧，$\tilde{a}$ 关于 $\phi$ 可微，因此可以用标准的梯度下降来最小化 $L(\phi)$。</p>
+
+            <p><strong>第三步：软更新目标网络。</strong>按照公式(5.4-10)缓慢更新目标网络参数。</p>
+
+            <div class="algo-box">
+                <div class="algo-title">Soft Actor-Critic (SAC) 算法</div>
+                <ol>
+                    <li>初始化策略网络参数 $\phi$，Q网络参数 $\theta_1, \theta_2$，令目标网络 $\bar{\theta}_i \leftarrow \theta_i$</li>
+                    <li>初始化经验回放缓冲区 $\mathcal{D} \leftarrow \emptyset$</li>
+                    <li>对每个时间步 $t = 0, 1, 2, \ldots$：
+                        <ol type="a">
+                            <li>观察状态 $s_t$，从策略 $a_t \sim \pi_\phi(\cdot \mid s_t)$ 采样动作</li>
+                            <li>执行 $a_t$，观察奖励 $r_t$ 和下一状态 $s_{t+1}$，将 $(s_t, a_t, r_t, s_{t+1})$ 存入 $\mathcal{D}$</li>
+                            <li>从 $\mathcal{D}$ 中随机采样小批量 $\{(s, a, r, s')\}$</li>
+                            <li><strong>更新Q网络：</strong>对每个样本，用公式(5.4-11)计算TD目标 $y$，用公式(5.4-12)更新 $\theta_1, \theta_2$</li>
+                            <li><strong>更新策略网络：</strong>用公式(5.4-13)更新 $\phi$</li>
+                            <li><strong>软更新目标网络：</strong>$\bar{\theta}_i \leftarrow \tau \theta_i + (1 - \tau)\bar{\theta}_i$，$i = 1, 2$</li>
+                        </ol>
                     </li>
-                </ul>
+                </ol>
+                <div class="algo-note">SAC是离策略算法：步骤(c)中从缓冲区采样的数据可以来自任何历史策略。步骤(a)中的采样使用重参数化技巧（公式5.4-9）。</div>
             </div>
 
-            <h3>无模型方法的做法</h3>
+            <h3>自动温度调节</h3>
 
-            <p>用DQN直接学习 $Q(I_t, q_t)$。智能体每天做一次补货决策，观察结果，更新Q网络。由于需求 $d_t$ 的随机性，Q值的估计方差较大，需要大量交互才能稳定收敛。假设收敛需要 $5 \times 10^4$ 步交互，相当于137年的每日运营数据。</p>
+            <p>温度系数 $\alpha$ 的选择对SAC的性能影响很大。手动调节 $\alpha$ 既费时又不可靠，因为最优的 $\alpha$ 值会随训练进程而变化（初期需要大量探索，后期应减少随机性）。SAC的改进版本（Haarnoja et al., 2018b）提出了一种<strong>自动温度调节</strong>机制：将 $\alpha$ 也作为一个可学习的参数，通过优化以下目标来自动调整：</p>
 
-            <h3>MBPO方法的做法</h3>
+            $$L(\alpha) = \mathbb{E}_{a \sim \pi_\phi}\Big[-\alpha \big(\log \pi_\phi(a \mid s) + \bar{\mathcal{H}}\big)\Big] \tag{5.4-14}$$
 
-            <p><strong>第一步：构建混合世界模型。</strong>库存平衡方程是已知的，只需要学习需求模型。构建一个神经网络 $\hat{d}_\phi$，输入当前库存、星期几（one-hot编码）、历史需求等特征，输出需求的预测分布（均值和标准差）。</p>
+            <p>其中 $\bar{\mathcal{H}}$ 是<strong>目标熵</strong>，通常设为 $-\dim(\mathcal{A})$（即负的动作空间维度）。这个约束的含义是：当策略的熵低于目标值时，自动增大 $\alpha$ 以鼓励更多探索；当熵高于目标值时，自动减小 $\alpha$ 以更多地利用已有知识。</p>
 
-            <p><strong>第二步：用少量真实数据训练需求模型。</strong>假设有90天（约3个月）的历史运营数据，用这些数据训练 $\hat{d}_\phi$。3个月的数据量远少于无模型方法所需的137年。</p>
-
-            <p><strong>第三步：在模型中想象。</strong>从历史数据中采样真实库存状态，对每个状态尝试不同的补货决策，用需求模型采样生成想象的需求，计算想象的下一状态和奖励。每个真实状态生成 $K = 10$ 条想象转移。</p>
-
-            <p><strong>第四步：训练策略。</strong>将真实数据和想象数据合并，用DQN或SAC训练策略网络。由于想象步数 $h = 1$（只向前想象一步），模型误差不会累积。</p>
-
-            <div class="result-box">
-                <strong>对比结果</strong>（概念性）：无模型DQN需要约 $5 \times 10^4$ 步真实交互；MBPO搭配混合世界模型，仅需约 $5 \times 10^3$ 步真实交互即可达到相近的策略质量，样本效率提升约 $10$ 倍。
+            <div class="note">
+                在实践中，自动温度调节几乎是标配。它使得SAC成为一个超参数设置非常方便的算法：研究人员只需指定目标熵（通常用默认值即可），无需手动调节 $\alpha$。
             </div>
 
-            <p>这个例子展示了基于模型方法在管理科学中的两个核心优势：<strong>利用已知结构降低学习难度</strong>（库存平衡方程）和<strong>通过想象扩充训练数据</strong>（需求模型生成的模拟数据）。</p>
+            <!-- ==================== 例子：投资组合配置 ==================== -->
+            <h2>例子：连续动作空间的投资组合配置</h2>
 
-            <!-- ==================== 对比 ==================== -->
-            <h2>基于模型与无模型方法的对比</h2>
+            <p>考虑一个简化的投资组合配置问题。某投资者每个交易日需要决定如何将资金分配到三种资产：股票、债券和现金。</p>
 
-            <p>学完本节内容后，读者可能会问：既然基于模型的方法样本效率更高，为什么3.1至5.3节还要花大量篇幅介绍无模型方法？答案是，两类方法各有优劣，适用于不同的场景。</p>
+            <p><strong>状态：</strong>6维连续向量，各分量归一化到 $[0, 1]$：</p>
 
-            <table class="trans-table">
-                <thead>
-                    <tr>
-                        <th>比较维度</th>
-                        <th>无模型方法（3.1 &ndash; 3.3）</th>
-                        <th>基于模型方法（3.4）</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><strong>样本效率</strong></td>
-                        <td>低，需要大量真实交互</td>
-                        <td>高，通过想象扩充数据</td>
-                    </tr>
-                    <tr>
-                        <td><strong>计算开销</strong></td>
-                        <td>每步计算量较少</td>
-                        <td>更多（模型训练 + 想象生成）</td>
-                    </tr>
-                    <tr>
-                        <td><strong>渐近性能</strong></td>
-                        <td>不受模型精度限制，上限高</td>
-                        <td>受世界模型精度制约</td>
-                    </tr>
-                    <tr>
-                        <td><strong>领域知识利用</strong></td>
-                        <td>难以直接融入</td>
-                        <td>可通过混合模型自然融入</td>
-                    </tr>
-                    <tr>
-                        <td><strong>适用场景</strong></td>
-                        <td>仿真器廉价、动力学极其复杂</td>
-                        <td>真实数据稀缺、动力学部分已知</td>
-                    </tr>
-                    <tr>
-                        <td><strong>管理科学适配度</strong></td>
-                        <td>适合有高质量仿真器的场景</td>
-                        <td>适合真实部署、历史数据驱动的场景</td>
-                    </tr>
-                </tbody>
-            </table>
-            <div class="fig-caption">图 5.4-2 &nbsp; 无模型方法与基于模型方法的系统对比。</div>
+            $$s_t = \big(w_{\text{stock}},\; w_{\text{bond}},\; w_{\text{cash}},\; r_{\text{stock}}^{\text{recent}},\; r_{\text{bond}}^{\text{recent}},\; \text{vol}\big) \tag{5.4-15}$$
 
-            <p>简而言之：当仿真器的运行成本可以忽略不计时（如使用已有的高质量仿真器），无模型方法因为不受模型精度的限制，往往能达到更高的最终性能。但当真实交互成本高昂、或者我们拥有关于系统动力学的先验知识时，基于模型的方法是更明智的选择。</p>
+            <p>其中 $w_{\text{stock}}, w_{\text{bond}}, w_{\text{cash}}$ 分别是当前三种资产的持仓比例，$r_{\text{stock}}^{\text{recent}}, r_{\text{bond}}^{\text{recent}}$ 是最近若干日的平均收益率（归一化后），$\text{vol}$ 是近期市场波动率的归一化值。</p>
 
-            <p>在管理科学的实际研究中，二者也经常结合使用。一种常见的策略是：</p>
-            <ol>
-                <li>先用基于模型方法，利用少量真实数据快速得到一个尚可的策略；</li>
-                <li>将这个策略部署到仿真器或受控的真实环境中收集更多数据；</li>
-                <li>如有需要，切换到无模型方法进一步提升性能。</li>
-            </ol>
+            <p><strong>动作：</strong>策略网络输出 $a = (a_1, a_2) \in [-1, 1]^2$，然后通过 softmax 变换得到目标配置权重：</p>
+
+            $$\big(w_{\text{stock}}',\; w_{\text{bond}}',\; w_{\text{cash}}'\big) = \text{softmax}\big(a_1,\; a_2,\; 0\big) \tag{5.4-16}$$
+
+            <p>这种参数化方式保证了三个权重非负且恰好求和为1。以 $0$ 为第三个分量的参考点，当 $a_1$ 和 $a_2$ 都很小时，三种资产接近等权配置。</p>
+
+            <p><strong>奖励：</strong>每天的奖励等于组合收益减去交易成本和风险惩罚：</p>
+
+            $$R_t = \underbrace{r_{\text{portfolio},t}}_{\text{组合收益}} - \underbrace{c \cdot \lVert \Delta w_t \rVert_1}_{\text{交易成本}} - \underbrace{\beta \cdot r_{\text{portfolio},t}^2}_{\text{风险惩罚}} \tag{5.4-17}$$
+
+            <p>其中 $r_{\text{portfolio},t} = w_{\text{stock}}' \cdot r_{\text{stock},t} + w_{\text{bond}}' \cdot r_{\text{bond},t} + w_{\text{cash}}' \cdot r_f$ 是当日组合收益率，$\lVert \Delta w_t \rVert_1$ 是调仓前后权重变化的绝对值之和，$c = 0.001$ 为交易成本系数，$\beta = 5.0$ 为风险厌恶系数。二次惩罚项 $\beta \cdot r_{\text{portfolio},t}^2$ 使得智能体倾向于避免收益率的大幅波动，体现了风险厌恶。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">为什么最大熵适合投资组合？</div>
+                <p>SAC的熵正则化与投资组合理论中的<strong>分散化原则</strong>有天然的契合。在标准RL中，策略可能收敛到将全部资金押注在某一种资产上（例如历史收益最高的股票）。这种集中配置虽然在训练数据中表现优异，却极度脆弱：一旦市场环境变化，收益可能急剧下降。SAC的熵奖励 $-\alpha \log \pi(a \mid s)$ 自动惩罚这种过度集中的行为。当策略试图将所有权重集中到单一资产时，$\log \pi$ 会很大（概率集中），熵奖励很低；反之，分散化的配置对应更高的策略熵，获得额外的熵奖励。温度系数 $\alpha$ 的大小则控制了分散化的程度：$\alpha$ 越大，配置越均匀；$\alpha$ 较小时，策略可以更多地倾向高收益资产，同时仍保持一定程度的分散化。</p>
+            </div>
+
+            <p>下面给出使用 SAC 训练投资组合配置策略的完整 PyTorch 代码。环境使用简单的几何布朗运动（GBM）模拟股票价格，均值回归过程模拟债券收益率。</p>
+
+<pre><code class="language-python">import torch
+import torch.nn as nn
+import torch.optim as optim
+import numpy as np
+from collections import deque
+import random
+
+# ---- 简易市场模拟器 ----
+class MarketEnv:
+    """三资产市场环境：股票(GBM)、债券(均值回归)、现金(无风险)"""
+    def __init__(self, episode_len=252):
+        self.episode_len = episode_len  # 一年约252个交易日
+        self.rf = 0.0002               # 日无风险利率 ≈ 年化5%
+        self.stock_mu = 0.0005          # 股票日漂移 ≈ 年化12%
+        self.stock_sigma = 0.02         # 股票日波动率 ≈ 年化32%
+        self.bond_mu = 0.0003           # 债券长期均值
+        self.bond_kappa = 0.05          # 均值回归速度
+        self.bond_sigma = 0.005         # 债券波动率
+        self.cost = 0.001               # 交易成本系数
+        self.risk_beta = 5.0            # 风险惩罚系数
+        self.lookback = 10
+        self.reset()
+
+    def reset(self):
+        self.t = 0
+        self.weights = np.array([1/3, 1/3, 1/3])  # 等权初始化
+        self.stock_returns = deque(maxlen=self.lookback)
+        self.bond_returns = deque(maxlen=self.lookback)
+        for _ in range(self.lookback):
+            self.stock_returns.append(np.random.normal(self.stock_mu, self.stock_sigma))
+            self.bond_returns.append(np.random.normal(self.bond_mu, self.bond_sigma))
+        return self._get_state()
+
+    def _get_state(self):
+        recent_stock = np.mean(self.stock_returns)
+        recent_bond = np.mean(self.bond_returns)
+        vol = np.std(list(self.stock_returns))
+        # 归一化到 [0, 1] 范围
+        s = np.array([
+            self.weights[0], self.weights[1], self.weights[2],
+            np.clip((recent_stock + 0.05) / 0.1, 0, 1),
+            np.clip((recent_bond + 0.02) / 0.04, 0, 1),
+            np.clip(vol / 0.05, 0, 1)
+        ], dtype=np.float32)
+        return s
+
+    def step(self, action):
+        # action: (a1, a2) in [-1,1]^2 -> softmax -> 目标权重
+        logits = np.array([action[0], action[1], 0.0])
+        new_weights = np.exp(logits) / np.exp(logits).sum()
+        # 模拟资产收益
+        r_stock = np.random.normal(self.stock_mu, self.stock_sigma)
+        r_bond = self.bond_kappa * (self.bond_mu - np.mean(self.bond_returns)) \
+                 + np.random.normal(0, self.bond_sigma)
+        self.stock_returns.append(r_stock)
+        self.bond_returns.append(r_bond)
+        # 组合收益
+        r_port = new_weights[0]*r_stock + new_weights[1]*r_bond + new_weights[2]*self.rf
+        # 交易成本
+        trade_cost = self.cost * np.abs(new_weights - self.weights).sum()
+        # 奖励 = 收益 - 成本 - 风险惩罚
+        reward = r_port - trade_cost - self.risk_beta * r_port**2
+        self.weights = new_weights
+        self.t += 1
+        done = (self.t >= self.episode_len)
+        return self._get_state(), float(reward), done
+
+# ---- SAC 网络定义 ----
+class QNetwork(nn.Module):
+    def __init__(self, state_dim, action_dim, hidden=128):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(state_dim + action_dim, hidden), nn.ReLU(),
+            nn.Linear(hidden, hidden), nn.ReLU(),
+            nn.Linear(hidden, 1))
+
+    def forward(self, s, a):
+        return self.net(torch.cat([s, a], dim=-1)).squeeze(-1)
+
+class PolicyNetwork(nn.Module):
+    def __init__(self, state_dim, action_dim, hidden=128):
+        super().__init__()
+        self.shared = nn.Sequential(
+            nn.Linear(state_dim, hidden), nn.ReLU(),
+            nn.Linear(hidden, hidden), nn.ReLU())
+        self.mu_head = nn.Linear(hidden, action_dim)
+        self.log_std_head = nn.Linear(hidden, action_dim)
+
+    def forward(self, s):
+        h = self.shared(s)
+        mu = self.mu_head(h)
+        log_std = self.log_std_head(h).clamp(-5, 2)
+        return mu, log_std
+
+    def sample(self, s):
+        mu, log_std = self.forward(s)
+        std = log_std.exp()
+        eps = torch.randn_like(std)
+        a_pre = mu + std * eps                # 重参数化
+        a = torch.tanh(a_pre)                 # 压缩到 [-1,1]
+        # 计算 log_prob（需要 tanh 修正）
+        log_prob = (-0.5 * eps.pow(2) - log_std - 0.5*np.log(2*np.pi)).sum(-1)
+        log_prob -= (2*(np.log(2) - a_pre - torch.nn.functional.softplus(-2*a_pre))).sum(-1)
+        return a, log_prob
+
+# ---- 训练循环 ----
+def train_sac(n_episodes=200, batch_size=128, gamma=0.99, tau=0.005, lr=3e-4):
+    env = MarketEnv()
+    s_dim, a_dim = 6, 2
+    pi = PolicyNetwork(s_dim, a_dim)
+    q1, q2 = QNetwork(s_dim, a_dim), QNetwork(s_dim, a_dim)
+    q1_tgt = QNetwork(s_dim, a_dim); q1_tgt.load_state_dict(q1.state_dict())
+    q2_tgt = QNetwork(s_dim, a_dim); q2_tgt.load_state_dict(q2.state_dict())
+    log_alpha = torch.tensor(0.0, requires_grad=True)
+    target_entropy = -a_dim
+    opt_pi = optim.Adam(pi.parameters(), lr=lr)
+    opt_q = optim.Adam(list(q1.parameters())+list(q2.parameters()), lr=lr)
+    opt_a = optim.Adam([log_alpha], lr=lr)
+    buf = deque(maxlen=100_000)
+
+    for ep in range(n_episodes):
+        s, ep_ret = env.reset(), 0.0
+        done = False
+        while not done:
+            with torch.no_grad():
+                a, _ = pi.sample(torch.tensor(s).unsqueeze(0))
+                a_np = a.squeeze(0).numpy()
+            s2, r, done = env.step(a_np)
+            buf.append((s, a_np, r, s2, float(done)))
+            s, ep_ret = s2, ep_ret + r
+            if len(buf) < batch_size:
+                continue
+            batch = random.sample(buf, batch_size)
+            sb = torch.tensor(np.array([x[0] for x in batch]))
+            ab = torch.tensor(np.array([x[1] for x in batch]))
+            rb = torch.tensor(np.array([x[2] for x in batch]), dtype=torch.float32)
+            s2b = torch.tensor(np.array([x[3] for x in batch]))
+            db = torch.tensor(np.array([x[4] for x in batch]), dtype=torch.float32)
+            alpha = log_alpha.exp().detach()
+            # Q 网络更新
+            with torch.no_grad():
+                a2, lp2 = pi.sample(s2b)
+                q_tgt = rb + gamma*(1-db)*(torch.min(q1_tgt(s2b,a2), q2_tgt(s2b,a2)) - alpha*lp2)
+            loss_q = ((q1(sb,ab)-q_tgt)**2 + (q2(sb,ab)-q_tgt)**2).mean()
+            opt_q.zero_grad(); loss_q.backward(); opt_q.step()
+            # 策略网络更新
+            a_new, lp_new = pi.sample(sb)
+            loss_pi = (alpha*lp_new - torch.min(q1(sb,a_new), q2(sb,a_new))).mean()
+            opt_pi.zero_grad(); loss_pi.backward(); opt_pi.step()
+            # 自动温度调节
+            loss_a = -(log_alpha.exp() * (lp_new.detach() + target_entropy)).mean()
+            opt_a.zero_grad(); loss_a.backward(); opt_a.step()
+            # 目标网络软更新
+            for p, pt in zip(q1.parameters(), q1_tgt.parameters()):
+                pt.data.copy_(tau*p.data + (1-tau)*pt.data)
+            for p, pt in zip(q2.parameters(), q2_tgt.parameters()):
+                pt.data.copy_(tau*p.data + (1-tau)*pt.data)
+        if (ep+1) % 20 == 0:
+            print(f"Episode {ep+1:4d} | Return: {ep_ret:.4f} | alpha: {log_alpha.exp().item():.4f}")
+    return pi
+
+if __name__ == "__main__":
+    train_sac()
+</code></pre>
+
+            <p>上述代码中有几个值得注意的实现细节：</p>
+            <ul>
+                <li><strong>市场模拟器</strong>中，股票价格服从几何布朗运动（日收益率为正态分布），债券收益率服从均值回归过程（Ornstein-Uhlenbeck过程的离散近似），现金提供固定的无风险利率。</li>
+                <li><strong>动作参数化</strong>：策略网络输出2维向量 $(a_1, a_2) \in [-1,1]^2$，通过 $\text{softmax}(a_1, a_2, 0)$ 映射为三资产权重。这种设计将2维连续动作映射到单纯形上，比直接输出3个权重再归一化更适合SAC的高斯策略。</li>
+                <li><strong>对数概率的 tanh 修正</strong>：由于动作经过了 $\tanh$ 压缩，计算 $\log \pi(a|s)$ 时需要加上雅可比修正项 $-\sum_i \log(1 - \tanh^2(u_i))$，其中 $u_i$ 是 $\tanh$ 之前的值。代码中使用数值稳定的等价形式实现。</li>
+            </ul>
+
+            <p>下面的交互演示展示了SAC在简化版投资组合配置问题上的学习过程。为便于可视化，我们将市场状态离散为三种典型情景，用二维连续动作空间来演示策略分布（高斯分布）如何随训练而变化。</p>
+
+            <!-- ==================== 交互演示 ==================== -->
+            <div class="demo-container">
+                <div class="demo-title">交互演示：SAC 学习投资组合配置策略</div>
+                <div class="rl-ctrl">
+                    <button onclick="sacTrain(100)">训练100步</button>
+                    <button onclick="sacTrain(5000)">快进5000步</button>
+                    <button onclick="sacReset()">重置</button>
+                    <label style="margin-left:1rem;">温度 $\alpha$：</label>
+                    <select id="sac-alpha" onchange="sacSetAlpha(this.value)">
+                        <option value="0.05">0.05（低探索）</option>
+                        <option value="0.2" selected>0.2（默认）</option>
+                        <option value="1.0">1.0（高探索）</option>
+                    </select>
+                </div>
+                <div class="demo-row">
+                    <div class="demo-panel">
+                        <canvas id="cvs-policy" width="440" height="260"></canvas>
+                        <div class="fig-caption" style="margin-bottom:0;">策略分布：不同市场状态下的股票配置比例分布</div>
+                    </div>
+                    <div class="demo-panel">
+                        <canvas id="cvs-entropy" width="440" height="260"></canvas>
+                        <div class="fig-caption" style="margin-bottom:0;">训练过程中策略熵和累积奖励的变化</div>
+                    </div>
+                </div>
+                <div class="rl-info" id="sac-info">已训练 <strong>0</strong> 步 | 平均奖励：<strong>—</strong> | 平均策略熵：<strong>—</strong></div>
+            </div>
+            <div class="fig-caption">图 5.4-2　SAC 学习投资组合配置策略的交互演示。左图展示三种市场状态下策略网络输出的高斯分布（股票配置比例的概率密度）；右图展示训练过程中策略熵逐渐下降、累积奖励逐渐上升的趋势。可通过切换温度 $\alpha$ 观察探索-利用平衡的变化。</div>
 
             <!-- ==================== 小结 ==================== -->
             <h2>小结</h2>
 
-            <p>本节介绍了基于模型的深度强化学习方法，弥补了前三节纯无模型方法在样本效率上的不足。核心思路是：<strong>从交互数据中学习一个世界模型，再利用这个模型想象额外的经验来加速策略优化</strong>。</p>
+            <p>SAC将离策略学习、Actor-Critic架构和最大熵正则化三者结合，在连续动作空间问题上表现出色。下面将本章介绍的几种算法从多个维度进行对比：</p>
 
-            <p>我们依次介绍了以下内容：</p>
-            <ul>
-                <li><strong>世界模型的学习</strong>：通过监督学习训练状态转移模型 $f_\phi$ 和奖励模型 $g_\phi$，支持确定性模型、随机模型和集成模型三种形式</li>
-                <li><strong>Dyna架构</strong>：每次真实交互后在模型中进行 $K$ 次想象，将样本效率提升 $K+1$ 倍</li>
-                <li><strong>MBPO算法</strong>：通过短分支想象控制模型误差的累积，结合集成模型量化不确定性，实现安全且高效的模型利用</li>
-                <li><strong>潜空间世界模型</strong>：将想象过程压缩到低维潜空间中进行，适用于高维状态空间</li>
-                <li><strong>混合世界模型</strong>：将已知的系统动力学与数据驱动的学习相结合，充分利用管理科学问题中丰富的领域知识</li>
-            </ul>
-
-            <p>至此，第五章介绍的算法构成了一个完整的工具箱：</p>
-
-            <table class="trans-table">
+            <table class="trans-table" style="width:100%;">
                 <thead>
-                    <tr>
-                        <th>算法</th>
-                        <th>类型</th>
-                        <th>动作空间</th>
-                        <th>核心特征</th>
-                    </tr>
+                    <tr><th>比较维度</th><th>DQN (5.1节)</th><th>PPO (5.2节)</th><th>DDPG/TD3 (5.3节)</th><th>SAC (5.4节)</th></tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>DQN（3.1）</td>
-                        <td>基于值函数，无模型</td>
+                        <td><strong>动作空间</strong></td>
                         <td>离散</td>
-                        <td>经验回放、目标网络</td>
-                    </tr>
-                    <tr>
-                        <td>PPO（3.2）</td>
-                        <td>策略梯度，无模型</td>
-                        <td>离散/连续</td>
-                        <td>裁剪目标、在策略</td>
-                    </tr>
-                    <tr>
-                        <td>SAC（3.3）</td>
-                        <td>Actor-Critic，无模型</td>
+                        <td>离散 / 连续</td>
                         <td>连续</td>
-                        <td>熵正则化、离策略</td>
+                        <td>连续（为主）</td>
                     </tr>
                     <tr>
-                        <td>MBPO（3.4）</td>
-                        <td>基于模型</td>
-                        <td>离散/连续</td>
-                        <td>世界模型、想象数据、高样本效率</td>
+                        <td><strong>策略类型</strong></td>
+                        <td>off-policy</td>
+                        <td>on-policy</td>
+                        <td>off-policy</td>
+                        <td>off-policy</td>
+                    </tr>
+                    <tr>
+                        <td><strong>样本效率</strong></td>
+                        <td>较高（经验回放）</td>
+                        <td>较低（数据用后丢弃）</td>
+                        <td>高（经验回放）</td>
+                        <td>高（经验回放）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>训练稳定性</strong></td>
+                        <td>中等（需要多种技巧）</td>
+                        <td>高（裁剪机制）</td>
+                        <td>中等（TD3改进后较好）</td>
+                        <td>高（熵正则化 + 双Q网络）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>探索机制</strong></td>
+                        <td>$\varepsilon$-greedy</td>
+                        <td>策略自身的随机性</td>
+                        <td>外部噪声（OU/高斯）</td>
+                        <td>最大熵（自动调节）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>核心网络</strong></td>
+                        <td>Q网络 + 目标网络</td>
+                        <td>策略网络 + 值网络</td>
+                        <td>确定性策略 + Q网络</td>
+                        <td>策略网络 + 双Q网络 + 目标网络</td>
+                    </tr>
+                    <tr>
+                        <td><strong>超参数敏感度</strong></td>
+                        <td>中等</td>
+                        <td>较低</td>
+                        <td>较高</td>
+                        <td>低（自动温度调节）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>典型应用场景</strong></td>
+                        <td>状态复杂但动作有限<br>（如交通信号控制）</td>
+                        <td>通用，尤其适合<br>离散决策和初学者</td>
+                        <td>连续控制<br>（如机器人）</td>
+                        <td>连续控制为主<br>（如调度、定价、投资组合）</td>
                     </tr>
                 </tbody>
             </table>
-            <div class="fig-caption">图 5.4-3 &nbsp; 第五章四种算法的定位与特点。</div>
 
-            <p>面对具体的管理科学问题，算法的选择取决于三个关键因素：</p>
-            <ol>
-                <li><strong>动作空间</strong>：离散动作优先考虑DQN，连续动作优先考虑SAC或PPO</li>
-                <li><strong>样本预算</strong>：交互成本高、数据稀缺时优先考虑MBPO；有廉价仿真器时可使用无模型方法</li>
-                <li><strong>领域知识</strong>：如果系统动力学部分已知，混合世界模型能充分利用这些先验知识</li>
-            </ol>
-
-            <div class="page-nav">
-                <a href="3.3.html">&larr; 5.3 Soft Actor-Critic</a>
-                <a href="3.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性 &rarr;</a>
+            <div class="result-box">
+                <strong>算法选择的经验法则：</strong><br>
+                动作空间离散且较小 → 优先考虑 <strong>DQN</strong>；<br>
+                希望快速上手、追求训练稳定 → 优先考虑 <strong>PPO</strong>；<br>
+                动作空间连续且仿真成本高 → 优先考虑 <strong>SAC</strong>。
             </div>
 
+            <p>实际研究中，建议先用PPO验证问题建模是否合理（因为PPO最容易调通），再根据需要切换到SAC以提高样本效率。下一节将介绍一种与前面截然不同的范式：基于模型的深度强化学习，通过学习环境动态模型来大幅提高样本效率。</p>
+
+            <div class="chapter-nav">
+                <a href="../ch05/5.3.html">&larr; 5.3 DDPG与TD3</a>
+                <a href="../ch05/5.5.html">5.5 基于模型的深度强化学习 &rarr;</a>
+            </div>
         </main>
     </div>
+
+    <!-- ==================== SAC 交互演示 JS ==================== -->
+    <script>
+    (function(){
+        /* ---------- 简化版 SAC 演示：投资组合配置 ---------- */
+        /* 状态：市场状态（离散化为三种情景便于可视化）
+           动作：股票配置比例 ∈ [0, 1]，用高斯策略表示
+           演示重点：策略分布的变化 + 熵的下降 */
+
+        var ALPHA = 0.2;   // 温度系数
+        var GAMMA = 0.95;
+        var LR_Q = 0.01;   // Q 学习率
+        var LR_PI = 0.005; // 策略学习率
+        var TAU = 0.01;    // 目标网络软更新率
+
+        // 市场参数
+        var STOCK_MU = 0.0005, STOCK_SIGMA = 0.02;
+        var BOND_MU = 0.0003, BOND_SIGMA = 0.005;
+        var RF = 0.0002;     // 无风险利率
+        var COST_COEFF = 0.001;
+        var RISK_BETA = 5.0;
+
+        // 状态离散化：3种市场状态
+        var N_BINS = 3;
+        var BIN_LABELS = ['高波动', '中等', '低波动'];
+        var BIN_VOL = [0.035, 0.02, 0.008]; // 对应的波动率水平
+
+        // 动作网格（用于可视化Q值和策略）：股票配置比例 0%~100%
+        var N_A_GRID = 51; // 0..50 映射到 0..1
+        var MAX_ALLOC = 1.0; // 最大配置比例
+
+        // 简化的Q表：Q[bin][a_grid] 和 目标Q表
+        var Q1, Q2, Q1_tgt, Q2_tgt;
+        // 策略参数：每个bin一个 (mu, log_sigma)
+        var piMu, piLogSig;
+        var totalSteps, rewardHistory, entropyHistory;
+        var curBin; // 当前市场状态
+        var curWeights; // 当前持仓
+
+        function clamp(x, lo, hi) { return Math.max(lo, Math.min(hi, x)); }
+
+        function gaussPdf(x, mu, sigma) {
+            var z = (x - mu) / sigma;
+            return Math.exp(-0.5 * z * z) / (sigma * Math.sqrt(2 * Math.PI));
+        }
+
+        function gaussLogProb(x, mu, sigma) {
+            var z = (x - mu) / sigma;
+            return -0.5 * z * z - Math.log(sigma) - 0.5 * Math.log(2 * Math.PI);
+        }
+
+        function sampleGauss(mu, sigma) {
+            var u1 = Math.random(), u2 = Math.random();
+            var z = Math.sqrt(-2 * Math.log(u1 + 1e-8)) * Math.cos(2 * Math.PI * u2);
+            return mu + sigma * z;
+        }
+
+        function transitionBin() {
+            // 简化的市场状态转移
+            var r = Math.random();
+            if (curBin === 0) { // 高波动
+                return r < 0.5 ? 0 : (r < 0.8 ? 1 : 2);
+            } else if (curBin === 1) { // 中等
+                return r < 0.2 ? 0 : (r < 0.8 ? 1 : 2);
+            } else { // 低波动
+                return r < 0.1 ? 0 : (r < 0.4 ? 1 : 2);
+            }
+        }
+
+        function computeReward(stockAlloc, vol) {
+            var bondAlloc = (1 - stockAlloc) * 0.6;
+            var cashAlloc = 1 - stockAlloc - bondAlloc;
+            // 模拟收益
+            var rStock = sampleGauss(STOCK_MU, vol);
+            var rBond = sampleGauss(BOND_MU, BOND_SIGMA);
+            var rPort = stockAlloc * rStock + bondAlloc * rBond + cashAlloc * RF;
+            // 交易成本（简化）
+            var tradeCost = COST_COEFF * Math.abs(stockAlloc - curWeights);
+            // 奖励
+            var reward = rPort - tradeCost - RISK_BETA * rPort * rPort;
+            return reward * 1000; // 放大便于可视化
+        }
+
+        function initArrays() {
+            Q1 = []; Q2 = []; Q1_tgt = []; Q2_tgt = [];
+            for (var b = 0; b < N_BINS; b++) {
+                Q1[b] = []; Q2[b] = []; Q1_tgt[b] = []; Q2_tgt[b] = [];
+                for (var a = 0; a < N_A_GRID; a++) {
+                    Q1[b][a] = 0; Q2[b][a] = 0; Q1_tgt[b][a] = 0; Q2_tgt[b][a] = 0;
+                }
+            }
+            piMu = []; piLogSig = [];
+            for (var b = 0; b < N_BINS; b++) {
+                piMu[b] = 0.5;         // 初始均值：50% 配置
+                piLogSig[b] = Math.log(0.25); // 初始标准差较大（探索）
+            }
+        }
+
+        function getAction(bin) {
+            var sigma = Math.exp(piLogSig[bin]);
+            var a = sampleGauss(piMu[bin], sigma);
+            return clamp(a, 0, MAX_ALLOC);
+        }
+
+        function getQmin(bin, aIdx) {
+            return Math.min(Q1[bin][aIdx], Q2[bin][aIdx]);
+        }
+        function getQminTgt(bin, aIdx) {
+            return Math.min(Q1_tgt[bin][aIdx], Q2_tgt[bin][aIdx]);
+        }
+
+        function actionToIdx(a) {
+            return clamp(Math.round(a * (N_A_GRID - 1)), 0, N_A_GRID - 1);
+        }
+
+        function trainStep() {
+            var bin = curBin;
+            var action = getAction(bin);
+            var aIdx = actionToIdx(action);
+            var vol = BIN_VOL[bin];
+            var reward = computeReward(action, vol);
+            var nextBin = transitionBin();
+            curWeights = action;
+            curBin = nextBin;
+
+            // 计算TD目标
+            var nextAction = getAction(nextBin);
+            var nextAIdx = actionToIdx(nextAction);
+            var nextSigma = Math.exp(piLogSig[nextBin]);
+            var nextLogProb = gaussLogProb(nextAction, piMu[nextBin], nextSigma);
+            var qTargetVal = getQminTgt(nextBin, nextAIdx) - ALPHA * nextLogProb;
+            var y = reward + GAMMA * qTargetVal;
+
+            // 更新Q网络
+            var err1 = Q1[bin][aIdx] - y;
+            var err2 = Q2[bin][aIdx] - y;
+            Q1[bin][aIdx] -= LR_Q * err1;
+            Q2[bin][aIdx] -= LR_Q * err2;
+
+            // 更新策略网络
+            var sigma = Math.exp(piLogSig[bin]);
+            var gradMu = 0, gradLogSig = 0;
+            var nSamples = 5;
+            for (var k = 0; k < nSamples; k++) {
+                var eps = sampleGauss(0, 1);
+                var aSample = clamp(piMu[bin] + sigma * eps, 0, MAX_ALLOC);
+                var aI = actionToIdx(aSample);
+                var qVal = getQmin(bin, aI);
+                var lp = gaussLogProb(aSample, piMu[bin], sigma);
+                var score_mu = (aSample - piMu[bin]) / (sigma * sigma);
+                var score_logsig = ((aSample - piMu[bin]) * (aSample - piMu[bin]) / (sigma * sigma) - 1);
+                var advantage = qVal - ALPHA * lp;
+                gradMu += score_mu * advantage / nSamples;
+                gradLogSig += score_logsig * advantage / nSamples;
+            }
+            piMu[bin] += LR_PI * gradMu;
+            piMu[bin] = clamp(piMu[bin], 0, MAX_ALLOC);
+            piLogSig[bin] += LR_PI * 0.1 * gradLogSig;
+            piLogSig[bin] = clamp(piLogSig[bin], Math.log(0.02), Math.log(0.4));
+
+            // 软更新目标网络
+            for (var a2 = 0; a2 < N_A_GRID; a2++) {
+                Q1_tgt[bin][a2] = TAU * Q1[bin][a2] + (1 - TAU) * Q1_tgt[bin][a2];
+                Q2_tgt[bin][a2] = TAU * Q2[bin][a2] + (1 - TAU) * Q2_tgt[bin][a2];
+            }
+
+            totalSteps++;
+            return { reward: reward, sigma: sigma };
+        }
+
+        function computeAvgEntropy() {
+            var total = 0;
+            for (var b = 0; b < N_BINS; b++) {
+                var sigma = Math.exp(piLogSig[b]);
+                total += 0.5 * Math.log(2 * Math.PI * Math.E * sigma * sigma);
+            }
+            return total / N_BINS;
+        }
+
+        /* ---------- 绘图 ---------- */
+        function drawPolicy() {
+            var cvs = document.getElementById('cvs-policy');
+            if (!cvs) return;
+            var ctx = cvs.getContext('2d');
+            var W = cvs.width, H = cvs.height;
+            ctx.clearRect(0, 0, W, H);
+
+            var padL = 55, padR = 15, padT = 25, padB = 45;
+            var plotW = W - padL - padR, plotH = H - padT - padB;
+
+            // 坐标轴
+            ctx.strokeStyle = '#a0aec0';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padL, padT);
+            ctx.lineTo(padL, padT + plotH);
+            ctx.lineTo(padL + plotW, padT + plotH);
+            ctx.stroke();
+
+            // X轴标签
+            ctx.fillStyle = '#4a5568';
+            ctx.font = '11px sans-serif';
+            ctx.textAlign = 'center';
+            for (var i = 0; i <= 5; i++) {
+                var xVal = (i * 20);
+                var x = padL + (i / 5) * plotW;
+                ctx.fillText(xVal + '%', x, padT + plotH + 15);
+                if (i > 0) {
+                    ctx.strokeStyle = '#e2e8f0';
+                    ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, padT + plotH); ctx.stroke();
+                }
+            }
+            ctx.fillText('股票配置比例', padL + plotW / 2, padT + plotH + 35);
+
+            // Y轴标签
+            ctx.save();
+            ctx.translate(14, padT + plotH / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.textAlign = 'center';
+            ctx.fillText('概率密度', 0, 0);
+            ctx.restore();
+
+            // 画三种市场状态的策略分布
+            var colors = ['#e53e3e', '#2b6cb0', '#38a169'];
+            var labels = ['高波动', '中等', '低波动'];
+
+            // 找最大密度来归一化
+            var maxDensity = 0.001;
+            for (var bi = 0; bi < N_BINS; bi++) {
+                var mu = piMu[bi], sig = Math.exp(piLogSig[bi]);
+                maxDensity = Math.max(maxDensity, gaussPdf(mu, mu, sig));
+            }
+
+            for (var bi = 0; bi < N_BINS; bi++) {
+                var mu = piMu[bi], sig = Math.exp(piLogSig[bi]);
+                ctx.strokeStyle = colors[bi];
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                for (var xi = 0; xi <= 200; xi++) {
+                    var aVal = (xi / 200) * MAX_ALLOC;
+                    var density = gaussPdf(aVal, mu, sig);
+                    var px = padL + (aVal / MAX_ALLOC) * plotW;
+                    var py = padT + plotH - (density / (maxDensity * 1.15)) * plotH;
+                    if (xi === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                }
+                ctx.stroke();
+
+                // 图例
+                var ly = padT + 8 + bi * 18;
+                ctx.fillStyle = colors[bi];
+                ctx.beginPath();
+                ctx.moveTo(padL + plotW - 100, ly); ctx.lineTo(padL + plotW - 80, ly);
+                ctx.strokeStyle = colors[bi]; ctx.lineWidth = 2; ctx.stroke();
+                ctx.font = '11px sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(labels[bi], padL + plotW - 75, ly + 4);
+            }
+        }
+
+        function drawEntropy() {
+            var cvs = document.getElementById('cvs-entropy');
+            if (!cvs) return;
+            var ctx = cvs.getContext('2d');
+            var W = cvs.width, H = cvs.height;
+            ctx.clearRect(0, 0, W, H);
+
+            var padL = 55, padR = 55, padT = 25, padB = 45;
+            var plotW = W - padL - padR, plotH = H - padT - padB;
+
+            // 坐标轴
+            ctx.strokeStyle = '#a0aec0';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padL, padT);
+            ctx.lineTo(padL, padT + plotH);
+            ctx.lineTo(padL + plotW, padT + plotH);
+            ctx.stroke();
+
+            if (entropyHistory.length < 2) {
+                ctx.fillStyle = '#a0aec0';
+                ctx.font = '13px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('开始训练后显示曲线', padL + plotW / 2, padT + plotH / 2);
+                return;
+            }
+
+            var n = entropyHistory.length;
+
+            // X轴
+            ctx.fillStyle = '#4a5568';
+            ctx.font = '11px sans-serif';
+            ctx.textAlign = 'center';
+            var maxStep = n * 50;
+            for (var i = 0; i <= 4; i++) {
+                var xVal = Math.round(maxStep * i / 4);
+                var x = padL + (i / 4) * plotW;
+                ctx.fillText(xVal.toString(), x, padT + plotH + 15);
+            }
+            ctx.fillText('训练步数', padL + plotW / 2, padT + plotH + 35);
+
+            // 画熵曲线
+            var minE = Infinity, maxE = -Infinity;
+            for (var i = 0; i < n; i++) {
+                minE = Math.min(minE, entropyHistory[i]);
+                maxE = Math.max(maxE, entropyHistory[i]);
+            }
+            if (maxE - minE < 0.1) { maxE = minE + 1; }
+            var rangeE = maxE - minE;
+
+            ctx.strokeStyle = '#e53e3e';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (var i = 0; i < n; i++) {
+                var px = padL + (i / (n - 1)) * plotW;
+                var py = padT + plotH - ((entropyHistory[i] - minE) / rangeE) * plotH;
+                if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+
+            // Y轴标签（熵）
+            ctx.save();
+            ctx.fillStyle = '#e53e3e';
+            ctx.translate(14, padT + plotH / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.textAlign = 'center';
+            ctx.font = '11px sans-serif';
+            ctx.fillText('策略熵', 0, 0);
+            ctx.restore();
+
+            // 画奖励曲线（右Y轴）
+            var minR = Infinity, maxR = -Infinity;
+            for (var i = 0; i < n; i++) {
+                minR = Math.min(minR, rewardHistory[i]);
+                maxR = Math.max(maxR, rewardHistory[i]);
+            }
+            if (maxR - minR < 1) { maxR = minR + 10; }
+            var rangeR = maxR - minR;
+
+            ctx.strokeStyle = '#2b6cb0';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (var i = 0; i < n; i++) {
+                var px = padL + (i / (n - 1)) * plotW;
+                var py = padT + plotH - ((rewardHistory[i] - minR) / rangeR) * plotH;
+                if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+
+            // 右Y轴
+            ctx.strokeStyle = '#a0aec0';
+            ctx.beginPath();
+            ctx.moveTo(padL + plotW, padT);
+            ctx.lineTo(padL + plotW, padT + plotH);
+            ctx.stroke();
+
+            ctx.save();
+            ctx.fillStyle = '#2b6cb0';
+            ctx.translate(W - 8, padT + plotH / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.textAlign = 'center';
+            ctx.font = '11px sans-serif';
+            ctx.fillText('平均奖励', 0, 0);
+            ctx.restore();
+
+            // 图例
+            ctx.lineWidth = 2;
+            var lx = padL + 10, ly = padT + 10;
+            ctx.strokeStyle = '#e53e3e'; ctx.beginPath();
+            ctx.moveTo(lx, ly); ctx.lineTo(lx + 20, ly); ctx.stroke();
+            ctx.fillStyle = '#e53e3e'; ctx.font = '11px sans-serif'; ctx.textAlign = 'left';
+            ctx.fillText('策略熵', lx + 25, ly + 4);
+
+            ly += 18;
+            ctx.strokeStyle = '#2b6cb0'; ctx.beginPath();
+            ctx.moveTo(lx, ly); ctx.lineTo(lx + 20, ly); ctx.stroke();
+            ctx.fillStyle = '#2b6cb0';
+            ctx.fillText('平均奖励', lx + 25, ly + 4);
+        }
+
+        function updateInfo() {
+            var avgR = '—', avgH = '—';
+            if (rewardHistory.length > 0) {
+                avgR = rewardHistory[rewardHistory.length - 1].toFixed(1);
+                avgH = entropyHistory[entropyHistory.length - 1].toFixed(2);
+            }
+            document.getElementById('sac-info').innerHTML =
+                '已训练 <strong>' + totalSteps + '</strong> 步 | 平均奖励：<strong>' + avgR + '</strong> | 平均策略熵：<strong>' + avgH + '</strong>';
+        }
+
+        function sacResetInternal() {
+            initArrays();
+            totalSteps = 0;
+            rewardHistory = [];
+            entropyHistory = [];
+            curBin = 1; // 初始为中等波动
+            curWeights = 0.33; // 初始等权配置
+        }
+
+        /* ---------- 全局接口 ---------- */
+        window.sacTrain = function(n) {
+            var rewardBuf = [];
+            for (var i = 0; i < n; i++) {
+                var res = trainStep();
+                rewardBuf.push(res.reward);
+                if (totalSteps % 50 === 0) {
+                    var avgR = 0;
+                    var cnt = Math.min(rewardBuf.length, 50);
+                    for (var j = rewardBuf.length - cnt; j < rewardBuf.length; j++) avgR += rewardBuf[j];
+                    avgR /= cnt;
+                    rewardHistory.push(avgR);
+                    entropyHistory.push(computeAvgEntropy());
+                }
+            }
+            drawPolicy();
+            drawEntropy();
+            updateInfo();
+        };
+
+        window.sacReset = function() {
+            sacResetInternal();
+            drawPolicy();
+            drawEntropy();
+            updateInfo();
+        };
+
+        window.sacSetAlpha = function(val) {
+            ALPHA = parseFloat(val);
+        };
+
+        // 初始化
+        sacResetInternal();
+        setTimeout(function(){ drawPolicy(); drawEntropy(); updateInfo(); }, 100);
+    })();
+    </script>
 </body>
 </html>

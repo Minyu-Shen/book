@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>5.3 Soft Actor-Critic - 运筹智能</title>
+    <title>5.3 DDPG与TD3 - 运筹智能</title>
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
     <style>
         .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
         .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
@@ -21,23 +24,17 @@
         .algo-box .algo-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
         .algo-box ol { margin: 0.3rem 0 0.3rem 1.5rem; line-height: 2; }
         .algo-box .algo-note { font-size: 0.9rem; color: #718096; margin-top: 0.5rem; }
+        .note { background: var(--highlight-color); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .formula-block { background: var(--code-bg); padding: 1.2rem 1.5rem; margin: 1.5rem 0; border-radius: 6px; overflow-x: auto; text-align: center; }
         .derivation { background: #fffff0; border: 1px solid #ecc94b; border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; }
-        .derivation .deriv-title { font-weight: 700; color: #975a16; font-size: 1.0rem; margin-bottom: 0.5rem; }
-        .note { background: #f0fff4; border-left: 4px solid #48bb78; padding: 0.8rem 1.2rem; margin: 1.2rem 0; border-radius: 0 6px 6px 0; font-size: 0.95rem; }
-        .formula-block { background: var(--sidebar-bg); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; text-align: center; }
-        .rl-ctrl { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; margin-bottom:0.8rem; font-size:0.88rem; }
-        .rl-ctrl button { padding:0.3rem 0.7rem; border:1px solid #2b6cb0; background:white; color:#2b6cb0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.84rem; transition:all 0.15s; }
-        .rl-ctrl button:hover { background:#2b6cb0; color:white; }
-        .rl-ctrl label { font-size:0.86rem; color:#4a5568; }
-        .rl-ctrl select { padding:0.2rem 0.4rem; border:1px solid var(--border-color); border-radius:4px; font-size:0.84rem; }
-        .rl-info { background:#ebf4ff; border-radius:6px; padding:0.4rem 0.8rem; font-size:0.88rem; margin-top:0.6rem; }
-        .demo-container { border:2px solid var(--border-color); border-radius:8px; padding:1.2rem; margin:1.5rem 0; background:#fafafa; }
-        .demo-title { font-weight:700; color:var(--accent-color); margin-bottom:0.6rem; font-size:1.05rem; }
-        .demo-row { display:flex; gap:1rem; flex-wrap:wrap; justify-content:center; margin:0.8rem 0; }
-        .demo-panel { flex:1; min-width:280px; max-width:480px; }
-        .demo-panel canvas { width:100%; border:1px solid var(--border-color); border-radius:4px; background:white; }
-        .fig-caption { text-align:center; font-size:0.9rem; color:#718096; margin-top:0.5rem; margin-bottom:1rem; }
-        .arch-svg { display:block; margin:1rem auto; max-width:100%; }
+        .derivation summary { font-weight: 700; color: #975a16; cursor: pointer; font-size: 1rem; }
+        .derivation summary:hover { color: var(--accent-color); }
+        .optional-reading { background: #f0fff4; border: 1px solid #9ae6b4; border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; }
+        .optional-reading summary { font-weight: 700; color: #276749; cursor: pointer; font-size: 1rem; }
+        .optional-reading summary:hover { color: var(--accent-color); }
+        .fig-caption { text-align: center; font-size: 0.92rem; color: #4a5568; margin: 0.8rem 0 1.5rem 0; }
+        .update-step { background: #ebf4ff; border-left: 3px solid #2b6cb0; padding: 0.8rem 1.2rem; margin: 1rem 0; border-radius: 0 6px 6px 0; }
+        .update-step .step-label { font-weight: 600; color: #2b6cb0; margin-bottom: 0.3rem; }
     </style>
     <script defer src="../../js/code-copy.js"></script>
 </head>
@@ -80,9 +77,10 @@
                 <li class="sidebar-chapter">第五章 深度强化学习算法</li>
                 <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
                 <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
-                <li><a href="../ch05/5.3.html" class="active">5.3 Soft Actor-Critic</a></li>
-                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
-                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li><a href="../ch05/5.3.html" class="active">5.3 DDPG与TD3</a></li>
+                <li><a href="../ch05/5.4.html">5.4 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.5.html">5.5 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.6.html">5.6 训练实践</a></li>
                 <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
                 <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
                 <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
@@ -109,815 +107,602 @@
         </aside>
 
         <main class="main-content">
-            <h1>5.3 Soft Actor-Critic</h1>
+            <h1>5.3 DDPG与TD3</h1>
 
-            <!-- ==================== 为什么需要SAC ==================== -->
-            <h2>为什么需要SAC</h2>
+            <p>5.2节介绍的PPO适用于离散和连续动作空间，但它属于 on-policy 算法：每次策略更新后，旧数据就不再使用（虽然PPO对同一批数据做多轮更新，但批与批之间的数据仍然被丢弃）。在许多管理科学场景中，与环境交互的代价很高，例如仿真器运行一次需要数分钟，或者历史数据无法重新采集。此时，能够反复利用历史数据的 off-policy 算法就更加高效。</p>
 
-            <p>回顾前两节：5.1节的DQN将Q-learning与深度神经网络结合，实现了<strong>离策略</strong>学习，能通过经验回放缓冲区高效利用历史数据，但它只能处理<strong>离散动作空间</strong>。5.2节的PPO采用策略梯度方法，天然支持连续动作空间，训练也比较稳定，但它是<strong>在策略</strong>算法，每批数据用完后就必须丢弃，样本效率较低。</p>
+            <p>本节将介绍两种面向连续动作空间的 off-policy 算法：<strong>DDPG</strong>（Deep Deterministic Policy Gradient）和 <strong>TD3</strong>（Twin Delayed DDPG）。它们的核心思想是使用一个<strong>确定性策略</strong>直接输出连续动作值，而不是输出概率分布。</p>
 
-            <p>在管理科学的实际应用中，许多决策变量天然是连续的：物流中的车辆调度速度、库存管理中的补货数量、金融中的投资组合权重、交通信号的绿灯时长等。对于这类问题，我们希望算法同时具备以下三个特性：</p>
+            <!-- ==================== 从Actor-Critic到确定性策略 ==================== -->
+            <h2>从Actor-Critic到确定性策略</h2>
+
+            <p>在5.2节的连续动作设置中，策略被参数化为高斯分布 $\pi_\theta(a \mid s) = \mathcal{N}\bigl(\mu_\theta(s),\, \sigma_\theta(s)^2\bigr)$。执行动作时需要从分布中采样，计算策略梯度时需要求对数概率 $\log \pi_\theta(a \mid s)$。这种<strong>随机策略</strong>的好处是天然包含探索，但也带来了额外的计算开销和方差。</p>
+
+            <p>一个自然的问题是：能不能跳过概率分布，让策略网络直接输出一个动作值？即定义一个<strong>确定性策略</strong>：</p>
+
+            $$a = \mu_\theta(s) \tag{5.3-1}$$
+
+            <p>给定状态 $s$，策略 $\mu_\theta$ 确定性地输出一个动作 $a \in \mathbb{R}^d$，没有随机性。这样做有几个好处：</p>
 
             <ul>
-                <li><strong>支持连续动作空间</strong>，不需要将决策变量人为离散化；</li>
-                <li><strong>离策略学习</strong>，能够重复利用历史经验，提高样本效率；</li>
-                <li><strong>训练稳定</strong>，不容易因超参数设置不当而崩溃。</li>
+                <li><strong>无需采样</strong>。推理时直接前向传播一次就得到动作，不需要从分布中抽样。</li>
+                <li><strong>无需对数概率</strong>。随机策略梯度中的 $\nabla_\theta \log \pi_\theta(a \mid s)$ 项不再出现，梯度计算更加直接。</li>
+                <li><strong>更适合高维连续动作</strong>。当动作维度 $d$ 很大时，从高维高斯分布中采样并计算对数概率的代价随 $d$ 增长；确定性策略则不受此影响。</li>
             </ul>
-
-            <p><strong>Soft Actor-Critic</strong>（SAC，Haarnoja et al., 2018）正是为了同时满足这三个需求而提出的。它的核心思想是在标准的强化学习目标中加入一个<strong>熵正则化项</strong>：不仅要最大化累积奖励，还要让策略尽可能保持随机性。这个看似简单的改动带来了深远的影响：它自然地鼓励探索，显著提升了训练的稳定性和鲁棒性。</p>
 
             <div class="note">
-                <strong>SAC在管理科学中的优势：</strong>许多管理科学问题的仿真器运行成本高昂（例如，一次完整的交通仿真可能需要数分钟）。SAC的离策略特性使其能够充分利用每一条仿真数据，大幅减少所需的仿真次数。同时，它对超参数不敏感的特性，减少了研究人员的调参负担。
+                <strong>确定性策略 vs 随机策略</strong><br><br>
+                <strong>随机策略</strong> $\pi_\theta(a \mid s)$：输出一个概率分布，动作通过采样得到。天然包含探索，但需要计算 $\log \pi$，且有采样方差。<br><br>
+                <strong>确定性策略</strong> $\mu_\theta(s)$：输出一个确定的动作向量。计算简洁，但需要额外的探索机制（如添加噪声）。
             </div>
 
-            <!-- ==================== 最大熵强化学习 ==================== -->
-            <h2>最大熵强化学习</h2>
+            <p>当然，确定性策略也有一个明显的代价：它本身不包含探索。如果智能体始终执行 $\mu_\theta(s)$，它就永远不会尝试其他动作，无法发现更好的策略。解决方法是在训练时向动作中添加噪声（后文将详细讨论）。</p>
 
-            <p>标准强化学习的目标是最大化<strong>期望累积折扣奖励</strong>：</p>
+            <!-- ==================== 确定性策略梯度（DPG） ==================== -->
+            <h2>确定性策略梯度</h2>
 
-            $$J_{\text{std}}(\pi) = \mathbb{E}_\pi\left[\sum_{t=0}^{\infty} \gamma^t R_t\right]$$
+            <p>确定性策略的优化目标与随机策略相同：最大化期望累计回报 $J(\theta) = \mathbb{E}[G_0]$。问题是如何计算 $\nabla_\theta J(\theta)$。</p>
 
-            <p>SAC在此基础上增加了一个<strong>策略熵</strong>（policy entropy）奖励项，形成<strong>最大熵目标</strong>：</p>
+            <p>回顾3.3.1节的<strong>随机策略梯度定理</strong>：</p>
 
-            <div class="formula-block">
-            $$J(\pi) = \mathbb{E}_\pi\left[\sum_{t=0}^{\infty} \gamma^t \Big(R_t + \alpha \,\mathcal{H}\big(\pi(\cdot \mid S_t)\big)\Big)\right] \tag{5.3-1}$$
-            </div>
+            $$\nabla_\theta J(\theta) = \mathbb{E}_{s \sim d^{\pi_\theta},\, a \sim \pi_\theta}\!\left[\nabla_\theta \log \pi_\theta(a \mid s)\, Q^{\pi_\theta}(s, a)\right]$$
 
-            <p>其中 $\mathcal{H}\big(\pi(\cdot \mid s)\big)$ 是策略在状态 $s$ 下的熵。对连续动作空间下的策略分布 $\pi(\cdot \mid s)$，熵定义为：</p>
+            <p>其中 $d^{\pi_\theta}(s)$ 是策略 $\pi_\theta$ 下的状态分布。这个公式之所以有效，是因为它将对策略参数的梯度转化为了一个期望，可以用采样来估计。</p>
 
-            $$\mathcal{H}\big(\pi(\cdot \mid s)\big) = -\int \pi(a \mid s) \log \pi(a \mid s) \, da = \mathbb{E}_{a \sim \pi(\cdot|s)}\big[-\log \pi(a \mid s)\big] \tag{5.3-2}$$
-
-            <p>参数 $\alpha > 0$ 称为<strong>温度系数</strong>（temperature），它控制了熵项的权重，也就是探索与利用之间的平衡：</p>
-
-            <ul>
-                <li>$\alpha$ 较大时，算法更倾向于保持策略的随机性（多探索）；</li>
-                <li>$\alpha$ 较小时，算法更倾向于追求高奖励（多利用）；</li>
-                <li>$\alpha \to 0$ 时，退化为标准的强化学习目标。</li>
-            </ul>
+            <p>Silver et al.（2014）证明了一个类似的定理，适用于确定性策略。</p>
 
             <div class="concept-card">
-                <div class="concept-name">最大熵目标的直觉</div>
-                <p>想象一位基金经理需要在多个资产之间分配投资比例（连续动作）。最大熵目标要求他：在保证预期收益的前提下，尽可能分散投资。这样做的好处是：（1）避免过早押注于某个单一方案，在信息不充分时保持灵活性；（2）即使环境发生变化，分散的策略也更具鲁棒性；（3）学习过程中能持续探索不同的投资组合，不会因为偶然发现一个还不错的方案就停止尝试。</p>
+                <div class="concept-name">确定性策略梯度定理（Deterministic Policy Gradient Theorem）</div>
+                <p>设 $\mu_\theta(s)$ 是一个确定性策略，$d^{\mu_\theta}(s)$ 是其下的状态分布。假设 $Q^{\mu_\theta}(s,a)$ 关于 $a$ 可微，则：</p>
+                $$\nabla_\theta J(\theta) = \mathbb{E}_{s \sim d^{\mu_\theta}}\!\left[\nabla_\theta \mu_\theta(s) \cdot \nabla_a Q^{\mu_\theta}(s, a)\Big|_{a = \mu_\theta(s)}\right] \tag{5.3-2}$$
             </div>
 
-            <p>公式(5.3-1)可以等价地写成更紧凑的形式。将熵的定义代入，每一步的奖励变为 $R_t - \alpha \log \pi(A_t \mid S_t)$，即：</p>
+            <p>这个公式的含义非常直观。将它拆解为两个部分：</p>
 
-            $$J(\pi) = \mathbb{E}_\pi\left[\sum_{t=0}^{\infty} \gamma^t \Big(R_t - \alpha \log \pi(A_t \mid S_t)\Big)\right] \tag{5.3-3}$$
+            <ul>
+                <li>$\nabla_a Q^{\mu_\theta}(s, a)\big|_{a = \mu_\theta(s)}$：在当前动作处，$Q$ 值关于动作的梯度。它指出了动作应该朝哪个方向调整才能增大 $Q$ 值。</li>
+                <li>$\nabla_\theta \mu_\theta(s)$：策略网络的参数如何影响输出动作。它是从动作空间到参数空间的映射。</li>
+            </ul>
 
-            <p>这个形式更便于后续推导：可以把 $-\alpha \log \pi(a \mid s)$ 看作一个与动作概率相关的额外奖励。策略越随机（概率越分散），$-\log \pi$ 越大，获得的额外奖励越多。</p>
-
-            <!-- ==================== 软贝尔曼方程 ==================== -->
-            <h2>软贝尔曼方程</h2>
-
-            <p>回顾2.1.3节的标准贝尔曼期望方程，状态值函数与动作值函数之间满足：</p>
-
-            $$V^\pi(s) = \mathbb{E}_{a \sim \pi}\big[Q^\pi(s, a)\big], \quad Q^\pi(s, a) = R(s,a) + \gamma \, \mathbb{E}_{s' \sim P}\big[V^\pi(s')\big]$$
-
-            <p>在最大熵框架下，这些方程被修改为<strong>软贝尔曼方程</strong>（soft Bellman equation）。关键变化在于：状态值函数不再是Q值的简单期望，而是要减去策略的对数概率（即加上熵奖励）：</p>
-
-            <div class="formula-block">
-            $$V(s) = \mathbb{E}_{a \sim \pi}\Big[Q(s, a) - \alpha \log \pi(a \mid s)\Big] \tag{5.3-4}$$
-            </div>
-
-            <div class="formula-block">
-            $$Q(s, a) = R(s, a) + \gamma \, \mathbb{E}_{s' \sim P}\Big[V(s')\Big] \tag{5.3-5}$$
-            </div>
-
-            <p>将公式(5.3-4)代入公式(5.3-5)，可以消去 $V$ 得到：</p>
-
-            $$Q(s, a) = R(s,a) + \gamma \, \mathbb{E}_{s'}\Big[\mathbb{E}_{a' \sim \pi}\big[Q(s', a') - \alpha \log \pi(a' \mid s')\big]\Big] \tag{5.3-6}$$
-
-            <p>对比标准贝尔曼方程，软贝尔曼方程唯一的不同是多了 $-\alpha \log \pi(a \mid s)$ 项。这使得在固定点处，Q值不仅反映了累积奖励，还反映了未来策略的随机程度。</p>
+            <p>两者相乘（通过链式法则），就得到了参数 $\theta$ 应该如何调整才能增大 $Q$ 值。整个过程就是一次<strong>链式求导</strong>：先问"动作往哪个方向变会更好"，再问"参数往哪个方向变会让动作朝那个方向移动"。</p>
 
             <div class="derivation">
-                <div class="deriv-title">软贝尔曼方程的含义</div>
-                <p>在标准贝尔曼方程中，$V(s)$ 等于在状态 $s$ 下按照策略行动所获得的期望Q值。在软贝尔曼方程中，$V(s)$ 还包含了策略的熵奖励。这意味着：如果两个策略获得相同的Q值，但其中一个更随机（熵更高），那么更随机的策略对应更高的 $V(s)$。由此可以导出最大熵框架下的最优策略形式：</p>
-                $$\pi^*(a \mid s) \propto \exp\!\Big(\frac{1}{\alpha} Q^*(s, a)\Big) \tag{5.3-7}$$
-                <p>这是一个<strong>玻尔兹曼分布</strong>（Boltzmann distribution），温度系数 $\alpha$ 控制分布的尖锐程度。$\alpha$ 越小，分布越集中于Q值最大的动作；$\alpha$ 越大，分布越均匀。</p>
+                <details>
+                    <summary>与随机策略梯度的对比</summary>
+                    <p style="margin-top:0.8rem;">随机策略梯度与确定性策略梯度在形式上有着深刻的联系。Silver et al.（2014）证明，当随机策略的方差趋于零时，随机策略梯度收敛到确定性策略梯度。</p>
+                    <p>具体来说，考虑高斯策略 $\pi_\theta(a \mid s) = \mathcal{N}(\mu_\theta(s), \sigma^2 I)$。随机策略梯度为：</p>
+                    $$\nabla_\theta J = \mathbb{E}_{s, a}\!\left[\nabla_\theta \log \pi_\theta(a \mid s)\, Q^{\pi_\theta}(s, a)\right]$$
+                    <p>当 $\sigma \to 0$ 时，分布坍缩到 $\mu_\theta(s)$，上式收敛到：</p>
+                    $$\nabla_\theta J = \mathbb{E}_{s}\!\left[\nabla_\theta \mu_\theta(s) \cdot \nabla_a Q^{\mu_\theta}(s, a)\Big|_{a = \mu_\theta(s)}\right]$$
+                    <p>这正是确定性策略梯度定理（公式(5.3-2)）。因此，确定性策略梯度可以看作随机策略梯度在零方差极限下的特例。</p>
+                    <p>注意确定性策略梯度的期望只对 $s$ 取，不需要对 $a$ 取期望。这是因为确定性策略下动作 $a = \mu_\theta(s)$ 是状态的确定函数，不存在需要边缘化的随机性。这意味着确定性策略梯度比随机策略梯度需要更少的样本来估计。</p>
+                </details>
             </div>
 
-            <!-- ==================== SAC的网络架构 ==================== -->
-            <h2>SAC的网络架构</h2>
+            <p>公式(5.3-2)中有一个关键要求：$Q^{\mu_\theta}(s, a)$ 必须关于 $a$ 可微。这意味着我们需要一个可微分的 $Q$ 函数近似器，而神经网络正好满足这个条件。这自然地引出了 Actor-Critic 架构：</p>
 
-            <p>SAC使用三组神经网络协同工作：</p>
+            <ul>
+                <li><strong>Critic</strong>：一个神经网络 $Q_\phi(s, a)$，输入状态和动作，输出 $Q$ 值的估计。</li>
+                <li><strong>Actor</strong>：一个神经网络 $\mu_\theta(s)$，输入状态，输出确定性动作。</li>
+            </ul>
 
-            <p><strong>1. 两个Q网络 $Q_{\theta_1}$ 和 $Q_{\theta_2}$</strong></p>
-            <p>输入为状态-动作对 $(s, a)$，输出一个标量Q值。使用两个Q网络并取较小值是为了缓解<strong>Q值过高估计</strong>问题（与5.1节DQN中的Double DQN思想一致）。在计算目标值和更新策略时，总是取两者的最小值：</p>
+            <p>Actor 的更新方向由 Critic 提供的梯度信号决定：将 $\mu_\theta(s)$ 代入 $Q_\phi(s, a)$，对整个复合函数 $Q_\phi\bigl(s, \mu_\theta(s)\bigr)$ 关于 $\theta$ 求梯度，然后沿梯度方向更新。</p>
 
-            $$Q_{\min}(s, a) = \min\big(Q_{\theta_1}(s, a),\; Q_{\theta_2}(s, a)\big) \tag{5.3-8}$$
+            <!-- ==================== DDPG算法 ==================== -->
+            <h2>DDPG算法</h2>
 
-            <p><strong>2. 策略网络 $\pi_\phi$</strong></p>
-            <p>输入为状态 $s$，输出一个<strong>高斯分布</strong>的均值 $\mu_\phi(s)$ 和标准差 $\sigma_\phi(s)$。动作通过以下方式采样：</p>
+            <p>有了确定性策略梯度定理，如何将其变成一个实用的深度强化学习算法？直接套用面临两个障碍：</p>
 
-            $$a = \tanh\!\big(\mu_\phi(s) + \sigma_\phi(s) \odot \epsilon\big), \quad \epsilon \sim \mathcal{N}(0, I) \tag{5.3-9}$$
+            <ol>
+                <li>$Q^{\mu_\theta}$ 是未知的，需要用 Critic 网络 $Q_\phi(s,a)$ 来近似；但 Critic 本身也需要从数据中学习，训练初期估计不准。</li>
+                <li>确定性策略下，智能体不探索，采集的数据缺乏多样性，Critic 难以学到准确的 $Q$ 值。</li>
+            </ol>
 
-            <p>这里的 $\tanh$ 将动作压缩到 $[-1, 1]$ 范围内，$\odot$ 表示逐元素相乘。这种采样方式称为<strong>重参数化技巧</strong>（reparameterization trick）：将随机性从策略网络中分离出来（体现在外部噪声 $\epsilon$ 中），使得梯度可以通过采样的动作反向传播到策略网络参数 $\phi$。</p>
+            <p>Lillicrap et al.（2016）提出的 <strong>DDPG</strong>（Deep Deterministic Policy Gradient）算法借鉴了5.1节 DQN 的两个关键技术来解决这些问题。</p>
 
-            <p><strong>3. 目标Q网络 $Q_{\bar{\theta}_1}$ 和 $Q_{\bar{\theta}_2}$</strong></p>
-            <p>这是两个Q网络的缓慢更新副本，用于计算TD目标值，以稳定训练过程（与5.1节DQN中的目标网络思想相同）：</p>
+            <h3>经验回放</h3>
 
-            $$\bar{\theta}_i \leftarrow \tau \theta_i + (1 - \tau) \bar{\theta}_i, \quad i = 1, 2 \tag{5.3-10}$$
+            <p>与 DQN 一样，DDPG 将每一步的转移 $(s, a, r, s')$ 存储到经验回放缓冲区 $\mathcal{D}$ 中，训练时随机抽取小批量数据。这带来两个好处：打破数据之间的时间相关性，以及实现 off-policy 学习，让过去的数据可以被反复利用。</p>
 
-            <p>其中 $\tau$ 通常取很小的值（如 $0.005$），使得目标网络缓慢跟踪主网络。</p>
+            <p>注意，确定性策略梯度（公式(5.3-2)）中的期望是对状态分布 $d^{\mu_\theta}(s)$ 取的，不涉及对动作分布的积分。因此，即使数据来自过去的策略（动作不同），只要状态分布差异不大，梯度估计仍然近似正确。这使得确定性策略特别适合与经验回放结合使用。</p>
 
-            <!-- 架构图 -->
-            <svg class="arch-svg" viewBox="0 0 720 370" width="720" height="370" xmlns="http://www.w3.org/2000/svg" style="font-family: 'Source Han Serif SC', Georgia, serif;">
-                <!-- 背景 -->
-                <rect width="720" height="370" fill="#fafafa" rx="8"/>
+            <h3>目标网络</h3>
 
-                <!-- 经验回放缓冲区 -->
-                <rect x="260" y="10" width="200" height="40" rx="6" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="1.5"/>
-                <text x="360" y="35" text-anchor="middle" font-size="14" fill="#2b6cb0" font-weight="700">经验回放缓冲区</text>
-                <text x="360" y="65" text-anchor="middle" font-size="12" fill="#718096" font-style="italic">(s, a, r, s')</text>
+            <p>DDPG 同时维护 Actor 和 Critic 的目标网络 $\mu_{\theta'}$ 和 $Q_{\phi'}$，用于计算 TD 目标。与 DQN 不同的是，DDPG 使用<strong>软更新</strong>（soft update）而非定期的硬替换：</p>
 
-                <!-- 策略网络 -->
-                <rect x="40" y="120" width="160" height="70" rx="8" fill="#f0fff4" stroke="#48bb78" stroke-width="2"/>
-                <text x="120" y="148" text-anchor="middle" font-size="14" fill="#276749" font-weight="700">策略网络</text>
-                <text x="120" y="170" text-anchor="middle" font-size="13" fill="#276749" font-style="italic">&#x03C0;<tspan baseline-shift="sub" font-size="11">&#x03D5;</tspan>(a | s)</text>
+            $$\theta' \leftarrow \tau \theta + (1 - \tau) \theta' \tag{5.3-3}$$
+            $$\phi' \leftarrow \tau \phi + (1 - \tau) \phi' \tag{5.3-4}$$
 
-                <!-- Q网络1 -->
-                <rect x="280" y="120" width="160" height="70" rx="8" fill="#fffff0" stroke="#ecc94b" stroke-width="2"/>
-                <text x="360" y="148" text-anchor="middle" font-size="14" fill="#975a16" font-weight="700">Q 网络 1</text>
-                <text x="360" y="170" text-anchor="middle" font-size="13" fill="#975a16" font-style="italic">Q<tspan baseline-shift="sub" font-size="11">&#x03B8;&#x2081;</tspan>(s, a)</text>
+            <p>其中 $\tau$ 是一个很小的正数（通常 $\tau = 0.005$）。每次更新主网络后，目标网络的参数缓慢地向主网络靠拢。相比硬替换，软更新使目标值的变化更加平滑，有利于训练稳定性。</p>
 
-                <!-- Q网络2 -->
-                <rect x="520" y="120" width="160" height="70" rx="8" fill="#fffff0" stroke="#ecc94b" stroke-width="2"/>
-                <text x="600" y="148" text-anchor="middle" font-size="14" fill="#975a16" font-weight="700">Q 网络 2</text>
-                <text x="600" y="170" text-anchor="middle" font-size="13" fill="#975a16" font-style="italic">Q<tspan baseline-shift="sub" font-size="11">&#x03B8;&#x2082;</tspan>(s, a)</text>
+            <h3>探索噪声</h3>
 
-                <!-- 目标Q网络1 -->
-                <rect x="280" y="240" width="160" height="60" rx="8" fill="#fff5f5" stroke="#fc8181" stroke-width="1.5" stroke-dasharray="5,3"/>
-                <text x="360" y="265" text-anchor="middle" font-size="13" fill="#c53030" font-weight="600">目标 Q 网络 1</text>
-                <text x="360" y="283" text-anchor="middle" font-size="12" fill="#c53030" font-style="italic">Q<tspan baseline-shift="sub" font-size="10">&#x03B8;&#x0304;&#x2081;</tspan></text>
+            <p>由于 $\mu_\theta(s)$ 是确定性的，训练时需要额外添加噪声来进行探索。最简单的方式是在策略输出上叠加高斯噪声：</p>
 
-                <!-- 目标Q网络2 -->
-                <rect x="520" y="240" width="160" height="60" rx="8" fill="#fff5f5" stroke="#fc8181" stroke-width="1.5" stroke-dasharray="5,3"/>
-                <text x="600" y="265" text-anchor="middle" font-size="13" fill="#c53030" font-weight="600">目标 Q 网络 2</text>
-                <text x="600" y="283" text-anchor="middle" font-size="12" fill="#c53030" font-style="italic">Q<tspan baseline-shift="sub" font-size="10">&#x03B8;&#x0304;&#x2082;</tspan></text>
+            $$a = \mu_\theta(s) + \epsilon, \quad \epsilon \sim \mathcal{N}(0, \sigma^2) \tag{5.3-5}$$
 
-                <!-- min操作 -->
-                <rect x="410" y="320" width="100" height="35" rx="6" fill="#e9d8fd" stroke="#805ad5" stroke-width="1.5"/>
-                <text x="460" y="342" text-anchor="middle" font-size="13" fill="#553c9a" font-weight="700">min</text>
+            <p>原始的 DDPG 论文使用了 Ornstein-Uhlenbeck（OU）过程产生时间相关的噪声，但后续研究发现简单的高斯噪声通常效果相当，且更容易实现和调参。</p>
 
-                <!-- 箭头：缓冲区到Q网络 -->
-                <line x1="330" y1="68" x2="360" y2="118" stroke="#718096" stroke-width="1.2" marker-end="url(#arrow)"/>
-                <line x1="390" y1="68" x2="600" y2="118" stroke="#718096" stroke-width="1.2" marker-end="url(#arrow)"/>
+            <h3>Critic 的更新</h3>
 
-                <!-- 箭头：缓冲区到策略网络 -->
-                <line x1="290" y1="68" x2="150" y2="118" stroke="#718096" stroke-width="1.2" marker-end="url(#arrow)"/>
+            <p>Critic 的学习目标是最小化 TD 误差。对于从经验回放中采样的一个小批量转移 $(s_i, a_i, r_i, s_i')$，构建 TD 目标：</p>
 
-                <!-- 箭头：Q网络到目标网络（软更新） -->
-                <line x1="360" y1="192" x2="360" y2="238" stroke="#fc8181" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrowRed)"/>
-                <text x="380" y="218" font-size="11" fill="#c53030" font-style="italic">&#x03C4;</text>
-                <line x1="600" y1="192" x2="600" y2="238" stroke="#fc8181" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrowRed)"/>
-                <text x="620" y="218" font-size="11" fill="#c53030" font-style="italic">&#x03C4;</text>
+            $$y_i = r_i + \gamma\, Q_{\phi'}(s_i',\, \mu_{\theta'}(s_i')) \tag{5.3-6}$$
 
-                <!-- 箭头：目标网络到min -->
-                <line x1="390" y1="302" x2="440" y2="318" stroke="#805ad5" stroke-width="1.2" marker-end="url(#arrowPurple)"/>
-                <line x1="570" y1="302" x2="490" y2="318" stroke="#805ad5" stroke-width="1.2" marker-end="url(#arrowPurple)"/>
+            <p>注意这里使用了<strong>目标 Actor</strong> $\mu_{\theta'}$ 来为下一个状态选择动作，使用<strong>目标 Critic</strong> $Q_{\phi'}$ 来评估该动作的价值。Critic 的损失函数为：</p>
 
-                <!-- 箭头：策略网络输出动作 -->
-                <line x1="120" y1="192" x2="120" y2="340" stroke="#48bb78" stroke-width="1.2" marker-end="url(#arrowGreen)"/>
-                <text x="70" y="270" font-size="12" fill="#276749">采样动作</text>
-                <text x="70" y="286" font-size="11" fill="#276749" font-style="italic">a' ~ &#x03C0;<tspan baseline-shift="sub" font-size="9">&#x03D5;</tspan></text>
+            $$L(\phi) = \frac{1}{N} \sum_{i=1}^{N} \bigl(y_i - Q_\phi(s_i, a_i)\bigr)^2 \tag{5.3-7}$$
 
-                <!-- 箭头：策略动作到min（用于计算TD目标） -->
-                <path d="M 150 340 Q 250 355 408 337" fill="none" stroke="#805ad5" stroke-width="1.2" marker-end="url(#arrowPurple)"/>
+            <h3>Actor 的更新</h3>
 
-                <!-- TD目标标注 -->
-                <text x="460" y="365" text-anchor="middle" font-size="11" fill="#553c9a">计算TD目标 y</text>
+            <p>Actor 的目标是最大化 Critic 给出的 $Q$ 值。根据确定性策略梯度定理（公式(5.3-2)），Actor 的梯度为：</p>
 
-                <!-- 箭头定义 -->
-                <defs>
-                    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-                        <path d="M 0 0 L 8 4 L 0 8 Z" fill="#718096"/>
-                    </marker>
-                    <marker id="arrowRed" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-                        <path d="M 0 0 L 8 4 L 0 8 Z" fill="#fc8181"/>
-                    </marker>
-                    <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-                        <path d="M 0 0 L 8 4 L 0 8 Z" fill="#48bb78"/>
-                    </marker>
-                    <marker id="arrowPurple" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-                        <path d="M 0 0 L 8 4 L 0 8 Z" fill="#805ad5"/>
-                    </marker>
-                </defs>
-            </svg>
-            <div class="fig-caption">图 5.3-1　SAC 的网络架构。策略网络（绿色）输出高斯分布并采样动作；两个 Q 网络（黄色）评估动作价值；目标 Q 网络（红色虚线）通过软更新缓慢跟踪主网络，其最小值用于计算稳定的 TD 目标。</div>
+            $$\nabla_\theta J \approx \frac{1}{N} \sum_{i=1}^{N} \nabla_a Q_\phi(s_i, a)\Big|_{a = \mu_\theta(s_i)} \cdot \nabla_\theta \mu_\theta(s_i) \tag{5.3-8}$$
 
-            <!-- ==================== SAC算法 ==================== -->
-            <h2>SAC算法</h2>
-
-            <p>SAC的训练过程包含三个交替进行的更新步骤。每次从经验回放缓冲区中采样一个小批量 $(s, a, r, s')$，依次更新Q网络、策略网络和目标网络。</p>
-
-            <p><strong>第一步：更新Q网络。</strong>首先计算TD目标值。用当前策略网络在下一状态 $s'$ 采样一个动作 $\tilde{a}'$，利用<strong>目标</strong>Q网络计算软Q值：</p>
-
-            $$y = r + \gamma \Big(\min_{i=1,2} Q_{\bar{\theta}_i}(s', \tilde{a}') - \alpha \log \pi_\phi(\tilde{a}' \mid s')\Big), \quad \tilde{a}' \sim \pi_\phi(\cdot \mid s') \tag{5.3-11}$$
-
-            <p>然后最小化每个Q网络的预测值与TD目标之间的均方误差：</p>
-
-            $$L(\theta_i) = \mathbb{E}_{(s,a,r,s')}\left[\Big(Q_{\theta_i}(s, a) - y\Big)^2\right], \quad i = 1, 2 \tag{5.3-12}$$
-
-            <p><strong>第二步：更新策略网络。</strong>策略网络的目标是最大化期望的软Q值，即让策略选出的动作既有高Q值，又保持足够的随机性：</p>
-
-            $$L(\phi) = \mathbb{E}_{s}\left[\mathbb{E}_{\tilde{a} \sim \pi_\phi}\Big[\alpha \log \pi_\phi(\tilde{a} \mid s) - Q_{\min}(s, \tilde{a})\Big]\right] \tag{5.3-13}$$
-
-            <p>这里 $Q_{\min}(s, \tilde{a}) = \min(Q_{\theta_1}(s, \tilde{a}),\; Q_{\theta_2}(s, \tilde{a}))$。利用公式(5.3-9)的重参数化技巧，$\tilde{a}$ 关于 $\phi$ 可微，因此可以用标准的梯度下降来最小化 $L(\phi)$。</p>
-
-            <p><strong>第三步：软更新目标网络。</strong>按照公式(5.3-10)缓慢更新目标网络参数。</p>
+            <p>在实现中，这等价于将 $\mu_\theta(s)$ 代入 $Q_\phi(s, a)$，对复合函数 $Q_\phi(s, \mu_\theta(s))$ 关于 $\theta$ 做梯度上升。PyTorch 的自动微分可以一步完成这个链式求导。</p>
 
             <div class="algo-box">
-                <div class="algo-title">Soft Actor-Critic (SAC) 算法</div>
+                <div class="algo-title">DDPG 算法</div>
                 <ol>
-                    <li>初始化策略网络参数 $\phi$，Q网络参数 $\theta_1, \theta_2$，令目标网络 $\bar{\theta}_i \leftarrow \theta_i$</li>
-                    <li>初始化经验回放缓冲区 $\mathcal{D} \leftarrow \emptyset$</li>
-                    <li>对每个时间步 $t = 0, 1, 2, \ldots$：
+                    <li>初始化 Critic 网络 $Q_\phi(s,a)$、Actor 网络 $\mu_\theta(s)$</li>
+                    <li>初始化目标网络：$\phi' \leftarrow \phi$，$\theta' \leftarrow \theta$</li>
+                    <li>初始化经验回放缓冲区 $\mathcal{D}$</li>
+                    <li>对每个 episode：
                         <ol type="a">
-                            <li>观察状态 $s_t$，从策略 $a_t \sim \pi_\phi(\cdot \mid s_t)$ 采样动作</li>
-                            <li>执行 $a_t$，观察奖励 $r_t$ 和下一状态 $s_{t+1}$，将 $(s_t, a_t, r_t, s_{t+1})$ 存入 $\mathcal{D}$</li>
-                            <li>从 $\mathcal{D}$ 中随机采样小批量 $\{(s, a, r, s')\}$</li>
-                            <li><strong>更新Q网络：</strong>对每个样本，用公式(5.3-11)计算TD目标 $y$，用公式(5.3-12)更新 $\theta_1, \theta_2$</li>
-                            <li><strong>更新策略网络：</strong>用公式(5.3-13)更新 $\phi$</li>
-                            <li><strong>软更新目标网络：</strong>$\bar{\theta}_i \leftarrow \tau \theta_i + (1 - \tau)\bar{\theta}_i$，$i = 1, 2$</li>
+                            <li>观测初始状态 $s_0$</li>
+                            <li>对每步 $t = 0, 1, 2, \ldots$：
+                                <ol type="i">
+                                    <li>选择动作 $a_t = \mu_\theta(s_t) + \epsilon_t$，$\epsilon_t \sim \mathcal{N}(0, \sigma^2)$</li>
+                                    <li>执行 $a_t$，观测 $r_t, s_{t+1}$</li>
+                                    <li>将 $(s_t, a_t, r_t, s_{t+1})$ 存入 $\mathcal{D}$</li>
+                                    <li>从 $\mathcal{D}$ 中随机采样小批量 $\{(s_i, a_i, r_i, s_i')\}$</li>
+                                    <li>计算 TD 目标：$y_i = r_i + \gamma\, Q_{\phi'}(s_i', \mu_{\theta'}(s_i'))$</li>
+                                    <li>更新 Critic：最小化 $\frac{1}{N}\sum_i (y_i - Q_\phi(s_i, a_i))^2$</li>
+                                    <li>更新 Actor：沿 $\nabla_\theta \frac{1}{N}\sum_i Q_\phi(s_i, \mu_\theta(s_i))$ 做梯度上升</li>
+                                    <li>软更新目标网络：$\phi' \leftarrow \tau\phi + (1-\tau)\phi'$，$\theta' \leftarrow \tau\theta + (1-\tau)\theta'$</li>
+                                </ol>
+                            </li>
                         </ol>
                     </li>
                 </ol>
-                <div class="algo-note">SAC是离策略算法：步骤(c)中从缓冲区采样的数据可以来自任何历史策略。步骤(a)中的采样使用重参数化技巧（公式3.3-9）。</div>
+                <div class="algo-note">DDPG = DPG + 经验回放 + 目标网络（软更新）+ 探索噪声。它将 DQN 的成功经验移植到了连续动作空间。</div>
             </div>
 
-            <h3>自动温度调节</h3>
+            <!-- ==================== DDPG 架构图 ==================== -->
+            <div style="margin:1.5rem 0;">
+                <svg viewBox="0 0 640 300" style="width:100%;max-width:640px;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="640" height="300" fill="#fafafa" rx="8"/>
 
-            <p>温度系数 $\alpha$ 的选择对SAC的性能影响很大。手动调节 $\alpha$ 既费时又不可靠，因为最优的 $\alpha$ 值会随训练进程而变化（初期需要大量探索，后期应减少随机性）。SAC的改进版本（Haarnoja et al., 2018b）提出了一种<strong>自动温度调节</strong>机制：将 $\alpha$ 也作为一个可学习的参数，通过优化以下目标来自动调整：</p>
+                    <!-- Actor 网络 -->
+                    <rect x="40" y="40" width="130" height="55" rx="8" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                    <foreignObject x="40" y="40" width="130" height="55">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:55px;font-size:14px;color:#2b6cb0;font-weight:600;">Actor $\mu_\theta$</div>
+                    </foreignObject>
 
-            $$L(\alpha) = \mathbb{E}_{a \sim \pi_\phi}\Big[-\alpha \big(\log \pi_\phi(a \mid s) + \bar{\mathcal{H}}\big)\Big] \tag{5.3-14}$$
+                    <!-- Critic 网络 -->
+                    <rect x="250" y="40" width="130" height="55" rx="8" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                    <foreignObject x="250" y="40" width="130" height="55">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:55px;font-size:14px;color:#2b6cb0;font-weight:600;">Critic $Q_\phi$</div>
+                    </foreignObject>
 
-            <p>其中 $\bar{\mathcal{H}}$ 是<strong>目标熵</strong>，通常设为 $-\dim(\mathcal{A})$（即负的动作空间维度）。这个约束的含义是：当策略的熵低于目标值时，自动增大 $\alpha$ 以鼓励更多探索；当熵高于目标值时，自动减小 $\alpha$ 以更多地利用已有知识。</p>
+                    <!-- 目标 Actor -->
+                    <rect x="40" y="200" width="130" height="55" rx="8" fill="white" stroke="#b0b8c4" stroke-width="1.5" stroke-dasharray="5,3"/>
+                    <foreignObject x="40" y="200" width="130" height="55">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:55px;font-size:13px;color:#718096;">Target $\mu_{\theta'}$</div>
+                    </foreignObject>
+
+                    <!-- 目标 Critic -->
+                    <rect x="250" y="200" width="130" height="55" rx="8" fill="white" stroke="#b0b8c4" stroke-width="1.5" stroke-dasharray="5,3"/>
+                    <foreignObject x="250" y="200" width="130" height="55">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:55px;font-size:13px;color:#718096;">Target $Q_{\phi'}$</div>
+                    </foreignObject>
+
+                    <!-- 经验回放 -->
+                    <rect x="470" y="100" width="140" height="55" rx="8" fill="#fefcbf" stroke="#d69e2e" stroke-width="2"/>
+                    <foreignObject x="470" y="100" width="140" height="55">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:55px;font-size:14px;color:#975a16;font-weight:600;">经验回放 $\mathcal{D}$</div>
+                    </foreignObject>
+
+                    <!-- 连线：Actor 输出 a -->
+                    <line x1="170" y1="67" x2="250" y2="67" stroke="#2b6cb0" stroke-width="1.5" stroke-linecap="round"/>
+                    <foreignObject x="185" y="48" width="50" height="22">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#2b6cb0;text-align:center;">$a$</div>
+                    </foreignObject>
+
+                    <!-- 连线：Critic 输出 Q -->
+                    <line x1="380" y1="67" x2="430" y2="67" stroke="#2b6cb0" stroke-width="1.5" stroke-linecap="round"/>
+                    <foreignObject x="400" y="48" width="50" height="22">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#2b6cb0;text-align:center;">$Q$</div>
+                    </foreignObject>
+
+                    <!-- 连线：软更新 Actor -->
+                    <line x1="105" y1="95" x2="105" y2="200" stroke="#b0b8c4" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="4,3"/>
+                    <foreignObject x="110" y="135" width="50" height="22">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#718096;text-align:left;">$\tau$</div>
+                    </foreignObject>
+
+                    <!-- 连线：软更新 Critic -->
+                    <line x1="315" y1="95" x2="315" y2="200" stroke="#b0b8c4" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="4,3"/>
+                    <foreignObject x="320" y="135" width="50" height="22">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#718096;text-align:left;">$\tau$</div>
+                    </foreignObject>
+
+                    <!-- 连线：目标 Actor 到目标 Critic -->
+                    <line x1="170" y1="227" x2="250" y2="227" stroke="#b0b8c4" stroke-width="1.2" stroke-linecap="round"/>
+                    <foreignObject x="185" y="208" width="50" height="22">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#718096;text-align:center;">$a'$</div>
+                    </foreignObject>
+
+                    <!-- 连线：经验回放到网络 -->
+                    <line x1="470" y1="120" x2="380" y2="75" stroke="#d69e2e" stroke-width="1.2" stroke-linecap="round"/>
+                    <line x1="470" y1="140" x2="380" y2="220" stroke="#d69e2e" stroke-width="1.2" stroke-linecap="round"/>
+
+                    <!-- 标签 -->
+                    <foreignObject x="420" y="260" width="200" height="30">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#718096;text-align:center;">虚线框 = 目标网络（软更新）</div>
+                    </foreignObject>
+                </svg>
+                <div class="fig-caption">图 5.3-1：DDPG 的架构。Actor 输出确定性动作，Critic 评估动作价值。目标网络通过软更新（参数 $\tau$）缓慢跟踪主网络。经验回放缓冲区存储历史转移，供训练时随机采样。</div>
+            </div>
+
+            <!-- ==================== DDPG的问题：Q值过估计 ==================== -->
+            <h2>DDPG的问题：$Q$ 值过估计</h2>
+
+            <p>DDPG在许多连续控制任务中取得了不错的效果，但在实践中也暴露出一个严重的问题：<strong>$Q$ 值的过估计</strong>（overestimation）。</p>
+
+            <p>回顾3.2.3节对 Q-learning 过估计问题的讨论。当 $Q$ 函数近似器存在误差时，$\max_a Q(s,a)$ 倾向于选中那些因误差而被高估的动作，导致 $Q$ 值的系统性偏高。在 DQN 中，Double Q-learning 的思想成功缓解了这个问题。</p>
+
+            <p>在 DDPG 中，过估计问题实际上更加严重。原因在于确定性策略的 Actor 更新方式：</p>
+
+            $$\theta \leftarrow \theta + \alpha \nabla_\theta Q_\phi\bigl(s, \mu_\theta(s)\bigr)$$
+
+            <p>Actor 沿着 Critic 的梯度方向调整策略，目标是找到使 $Q_\phi(s, a)$ 最大的动作 $a$。如果 Critic 在某些区域存在过高的估计误差，Actor 就会学到专门利用这些误差的策略，将动作调整到 $Q_\phi$ 的虚假峰值处。</p>
+
+            <p>与 DQN 中的离散 $\max$ 操作相比，连续空间中的梯度上升更具破坏性。离散空间中 $\max$ 只能在有限个候选动作中选择；而在连续空间中，Actor 可以精确地爬到 $Q_\phi$ 的任意窄峰上，找到那些恰好被高估的"漏洞"。这就像是让一个学生来设计考试题目并自己参加考试一样，Actor（学生）会越来越擅长找到 Critic（评分标准）的弱点。</p>
+
+            <p>这种过估计形成恶性循环：</p>
+            <ol>
+                <li>Critic 对某些 $(s, a)$ 对的 $Q$ 值估计偏高；</li>
+                <li>Actor 被更新到这些高估区域，输出的动作偏向这些虚假峰值；</li>
+                <li>这些偏差的动作又被用于计算 TD 目标 $y = r + \gamma Q_{\phi'}(s', \mu_{\theta'}(s'))$，进一步传播过估计；</li>
+                <li>Critic 的过估计进一步加剧，形成正反馈循环。</li>
+            </ol>
+
+            <p>在实践中，这会导致 DDPG 的训练不稳定，性能波动大，对超参数敏感。</p>
+
+            <!-- ==================== TD3：三项改进 ==================== -->
+            <h2>TD3：三项改进</h2>
+
+            <p>Fujimoto et al.（2018）对上述问题进行了系统分析，提出了 <strong>TD3</strong>（Twin Delayed DDPG）算法。TD3 在 DDPG 的基础上引入三项针对性改进，显著提升了训练的稳定性和最终性能。</p>
+
+            <h3>改进一：双 Critic 网络（Twin Critics）</h3>
+
+            <p>TD3 同时维护两个独立的 Critic 网络 $Q_{\phi_1}(s,a)$ 和 $Q_{\phi_2}(s,a)$，各自有独立的参数和目标网络。在计算 TD 目标时，取两者的较小值：</p>
+
+            <div class="formula-block">
+            $$y = r + \gamma \min\bigl(Q_{\phi_1'}(s', \tilde{a}'),\; Q_{\phi_2'}(s', \tilde{a}')\bigr) \tag{5.3-9}$$
+            </div>
+
+            <p>这一做法的思路与3.2.3节的 Double Q-learning 类似，但不完全相同。Double Q-learning 用一个网络选动作、另一个网络评估价值，解耦了选择与评估；而 TD3 的 Twin Critics 更加简单直接，直接取两个估计的最小值作为目标。这是一种<strong>保守估计</strong>策略：即使某个 Critic 过高估计了某个 $(s', a')$，只要另一个 Critic 没有犯同样的错误，取最小值就能抑制过估计。</p>
 
             <div class="note">
-                在实践中，自动温度调节几乎是标配。它使得SAC成为一个超参数设置非常方便的算法：研究人员只需指定目标熵（通常用默认值即可），无需手动调节 $\alpha$。
+                <strong>为什么取 $\min$ 有效？</strong><br>
+                两个独立训练的 Critic 虽然都可能存在估计误差，但它们不太可能在同一个 $(s, a)$ 处同时严重高估。取最小值相当于选择更保守的那个估计。虽然这可能引入轻微的低估偏差，但低估比高估安全得多：高估会被 Actor 积极利用并放大，而低估只是让 Actor 稍微保守一些。
             </div>
 
-            <!-- ==================== 例子：连续动作空间的管理决策 ==================== -->
-            <h2>例子：连续动作空间的库存补货决策</h2>
+            <h3>改进二：延迟策略更新（Delayed Policy Update）</h3>
 
-            <p>考虑一个单产品库存管理问题。某零售商每天需要决定向供应商订购多少单位的商品。</p>
+            <p>在 DDPG 中，Actor 和 Critic 每一步都同时更新。但 Critic 的估计在训练初期并不准确，基于不准确的 Critic 来更新 Actor 可能导致 Actor 走偏。</p>
 
-            <p><strong>状态：</strong>当前库存水平 $s_t \in [0, 100]$。</p>
+            <p>TD3 的解决方案很简单：让 Actor 的更新频率低于 Critic。具体来说，每更新 Critic $d$ 次（通常 $d = 2$），才更新一次 Actor 和目标网络。这样做的效果是让 Critic 有更多的时间来"消化"新数据、减小估计误差，然后再用更准确的 Critic 来指导 Actor 更新。</p>
 
-            <p><strong>动作：</strong>补货数量 $a_t \in [0, 50]$，是一个<strong>连续值</strong>。</p>
+            <h3>改进三：目标策略平滑（Target Policy Smoothing）</h3>
 
-            <p><strong>状态转移：</strong>每天的顾客需求 $D_t$ 服从均值为20、标准差为8的正态分布（取非负部分），下一期库存为：</p>
+            <p>在计算 TD 目标时，DDPG 使用 $\mu_{\theta'}(s')$ 来选择下一步的动作。如果 $Q_\phi$ 在 $\mu_{\theta'}(s')$ 附近的某个狭窄区域恰好有一个虚假的高值，这个误差就会被直接传入 TD 目标。</p>
 
-            $$S_{t+1} = \max\big(0,\; S_t + a_t - D_t\big) \tag{5.3-15}$$
+            <p>TD3 的第三项改进是对目标动作添加噪声：</p>
 
-            <p><strong>奖励：</strong>每天的利润等于销售收入减去库存持有成本和缺货惩罚：</p>
+            $$\tilde{a}' = \mu_{\theta'}(s') + \epsilon, \quad \epsilon \sim \text{clip}\bigl(\mathcal{N}(0, \tilde{\sigma}^2),\, -c,\, c\bigr) \tag{5.3-10}$$
 
-            $$R_t = \underbrace{p \cdot \min(S_t + a_t,\; D_t)}_{\text{销售收入}} - \underbrace{h \cdot \max(S_t + a_t - D_t,\; 0)}_{\text{持有成本}} - \underbrace{b \cdot \max(D_t - S_t - a_t,\; 0)}_{\text{缺货惩罚}} - \underbrace{c \cdot a_t}_{\text{订货成本}} \tag{5.3-16}$$
+            <p>其中 $\tilde{\sigma}$ 是目标噪声的标准差，$c$ 是裁剪范围（通常 $\tilde{\sigma} = 0.2$，$c = 0.5$）。噪声被裁剪以确保目标动作不会偏离太远。</p>
 
-            <p>其中 $p = 10$ 为单位售价，$h = 1$ 为单位持有成本，$b = 5$ 为单位缺货惩罚，$c = 3$ 为单位订货成本。</p>
+            <p>添加噪声的效果是对 $Q$ 函数在目标动作附近做了一次<strong>局部平滑</strong>。如果 $Q$ 的真实值在那个区域是平坦的，加噪声后的平均值不会变化太多；但如果 $Q$ 在那里有一个因估计误差产生的尖锐峰值，加噪声后峰值会被抹平。这正是我们想要的效果。</p>
+
+            <div class="algo-box">
+                <div class="algo-title">TD3 算法（Twin Delayed DDPG）</div>
+                <ol>
+                    <li>初始化两个 Critic 网络 $Q_{\phi_1}$、$Q_{\phi_2}$ 和 Actor 网络 $\mu_\theta$</li>
+                    <li>初始化目标网络：$\phi_1' \leftarrow \phi_1$，$\phi_2' \leftarrow \phi_2$，$\theta' \leftarrow \theta$</li>
+                    <li>初始化经验回放缓冲区 $\mathcal{D}$</li>
+                    <li>对每个 episode：
+                        <ol type="a">
+                            <li>观测初始状态 $s_0$</li>
+                            <li>对每步 $t = 0, 1, 2, \ldots$：
+                                <ol type="i">
+                                    <li>选择动作 $a_t = \mu_\theta(s_t) + \epsilon$，$\epsilon \sim \mathcal{N}(0, \sigma^2)$（探索噪声）</li>
+                                    <li>执行 $a_t$，观测 $r_t, s_{t+1}$</li>
+                                    <li>将 $(s_t, a_t, r_t, s_{t+1})$ 存入 $\mathcal{D}$</li>
+                                    <li>从 $\mathcal{D}$ 中随机采样小批量 $\{(s_i, a_i, r_i, s_i')\}_{i=1}^N$</li>
+                                    <li>计算目标动作（含平滑噪声）：$\tilde{a}_i' = \mu_{\theta'}(s_i') + \text{clip}(\epsilon, -c, c)$，$\epsilon \sim \mathcal{N}(0, \tilde{\sigma}^2)$</li>
+                                    <li>计算 TD 目标：$y_i = r_i + \gamma \min\bigl(Q_{\phi_1'}(s_i', \tilde{a}_i'),\, Q_{\phi_2'}(s_i', \tilde{a}_i')\bigr)$</li>
+                                    <li>更新两个 Critic：分别最小化 $\frac{1}{N}\sum_i (y_i - Q_{\phi_j}(s_i, a_i))^2$，$j=1,2$</li>
+                                    <li>每 $d$ 步执行以下更新（延迟更新）：
+                                        <ul style="list-style:disc;">
+                                            <li>更新 Actor：$\theta \leftarrow \theta + \alpha_\theta \frac{1}{N}\sum_i \nabla_\theta Q_{\phi_1}(s_i, \mu_\theta(s_i))$</li>
+                                            <li>软更新所有目标网络：$\phi_j' \leftarrow \tau\phi_j + (1-\tau)\phi_j'$，$\theta' \leftarrow \tau\theta + (1-\tau)\theta'$</li>
+                                        </ul>
+                                    </li>
+                                </ol>
+                            </li>
+                        </ol>
+                    </li>
+                </ol>
+                <div class="algo-note">TD3 相比 DDPG 的三项改进：(1) 双 Critic 取最小值，抑制过估计；(2) 延迟更新 Actor，让 Critic 先稳定；(3) 目标策略平滑，防止利用 $Q$ 函数窄峰。注意 Actor 更新时只使用 $Q_{\phi_1}$。</div>
+            </div>
+
+            <!-- TD3 改进对比 -->
+            <table class="trans-table" style="width:100%;">
+                <thead>
+                    <tr><th>组件</th><th>DDPG</th><th>TD3</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Critic 数量</td><td>1个</td><td>2个（取 $\min$）</td></tr>
+                    <tr><td>Actor 更新频率</td><td>每步更新</td><td>每 $d$ 步更新一次</td></tr>
+                    <tr><td>目标动作</td><td>$\mu_{\theta'}(s')$</td><td>$\mu_{\theta'}(s') + \text{clip}(\epsilon, -c, c)$</td></tr>
+                    <tr><td>过估计</td><td>严重</td><td>受控</td></tr>
+                    <tr><td>训练稳定性</td><td>对超参数敏感</td><td>更稳健</td></tr>
+                </tbody>
+            </table>
+            <div class="fig-caption">表 5.3-1：DDPG 与 TD3 的关键区别。</div>
+
+            <!-- ==================== 例子：广告实时竞价 ==================== -->
+            <h2>例子：广告实时竞价</h2>
+
+            <p>为了展示 TD3 的完整实现，我们考虑一个简化的广告实时竞价（Real-Time Bidding, RTB）问题。在这个场景中，广告主需要在预算约束下，对每次广告展示机会决定出价金额，以最大化获得的点击总价值。</p>
+
+            <h3>问题建模</h3>
+
+            <p>我们将 RTB 问题建模为一个 episodic MDP。一个 episode 代表一天的竞价周期，共 $T = 100$ 个时间步，每步对应一次竞价机会。</p>
 
             <div class="concept-card">
-                <div class="concept-name">为什么不离散化动作空间？</div>
-                <p>一种朴素的做法是将补货数量离散化为 $\{0, 1, 2, \ldots, 50\}$ 共51个离散动作，然后用DQN求解。但这有两个问题：（1）如果精度不够（例如只取 $\{0, 10, 20, 30, 40, 50\}$），最优补货量可能落在网格点之间，导致次优解；（2）如果精度太高，动作空间变得很大，Q网络需要对每个动作都估计一个Q值，计算量剧增。更严重的是，在多维连续动作场景（如同时决定多种商品的订货量），离散化导致的组合爆炸会使DQN完全不可行。SAC直接在连续空间上输出高斯分布，自然地避免了这些问题。</p>
+                <div class="concept-name">广告实时竞价 MDP</div>
+                <p><strong>状态</strong> $s_t \in \mathbb{R}^4$：</p>
+                <ul style="margin:0.3rem 0 0.3rem 1.5rem; line-height:1.8;">
+                    <li>$s_t^{(1)}$：剩余预算比例 $\in [0, 1]$</li>
+                    <li>$s_t^{(2)}$：剩余时间比例 $\in [0, 1]$</li>
+                    <li>$s_t^{(3)}$：当前广告位的预估点击率 $\in [0, 1]$</li>
+                    <li>$s_t^{(4)}$：竞争强度（市场基础出价）$\in [0, 1]$</li>
+                </ul>
+                <p><strong>动作</strong> $a_t \in [0, 1]$：出价金额，表示为最大出价的比例。</p>
+                <p><strong>奖励</strong>：</p>
+                $$r_t = \begin{cases} v \cdot \text{click}_t - \text{cost}_t & \text{if } a_t \geq \text{threshold}_t \text{ and budget} > 0 \\ 0 & \text{otherwise} \end{cases} \tag{5.3-11}$$
+                <p>其中 $v$ 是每次点击的价值，$\text{click}_t \sim \text{Bernoulli}(\text{ctr}_t)$ 表示是否被点击，$\text{cost}_t$ 是赢得竞价的费用（第二价格：等于市场出价），$\text{threshold}_t$ 是竞争对手的最高出价。</p>
             </div>
 
-            <p>下面的交互演示展示了SAC在简化版库存管理问题上的学习过程。为便于可视化，我们将状态空间离散为若干区间，用一维连续动作空间来演示策略分布（高斯分布）如何随训练而变化。</p>
+            <p>这个问题的核心挑战在于：出价太高会快速耗尽预算，后期无法参与竞价；出价太低则赢不到好的广告位。智能体需要根据剩余预算、时间和当前广告位质量来动态调整出价策略。</p>
 
-            <!-- ==================== 交互演示 ==================== -->
-            <div class="demo-container">
-                <div class="demo-title">交互演示：SAC 学习连续动作策略</div>
-                <div class="rl-ctrl">
-                    <button onclick="sacTrain(100)">训练100步</button>
-                    <button onclick="sacTrain(5000)">快进5000步</button>
-                    <button onclick="sacReset()">重置</button>
-                    <label style="margin-left:1rem;">温度 $\alpha$：</label>
-                    <select id="sac-alpha" onchange="sacSetAlpha(this.value)">
-                        <option value="0.05">0.05（低探索）</option>
-                        <option value="0.2" selected>0.2（默认）</option>
-                        <option value="1.0">1.0（高探索）</option>
-                    </select>
-                </div>
-                <div class="demo-row">
-                    <div class="demo-panel">
-                        <canvas id="cvs-policy" width="440" height="260"></canvas>
-                        <div class="fig-caption" style="margin-bottom:0;">策略分布：不同库存水平下的补货量分布</div>
-                    </div>
-                    <div class="demo-panel">
-                        <canvas id="cvs-entropy" width="440" height="260"></canvas>
-                        <div class="fig-caption" style="margin-bottom:0;">训练过程中策略熵和累积奖励的变化</div>
-                    </div>
-                </div>
-                <div class="rl-info" id="sac-info">已训练 <strong>0</strong> 步 | 平均奖励：<strong>—</strong> | 平均策略熵：<strong>—</strong></div>
-            </div>
-            <div class="fig-caption">图 5.3-2　SAC 学习库存补货策略的交互演示。左图展示三种库存水平下策略网络输出的高斯分布（补货量的概率密度）；右图展示训练过程中策略熵逐渐下降、累积奖励逐渐上升的趋势。可通过切换温度 $\alpha$ 观察探索-利用平衡的变化。</div>
+            <h3>TD3 实现</h3>
+
+            <p>下面给出完整的 PyTorch 实现代码，包含环境模拟器和 TD3 算法。</p>
+
+<pre><code class="language-python">import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import numpy as np
+from collections import deque
+import random
+
+# ========== 简易 RTB 环境 ==========
+class RTBEnv:
+    """简化的实时竞价环境"""
+    def __init__(self, T=100, budget=50.0, click_value=5.0):
+        self.T = T
+        self.init_budget = budget
+        self.click_value = click_value
+
+    def reset(self):
+        self.t = 0
+        self.budget = self.init_budget
+        self.done = False
+        return self._obs()
+
+    def _obs(self):
+        ctr = np.clip(np.random.beta(2, 5), 0.05, 0.95)  # 点击率
+        competition = np.clip(np.random.beta(3, 3), 0.1, 0.9)  # 竞争强度
+        return np.array([
+            self.budget / self.init_budget,    # 剩余预算比例
+            1.0 - self.t / self.T,             # 剩余时间比例
+            ctr,                               # 预估点击率
+            competition                        # 竞争强度
+        ], dtype=np.float32)
+
+    def step(self, action):
+        bid = float(np.clip(action, 0, 1))  # 出价 ∈ [0,1]
+        obs = self._obs()
+        ctr, competition = obs[2], obs[3]
+        # 市场出价 = 竞争强度 + 噪声
+        market_price = competition * 0.6 + np.random.uniform(0, 0.3)
+
+        reward = 0.0
+        if bid >= market_price and self.budget > 0:
+            cost = market_price  # 第二价格
+            self.budget -= cost
+            clicked = np.random.random() < ctr
+            reward = self.click_value * clicked - cost
+
+        self.t += 1
+        self.done = (self.t >= self.T) or (self.budget <= 0)
+        next_obs = self._obs() if not self.done else np.zeros(4, dtype=np.float32)
+        return next_obs, reward, self.done
+
+# ========== 网络定义 ==========
+class Actor(nn.Module):
+    def __init__(self, state_dim, action_dim, hidden=128):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(state_dim, hidden), nn.ReLU(),
+            nn.Linear(hidden, hidden), nn.ReLU(),
+            nn.Linear(hidden, action_dim), nn.Sigmoid()  # 输出 ∈ [0,1]
+        )
+    def forward(self, s):
+        return self.net(s)
+
+class Critic(nn.Module):
+    def __init__(self, state_dim, action_dim, hidden=128):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(state_dim + action_dim, hidden), nn.ReLU(),
+            nn.Linear(hidden, hidden), nn.ReLU(),
+            nn.Linear(hidden, 1)
+        )
+    def forward(self, s, a):
+        return self.net(torch.cat([s, a], dim=-1))
+
+# ========== TD3 算法 ==========
+class TD3:
+    def __init__(self, state_dim=4, action_dim=1, gamma=0.99, tau=0.005,
+                 policy_noise=0.2, noise_clip=0.5, policy_delay=2,
+                 lr=3e-4, buffer_size=100000, batch_size=128):
+        self.gamma = gamma
+        self.tau = tau
+        self.policy_noise = policy_noise
+        self.noise_clip = noise_clip
+        self.policy_delay = policy_delay
+        self.batch_size = batch_size
+
+        # 主网络
+        self.actor = Actor(state_dim, action_dim)
+        self.critic1 = Critic(state_dim, action_dim)
+        self.critic2 = Critic(state_dim, action_dim)
+        # 目标网络
+        self.actor_target = Actor(state_dim, action_dim)
+        self.critic1_target = Critic(state_dim, action_dim)
+        self.critic2_target = Critic(state_dim, action_dim)
+        # 初始化目标网络 = 主网络
+        self.actor_target.load_state_dict(self.actor.state_dict())
+        self.critic1_target.load_state_dict(self.critic1.state_dict())
+        self.critic2_target.load_state_dict(self.critic2.state_dict())
+        # 优化器
+        self.actor_opt = torch.optim.Adam(self.actor.parameters(), lr=lr)
+        self.critic1_opt = torch.optim.Adam(self.critic1.parameters(), lr=lr)
+        self.critic2_opt = torch.optim.Adam(self.critic2.parameters(), lr=lr)
+        # 经验回放
+        self.buffer = deque(maxlen=buffer_size)
+        self.total_updates = 0
+
+    def select_action(self, state, explore_noise=0.1):
+        s = torch.FloatTensor(state).unsqueeze(0)
+        with torch.no_grad():
+            a = self.actor(s).squeeze(0).numpy()
+        a += np.random.normal(0, explore_noise, size=a.shape)
+        return np.clip(a, 0, 1)
+
+    def store(self, s, a, r, s_next, done):
+        self.buffer.append((s, a, r, s_next, float(done)))
+
+    def update(self):
+        if len(self.buffer) < self.batch_size:
+            return
+        batch = random.sample(self.buffer, self.batch_size)
+        s, a, r, s2, d = zip(*batch)
+        s  = torch.FloatTensor(np.array(s))
+        a  = torch.FloatTensor(np.array(a))
+        r  = torch.FloatTensor(r).unsqueeze(1)
+        s2 = torch.FloatTensor(np.array(s2))
+        d  = torch.FloatTensor(d).unsqueeze(1)
+
+        with torch.no_grad():
+            # 目标策略平滑
+            noise = (torch.randn_like(a) * self.policy_noise
+                     ).clamp(-self.noise_clip, self.noise_clip)
+            a2 = (self.actor_target(s2) + noise).clamp(0, 1)
+            # Twin Critics 取最小值
+            target_q = torch.min(
+                self.critic1_target(s2, a2),
+                self.critic2_target(s2, a2)
+            )
+            y = r + (1 - d) * self.gamma * target_q
+
+        # 更新两个 Critic
+        loss1 = F.mse_loss(self.critic1(s, a), y)
+        self.critic1_opt.zero_grad(); loss1.backward(); self.critic1_opt.step()
+        loss2 = F.mse_loss(self.critic2(s, a), y)
+        self.critic2_opt.zero_grad(); loss2.backward(); self.critic2_opt.step()
+
+        self.total_updates += 1
+        # 延迟更新 Actor 和目标网络
+        if self.total_updates % self.policy_delay == 0:
+            actor_loss = -self.critic1(s, self.actor(s)).mean()
+            self.actor_opt.zero_grad(); actor_loss.backward(); self.actor_opt.step()
+            # 软更新目标网络
+            for p, pt in zip(self.actor.parameters(), self.actor_target.parameters()):
+                pt.data.copy_(self.tau * p.data + (1 - self.tau) * pt.data)
+            for p, pt in zip(self.critic1.parameters(), self.critic1_target.parameters()):
+                pt.data.copy_(self.tau * p.data + (1 - self.tau) * pt.data)
+            for p, pt in zip(self.critic2.parameters(), self.critic2_target.parameters()):
+                pt.data.copy_(self.tau * p.data + (1 - self.tau) * pt.data)
+
+# ========== 训练 ==========
+env = RTBEnv()
+agent = TD3()
+episode_rewards = []
+
+for ep in range(300):
+    obs = env.reset()
+    total_reward = 0
+    while not env.done:
+        action = agent.select_action(obs, explore_noise=0.1)
+        next_obs, reward, done = env.step(action[0])
+        agent.store(obs, action, reward, next_obs, done)
+        agent.update()
+        obs = next_obs
+        total_reward += reward
+    episode_rewards.append(total_reward)
+    if (ep + 1) % 50 == 0:
+        avg = np.mean(episode_rewards[-50:])
+        print(f"Episode {ep+1}, 近50轮平均回报: {avg:.2f}")</code></pre>
+
+            <p>代码中标注了 TD3 的三项核心改进所在：<code>update</code> 方法中的 Twin Critics（两个 Critic 分别更新）、目标策略平滑（<code>noise</code> 和 <code>a2</code> 的计算）以及延迟更新（<code>policy_delay</code> 条件判断）。</p>
+
+            <p>值得注意实现中的几个细节：</p>
+            <ul>
+                <li><strong>动作范围</strong>。Actor 的最后一层使用 $\text{Sigmoid}$ 激活函数，确保输出在 $[0, 1]$ 范围内。更一般的情况下（如动作范围为 $[a_{\text{low}}, a_{\text{high}}]$），可以用 $\text{Tanh}$ 激活后做线性变换。</li>
+                <li><strong>Actor 损失</strong>。<code>actor_loss = -self.critic1(s, self.actor(s)).mean()</code> 对应公式(5.3-8)的负值（因为 PyTorch 做梯度下降，取负号变成梯度上升）。注意只使用 $Q_{\phi_1}$，不使用 $Q_{\phi_2}$。</li>
+                <li><strong>探索噪声与目标噪声</strong>。探索噪声（<code>explore_noise=0.1</code>）用于数据采集时的探索，目标噪声（<code>policy_noise=0.2</code>）用于计算 TD 目标时的平滑。两者的作用不同。</li>
+            </ul>
 
             <!-- ==================== 小结 ==================== -->
             <h2>小结</h2>
 
-            <p>SAC将离策略学习、Actor-Critic架构和最大熵正则化三者结合，在连续动作空间问题上表现出色。下面将本章介绍的三种算法从多个维度进行对比：</p>
+            <p>本节从确定性策略出发，介绍了 DDPG 和 TD3 两种面向连续动作空间的 off-policy 深度强化学习算法。</p>
+
+            <p>DDPG 将确定性策略梯度定理与 DQN 的经验回放和目标网络相结合，首次实现了端到端的连续控制深度强化学习。但 DDPG 受 $Q$ 值过估计问题困扰，训练稳定性不足。TD3 通过三项简洁的改进（双 Critic、延迟更新、目标平滑）系统性地解决了这个问题。</p>
 
             <table class="trans-table" style="width:100%;">
                 <thead>
-                    <tr><th>比较维度</th><th>DQN (5.1节)</th><th>PPO (5.2节)</th><th>SAC (5.3节)</th></tr>
+                    <tr><th>比较维度</th><th>PPO（5.2节）</th><th>DDPG</th><th>TD3</th></tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td><strong>动作空间</strong></td>
-                        <td>离散</td>
-                        <td>离散 / 连续</td>
-                        <td>连续（为主）</td>
-                    </tr>
-                    <tr>
-                        <td><strong>策略类型</strong></td>
-                        <td>离策略（off-policy）</td>
-                        <td>在策略（on-policy）</td>
-                        <td>离策略（off-policy）</td>
-                    </tr>
-                    <tr>
-                        <td><strong>样本效率</strong></td>
-                        <td>较高（经验回放）</td>
-                        <td>较低（数据用后丢弃）</td>
-                        <td>高（经验回放）</td>
-                    </tr>
-                    <tr>
-                        <td><strong>训练稳定性</strong></td>
-                        <td>中等（需要多种技巧）</td>
-                        <td>高（裁剪机制）</td>
-                        <td>高（熵正则化 + 双Q网络）</td>
-                    </tr>
-                    <tr>
-                        <td><strong>探索机制</strong></td>
-                        <td>$\varepsilon$-greedy</td>
-                        <td>策略自身的随机性</td>
-                        <td>最大熵（自动调节）</td>
-                    </tr>
-                    <tr>
-                        <td><strong>核心网络</strong></td>
-                        <td>Q网络 + 目标网络</td>
-                        <td>策略网络 + 值网络</td>
-                        <td>策略网络 + 双Q网络 + 目标网络</td>
-                    </tr>
-                    <tr>
-                        <td><strong>超参数敏感度</strong></td>
-                        <td>中等</td>
-                        <td>较低</td>
-                        <td>低（自动温度调节）</td>
-                    </tr>
-                    <tr>
-                        <td><strong>典型应用场景</strong></td>
-                        <td>状态复杂但动作有限<br>（如交通信号控制）</td>
-                        <td>通用，尤其适合<br>离散决策和初学者</td>
-                        <td>连续控制为主<br>（如调度、定价、库存）</td>
-                    </tr>
+                    <tr><td>策略类型</td><td>随机</td><td>确定性</td><td>确定性</td></tr>
+                    <tr><td>数据利用</td><td>On-policy</td><td>Off-policy</td><td>Off-policy</td></tr>
+                    <tr><td>探索方式</td><td>策略自带随机性</td><td>行为噪声</td><td>行为噪声</td></tr>
+                    <tr><td>$Q$ 过估计</td><td>不涉及</td><td>严重</td><td>受控（Twin + Smooth）</td></tr>
+                    <tr><td>数据效率</td><td>较低（on-policy）</td><td>较高（replay）</td><td>较高（replay）</td></tr>
+                    <tr><td>训练稳定性</td><td>较好（裁剪）</td><td>差</td><td>较好</td></tr>
                 </tbody>
             </table>
 
-            <div class="result-box">
-                <strong>算法选择的经验法则：</strong><br>
-                动作空间离散且较小 → 优先考虑 <strong>DQN</strong>；<br>
-                希望快速上手、追求训练稳定 → 优先考虑 <strong>PPO</strong>；<br>
-                动作空间连续且仿真成本高 → 优先考虑 <strong>SAC</strong>。
-            </div>
+            <p>TD3 仍然需要手动设置探索噪声的大小，这个超参数对性能有显著影响：噪声太小则探索不足，噪声太大则数据质量差。下一节将要介绍的 <strong>Soft Actor-Critic</strong>（SAC）从一个不同的角度解决了这个问题：它将策略的随机性（熵）纳入优化目标，让智能体自动学习合适的探索程度。</p>
 
-            <p>实际研究中，建议先用PPO验证问题建模是否合理（因为PPO最容易调通），再根据需要切换到SAC以提高样本效率。下一节将介绍一种与 3.1-3.3 截然不同的范式：基于模型的深度强化学习，通过学习环境动态模型来大幅提高样本效率。</p>
+            <div class="result-box">
+                <strong>核心要点：</strong>DDPG 用确定性策略 + DQN 技术实现了连续动作的 off-policy 学习；TD3 通过双 Critic（抑制过估计）、延迟更新（稳定 Actor 学习）、目标平滑（避免利用 $Q$ 的窄峰）三项改进，显著提升了训练的稳定性和性能。在连续控制的 off-policy 场景中，TD3 是一个简洁、可靠的基线选择。
+            </div>
 
             <div class="chapter-nav">
                 <a href="../ch05/5.2.html">&larr; 5.2 Policy Gradient与PPO</a>
-                <a href="../ch05/5.4.html">5.4 基于模型的深度强化学习 &rarr;</a>
+                <a href="../ch05/5.4.html">5.4 Soft Actor-Critic &rarr;</a>
             </div>
         </main>
     </div>
-
-    <!-- ==================== SAC 交互演示 JS ==================== -->
-    <script>
-    (function(){
-        /* ---------- 简化版 SAC 演示：库存补货 ---------- */
-        /* 状态：库存水平（离散化为若干bin便于可视化）
-           动作：补货量 ∈ [0, 50]，用高斯策略表示
-           演示重点：策略分布的变化 + 熵的下降 */
-
-        var ALPHA = 0.2;   // 温度系数
-        var GAMMA = 0.95;
-        var LR_Q = 0.01;   // Q 学习率
-        var LR_PI = 0.005; // 策略学习率
-        var TAU = 0.01;    // 目标网络软更新率
-
-        // 库存参数
-        var PRICE = 10, HOLD = 1, STOCK_OUT = 5, ORDER_COST = 3;
-        var DEMAND_MU = 20, DEMAND_STD = 8;
-        var MAX_INV = 100, MAX_ORDER = 50;
-
-        // 状态离散化：5个bin [0,20), [20,40), [40,60), [60,80), [80,100]
-        var N_BINS = 5;
-        var BIN_LABELS = ['0-20', '20-40', '40-60', '60-80', '80-100'];
-        var BIN_CENTERS = [10, 30, 50, 70, 90];
-
-        // 动作网格（用于可视化Q值和策略）
-        var N_A_GRID = 51; // 0..50
-
-        // 简化的Q表：Q[bin][a_grid] 和 目标Q表
-        var Q1, Q2, Q1_tgt, Q2_tgt;
-        // 策略参数：每个bin一个 (mu, log_sigma)
-        var piMu, piLogSig;
-        var totalSteps, rewardHistory, entropyHistory;
-        var curState; // 当前库存（连续值）
-
-        function stateToBin(s) {
-            var b = Math.floor(s / 20);
-            return Math.min(b, N_BINS - 1);
-        }
-
-        function clamp(x, lo, hi) { return Math.max(lo, Math.min(hi, x)); }
-
-        function gaussPdf(x, mu, sigma) {
-            var z = (x - mu) / sigma;
-            return Math.exp(-0.5 * z * z) / (sigma * Math.sqrt(2 * Math.PI));
-        }
-
-        function gaussLogProb(x, mu, sigma) {
-            var z = (x - mu) / sigma;
-            return -0.5 * z * z - Math.log(sigma) - 0.5 * Math.log(2 * Math.PI);
-        }
-
-        function sampleGauss(mu, sigma) {
-            // Box-Muller
-            var u1 = Math.random(), u2 = Math.random();
-            var z = Math.sqrt(-2 * Math.log(u1 + 1e-8)) * Math.cos(2 * Math.PI * u2);
-            return mu + sigma * z;
-        }
-
-        function sampleDemand() {
-            var d = sampleGauss(DEMAND_MU, DEMAND_STD);
-            return Math.max(0, d);
-        }
-
-        function computeReward(inv, order, demand) {
-            var avail = inv + order;
-            var sold = Math.min(avail, demand);
-            var leftover = Math.max(avail - demand, 0);
-            var shortfall = Math.max(demand - avail, 0);
-            return PRICE * sold - HOLD * leftover - STOCK_OUT * shortfall - ORDER_COST * order;
-        }
-
-        function initArrays() {
-            Q1 = []; Q2 = []; Q1_tgt = []; Q2_tgt = [];
-            for (var b = 0; b < N_BINS; b++) {
-                Q1[b] = []; Q2[b] = []; Q1_tgt[b] = []; Q2_tgt[b] = [];
-                for (var a = 0; a < N_A_GRID; a++) {
-                    Q1[b][a] = 0; Q2[b][a] = 0; Q1_tgt[b][a] = 0; Q2_tgt[b][a] = 0;
-                }
-            }
-            piMu = []; piLogSig = [];
-            for (var b = 0; b < N_BINS; b++) {
-                piMu[b] = 25;         // 初始均值
-                piLogSig[b] = Math.log(12); // 初始标准差较大（探索）
-            }
-        }
-
-        function getAction(bin) {
-            var sigma = Math.exp(piLogSig[bin]);
-            var a = sampleGauss(piMu[bin], sigma);
-            return clamp(a, 0, MAX_ORDER);
-        }
-
-        function getQmin(bin, aIdx) {
-            return Math.min(Q1[bin][aIdx], Q2[bin][aIdx]);
-        }
-        function getQminTgt(bin, aIdx) {
-            return Math.min(Q1_tgt[bin][aIdx], Q2_tgt[bin][aIdx]);
-        }
-
-        function actionToIdx(a) {
-            return clamp(Math.round(a), 0, MAX_ORDER);
-        }
-
-        function trainStep() {
-            // 1. 与环境交互
-            var bin = stateToBin(curState);
-            var action = getAction(bin);
-            var aIdx = actionToIdx(action);
-            var demand = sampleDemand();
-            var reward = computeReward(curState, action, demand);
-            var nextState = clamp(curState + action - demand, 0, MAX_INV);
-            var nextBin = stateToBin(nextState);
-
-            // 2. 计算TD目标（使用目标网络）
-            var nextAction = getAction(nextBin);
-            var nextAIdx = actionToIdx(nextAction);
-            var nextSigma = Math.exp(piLogSig[nextBin]);
-            var nextLogProb = gaussLogProb(nextAction, piMu[nextBin], nextSigma);
-            var qTargetVal = getQminTgt(nextBin, nextAIdx) - ALPHA * nextLogProb;
-            var y = reward + GAMMA * qTargetVal;
-
-            // 3. 更新Q网络（向TD目标靠近）
-            var err1 = Q1[bin][aIdx] - y;
-            var err2 = Q2[bin][aIdx] - y;
-            Q1[bin][aIdx] -= LR_Q * err1;
-            Q2[bin][aIdx] -= LR_Q * err2;
-
-            // 4. 更新策略网络（梯度上升）
-            // 目标：最大化 E[Q_min(s, a~) - alpha * log pi(a~|s)]
-            // 使用数值近似：在当前 mu 附近采样几个动作，计算加权梯度
-            var sigma = Math.exp(piLogSig[bin]);
-            var gradMu = 0, gradLogSig = 0;
-            var nSamples = 5;
-            for (var k = 0; k < nSamples; k++) {
-                var eps = sampleGauss(0, 1);
-                var aSample = clamp(piMu[bin] + sigma * eps, 0, MAX_ORDER);
-                var aI = actionToIdx(aSample);
-                var qVal = getQmin(bin, aI);
-                var lp = gaussLogProb(aSample, piMu[bin], sigma);
-                // d/d_mu [Q - alpha * log pi] ≈ d/d_mu Q * (da/d_mu) + alpha * (a-mu)/sigma^2
-                // 简化：score function 梯度
-                var score_mu = (aSample - piMu[bin]) / (sigma * sigma);
-                var score_logsig = ((aSample - piMu[bin]) * (aSample - piMu[bin]) / (sigma * sigma) - 1);
-                var advantage = qVal - ALPHA * lp;
-                gradMu += score_mu * advantage / nSamples;
-                gradLogSig += score_logsig * advantage / nSamples;
-            }
-            piMu[bin] += LR_PI * gradMu;
-            piMu[bin] = clamp(piMu[bin], 0, MAX_ORDER);
-            piLogSig[bin] += LR_PI * 0.1 * gradLogSig;
-            piLogSig[bin] = clamp(piLogSig[bin], Math.log(1), Math.log(20));
-
-            // 5. 软更新目标网络
-            for (var a2 = 0; a2 < N_A_GRID; a2++) {
-                Q1_tgt[bin][a2] = TAU * Q1[bin][a2] + (1 - TAU) * Q1_tgt[bin][a2];
-                Q2_tgt[bin][a2] = TAU * Q2[bin][a2] + (1 - TAU) * Q2_tgt[bin][a2];
-            }
-
-            curState = nextState;
-            totalSteps++;
-            return { reward: reward, sigma: sigma };
-        }
-
-        function computeAvgEntropy() {
-            var total = 0;
-            for (var b = 0; b < N_BINS; b++) {
-                var sigma = Math.exp(piLogSig[b]);
-                // 高斯熵 = 0.5 * ln(2*pi*e*sigma^2)
-                total += 0.5 * Math.log(2 * Math.PI * Math.E * sigma * sigma);
-            }
-            return total / N_BINS;
-        }
-
-        /* ---------- 绘图 ---------- */
-        function drawPolicy() {
-            var cvs = document.getElementById('cvs-policy');
-            if (!cvs) return;
-            var ctx = cvs.getContext('2d');
-            var W = cvs.width, H = cvs.height;
-            ctx.clearRect(0, 0, W, H);
-
-            var padL = 55, padR = 15, padT = 25, padB = 45;
-            var plotW = W - padL - padR, plotH = H - padT - padB;
-
-            // 坐标轴
-            ctx.strokeStyle = '#a0aec0';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(padL, padT);
-            ctx.lineTo(padL, padT + plotH);
-            ctx.lineTo(padL + plotW, padT + plotH);
-            ctx.stroke();
-
-            // X轴标签
-            ctx.fillStyle = '#4a5568';
-            ctx.font = '11px sans-serif';
-            ctx.textAlign = 'center';
-            for (var i = 0; i <= 5; i++) {
-                var xVal = i * 10;
-                var x = padL + (xVal / 50) * plotW;
-                ctx.fillText(xVal.toString(), x, padT + plotH + 15);
-                if (i > 0) {
-                    ctx.strokeStyle = '#e2e8f0';
-                    ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, padT + plotH); ctx.stroke();
-                }
-            }
-            ctx.fillText('补货量 a', padL + plotW / 2, padT + plotH + 35);
-
-            // Y轴标签
-            ctx.save();
-            ctx.translate(14, padT + plotH / 2);
-            ctx.rotate(-Math.PI / 2);
-            ctx.textAlign = 'center';
-            ctx.fillText('概率密度', 0, 0);
-            ctx.restore();
-
-            // 画三个典型状态的策略分布
-            var colors = ['#e53e3e', '#2b6cb0', '#38a169'];
-            var binsToDraw = [0, 2, 4]; // 低/中/高库存
-            var labels = ['低库存(0-20)', '中库存(40-60)', '高库存(80-100)'];
-
-            // 找最大密度来归一化
-            var maxDensity = 0.001;
-            for (var bi = 0; bi < binsToDraw.length; bi++) {
-                var b = binsToDraw[bi];
-                var mu = piMu[b], sig = Math.exp(piLogSig[b]);
-                maxDensity = Math.max(maxDensity, gaussPdf(mu, mu, sig));
-            }
-
-            for (var bi = 0; bi < binsToDraw.length; bi++) {
-                var b = binsToDraw[bi];
-                var mu = piMu[b], sig = Math.exp(piLogSig[b]);
-                ctx.strokeStyle = colors[bi];
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                for (var xi = 0; xi <= 200; xi++) {
-                    var aVal = (xi / 200) * 50;
-                    var density = gaussPdf(aVal, mu, sig);
-                    var px = padL + (aVal / 50) * plotW;
-                    var py = padT + plotH - (density / (maxDensity * 1.15)) * plotH;
-                    if (xi === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-                }
-                ctx.stroke();
-
-                // 图例
-                var ly = padT + 8 + bi * 18;
-                ctx.fillStyle = colors[bi];
-                ctx.beginPath();
-                ctx.moveTo(padL + plotW - 140, ly); ctx.lineTo(padL + plotW - 120, ly);
-                ctx.strokeStyle = colors[bi]; ctx.lineWidth = 2; ctx.stroke();
-                ctx.font = '11px sans-serif';
-                ctx.textAlign = 'left';
-                ctx.fillText(labels[bi], padL + plotW - 115, ly + 4);
-            }
-        }
-
-        function drawEntropy() {
-            var cvs = document.getElementById('cvs-entropy');
-            if (!cvs) return;
-            var ctx = cvs.getContext('2d');
-            var W = cvs.width, H = cvs.height;
-            ctx.clearRect(0, 0, W, H);
-
-            var padL = 55, padR = 55, padT = 25, padB = 45;
-            var plotW = W - padL - padR, plotH = H - padT - padB;
-
-            // 坐标轴
-            ctx.strokeStyle = '#a0aec0';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(padL, padT);
-            ctx.lineTo(padL, padT + plotH);
-            ctx.lineTo(padL + plotW, padT + plotH);
-            ctx.stroke();
-
-            if (entropyHistory.length < 2) {
-                ctx.fillStyle = '#a0aec0';
-                ctx.font = '13px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('开始训练后显示曲线', padL + plotW / 2, padT + plotH / 2);
-                return;
-            }
-
-            var n = entropyHistory.length;
-
-            // X轴
-            ctx.fillStyle = '#4a5568';
-            ctx.font = '11px sans-serif';
-            ctx.textAlign = 'center';
-            var maxStep = n * 50; // 每50步记录一次
-            for (var i = 0; i <= 4; i++) {
-                var xVal = Math.round(maxStep * i / 4);
-                var x = padL + (i / 4) * plotW;
-                ctx.fillText(xVal.toString(), x, padT + plotH + 15);
-            }
-            ctx.fillText('训练步数', padL + plotW / 2, padT + plotH + 35);
-
-            // 画熵曲线
-            var minE = Infinity, maxE = -Infinity;
-            for (var i = 0; i < n; i++) {
-                minE = Math.min(minE, entropyHistory[i]);
-                maxE = Math.max(maxE, entropyHistory[i]);
-            }
-            if (maxE - minE < 0.1) { maxE = minE + 1; }
-            var rangeE = maxE - minE;
-
-            ctx.strokeStyle = '#e53e3e';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            for (var i = 0; i < n; i++) {
-                var px = padL + (i / (n - 1)) * plotW;
-                var py = padT + plotH - ((entropyHistory[i] - minE) / rangeE) * plotH;
-                if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-            }
-            ctx.stroke();
-
-            // Y轴标签（熵）
-            ctx.save();
-            ctx.fillStyle = '#e53e3e';
-            ctx.translate(14, padT + plotH / 2);
-            ctx.rotate(-Math.PI / 2);
-            ctx.textAlign = 'center';
-            ctx.font = '11px sans-serif';
-            ctx.fillText('策略熵', 0, 0);
-            ctx.restore();
-
-            // 画奖励曲线（右Y轴）
-            var minR = Infinity, maxR = -Infinity;
-            for (var i = 0; i < n; i++) {
-                minR = Math.min(minR, rewardHistory[i]);
-                maxR = Math.max(maxR, rewardHistory[i]);
-            }
-            if (maxR - minR < 1) { maxR = minR + 10; }
-            var rangeR = maxR - minR;
-
-            ctx.strokeStyle = '#2b6cb0';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            for (var i = 0; i < n; i++) {
-                var px = padL + (i / (n - 1)) * plotW;
-                var py = padT + plotH - ((rewardHistory[i] - minR) / rangeR) * plotH;
-                if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-            }
-            ctx.stroke();
-
-            // 右Y轴标签
-            ctx.strokeStyle = '#a0aec0';
-            ctx.beginPath();
-            ctx.moveTo(padL + plotW, padT);
-            ctx.lineTo(padL + plotW, padT + plotH);
-            ctx.stroke();
-
-            ctx.save();
-            ctx.fillStyle = '#2b6cb0';
-            ctx.translate(W - 8, padT + plotH / 2);
-            ctx.rotate(-Math.PI / 2);
-            ctx.textAlign = 'center';
-            ctx.font = '11px sans-serif';
-            ctx.fillText('平均奖励', 0, 0);
-            ctx.restore();
-
-            // 图例
-            ctx.lineWidth = 2;
-            var lx = padL + 10, ly = padT + 10;
-            ctx.strokeStyle = '#e53e3e'; ctx.beginPath();
-            ctx.moveTo(lx, ly); ctx.lineTo(lx + 20, ly); ctx.stroke();
-            ctx.fillStyle = '#e53e3e'; ctx.font = '11px sans-serif'; ctx.textAlign = 'left';
-            ctx.fillText('策略熵', lx + 25, ly + 4);
-
-            ly += 18;
-            ctx.strokeStyle = '#2b6cb0'; ctx.beginPath();
-            ctx.moveTo(lx, ly); ctx.lineTo(lx + 20, ly); ctx.stroke();
-            ctx.fillStyle = '#2b6cb0';
-            ctx.fillText('平均奖励', lx + 25, ly + 4);
-        }
-
-        function updateInfo() {
-            var avgR = '—', avgH = '—';
-            if (rewardHistory.length > 0) {
-                avgR = rewardHistory[rewardHistory.length - 1].toFixed(1);
-                avgH = entropyHistory[entropyHistory.length - 1].toFixed(2);
-            }
-            document.getElementById('sac-info').innerHTML =
-                '已训练 <strong>' + totalSteps + '</strong> 步 | 平均奖励：<strong>' + avgR + '</strong> | 平均策略熵：<strong>' + avgH + '</strong>';
-        }
-
-        function sacResetInternal() {
-            initArrays();
-            totalSteps = 0;
-            rewardHistory = [];
-            entropyHistory = [];
-            curState = 40 + Math.random() * 20; // 初始库存 40~60
-        }
-
-        /* ---------- 全局接口 ---------- */
-        window.sacTrain = function(n) {
-            var rewardBuf = [];
-            for (var i = 0; i < n; i++) {
-                var res = trainStep();
-                rewardBuf.push(res.reward);
-                if (totalSteps % 50 === 0) {
-                    var avgR = 0;
-                    var cnt = Math.min(rewardBuf.length, 50);
-                    for (var j = rewardBuf.length - cnt; j < rewardBuf.length; j++) avgR += rewardBuf[j];
-                    avgR /= cnt;
-                    rewardHistory.push(avgR);
-                    entropyHistory.push(computeAvgEntropy());
-                }
-            }
-            drawPolicy();
-            drawEntropy();
-            updateInfo();
-        };
-
-        window.sacReset = function() {
-            sacResetInternal();
-            drawPolicy();
-            drawEntropy();
-            updateInfo();
-        };
-
-        window.sacSetAlpha = function(val) {
-            ALPHA = parseFloat(val);
-        };
-
-        // 初始化
-        sacResetInternal();
-        // 延迟绘图，等 DOM 完全就绪
-        setTimeout(function(){ drawPolicy(); drawEntropy(); updateInfo(); }, 100);
-    })();
-    </script>
 </body>
 </html>

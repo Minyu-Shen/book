@@ -99,9 +99,10 @@
                 <li class="sidebar-chapter">第五章 深度强化学习算法</li>
                 <li><a href="../ch05/5.1.html" class="active">5.1 Deep Q-Network</a></li>
                 <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
-                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
-                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
-                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li><a href="../ch05/5.3.html">5.3 DDPG与TD3</a></li>
+                <li><a href="../ch05/5.4.html">5.4 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.5.html">5.5 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.6.html">5.6 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
                 <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
                 <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
                 <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
@@ -558,27 +559,184 @@
 
             <p>在实现层面，Double DQN只需修改DQN算法第2(b)(v)步中计算TD目标的方式，其余完全相同。这种微小的修改带来了稳定的性能提升，因此在实践中，Double DQN已经基本取代了原始DQN。</p>
 
+            <!-- ==================== Dueling DQN ==================== -->
+            <h2>Dueling DQN：分离状态价值与动作优势</h2>
+
+            <p>标准DQN的网络直接输出每个动作的 $Q(s,a)$。但在很多状态下，不同动作的Q值差异其实很小——真正重要的是"这个状态本身好不好"（状态价值 $V(s)$），而非"这个动作比平均水平好多少"（优势 $A(s,a)$）。</p>
+
+            <p>Dueling DQN（Wang et al., 2016）将网络的输出层拆分为两个分支：</p>
+
+            <div class="concept-card">
+                <div class="concept-name">Dueling 架构</div>
+                $$Q(s, a;\, \theta) = V(s;\, \theta_V) + \left[A(s, a;\, \theta_A) - \frac{1}{|\mathcal{A}|}\sum_{a'} A(s, a';\, \theta_A)\right] \tag{5.1-9}$$
+                <p style="margin-top:0.5rem;">$V$ 分支输出一个标量（状态价值），$A$ 分支输出 $|\mathcal{A}|$ 个值（每个动作的优势）。减去均值是为了可辨识性：保证 $V$ 分支确实学到状态价值，而非被 $A$ 分支吸收。</p>
+            </div>
+
+            <p>两个分支共享前面的特征提取层，只在最后一两层分叉。这个架构的好处是：在很多状态下（特别是所有动作的Q值都差不多时），网络可以先把 $V(s)$ 学准，不必通过每个动作单独学习。这在动作空间较大时尤其有效。</p>
+
+            <p>Dueling DQN 只改变了网络结构，不改变训练流程——仍然使用经验回放、目标网络和（通常搭配）Double DQN 的 TD 目标。在实现上只需将网络最后一层从直接输出Q值改为分支输出再合并。</p>
+
+            <!-- ==================== Prioritized Experience Replay ==================== -->
+            <h2>优先经验回放（Prioritized Experience Replay）</h2>
+
+            <p>标准DQN的经验回放从缓冲区中<strong>均匀随机</strong>抽取样本。但直觉上，有些经验比其他经验更"值得学习"——那些TD误差较大的样本意味着当前Q网络的预测与实际差距很大，包含更多可学习的信息。</p>
+
+            <p>优先经验回放（Schaul et al., 2016）正是基于这个直觉：按TD误差的大小为每个样本分配采样优先级。TD误差越大，被采样到的概率越高：</p>
+
+            <div class="concept-card">
+                <div class="concept-name">优先采样概率</div>
+                $$P(i) = \frac{p_i^\alpha}{\sum_k p_k^\alpha} \tag{5.1-10}$$
+                <p style="margin-top:0.5rem;">其中 $p_i = |\delta_i| + \epsilon$（TD误差的绝对值加一个小常数 $\epsilon$ 防止优先级为零），$\alpha \in [0, 1]$ 控制优先化的程度：$\alpha = 0$ 退化为均匀采样，$\alpha = 1$ 完全按优先级采样。</p>
+            </div>
+
+            <p>优先采样改变了样本的分布，可能引入偏差。为此需要用<strong>重要性采样权重</strong>来修正：</p>
+
+            $$w_i = \left(\frac{1}{N \cdot P(i)}\right)^\beta \tag{5.1-11}$$
+
+            <p>其中 $\beta$ 从一个较小的值线性递增到 $1$（训练结束时完全修正偏差）。每个样本的梯度乘以 $w_i$ 后再更新网络。</p>
+
+            <p>在实现上，优先经验回放通常用 sum-tree 数据结构高效地按优先级采样，时间复杂度为 $O(\log N)$。</p>
+
+            <!-- ==================== 实践中的组合 ==================== -->
+            <h3>实践中的组合</h3>
+
+            <p>上述三项改进（Double DQN、Dueling 架构、优先经验回放）相互独立，可以自由组合。实践中通常同时启用全部三项，这个组合有时被称为 "D3QN"。Rainbow（Hessel et al., 2018）则进一步整合了六项 DQN 改进，证明这些改进具有互补性。对于管理科学中的离散决策问题，至少启用 Double DQN 和 Dueling 架构是推荐做法，因为代码改动极小但收益显著。</p>
+
+            <!-- ==================== 库存管理小例子 ==================== -->
+            <h2>例子：库存管理的DQN实现</h2>
+
+            <p>为了展示 DQN 在管理科学问题中的完整实现流程，这里用一个简单的库存管理问题作为例子。一个零售商每天需要决定订货量，面对随机需求，目标是最小化持有成本和缺货损失。</p>
+
+            <ul>
+                <li><strong>状态</strong>：当前库存水平 $s \in \{0, 1, \ldots, 30\}$</li>
+                <li><strong>动作</strong>：订货量 $a \in \{0, 5, 10, 15, 20\}$（5个离散档位）</li>
+                <li><strong>需求</strong>：每天随机需求 $D \sim \text{Poisson}(8)$</li>
+                <li><strong>状态转移</strong>：$s' = \min(s + a - D,\; 30)^+$（库存上限30，不允许为负）</li>
+                <li><strong>奖励</strong>：$R = \text{销售收入} - \text{持有成本} - \text{缺货惩罚} - \text{订货成本}$</li>
+            </ul>
+
+            $$R = 10 \cdot \min(s, D) - 1 \cdot (s + a - D)^+ - 5 \cdot (D - s)^+ - 2 \cdot a \tag{5.1-12}$$
+
+<pre><code class="language-python">import torch
+import torch.nn as nn
+import numpy as np
+from collections import deque
+
+# --- 环境 ---
+class InventoryEnv:
+    def __init__(self, max_inv=30, mean_demand=8):
+        self.max_inv = max_inv
+        self.mean_demand = mean_demand
+        self.state = max_inv // 2
+
+    def reset(self):
+        self.state = np.random.randint(0, self.max_inv + 1)
+        return self.state
+
+    def step(self, action_idx):
+        order = [0, 5, 10, 15, 20][action_idx]
+        demand = np.random.poisson(self.mean_demand)
+        sold = min(self.state, demand)
+        revenue = 10 * sold
+        holding = 1 * max(self.state + order - demand, 0)
+        stockout = 5 * max(demand - self.state, 0)
+        order_cost = 2 * order
+        reward = revenue - holding - stockout - order_cost
+        self.state = min(max(self.state + order - demand, 0), self.max_inv)
+        return self.state, reward
+
+# --- Q网络（Dueling架构）---
+class DuelingQNet(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.shared = nn.Sequential(nn.Linear(1, 64), nn.ReLU(), nn.Linear(64, 64), nn.ReLU())
+        self.val = nn.Linear(64, 1)         # V(s) 分支
+        self.adv = nn.Linear(64, 5)         # A(s,a) 分支
+
+    def forward(self, x):
+        h = self.shared(x)
+        v = self.val(h)                     # (batch, 1)
+        a = self.adv(h)                     # (batch, 5)
+        return v + a - a.mean(dim=1, keepdim=True)
+
+# --- 训练 ---
+env = InventoryEnv()
+q_net = DuelingQNet()
+target_net = DuelingQNet()
+target_net.load_state_dict(q_net.state_dict())
+optimizer = torch.optim.Adam(q_net.parameters(), lr=1e-3)
+buf = deque(maxlen=5000)
+gamma, eps, batch_size = 0.99, 1.0, 64
+
+for episode in range(500):
+    s = env.reset()
+    ep_reward = 0
+    for _ in range(200):
+        # ε-greedy
+        if np.random.random() &lt; eps:
+            a = np.random.randint(5)
+        else:
+            with torch.no_grad():
+                q = q_net(torch.tensor([[s / 30.0]], dtype=torch.float32))
+            a = q.argmax().item()
+        s2, r = env.step(a)
+        buf.append((s, a, r, s2))
+        ep_reward += r
+        s = s2
+
+        # 训练
+        if len(buf) >= batch_size:
+            batch = [buf[i] for i in np.random.choice(len(buf), batch_size)]
+            ss = torch.tensor([[b[0]/30.0] for b in batch], dtype=torch.float32)
+            aa = torch.tensor([b[1] for b in batch], dtype=torch.long)
+            rr = torch.tensor([b[2] for b in batch], dtype=torch.float32)
+            ss2 = torch.tensor([[b[3]/30.0] for b in batch], dtype=torch.float32)
+            # Double DQN目标
+            with torch.no_grad():
+                best_a = q_net(ss2).argmax(dim=1)           # 在线网络选动作
+                q_target = target_net(ss2).gather(1, best_a.unsqueeze(1)).squeeze()
+            target = rr + gamma * q_target
+            q_pred = q_net(ss).gather(1, aa.unsqueeze(1)).squeeze()
+            loss = nn.functional.mse_loss(q_pred, target)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+    eps = max(0.05, eps * 0.99)
+    if episode % 10 == 0:
+        target_net.load_state_dict(q_net.state_dict())
+    if episode % 50 == 0:
+        print(f"Episode {episode}, reward={ep_reward:.0f}, ε={eps:.2f}")
+
+# 查看学到的策略
+print("\n学到的补货策略：")
+for s in [0, 5, 10, 15, 20, 25, 30]:
+    with torch.no_grad():
+        q = q_net(torch.tensor([[s / 30.0]], dtype=torch.float32))
+    action = [0, 5, 10, 15, 20][q.argmax().item()]
+    print(f"  库存={s:2d} → 订货 {action}")</code></pre>
+
+            <p>代码中同时使用了 Dueling 架构和 Double DQN 目标。可以观察到，学到的策略符合直觉：库存低时大量订货，库存充足时少订或不订。</p>
+
             <!-- ==================== 小结 ==================== -->
             <h2>小结</h2>
 
-            <p>本节从表格Q-learning出发，逐步引入了神经网络函数近似、经验回放和目标网络三个核心组件，构建了DQN算法。下面梳理它与第一章算法的对应关系：</p>
+            <p>本节从表格Q-learning出发，逐步引入了神经网络函数近似、经验回放和目标网络三个核心组件，构建了DQN算法，并介绍了三项关键改进：</p>
 
             <table class="trans-table" style="width:100%;">
                 <thead>
-                    <tr><th>组件</th><th>第一章中的对应</th><th>DQN中的做法</th></tr>
+                    <tr><th>改进</th><th>解决的问题</th><th>核心思想</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td>值函数表示</td><td>Q表格（3.1.2节）</td><td>Q网络 $Q(s,a;\theta)$</td></tr>
-                    <tr><td>更新规则</td><td>Q-learning更新（公式1.5-9）</td><td>TD损失 + 梯度下降（公式3.1-5）</td></tr>
-                    <tr><td>贝尔曼方程</td><td>贝尔曼最优方程（2.2.2节）</td><td>TD目标 $r + \gamma\max_{a'} Q(s',a';\theta^-)$</td></tr>
-                    <tr><td>稳定训练</td><td>表格方法不需要（直接更新单元格）</td><td>经验回放 + 目标网络</td></tr>
-                    <tr><td>动作选择</td><td>$\varepsilon$-greedy（公式1.5-7）</td><td>同样使用 $\varepsilon$-greedy</td></tr>
+                    <tr><td>Double DQN</td><td>$\max$ 导致的Q值过高估计</td><td>用在线网络选动作、目标网络估值，分离两个角色</td></tr>
+                    <tr><td>Dueling DQN</td><td>无法高效学习状态本身的价值</td><td>将Q网络拆分为 $V$ 和 $A$ 两个分支</td></tr>
+                    <tr><td>优先经验回放</td><td>均匀采样浪费低信息量的样本</td><td>按TD误差大小分配采样优先级</td></tr>
                 </tbody>
             </table>
 
-            <p>DQN的局限性也值得注意。首先，它只适用于<strong>离散动作空间</strong>，因为需要对所有动作取 $\max$。对于连续动作空间（如调整价格、分配资源比例），需要其他方法（见5.2节的策略梯度和5.3节的SAC）。其次，DQN在高维动作空间中效率较低，因为输出层需要为每个动作分配一个节点。</p>
+            <p>这三项改进相互独立，可以自由组合。在管理科学的离散决策问题中（如库存管理、调度决策），推荐至少启用 Double DQN + Dueling 架构。</p>
 
-            <p>尽管如此，DQN作为深度强化学习的开创性工作，其核心思想（函数近似、经验回放、目标网络）已成为几乎所有后续算法的标准组件。理解了DQN，就掌握了深度强化学习的基本范式。</p>
+            <p>DQN 的局限性在于：它只适用于<strong>离散动作空间</strong>，因为需要对所有动作取 $\max$。对于连续动作空间（如调整价格、分配资源比例），需要其他方法——5.3节的 TD3 和5.4节的 SAC 正是为此而生。</p>
 
             <div class="chapter-nav">
                 <a href="../ch04/4.4.html">&larr; 4.4 图神经网络</a>
