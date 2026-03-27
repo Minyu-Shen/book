@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3.1.4 TD(λ)与资格迹 - 运筹智能</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .trans-table { width: auto; border-collapse: collapse; margin: 1rem auto; font-size: 0.95rem; }
+        .trans-table th, .trans-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: center; }
+        .trans-table th { background: var(--primary-color); color: white; }
+        .trans-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .result-box { background: var(--highlight-color); border: 2px solid var(--accent-color); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; text-align: center; }
+        .algo-box { background: #f7fafc; border: 2px solid var(--accent-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .algo-box .algo-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .algo-box ol { margin: 0.3rem 0 0.3rem 1.5rem; line-height: 2; }
+        .algo-box .algo-note { font-size: 0.9rem; color: #718096; margin-top: 0.5rem; }
+        .update-step { background: #fffbeb; border-left: 3px solid #d69e2e; padding: 0.6rem 1rem; margin: 0.8rem 0; border-radius: 0 6px 6px 0; font-size: 0.93rem; line-height: 1.7; }
+        .update-step .step-head { font-weight: 600; color: #975a16; }
+        .derivation { background: var(--sidebar-bg); padding: 1.2rem 1.5rem; border-radius: 6px; margin: 1.5rem 0; }
+        .derivation .step-label { font-weight: 600; color: var(--accent-color); margin-bottom: 0.3rem; }
+        .rl-ctrl { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; margin-bottom:0.8rem; font-size:0.88rem; }
+        .rl-ctrl select { padding:0.2rem 0.4rem; border:1px solid #cbd5e0; border-radius:4px; font-family:inherit; font-size:0.86rem; }
+        .rl-ctrl button { padding:0.3rem 0.7rem; border:1px solid #2b6cb0; background:white; color:#2b6cb0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.84rem; transition:all 0.15s; }
+        .rl-ctrl button:hover { background:#2b6cb0; color:white; }
+        .rl-info { background:#ebf4ff; border-radius:6px; padding:0.4rem 0.8rem; font-size:0.88rem; margin-top:0.6rem; }
+        .fig-caption { text-align:center; font-size:0.92rem; color:#4a5568; margin-top:0.5rem; margin-bottom:1.5rem; }
+        .optional-reading { background:#fafafa; border:1px solid #e2e8f0; border-left:4px solid #a0aec0; border-radius:0 8px 8px 0; margin:2.5rem 0; }
+        .optional-reading summary { padding:1rem 1.5rem; cursor:pointer; font-weight:700; color:#4a5568; font-size:1.1rem; list-style:none; }
+        .optional-reading summary::-webkit-details-marker { display:none; }
+        .optional-reading summary::before { content:'▶ '; font-size:0.8em; margin-right:0.3rem; }
+        .optional-reading[open] summary::before { content:'▼ '; }
+        .optional-reading[open] summary { border-bottom:1px solid #e2e8f0; }
+        .optional-reading .opt-body { padding:1.2rem 1.5rem; }
+        .optional-reading .opt-body h3 { color:var(--primary-color); margin-top:1.8rem; margin-bottom:0.6rem; font-size:1.15rem; }
+        .optional-reading .opt-body h3:first-child { margin-top:0.5rem; }
+        .note { background: #ebf4ff; border-left: 4px solid #2b6cb0; padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; font-size: 0.95rem; line-height: 1.7; }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <script defer src="../../js/code-copy.js"></script>
+</head>
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="book-title"><a href="../../index.html" style="text-decoration:none;color:inherit;">运筹智能</a></div>
+            <nav>
+                <ul>
+                <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
+                <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
+                <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.4.html" class="active">3.1.4 TD(λ)与资格迹</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.3.html">3.2.3 Double Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li><a href="../ch05/5.3.html">5.3 Soft Actor-Critic</a></li>
+                <li><a href="../ch05/5.4.html">5.4 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.5.html">5.5 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>3.1.4 TD($\lambda$)与资格迹</h1>
+
+            <p>前两节分别介绍了 MC 和 TD(0)。MC 使用完整回报 $G_t$（无偏但高方差），TD(0) 使用一步自举目标 $R_t + \gamma V(S_{t+1})$（低方差但有偏）。这两个端点之间是否存在一个连续的过渡？本节将展示：通过引入参数 $\lambda \in [0, 1]$，我们可以在 MC 和 TD(0) 之间自由滑动，获得更灵活的偏差-方差权衡。</p>
+
+            <!-- ==================== n步回报 ==================== -->
+            <h2>$n$ 步回报：从一步到多步</h2>
+
+            <p>TD(0) 只看一步就自举：用 $R_t + \gamma V(S_{t+1})$ 替代完整回报。一个自然的推广是多看几步再自举。定义 $n$ 步回报：</p>
+
+            <div class="concept-card">
+                <div class="concept-name">$n$ 步回报</div>
+                $$G_t^{(n)} = R_t + \gamma R_{t+1} + \cdots + \gamma^{n-1} R_{t+n-1} + \gamma^n V(S_{t+n}) \tag{3.1-10}$$
+                <p style="margin-top:0.5rem;">前 $n$ 步使用实际奖励，第 $n+1$ 步开始用当前估计值 $V(S_{t+n})$ 替代。当 $n=1$ 时就是 TD(0) 的目标 $R_t + \gamma V(S_{t+1})$；当 $n \to \infty$（或 $n$ 等于到回合结束的步数）时就是 MC 的目标 $G_t$。</p>
+            </div>
+
+            <p>$n$ 步回报给出了一族更新目标，形成从 TD(0) 到 MC 的离散谱：</p>
+
+            <table class="trans-table" style="width:100%;">
+                <thead>
+                    <tr><th>$n$</th><th>更新目标 $G_t^{(n)}$</th><th>使用的真实奖励</th><th>自举位置</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>$1$</td><td>$R_t + \gamma V(S_{t+1})$</td><td>1步</td><td>$S_{t+1}$</td></tr>
+                    <tr><td>$2$</td><td>$R_t + \gamma R_{t+1} + \gamma^2 V(S_{t+2})$</td><td>2步</td><td>$S_{t+2}$</td></tr>
+                    <tr><td>$3$</td><td>$R_t + \gamma R_{t+1} + \gamma^2 R_{t+2} + \gamma^3 V(S_{t+3})$</td><td>3步</td><td>$S_{t+3}$</td></tr>
+                    <tr><td>$\vdots$</td><td>$\vdots$</td><td>$\vdots$</td><td>$\vdots$</td></tr>
+                    <tr><td>$\infty$</td><td>$G_t$（完整回报）</td><td>全部</td><td>不自举</td></tr>
+                </tbody>
+            </table>
+
+            <h3>例子：网约车司机的 $n$ 步回报</h3>
+
+            <p>假设司机从市中心 $c$ 出发，按策略 $\pi_1$（总是接单）运营了5步，产生如下轨迹：</p>
+
+            $$c \xrightarrow{R_0=5} c \xrightarrow{R_1=8} b \xrightarrow{R_2=1} b \xrightarrow{R_3=1} b \xrightarrow{R_4=8} a$$
+
+            <p>设 $\gamma = 0.9$，当前的值函数估计为 $V(c) = 40$，$V(b) = 35$，$V(a) = 50$。对时刻 $t=0$ 的状态 $c$，不同 $n$ 对应的回报为：</p>
+
+            <div class="update-step">
+                <div class="step-head">$n=1$（TD(0)）</div>
+                $G_0^{(1)} = R_0 + \gamma V(S_1) = 5 + 0.9 \times 40 = 41.0$
+            </div>
+
+            <div class="update-step">
+                <div class="step-head">$n=2$</div>
+                $G_0^{(2)} = R_0 + \gamma R_1 + \gamma^2 V(S_2) = 5 + 0.9 \times 8 + 0.81 \times 35 = 40.55$
+            </div>
+
+            <div class="update-step">
+                <div class="step-head">$n=3$</div>
+                $G_0^{(3)} = R_0 + \gamma R_1 + \gamma^2 R_2 + \gamma^3 V(S_3) = 5 + 7.2 + 0.81 + 0.729 \times 35 = 38.525$
+            </div>
+
+            <div class="update-step">
+                <div class="step-head">$n=5$（用完所有已知奖励）</div>
+                $G_0^{(5)} = 5 + 0.9 \times 8 + 0.81 \times 1 + 0.729 \times 1 + 0.6561 \times 8 + 0.9^5 \times 50 = 47.79$
+            </div>
+
+            <p>$n$ 越大，回报中包含的真实信息越多，对值函数估计的依赖越少。但 $n$ 越大，涉及的随机转移也越多，方差也越高。选择哪个 $n$ 最好，取决于具体问题。能否不做这个选择，而是把所有 $n$ 步回报综合利用起来？</p>
+
+            <!-- ==================== λ-回报 ==================== -->
+            <h2>$\lambda$-回报：所有 $n$ 步回报的加权平均</h2>
+
+            <p>TD($\lambda$) 的做法是：不选择某一个特定的 $n$，而是对所有 $n$ 步回报取加权平均。权重按几何级数递减：$n$ 步回报的权重为 $(1-\lambda)\lambda^{n-1}$，其中 $\lambda \in [0, 1]$。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">$\lambda$-回报</div>
+                $$G_t^\lambda = (1-\lambda) \sum_{n=1}^{\infty} \lambda^{n-1}\, G_t^{(n)} \tag{3.1-11}$$
+                <p style="margin-top:0.5rem;">系数 $(1-\lambda)\lambda^{n-1}$ 构成一个几何分布：$n=1$ 的权重为 $(1-\lambda)$，$n=2$ 的权重为 $(1-\lambda)\lambda$，$n=3$ 的权重为 $(1-\lambda)\lambda^2$，……所有权重之和为1。</p>
+            </div>
+
+            <p>$\lambda$ 控制了长程信息与短程信息之间的混合比例：</p>
+
+            <ul>
+                <li>$\lambda = 0$ 时，所有权重集中在 $n=1$，$G_t^0 = G_t^{(1)} = R_t + \gamma V(S_{t+1})$，退化为 TD(0)</li>
+                <li>$\lambda = 1$ 时，权重均匀地延伸到无穷远，$G_t^1 = G_t$，退化为 MC</li>
+                <li>$0 < \lambda < 1$ 时，短步回报占更大权重，长步回报的权重指数衰减，在偏差和方差之间取得折中</li>
+            </ul>
+
+            <!-- 权重衰减示意图 -->
+            <div style="text-align:center; margin:1.5rem 0;">
+            <svg width="480" height="200" viewBox="0 0 480 200" style="max-width:100%;">
+                <!-- 坐标轴 -->
+                <line x1="60" y1="170" x2="440" y2="170" stroke="#cbd5e0" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="60" y1="170" x2="60" y2="20" stroke="#cbd5e0" stroke-width="1.5" stroke-linecap="round"/>
+
+                <!-- x轴标签 -->
+                <foreignObject x="50" y="175" width="60" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#4a5568;text-align:center;">$G_t^{(1)}$</div></foreignObject>
+                <foreignObject x="110" y="175" width="60" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#4a5568;text-align:center;">$G_t^{(2)}$</div></foreignObject>
+                <foreignObject x="170" y="175" width="60" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#4a5568;text-align:center;">$G_t^{(3)}$</div></foreignObject>
+                <foreignObject x="230" y="175" width="60" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#4a5568;text-align:center;">$G_t^{(4)}$</div></foreignObject>
+                <foreignObject x="290" y="175" width="60" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#4a5568;text-align:center;">$G_t^{(5)}$</div></foreignObject>
+                <foreignObject x="350" y="175" width="60" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#4a5568;text-align:center;">$G_t^{(6)}$</div></foreignObject>
+                <foreignObject x="395" y="160" width="30" height="20"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px;color:#a0aec0;">$\cdots$</div></foreignObject>
+
+                <!-- y轴标签 -->
+                <foreignObject x="0" y="8" width="55" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#4a5568;text-align:right;">权重</div></foreignObject>
+
+                <!-- λ=0.4 的柱状图 (蓝色) -->
+                <!-- (1-0.4)*0.4^0 = 0.6, (1-0.4)*0.4^1 = 0.24, ... 归一化高度: max=0.6→140px -->
+                <rect x="66" y="30" width="22" height="140" rx="2" fill="#2b6cb0" fill-opacity="0.7"/>
+                <rect x="126" y="87" width="22" height="83" rx="2" fill="#2b6cb0" fill-opacity="0.7"/>
+                <rect x="186" y="120" width="22" height="50" rx="2" fill="#2b6cb0" fill-opacity="0.7"/>
+                <rect x="246" y="140" width="22" height="30" rx="2" fill="#2b6cb0" fill-opacity="0.7"/>
+                <rect x="306" y="152" width="22" height="18" rx="2" fill="#2b6cb0" fill-opacity="0.7"/>
+                <rect x="366" y="159" width="22" height="11" rx="2" fill="#2b6cb0" fill-opacity="0.7"/>
+
+                <!-- λ=0.8 的柱状图 (红色) -->
+                <!-- (1-0.8)*0.8^0 = 0.2, (1-0.8)*0.8^1 = 0.16, ... 归一化高度: 0.2→47px -->
+                <rect x="90" y="123" width="22" height="47" rx="2" fill="#c53030" fill-opacity="0.6"/>
+                <rect x="150" y="132" width="22" height="38" rx="2" fill="#c53030" fill-opacity="0.6"/>
+                <rect x="210" y="140" width="22" height="30" rx="2" fill="#c53030" fill-opacity="0.6"/>
+                <rect x="270" y="146" width="22" height="24" rx="2" fill="#c53030" fill-opacity="0.6"/>
+                <rect x="330" y="151" width="22" height="19" rx="2" fill="#c53030" fill-opacity="0.6"/>
+                <rect x="390" y="155" width="22" height="15" rx="2" fill="#c53030" fill-opacity="0.6"/>
+
+                <!-- 图例 -->
+                <rect x="150" y="4" width="14" height="14" rx="2" fill="#2b6cb0" fill-opacity="0.7"/>
+                <foreignObject x="168" y="2" width="80" height="20"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#2b6cb0;">$\lambda = 0.4$</div></foreignObject>
+                <rect x="260" y="4" width="14" height="14" rx="2" fill="#c53030" fill-opacity="0.6"/>
+                <foreignObject x="278" y="2" width="80" height="20"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#c53030;">$\lambda = 0.8$</div></foreignObject>
+            </svg>
+            <p class="fig-caption">图 3.1-5 &nbsp; $\lambda$-回报中各 $n$ 步回报的权重分布。$\lambda$ 越小，短步回报的权重越集中；$\lambda$ 越大，权重分布越平坦，长步回报获得更多权重。</p>
+            </div>
+
+            <p>有了 $\lambda$-回报，值函数的更新规则就是：</p>
+
+            $$V(S_t) \leftarrow V(S_t) + \alpha\left[G_t^\lambda - V(S_t)\right] \tag{3.1-12}$$
+
+            <p>这称为 $\lambda$-回报的<strong>前向视角</strong>（forward view）：站在时刻 $t$，向前看所有未来的奖励和状态，计算加权平均。前向视角在概念上清晰，但在实现上存在困难——要计算 $G_t^\lambda$，需要知道从 $t$ 之后所有步的奖励和状态，只有在回合结束后才能完成计算。这与 TD 的"每步更新"优势相矛盾。</p>
+
+            <p>解决这个矛盾的工具是<strong>资格迹</strong>（eligibility trace），它提供了一个等价的<strong>后向视角</strong>（backward view），使得每一步都可以在线更新所有状态的值函数。</p>
+
+            <!-- ==================== 资格迹 ==================== -->
+            <h2>资格迹：后向视角</h2>
+
+            <p>资格迹 $e_t(s)$ 为每个状态 $s$ 维护一个实数，记录该状态"最近被访问的程度"。每走一步，所有状态的资格迹按 $\gamma\lambda$ 衰减，而刚被访问的状态的迹增加1：</p>
+
+            <div class="concept-card">
+                <div class="concept-name">累积资格迹（accumulating trace）</div>
+                $$e_t(s) = \begin{cases} \gamma\lambda\, e_{t-1}(s) + 1, & \text{if } s = S_t \\ \gamma\lambda\, e_{t-1}(s), & \text{if } s \neq S_t \end{cases} \tag{3.1-13}$$
+                <p style="margin-top:0.5rem;">初始化 $e_{-1}(s) = 0$，对所有 $s$。乘积 $\gamma\lambda$ 控制迹的衰减速率。</p>
+            </div>
+
+            <p>资格迹的直觉是一种<strong>短期记忆</strong>：它标记了哪些状态对当前的 TD 误差"负有责任"。刚访问过的状态迹值高，很久以前访问的状态迹值接近零。</p>
+
+            <h3>例子：网约车司机的资格迹变化</h3>
+
+            <p>设 $\gamma = 0.9$，$\lambda = 0.8$，乘积 $\gamma\lambda = 0.72$。司机的轨迹为 $c \to c \to b \to b \to b \to a$。三个状态的资格迹变化如下：</p>
+
+            <table class="trans-table" style="width:100%;">
+                <thead>
+                    <tr><th>时刻</th><th>访问状态</th><th>$e_t(c)$</th><th>$e_t(b)$</th><th>$e_t(a)$</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>$t=0$</td><td>$c$</td><td>$0 + 1 = 1$</td><td>$0$</td><td>$0$</td></tr>
+                    <tr><td>$t=1$</td><td>$c$</td><td>$0.72 \times 1 + 1 = 1.72$</td><td>$0$</td><td>$0$</td></tr>
+                    <tr><td>$t=2$</td><td>$b$</td><td>$0.72 \times 1.72 = 1.24$</td><td>$0 + 1 = 1$</td><td>$0$</td></tr>
+                    <tr><td>$t=3$</td><td>$b$</td><td>$0.72 \times 1.24 = 0.89$</td><td>$0.72 \times 1 + 1 = 1.72$</td><td>$0$</td></tr>
+                    <tr><td>$t=4$</td><td>$b$</td><td>$0.72 \times 0.89 = 0.64$</td><td>$0.72 \times 1.72 + 1 = 2.24$</td><td>$0$</td></tr>
+                    <tr><td>$t=5$</td><td>$a$</td><td>$0.72 \times 0.64 = 0.46$</td><td>$0.72 \times 2.24 = 1.61$</td><td>$0 + 1 = 1$</td></tr>
+                </tbody>
+            </table>
+
+            <p>可以看到，$c$ 的资格迹在 $t=1$ 时因被再次访问而增大到 1.72，之后逐步衰减。$b$ 被连续访问三次，迹值不断积累到2.24。到 $t=5$ 时，虽然司机已经到了机场，但 $c$ 和 $b$ 的迹值仍然不为零，意味着当前的 TD 误差仍会回溯更新这些之前访问过的状态。</p>
+
+            <!-- ==================== TD(λ)算法 ==================== -->
+            <h2>TD($\lambda$) 算法</h2>
+
+            <p>有了资格迹，TD($\lambda$) 的每步更新变得简洁：计算当前时刻的 TD 误差 $\delta_t$，然后用它乘以每个状态的资格迹来更新所有状态的值函数。</p>
+
+            <div class="algo-box">
+                <div class="algo-title">TD($\lambda$) 算法</div>
+                <ol>
+                    <li>初始化 $V(s)$ 为任意值，对所有 $s \in \mathcal{S}$</li>
+                    <li>对每个回合（episode）：
+                        <ol type="a">
+                            <li>初始化 $e(s) = 0$，对所有 $s$</li>
+                            <li>初始化状态 $S_0$</li>
+                            <li>对回合中的每一步 $t = 0, 1, 2, \ldots$：
+                                <ol type="i">
+                                    <li>执行策略 $\pi$ 选择的动作，观察 $R_t$ 和 $S_{t+1}$</li>
+                                    <li>$\delta_t \leftarrow R_t + \gamma\,V(S_{t+1}) - V(S_t)$</li>
+                                    <li>$e(S_t) \leftarrow e(S_t) + 1$</li>
+                                    <li>对所有状态 $s$：
+                                        <ul style="list-style:none; margin:0; padding-left:1rem;">
+                                            <li>$V(s) \leftarrow V(s) + \alpha\,\delta_t\,e(s)$</li>
+                                            <li>$e(s) \leftarrow \gamma\lambda\,e(s)$</li>
+                                        </ul>
+                                    </li>
+                                </ol>
+                            </li>
+                        </ol>
+                    </li>
+                </ol>
+                <div class="algo-note">步骤 (iii) 先增加当前状态的迹，步骤 (iv) 中 $\delta_t\,e(s)$ 完成更新后再衰减所有迹。在表格方法中，"对所有状态 $s$"只需遍历迹值非零的状态。</div>
+            </div>
+
+            <p>TD($\lambda$) 的后向视角可以这样理解：每一步产生一个 TD 误差 $\delta_t$，这个误差不仅更新当前状态 $S_t$，还<strong>回溯更新</strong>之前访问过的状态。更新量 $\alpha\,\delta_t\,e_t(s)$ 与资格迹成正比——刚访问过的状态更新多，很久以前访问的状态更新少。这就像给所有"有资格"分享功劳（或承担责任）的状态分配信用。</p>
+
+            <!-- ==================== 前向后向等价 ==================== -->
+            <h3>前向视角与后向视角的等价性</h3>
+
+            <p>前向视角（式 $\text{(3.1-12)}$ 用 $\lambda$-回报更新）和后向视角（用资格迹逐步更新）在离线设置下是等价的：一个回合结束后，每个状态的累计更新量相同。直觉上，前向视角问的是"这个状态的未来回报是多少"，后向视角问的是"当前的误差应该归因给过去的哪些状态"。两种视角殊途同归。</p>
+
+            <details class="optional-reading">
+                <summary>选读：前向视角与后向视角等价性的证明思路</summary>
+                <div class="opt-body">
+                    <h3>离线等价性</h3>
+
+                    <p>考虑一个长度为 $T$ 步的回合。在离线设置中（即值函数在回合结束后才统一更新），前向视角对状态 $s$ 的总更新量为：</p>
+
+                    $$\Delta V^{\text{forward}}(s) = \alpha \sum_{t:\, S_t = s} \left[G_t^\lambda - V(S_t)\right]$$
+
+                    <p>后向视角对状态 $s$ 的总更新量为：</p>
+
+                    $$\Delta V^{\text{backward}}(s) = \alpha \sum_{t=0}^{T-1} \delta_t\, e_t(s)$$
+
+                    <p>要证明二者相等，关键步骤是将 $\lambda$-回报 $G_t^\lambda$ 展开为 TD 误差 $\delta_t, \delta_{t+1}, \ldots$ 的加权和。利用 $G_t^{(n)}$ 的递推关系，可以证明：</p>
+
+                    $$G_t^\lambda - V(S_t) = \sum_{k=0}^{T-1-t} (\gamma\lambda)^k\, \delta_{t+k}$$
+
+                    <p>将此代入前向视角的更新量，交换求和顺序（从"对每个被访问的 $t$ 求和"变为"对每个时刻 $k$ 的 $\delta_k$ 求和"），就能得到后向视角的形式。资格迹 $e_t(s)$ 恰好起到了在交换求和顺序后正确累积权重的作用。</p>
+
+                    <p>严格证明见 Sutton &amp; Barto (2018) 第12章。注意在线设置（每步立即更新 $V$）中两个视角存在微小差异，但实践中可以忽略。</p>
+                </div>
+            </details>
+
+            <!-- ==================== 特殊情况 ==================== -->
+            <h2>两个端点：TD(0) 和 TD(1)</h2>
+
+            <p>$\lambda$ 的两个极端情况值得特别说明：</p>
+
+            <p><strong>$\lambda = 0$：</strong>资格迹在每步衰减因子为 $\gamma \times 0 = 0$，只有当前被访问的状态有非零迹值。因此每一步只更新当前状态 $S_t$，更新量为 $\alpha\,\delta_t$，与 TD(0) 完全相同。</p>
+
+            <p><strong>$\lambda = 1$：</strong>衰减因子为 $\gamma$，迹值衰减较慢。在回合结束时，可以证明每个状态的累计更新量等于 MC 更新。因此 TD(1) 等价于每次访问蒙特卡洛方法（every-visit MC），但 TD(1) 可以在线逐步更新，而不必等到回合结束。</p>
+
+            <div class="result-box">
+                <strong>统一框架：</strong>TD($\lambda$) 通过一个参数 $\lambda \in [0, 1]$ 将 TD(0) 和 MC 连成一个连续统。<br>
+                $\lambda = 0 \Rightarrow$ TD(0)（纯自举，低方差高偏差）<br>
+                $\lambda = 1 \Rightarrow$ MC（纯采样，高方差无偏差）<br>
+                $0 < \lambda < 1 \Rightarrow$ 中间地带，通常 $\lambda \in [0.8, 0.95]$ 效果较好
+            </div>
+
+            <!-- ==================== 交互演示 ==================== -->
+            <h2>交互演示：不同 $\lambda$ 对学习速度的影响</h2>
+
+            <p>在网约车MDP上，用 TD($\lambda$) 估计策略 $\pi_1$（总是接单）的值函数 $V^\pi$。调整 $\lambda$ 观察收敛速度的变化。真实值为 $V^\pi(c) = 52.3$，$V^\pi(b) = 42.3$，$V^\pi(a) = 55.9$。</p>
+
+            <div style="border:2px solid var(--border-color); border-radius:8px; padding:1.2rem; margin:1.5rem 0; background:#fafafa;">
+                <div style="font-weight:700; color:var(--accent-color); margin-bottom:0.6rem; font-size:1.05rem;">交互演示：TD($\lambda$) 学习值函数</div>
+                <div class="rl-ctrl">
+                    <label>$\lambda$：</label>
+                    <select id="tdl-lambda">
+                        <option value="0">0（TD(0)）</option>
+                        <option value="0.4">0.4</option>
+                        <option value="0.8" selected>0.8</option>
+                        <option value="0.95">0.95</option>
+                        <option value="1">1（MC）</option>
+                    </select>
+                    <button onclick="_tdlRun(100)">运行100步</button>
+                    <button onclick="_tdlRun(5000)">快进5000步</button>
+                    <button onclick="_tdlReset()">重置</button>
+                </div>
+                <table class="trans-table">
+                    <thead>
+                        <tr><th>状态</th><th>$V(s)$</th><th>$V^\pi(s)$</th><th>误差</th><th>$e(s)$</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>市中心 ($c$)</td><td id="tdl-v-c">0.0</td><td style="color:#a0aec0;">52.3</td><td id="tdl-err-c">52.3</td><td id="tdl-e-c">0.00</td></tr>
+                        <tr><td>郊区 ($b$)</td><td id="tdl-v-b">0.0</td><td style="color:#a0aec0;">42.3</td><td id="tdl-err-b">42.3</td><td id="tdl-e-b">0.00</td></tr>
+                        <tr><td>机场 ($a$)</td><td id="tdl-v-a">0.0</td><td style="color:#a0aec0;">55.9</td><td id="tdl-err-a">55.9</td><td id="tdl-e-a">0.00</td></tr>
+                    </tbody>
+                </table>
+                <div class="rl-info" id="tdl-info">已更新 <strong>0</strong> 步 &nbsp;|&nbsp; $\lambda = 0.8$</div>
+            </div>
+
+            <p class="fig-caption">图 3.1-6 &nbsp; TD($\lambda$) 交互演示。调整 $\lambda$ 后点击"重置"再运行，观察不同 $\lambda$ 下值函数收敛到真实值的速度差异。</p>
+
+            <!-- ==================== 代码 ==================== -->
+            <h3>Python 实现</h3>
+
+<pre><code class="language-python">import numpy as np
+
+gamma, alpha, lam = 0.9, 0.1, 0.8
+# 网约车MDP: 策略π₁（总是接单）
+T = {
+    'c': {'c': (0.5, 5), 'b': (0.3, 8), 'a': (0.2, 12)},
+    'b': {'c': (0.1, 5), 'b': (0.8, 1), 'a': (0.1, 8)},
+    'a': {'c': (0.6, 14), 'b': (0.4, 10)}
+}
+states = ['c', 'b', 'a']
+
+def step(s):
+    """按策略π₁接单, 返回 (下一状态, 奖励)"""
+    trans = T[s]
+    r, cum = np.random.random(), 0
+    for s_next, (p, reward) in trans.items():
+        cum += p
+        if r &lt; cum:
+            return s_next, reward
+    return s_next, reward
+
+V = {s: 0.0 for s in states}
+for ep in range(3000):
+    e = {s: 0.0 for s in states}       # 每回合重置资格迹
+    s = states[ep % 3]
+    for _ in range(200):
+        s2, R = step(s)
+        delta = R + gamma * V[s2] - V[s]   # TD误差
+        e[s] += 1                           # 累积迹
+        for si in states:
+            V[si] += alpha * delta * e[si]  # 更新所有状态
+            e[si] *= gamma * lam            # 衰减迹
+        s = s2
+
+for s in states:
+    print(f'V({s}) = {V[s]:.1f}')</code></pre>
+
+            <!-- ==================== 小结 ==================== -->
+            <h2>小结</h2>
+
+            <table class="trans-table" style="width:100%;">
+                <thead>
+                    <tr><th>方法</th><th>更新目标</th><th>参数设置</th><th>偏差</th><th>方差</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>TD(0)</td><td>$R_t + \gamma V(S_{t+1})$</td><td>$\lambda = 0$</td><td>有偏</td><td>低</td></tr>
+                    <tr><td>TD($\lambda$)</td><td>$G_t^\lambda$（$\lambda$-回报）</td><td>$0 < \lambda < 1$</td><td>有偏（偏差随 $\lambda$ 增大而减小）</td><td>中等</td></tr>
+                    <tr><td>MC</td><td>$G_t$（完整回报）</td><td>$\lambda = 1$</td><td>无偏</td><td>高</td></tr>
+                </tbody>
+            </table>
+
+            <p>TD($\lambda$) 和资格迹统一了 MC 和 TD 的更新机制。在实践中，$\lambda$ 的最优值取决于问题的结构，通常需要通过实验调整。在深度强化学习中，类似的思想以<strong>广义优势估计</strong>（Generalized Advantage Estimation, GAE）的形式出现，用 $\lambda$-加权的 TD 误差来估计优势函数，这将在第五章 PPO 的训练实践中进一步讨论。</p>
+
+            <div class="chapter-nav">
+                <a href="../ch03/3.1.3.html">&larr; 3.1.3 蒙特卡洛与时序差分的比较</a>
+                <a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法 &rarr;</a>
+            </div>
+        </main>
+    </div>
+
+    <!-- ==================== TD(λ) 交互演示 JS ==================== -->
+    <script>
+    (function(){
+        var GM=0.9, AL=0.1;
+        var TR={c:{c:[.5,5],b:[.3,8],a:[.2,12]},b:{c:[.1,5],b:[.8,1],a:[.1,8]},a:{c:[.6,14],b:[.4,10]}};
+        var SS=['c','b','a'];
+        var VT={c:52.3, b:42.3, a:55.9};
+        var V, E, steps, cur, lam;
+
+        function sampleStep(s){
+            var t=TR[s], r=Math.random(), cum=0, ns, rw;
+            for(var k in t){ cum+=t[k][0]; if(r<cum){ns=k;rw=t[k][1];break;} ns=k;rw=t[k][1]; }
+            return {ns:ns, rw:rw};
+        }
+        function $(id){ return document.getElementById(id); }
+
+        function initV(){
+            V={c:0,b:0,a:0}; E={c:0,b:0,a:0}; steps=0; cur='c';
+            lam=parseFloat($('tdl-lambda').value);
+        }
+
+        function doN(n){
+            lam=parseFloat($('tdl-lambda').value);
+            for(var i=0;i<n;i++){
+                var res=sampleStep(cur);
+                var delta=res.rw+GM*V[res.ns]-V[cur];
+                E[cur]+=1;
+                for(var j=0;j<3;j++){
+                    var si=SS[j];
+                    V[si]+=AL*delta*E[si];
+                    E[si]*=GM*lam;
+                }
+                cur=res.ns;
+                steps++;
+                // 每200步重置迹（模拟回合边界）
+                if(steps%200===0){
+                    E={c:0,b:0,a:0};
+                    cur=SS[Math.floor(Math.random()*3)];
+                }
+            }
+        }
+
+        function upd(){
+            SS.forEach(function(s){
+                $('tdl-v-'+s).textContent=V[s].toFixed(1);
+                $('tdl-err-'+s).textContent=Math.abs(V[s]-VT[s]).toFixed(1);
+                $('tdl-e-'+s).textContent=E[s].toFixed(2);
+                var errPct=Math.abs(V[s]-VT[s])/VT[s];
+                $('tdl-err-'+s).style.color=errPct<0.05?'#276749':errPct<0.15?'#d69e2e':'#c53030';
+            });
+            $('tdl-info').innerHTML='已更新 <strong>'+steps+'</strong> 步 &nbsp;|&nbsp; λ = '+lam;
+        }
+
+        window._tdlRun=function(n){ doN(n); upd(); };
+        window._tdlReset=function(){ initV(); upd(); };
+
+        initV(); upd();
+    })();
+    </script>
+</body>
+</html>
