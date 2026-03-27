@@ -61,9 +61,11 @@
                 <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
                 <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
                 <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.4.html">3.1.4 TD(λ)与资格迹</a></li>
                 <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
                 <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
                 <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.3.html">3.2.3 Double Q-learning</a></li>
                 <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
                 <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
                 <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
@@ -297,11 +299,57 @@
 
             <p>Actor-Critic虽然比REINFORCE更高效，但在实际训练中仍然面临一个棘手的问题：<strong>步长的选择</strong>。学习率太大，策略可能在一次更新后急剧变差，导致后续采集的数据质量下降，形成恶性循环；学习率太小，训练速度又过慢。</p>
 
-            <h3>信任区域的思想</h3>
+            <h3>从参数空间到策略空间：步长问题的根源</h3>
 
-            <p>直觉上，我们希望每次更新都在一个"安全范围"内进行：新策略不要偏离旧策略太远。TRPO（Trust Region Policy Optimization，Schulman et al., 2015）将此想法形式化为一个带约束的优化问题，但其实现涉及二阶优化，计算成本较高。</p>
+            <p>标准梯度上升在<strong>参数空间</strong>中以欧氏距离度量步长：$\|\theta_{\text{new}} - \theta_{\text{old}}\|_2$。但参数空间中的距离与策略分布之间的差异并不对应。考虑一个 softmax 策略：</p>
 
-            <p><strong>PPO</strong>（Proximal Policy Optimization，Schulman et al., 2017）提供了一种更简洁的方案：通过裁剪目标函数来限制策略更新的幅度，无需显式的约束或二阶计算。</p>
+            <ul>
+                <li>如果某个状态下两个动作的偏好值 $h_\theta(s,a_0) = 100$ 和 $h_\theta(s,a_1) = 100$，那么 $\pi_\theta(a_0|s) = 0.5$。将 $h_\theta(s,a_0)$ 增大 $0.01$，策略几乎不变。</li>
+                <li>但如果偏好值为 $h_\theta(s,a_0) = 0$ 和 $h_\theta(s,a_1) = 0$，同样增大 $0.01$，策略变化也很小；而将 $h_\theta(s,a_0)$ 增大 $5$，策略从均匀分布变为 $\pi_\theta(a_0|s) \approx 0.99$，发生了剧烈变化。</li>
+            </ul>
+
+            <p>同样大小的参数更新，在不同的参数区域可能导致截然不同的策略变化幅度。这意味着<strong>固定学习率无法可靠地控制策略变化的大小</strong>，这正是训练不稳定的根源。</p>
+
+            <p>一个自然的想法是：不要在参数空间里度量步长，而是直接在<strong>策略分布空间</strong>里度量步长。也就是说，控制新旧策略之间的分布差异，而不是参数的欧氏距离。衡量两个概率分布差异的标准工具是 $\text{KL}$ 散度：</p>
+
+            $$\text{KL}\big(\pi_{\theta_{\text{old}}}(\cdot|s) \| \pi_\theta(\cdot|s)\big) = \sum_a \pi_{\theta_{\text{old}}}(a|s) \log \frac{\pi_{\theta_{\text{old}}}(a|s)}{\pi_\theta(a|s)}$$
+
+            <p>沿这条思路，研究者们发展出了三代算法，逐步将"信任区域"的思想从理论变为实用。</p>
+
+            <h3>自然策略梯度</h3>
+
+            <p>Kakade（2001）首先指出，在策略优化中应当使用<strong>自然梯度</strong>替代普通梯度。自然梯度用 $\text{Fisher}$ 信息矩阵 $F(\theta)$ 对梯度方向进行修正：</p>
+
+            <div class="formula-block">
+            $$\theta \leftarrow \theta + \alpha\, F(\theta)^{-1} \nabla_\theta J(\theta) \tag{5.2-8a}$$
+            </div>
+
+            <p>其中 $\text{Fisher}$ 信息矩阵定义为：</p>
+
+            $$F(\theta) = \mathbb{E}_{s \sim d^{\pi_\theta},\, a \sim \pi_\theta}\!\left[\nabla_\theta \log \pi_\theta(a|s)\, \nabla_\theta \log \pi_\theta(a|s)^\top\right]$$
+
+            <p>$F(\theta)$ 描述了参数 $\theta$ 的微小变化对策略分布的影响程度。用 $F(\theta)^{-1}$ 左乘梯度后，每一步更新在 $\text{KL}$ 散度意义下的步长近似恒定，不再依赖参数所处的位置。直觉上，在策略对参数敏感的方向走得更谨慎，在策略对参数不敏感的方向走得更大胆。</p>
+
+            <h3>TRPO：信任区域策略优化</h3>
+
+            <p>自然策略梯度的步长 $\alpha$ 仍然是一个固定的超参数。Schulman et al.（2015）提出的 <strong>TRPO</strong>（Trust Region Policy Optimization）将步长控制从固定值改为硬约束：直接要求新旧策略的 $\text{KL}$ 散度不超过一个阈值 $\delta$。</p>
+
+            <div class="formula-block">
+            $$\max_\theta \;\; \mathbb{E}_{s,a \sim \pi_{\theta_{\text{old}}}}\!\left[\frac{\pi_\theta(a|s)}{\pi_{\theta_{\text{old}}}(a|s)}\, A^{\pi_{\theta_{\text{old}}}}(s,a)\right] \quad \text{s.t.} \quad \mathbb{E}_{s \sim \pi_{\theta_{\text{old}}}}\!\left[\text{KL}\big(\pi_{\theta_{\text{old}}}(\cdot|s) \| \pi_\theta(\cdot|s)\big)\right] \leq \delta \tag{5.2-8b}$$
+            </div>
+
+            <p>与自然策略梯度相比，TRPO的硬约束更加鲁棒：无论目标函数的曲率如何变化，更新幅度都不会超出信任区域。在实现上，TRPO用 $\text{Fisher}$ 信息矩阵的二次近似来表示 $\text{KL}$ 约束，然后通过<strong>共轭梯度法</strong>求解方向、<strong>线搜索</strong>确定步长。这套二阶优化流程保证了理论上的单调改进，但实现较为复杂，计算成本也较高。</p>
+
+            <h3>PPO：用裁剪替代约束</h3>
+
+            <p><strong>PPO</strong>（Proximal Policy Optimization，Schulman et al., 2017）的核心观察是：TRPO的 $\text{KL}$ 约束虽然有效，但实现代价太大。能否用一种更简单的方式达到类似效果？PPO给出的答案是：通过裁剪目标函数来限制策略更新的幅度，无需显式的约束或二阶计算。</p>
+
+            <div class="note">
+                <strong>从自然策略梯度到PPO的演进</strong><br><br>
+                <strong>自然策略梯度</strong>（Kakade, 2001）：用 $\text{Fisher}$ 信息矩阵修正梯度方向，在 $\text{KL}$ 散度空间中走等大的步。但步长 $\alpha$ 仍是固定超参数。<br><br>
+                <strong>TRPO</strong>（Schulman et al., 2015）：将步长控制升级为硬约束 $\text{KL} \leq \delta$，保证每次更新都在信任区域内。但需要共轭梯度和线搜索，实现复杂。<br><br>
+                <strong>PPO</strong>（Schulman et al., 2017）：用裁剪目标函数替代 $\text{KL}$ 约束，几行代码即可实现，效果与TRPO相当。成为目前应用最广泛的策略优化算法。
+            </div>
 
             <h3>重要性采样比率</h3>
 
