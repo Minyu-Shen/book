@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5.2.3 例子：机票动态定价 - 运筹智能</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .note { background: var(--highlight-color); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .formula-block { background: var(--code-bg); padding: 1.2rem 1.5rem; margin: 1.5rem 0; border-radius: 6px; overflow-x: auto; text-align: center; }
+        .result-box { background: var(--highlight-color); border: 2px solid var(--accent-color); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; text-align: center; }
+        .fig-caption { text-align:center; font-size:0.9rem; color:#718096; margin-top:0.5rem; margin-bottom:1.5rem; }
+        .ppo-demo { border:2px solid var(--border-color); border-radius:8px; padding:1.2rem; margin:1.5rem 0; background:#fafafa; }
+        .ppo-demo .demo-title { font-weight:700; color:var(--accent-color); margin-bottom:0.6rem; font-size:1.05rem; }
+        .rl-ctrl { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; margin-bottom:0.8rem; font-size:0.88rem; }
+        .rl-ctrl button { padding:0.3rem 0.7rem; border:1px solid #2b6cb0; background:white; color:#2b6cb0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.84rem; transition:all 0.15s; }
+        .rl-ctrl button:hover { background:#2b6cb0; color:white; }
+        .rl-ctrl label { font-size:0.85rem; color:#4a5568; cursor:pointer; }
+        .demo-grid { display:flex; gap:1rem; flex-wrap:wrap; justify-content:center; margin:0.8rem 0; }
+        .demo-panel { flex:1 1 280px; min-width:260px; max-width:340px; }
+        .demo-panel canvas { width:100%; border:1px solid var(--border-color); border-radius:4px; background:white; display:block; }
+        .demo-panel-title { text-align:center; font-size:0.88rem; font-weight:600; color:#1a365d; margin-bottom:0.3rem; }
+        .demo-wide { display:flex; justify-content:center; margin:0.8rem 0; }
+        .demo-wide canvas { border:1px solid var(--border-color); border-radius:4px; background:white; max-width:100%; }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <script defer src="../../js/code-copy.js"></script>
+    <script src="ppo_data.js"></script>
+</head>
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="book-title"><a href="../../index.html" style="text-decoration:none;color:inherit;">运筹智能</a></div>
+            <nav>
+                <ul>
+                <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
+                <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
+                <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.4.html">3.1.4 TD(λ)与资格迹</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.3.html">3.2.3 Double Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.1.1.html">5.1.1 DQN基本算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.1.2.html">5.1.2 DQN的关键改进</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.1.3.html">5.1.3 例子：库存管理</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.1.html">5.2.1 从Actor-Critic到PPO</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.2.html">5.2.2 连续动作空间与重参数化技巧</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.3.html" class="active">5.2.3 例子：机票动态定价</a></li>
+                <li><a href="../ch05/5.3.html">5.3 DDPG与TD3</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.3.1.html">5.3.1 DDPG与TD3算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.3.2.html">5.3.2 例子：广告实时竞价</a></li>
+                <li><a href="../ch05/5.4.html">5.4 Soft Actor-Critic</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.4.1.html">5.4.1 SAC算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.4.2.html">5.4.2 例子：投资组合配置</a></li>
+                <li><a href="../ch05/5.5.html">5.5 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.6.html">5.6 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>5.2.3 例子：机票动态定价</h1>
+
+            <!-- ==================== 问题背景 ==================== -->
+            <h2>问题背景</h2>
+
+            <p>航空公司的收益管理是一个经典的序贯决策问题。一架航班有固定数量的座位，在出发前的若干天内，航空公司每天需要决定明天以什么价格售票。定价过高会导致座位卖不出去，出发时空座浪费；定价过低则白白损失了潜在收入。最优定价策略需要综合考虑当前剩余座位数、距出发的天数以及不确定的市场需求。</p>
+
+            <p>传统的收益管理方法通常先估计一个参数化的需求模型（如用历史数据拟合需求曲线），再基于这个模型求解动态规划。但在实际中，需求模式可能随季节、竞争对手、宏观经济等因素变化，需求模型的准确性难以保证。强化学习提供了另一种思路：<strong>不假设需求分布已知</strong>，而是让算法通过反复试错，直接从与环境的交互中学习定价策略。下面用 PPO 来求解这个问题。</p>
+
+            <!-- ==================== MDP 建模 ==================== -->
+            <h2>MDP 建模</h2>
+
+            <p>将这个问题建模为以下 MDP。每个时间步对应一天，航空公司在每天结束时观察状态，为明天设定票价。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">机票动态定价 MDP</div>
+                <ul style="margin:0.3rem 0 0.3rem 1.5rem; line-height:2;">
+                    <li><strong>状态</strong>：$s_t = \bigl(\text{剩余座位数} / 50,\;\; \text{剩余天数} / 30\bigr) \in [0,1]^2$</li>
+                    <li><strong>动作</strong>：从4个价格档位中选择，$a_t \in \{200, 400, 600, 800\}$ 元</li>
+                    <li><strong>需求</strong>：每天购票人数 $D_t \sim \text{Poisson}(\lambda_t)$，需求强度随价格递减：</li>
+                </ul>
+                $$\lambda_t = 8 \cdot e^{-\text{price}_t / 400} \tag{5.2-14}$$
+                <ul style="margin:0.3rem 0 0.3rem 1.5rem; line-height:2;">
+                    <li><strong>转移</strong>：$\text{售出}_t = \min(D_t,\, \text{剩余座位}_t)$，剩余座位减少相应数量</li>
+                    <li><strong>奖励</strong>：当天售票收入 $R_t = \text{price}_t \times \text{售出}_t$</li>
+                    <li><strong>回合终止</strong>：30天用完或座位售罄</li>
+                </ul>
+                <p style="margin-top:0.5rem; font-size:0.9rem; color:#718096;">折扣因子 $\gamma = 0.99$。RL 智能体不知道式(5.2-14)的需求模型，只能通过观察每天的销售结果来学习。</p>
+            </div>
+
+            <p>需求模型（式(5.2-14)）描述了价格弹性：价格越高，需求强度 $\lambda_t$ 越低。例如，$\text{price} = 200$ 时 $\lambda \approx 4.9$（平均每天近5人购票），$\text{price} = 800$ 时 $\lambda \approx 1.1$（平均约1人）。各价格档的期望日收入为：</p>
+
+            <table style="width:auto; border-collapse:collapse; margin:1rem auto; font-size:0.95rem;">
+                <thead><tr style="background:var(--primary-color); color:white;"><th style="padding:0.4rem 1rem;">票价</th><th style="padding:0.4rem 1rem;">$\lambda$</th><th style="padding:0.4rem 1rem;">期望日收入</th></tr></thead>
+                <tbody>
+                    <tr><td style="padding:0.4rem 1rem; text-align:center;">200</td><td style="padding:0.4rem 1rem; text-align:center;">4.85</td><td style="padding:0.4rem 1rem; text-align:center;">971</td></tr>
+                    <tr style="background:var(--sidebar-bg);"><td style="padding:0.4rem 1rem; text-align:center;">400</td><td style="padding:0.4rem 1rem; text-align:center;">2.94</td><td style="padding:0.4rem 1rem; text-align:center;"><strong>1,177</strong></td></tr>
+                    <tr><td style="padding:0.4rem 1rem; text-align:center;">600</td><td style="padding:0.4rem 1rem; text-align:center;">1.79</td><td style="padding:0.4rem 1rem; text-align:center;">1,071</td></tr>
+                    <tr style="background:var(--sidebar-bg);"><td style="padding:0.4rem 1rem; text-align:center;">800</td><td style="padding:0.4rem 1rem; text-align:center;">1.08</td><td style="padding:0.4rem 1rem; text-align:center;">866</td></tr>
+                </tbody>
+            </table>
+
+            <p>从单日期望收入看，400元档最优（1,177元/天）。但注意：30天的总需求约为 $2.67 \times 30 \approx 80$ 人次，远超50个座位。这意味着<strong>座位是稀缺资源</strong>——如果一味选择低价，虽然日收入高，但大量座位被廉价售出，总收入反而不如用高价慢慢卖。例如始终选600元档，日需求1.79、30天总需求约54，刚好卖完50座，总收入 $600 \times 50 = 30{,}000$ 元——远高于始终选400元的 $400 \times 50 = 20{,}000$ 元。动态规划（<a href="../ch02/2.2.html">2.2节</a>）在需求模型已知时可以精确求解，最优策略的期望总收入约为 $30{,}200$ 元。但我们假装不知道需求模型，用 PPO 来学习。</p>
+
+            <div class="note">
+                <strong>为什么选择离散价格？</strong>本节的动作空间是4个离散档位，PPO 用 softmax 参数化输出每个价格的选择概率。这与5.1.3节 DQN 的库存管理例子设置类似，方便直接对比两种算法。连续定价（将价格建模为连续动作 $a \in [200, 800]$）将在<a href="5.3.html">5.3节</a>和<a href="5.4.html">5.4节</a>中展示。
+            </div>
+
+            <!-- ==================== Step 1 ==================== -->
+            <h2>Step 1：基础 PPO 训练</h2>
+
+            <p>先用标准配置的 PPO（裁剪参数 $\epsilon = 0.2$，每批数据更新 $K = 3$ 轮，GAE $\lambda = 0.95$）来求解这个定价问题。策略网络的输入是归一化的状态向量 $(s_1, s_2) = (\text{剩余座位}/50,\; \text{剩余天数}/30)$，经过一个64维隐藏层，输出4个价格的 softmax 概率。</p>
+
+            <p>点击下方按钮开始训练。左侧为回合总收入的训练曲线，紫色虚线为动态规划最优策略的收入（$\approx 30{,}200$ 元）；右侧展示策略网络在给定状态下输出的价格概率分布如何随训练演变。由于策略依赖于当前状态，右侧面板提供了4种典型状态供切换，读者可以观察策略在不同座位—时间组合下的差异。</p>
+
+            <div class="ppo-demo">
+                <div class="demo-title">交互演示 1：基础 PPO 训练过程</div>
+                <div class="rl-ctrl">
+                    <button id="btn-d1" onclick="demo1.run()">开始训练</button>
+                    <button onclick="demo1.reset()">重置</button>
+                    <span id="d1-status" style="margin-left:0.5rem; color:#718096; font-size:0.82rem;">尚未开始</span>
+                </div>
+                <div class="demo-grid">
+                    <div class="demo-panel">
+                        <div class="demo-panel-title">回合总收入</div>
+                        <canvas id="cv-d1-reward" width="320" height="260"></canvas>
+                    </div>
+                    <div class="demo-panel">
+                        <div class="demo-panel-title">策略分布
+                            <select id="d1-state" onchange="demo1.setState(+this.value)" style="font-size:0.8rem; padding:0.15rem 0.3rem; border:1px solid #cbd5e0; border-radius:3px; margin-left:0.3rem;">
+                                <option value="0">40座 / 25天</option>
+                                <option value="1">5座 / 25天</option>
+                                <option value="2">40座 / 3天</option>
+                                <option value="3">5座 / 3天</option>
+                            </select>
+                        </div>
+                        <canvas id="cv-d1-policy" width="320" height="260"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="fig-caption">图 5.2-8 &nbsp; 基础 PPO 在机票定价问题上的训练过程。左：回合总收入随训练轮数的变化，紫色虚线为 DP 最优。右：策略网络在选定状态下的价格选择概率，可切换不同状态观察策略差异。</div>
+
+            <div class="note">
+                <p>本节所有训练曲线均由 PyTorch 实际训练 PPO 得到，每轮采集32个回合，经7点滑动平均平滑。交互演示1展示单次训练的过程；交互演示2—4及消融实验为5次独立训练（不同随机种子）的平均值，阴影区域为 $\pm 1$ 标准差。完整的训练代码见本节末尾。</p>
+            </div>
+
+            <p>可以观察到：训练初期策略接近均匀随机（4个价格各约25%），总收入约 $19{,}000$ 元。随着训练进行，策略逐渐偏向收入较高的价格档位，总收入稳步上升。约100轮后收敛到 $28{,}000$—$29{,}000$ 元，接近 DP 最优的 $30{,}200$ 元。这个差距来自两个因素：PPO 不知道需求模型，需要从样本中学习；PPO 使用的简单网络架构可能无法精确表达最优策略。</p>
+
+            <p>切换右侧面板的状态可以发现：策略不是对所有状态都选同一个价格。座位相对充裕时（如40座/25天），策略集中在600元；座位稀缺时（如5座/25天），策略转向800元。由于本例中需求旺盛（总需求约80人次 &gt; 50座），座位始终是稀缺资源，策略从不选择低价的200元或400元档。这正是动态定价相比固定定价的优势所在。</p>
+
+            <!-- ==================== Step 2 ==================== -->
+            <h2>Step 2：数据复用轮数 $K$ 的影响</h2>
+
+            <p>PPO 相比 REINFORCE 的一个核心优势是<strong>数据复用</strong>：收集一批轨迹后，可以用同一批数据更新策略多轮（$K$ 轮），而不是用完即丢。裁剪机制保证了即使多次更新，新策略也不会偏离旧策略太远。</p>
+
+            <p>下面对比 $K = 1$（每批数据只更新一次，接近 REINFORCE）与 $K = 3$（标准设置）。其余超参数相同（$\epsilon = 0.2$，$\lambda = 0.95$）。</p>
+
+            <div class="ppo-demo">
+                <div class="demo-title">交互演示 2：数据复用轮数 $K$ 的影响</div>
+                <div class="rl-ctrl">
+                    <button id="btn-d2" onclick="demo2.run()">开始训练</button>
+                    <button onclick="demo2.reset()">重置</button>
+                    <span id="d2-status" style="margin-left:0.5rem; color:#718096; font-size:0.82rem;">尚未开始</span>
+                </div>
+                <div class="demo-wide">
+                    <canvas id="cv-d2" width="620" height="280"></canvas>
+                </div>
+            </div>
+            <div class="fig-caption">图 5.2-9 &nbsp; 数据复用轮数 $K$ 对训练效果的影响。$K=1$（蓝色）每批数据只用一次，收敛慢且方差大；$K=3$（绿色）复用三轮，收敛更快、方差更小。阴影为 $\pm 1$ 标准差，紫色虚线为 DP 最优。</div>
+
+            <p>$K=1$ 时每批数据只用一次就丢弃，样本效率低，训练进展慢。$K=3$ 将同一批数据复用三轮，利用裁剪机制防止策略偏移过远，在样本效率和稳定性之间取得了更好的平衡。从阴影带可以看到，$K=3$ 不仅均值更高，方差也更小。PPO 论文推荐 $K$ 取3到10之间；在更复杂的问题上，$K$ 过大会导致重要性采样比率 $r_t(\theta)$ 偏离1太远，即使有裁剪也会损害学习质量，但在本例这样的低维问题上这一效应不明显。</p>
+
+            <!-- ==================== Step 3 ==================== -->
+            <h2>Step 3：裁剪机制的效果</h2>
+
+            <p>裁剪是 PPO 最核心的设计。为了直观展示它的作用，下面将裁剪关闭（使用原始的重要性采样策略梯度）与裁剪开启（$\epsilon = 0.2$）做对比。两者其余配置完全相同（$K=3$，GAE $\lambda = 0.95$）。</p>
+
+            <div class="ppo-demo">
+                <div class="demo-title">交互演示 3：裁剪机制的效果</div>
+                <div class="rl-ctrl">
+                    <button id="btn-d3" onclick="demo3.run()">开始训练</button>
+                    <button onclick="demo3.reset()">重置</button>
+                    <span id="d3-status" style="margin-left:0.5rem; color:#718096; font-size:0.82rem;">尚未开始</span>
+                </div>
+                <div class="demo-wide">
+                    <canvas id="cv-d3" width="620" height="280"></canvas>
+                </div>
+            </div>
+            <div class="fig-caption">图 5.2-10 &nbsp; 裁剪机制的效果。蓝色为无裁剪（原始重要性采样策略梯度），绿色为裁剪 $\epsilon=0.2$（标准 PPO）。阴影为 $\pm 1$ 标准差。</div>
+
+            <p>在本例中，两者的均值接近——这是因为 GAE 已经使优势估计较为平滑，降低了裁剪的必要性。裁剪的主要价值体现在<strong>稳定性</strong>上：消融实验（图 5.2-11）中对比 +多轮（无裁剪、$K=3$、无 GAE）与 +裁剪+多轮，后者的方差带远窄于前者。换言之，当优势估计噪声较大（如关闭 GAE）且多轮更新放大策略漂移时，裁剪的约束作用最为关键。$\epsilon = 0.2$ 是 PPO 原始论文（Schulman et al., 2017）推荐的默认值，在大多数问题上无需调整。</p>
+
+            <!-- ==================== 消融实验 ==================== -->
+            <h2>消融实验：每项设计贡献了多少？</h2>
+
+            <p>5.2.1节介绍的 PPO 包含三项关键设计：<strong>多轮更新</strong>（$K > 1$）、<strong>裁剪机制</strong>（$\epsilon$-clip）和 <strong>GAE</strong>（$\lambda > 0$）。它们分别解决不同的问题：多轮更新提高样本效率，裁剪防止策略更新过大，GAE 平衡优势估计的偏差和方差。下面通过消融实验看清每项设计的贡献。</p>
+
+            <p>三项设计的开关为：多轮更新（开：$K=3$，关：$K=1$）、裁剪（开：$\epsilon=0.2$，关：不裁剪）、GAE（开：$\lambda=0.95$，关：$\lambda=0$，即纯单步 TD）。$2^3 = 8$ 种组合的训练曲线如下，勾选复选框来显示或隐藏各配置。</p>
+
+            <div class="ppo-demo">
+                <div class="demo-title">交互演示 4：消融实验</div>
+                <div class="rl-ctrl">
+                    <button id="btn-d4" onclick="demo4.run()">开始训练</button>
+                    <button onclick="demo4.reset()">重置</button>
+                    <span id="d4-status" style="margin-left:0.5rem; color:#718096; font-size:0.82rem;">尚未开始</span>
+                </div>
+                <div class="rl-ctrl" id="d4-checks">
+                    <label><input type="checkbox" data-idx="0" checked onchange="demo4.draw()"> <span style="color:#a0aec0;">■</span> 基线</label>
+                    <label><input type="checkbox" data-idx="1" onchange="demo4.draw()"> <span style="color:#2b6cb0;">■</span> +裁剪</label>
+                    <label><input type="checkbox" data-idx="2" onchange="demo4.draw()"> <span style="color:#d69e2e;">■</span> +多轮</label>
+                    <label><input type="checkbox" data-idx="3" onchange="demo4.draw()"> <span style="color:#c53030;">■</span> +GAE</label>
+                    <label><input type="checkbox" data-idx="4" onchange="demo4.draw()"> <span style="color:#319795;">■</span> +裁剪+多轮</label>
+                    <label><input type="checkbox" data-idx="5" onchange="demo4.draw()"> <span style="color:#805ad5;">■</span> +裁剪+GAE</label>
+                    <label><input type="checkbox" data-idx="6" onchange="demo4.draw()"> <span style="color:#ed8936;">■</span> +多轮+GAE</label>
+                    <label><input type="checkbox" data-idx="7" checked onchange="demo4.draw()"> <span style="color:#48bb78;">■</span> 全部（PPO）</label>
+                </div>
+                <div class="demo-wide">
+                    <canvas id="cv-d4" width="620" height="300"></canvas>
+                </div>
+            </div>
+            <div class="fig-caption">图 5.2-11 &nbsp; PPO 三项设计的消融实验。灰色为基线（无裁剪、$K=1$、纯 TD），绿色为完整 PPO（裁剪 + $K=3$ + GAE）。勾选复选框可查看中间配置。</div>
+
+            <p>从消融实验中可以读出以下观察（注意每条曲线的<strong>阴影宽度</strong>，它反映了不同随机种子下的训练方差）：</p>
+            <ul>
+                <li><strong>GAE 的贡献体现在均值</strong>：对比基线（灰色，无 GAE、$K=1$、无裁剪）与 +GAE（红色），加入 GAE 后平均收入从约 $27{,}000$ 跃升到 $29{,}000$，提升最为显著。GAE 用多步信息估计优势函数，大幅降低了纯单步 TD 的偏差。</li>
+                <li><strong>裁剪的贡献体现在方差</strong>：对比 +多轮（黄色）与 +裁剪+多轮（青色），两者均值接近，但 +多轮 的阴影带远宽于 +裁剪+多轮，说明没有裁剪保护的多轮更新<strong>非常不稳定</strong>——某些种子表现很好，另一些则出现策略崩溃。裁剪并不提升均值上限，而是消除了最坏情况。</li>
+                <li><strong>多轮更新提高样本效率</strong>：对比基线（$K=1$）与 +多轮（$K=3$），后者收敛更快，但不稳定性也随之增加。这正是裁剪要解决的问题。</li>
+                <li><strong>三者组合最优</strong>：完整 PPO（绿色）兼具高均值和窄方差带，说明三项设计在不同层面互为补充。</li>
+            </ul>
+
+            <div class="result-box">
+                <strong>核心观察：</strong>PPO 的三项设计各有侧重：GAE 提升平均性能（改善优势估计的质量），裁剪提升稳定性（约束多轮更新的偏移），多轮更新提升样本效率。仅看单次训练的曲线可能忽略裁剪的价值；多次训练取平均并观察方差带，才能看到裁剪将不稳定的多轮更新变为可靠的收敛过程。
+            </div>
+
+            <!-- ==================== 结果分析 ==================== -->
+            <h2>结果分析</h2>
+
+            <p>训练收敛后，PPO 学到的定价策略呈现出明显的<strong>座位稀缺性驱动</strong>特征：</p>
+
+            <ul>
+                <li><strong>座位效应（主效应）</strong>：剩余座位的稀缺程度是定价的主要驱动因素。在本例中需求旺盛（总需求约80 &gt; 50座），即使座位相对充裕（如40座/25天），策略也选择600元而非更低的400元——因为以600元的需求速率（1.79人/天），刚好能在剩余天数内卖完。座位更加稀缺时（如5座/25天），策略进一步提升到800元，因为有充裕的时间逐张高价售出。</li>
+                <li><strong>时间与座位的交互</strong>：时间效应不能脱离座位数量来讨论。同样剩余5个座位，距出发25天时策略坚定选择800元（有时间等高价成交）；只剩3天时策略转向600—800元之间的折中（时间紧迫，需要平衡单价和成交概率）。读者可以在交互演示1中切换不同状态来验证这些规律。</li>
+            </ul>
+
+            <p>图 5.2-12 将收敛后的策略在整个状态空间上可视化为热力图，直观展示了上述规律。</p>
+
+            <div style="display:flex; justify-content:center; margin:1.5rem 0;">
+                <canvas id="cv-heatmap" width="520" height="360" style="border:1px solid var(--border-color); border-radius:4px; background:white; max-width:100%;"></canvas>
+            </div>
+            <div class="fig-caption">图 5.2-12 &nbsp; PPO 收敛后的定价策略热力图。横轴为剩余天数，纵轴为剩余座位数，颜色反映该状态下的期望定价。黄色区域（座位相对充裕）以600元为主；红色区域（座位稀缺）以800元为主。由于需求旺盛，策略几乎不选择400元或200元。</div>
+
+            <p>热力图显示策略几乎只在600元和800元之间切换，决定因素是<strong>座位与剩余时间的比值</strong>：座位少、时间多时选800元（慢慢高价卖出），座位多或时间紧时回落到600元（加快周转）。这与传统收益管理文献中的最优定价结论一致，说明 PPO 能够在不知道需求分布的情况下发现合理的状态依赖定价策略。</p>
+
+            <div class="note">
+                <strong>与5.1.3节库存管理例子的对比。</strong>5.1.3节的库存管理用 DQN 求解，动作是离散的补货量。本节的机票定价也使用离散动作（4个价格档位），但用 PPO 求解。两个例子的核心区别在于算法思路：DQN 学习 $Q(s,a)$ 后用 $\arg\max$ 选动作；PPO 直接学习策略概率 $\pi_\theta(a|s)$，不需要先估计值函数再推导策略。5.1.3节的消融实验测试了 DQN 的三项改进（Double、Dueling、PER），本节则测试了 PPO 的三项设计（裁剪、多轮更新、GAE），形式上构成对照。
+            </div>
+
+            <!-- ==================== 训练代码 ==================== -->
+            <h2>训练代码</h2>
+
+            <p>以下代码可完整复现本节所有训练曲线和热力图。依赖：PyTorch、NumPy。</p>
+
+<pre><code class="language-python">import torch, torch.nn as nn, numpy as np, math
+
+# ==================== 环境 ====================
+class TicketPricingEnv:
+    PRICES  = [200, 400, 600, 800]
+    LAMBDAS = [8.0 * math.exp(-p / 400.0) for p in PRICES]
+
+    def __init__(self, total_seats=50, total_days=30):
+        self.total_seats = total_seats
+        self.total_days  = total_days
+
+    def reset(self):
+        self.seats     = self.total_seats
+        self.days_left = self.total_days
+        return (self.seats / self.total_seats,
+                self.days_left / self.total_days)
+
+    def step(self, a):
+        price  = self.PRICES[a]
+        demand = np.random.poisson(self.LAMBDAS[a])
+        sold   = min(demand, self.seats)
+        reward = price * sold
+        self.seats     -= sold
+        self.days_left -= 1
+        done = self.days_left <= 0 or self.seats <= 0
+        return (self.seats / self.total_seats,
+                self.days_left / self.total_days), reward, done
+
+# ==================== Actor-Critic 网络 ====================
+class ActorCritic(nn.Module):
+    def __init__(self, hidden=64):
+        super().__init__()
+        self.pi = nn.Sequential(
+            nn.Linear(2, hidden), nn.Tanh(),
+            nn.Linear(hidden, hidden), nn.Tanh(),
+            nn.Linear(hidden, 4))
+        self.v = nn.Sequential(
+            nn.Linear(2, hidden), nn.Tanh(),
+            nn.Linear(hidden, hidden), nn.Tanh(),
+            nn.Linear(hidden, 1))
+
+    def forward(self, x):
+        return self.pi(x), self.v(x).squeeze(-1)
+
+# ==================== GAE ====================
+def compute_gae(rewards, values, dones, gamma, lam):
+    n = len(rewards)
+    adv = [0.0] * n
+    g = 0.0
+    for t in range(n - 1, -1, -1):
+        nv = 0.0 if (t == n-1 or dones[t]) else values[t+1]
+        delta = rewards[t] + gamma * nv - values[t]
+        g = delta if dones[t] else delta + gamma * lam * g
+        adv[t] = g
+    return adv
+
+# ==================== PPO 训练 ====================
+REWARD_SCALE = 1000.0
+
+def train_ppo(clip_eps=0.2, K=3, gae_lambda=0.95,
+              n_epochs=200, batch_size=32, gamma=0.99,
+              lr=1e-3, seed=42):
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+
+    env   = TicketPricingEnv()
+    model = ActorCritic()
+    opt   = torch.optim.Adam(model.parameters(), lr=lr)
+    use_clip = clip_eps is not None
+    obs_buf  = torch.zeros(1, 2)
+    rew_hist = []
+
+    for epoch in range(n_epochs):
+        S, A, R, D, LP, V = [], [], [], [], [], []
+        total_reward = 0.0
+
+        for _ in range(batch_size):          # 采集 batch_size 个完整回合
+            o = env.reset(); ep_r = 0.0
+            while True:
+                obs_buf[0, 0], obs_buf[0, 1] = o
+                with torch.no_grad():
+                    logits, v = model(obs_buf)
+                dist = torch.distributions.Categorical(logits=logits[0])
+                a = dist.sample()
+                S.append(o); A.append(a.item())
+                LP.append(dist.log_prob(a).item())
+                V.append(v.item())
+                o, r, d = env.step(a.item())
+                R.append(r / REWARD_SCALE); D.append(d)
+                ep_r += r
+                if d: break
+            total_reward += ep_r
+        rew_hist.append(total_reward / batch_size)
+
+        # GAE 优势估计
+        advs  = compute_gae(R, V, D, gamma, gae_lambda)
+        s_t   = torch.tensor(S)
+        a_t   = torch.tensor(A, dtype=torch.long)
+        olp_t = torch.tensor(LP)
+        adv_t = torch.tensor(advs, dtype=torch.float32)
+        ret_t = adv_t + torch.tensor(V, dtype=torch.float32)
+        if adv_t.std() > 1e-8:
+            adv_t = (adv_t - adv_t.mean()) / (adv_t.std() + 1e-8)
+
+        # K 轮策略更新
+        for _ in range(K):
+            logits, v = model(s_t)
+            dist  = torch.distributions.Categorical(logits=logits)
+            nlp   = dist.log_prob(a_t)
+            ratio = torch.exp(nlp - olp_t)
+            if use_clip:
+                s1 = ratio * adv_t
+                s2 = torch.clamp(ratio, 1-clip_eps, 1+clip_eps) * adv_t
+                pi_loss = -torch.min(s1, s2).mean()
+            else:
+                pi_loss = -(ratio.clamp(0.01, 100) * adv_t).mean()
+            v_loss = (ret_t - v).pow(2).mean()
+            loss = pi_loss + 0.5 * v_loss - 0.01 * dist.entropy().mean()
+            opt.zero_grad(); loss.backward()
+            nn.utils.clip_grad_norm_(model.parameters(), 0.5)
+            opt.step()
+
+        if (epoch+1) % 50 == 0:
+            print(f"epoch {epoch+1:3d}  reward = {rew_hist[-1]:,.0f}")
+
+    return rew_hist, model
+
+# ==================== 运行 ====================
+rewards, model = train_ppo()          # 标准 PPO
+rewards_K1, _  = train_ppo(K=1)       # K=1 对比
+rewards_nc, _  = train_ppo(clip_eps=None)  # 无裁剪对比
+</code></pre>
+
+            <div class="chapter-nav">
+                <a href="../ch05/5.2.2.html">&larr; 5.2.2 连续动作空间与重参数化技巧</a>
+                <a href="../ch05/5.3.html">5.3 DDPG与TD3 &rarr;</a>
+            </div>
+        </main>
+    </div>
+
+    <!-- ==================== 交互演示 JS ==================== -->
+    <script>
+    (function(){
+    'use strict';
+
+    /* ======== 工具 ======== */
+    var DPR = window.devicePixelRatio || 1;
+    function setupCvs(id, w, h) {
+        var c = document.getElementById(id); if (!c) return null;
+        c.width = w * DPR; c.height = h * DPR;
+        c.style.width = w + 'px'; c.style.height = h + 'px';
+        var ctx = c.getContext('2d'); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+        return ctx;
+    }
+
+    /* ======== 真实训练数据（由 train_ppo_pricing.py 生成） ======== */
+    var N_EPOCHS = PPO_DATA.n_epochs;
+    var DP_OPT   = Math.round(PPO_DATA.dp_optimal);
+    var Y_MIN = 16000, Y_MAX = 32000;
+
+    /* curves.X.mean = smoothed mean, .lo/.hi = ±1σ band */
+    var curves = {
+        baseline: PPO_DATA.demo1.rewards,          /* demo1 only needs mean */
+        K1:  PPO_DATA.demo2.K1,  K3:  PPO_DATA.demo2.K3,  K10: PPO_DATA.demo2.K10,
+        e01: PPO_DATA.demo3.e01, e02: PPO_DATA.demo3.e02, e04: PPO_DATA.demo3.e04,
+        abl: PPO_DATA.demo4
+    };
+    /* helper: get mean array from curve object or plain array */
+    function cmean(c) { return c.mean ? c.mean : c; }
+
+    function policyAtEpoch(ep, stateIdx) {
+        if (ep <= 0) return [0.25, 0.25, 0.25, 0.25];
+        var idx = Math.min(ep - 1, N_EPOCHS - 1);
+        return PPO_DATA.demo1.policy[stateIdx || 0][idx];
+    }
+
+    /* ======== 绘图公用 ======== */
+    var PRICES_LABELS = ['200', '400', '600', '800'];
+    var PAD = { l: 55, r: 15, t: 15, b: 35 };
+
+    function yFrac(v) { return (v - Y_MIN) / (Y_MAX - Y_MIN); }
+
+    function drawAxesReward(ctx, W, H) {
+        var pw = W - PAD.l - PAD.r, ph = H - PAD.t - PAD.b;
+        ctx.strokeStyle = '#4a5568'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(PAD.l, PAD.t); ctx.lineTo(PAD.l, PAD.t + ph); ctx.lineTo(PAD.l + pw, PAD.t + ph); ctx.stroke();
+        /* Y ticks */
+        ctx.fillStyle = '#718096'; ctx.font = '10px sans-serif'; ctx.textAlign = 'right';
+        for (var v = Y_MIN; v <= Y_MAX; v += 2000) {
+            var y = PAD.t + ph * (1 - yFrac(v));
+            ctx.fillText((v / 1000).toFixed(0) + 'k', PAD.l - 4, y + 3);
+            if (v > Y_MIN && v < Y_MAX) { ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 0.5; ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(PAD.l + pw, y); ctx.stroke(); }
+        }
+        /* X ticks */
+        ctx.textAlign = 'center';
+        for (var e = 0; e <= N_EPOCHS; e += 50) { var x = PAD.l + (e / N_EPOCHS) * pw; ctx.fillText(e, x, PAD.t + ph + 16); }
+        ctx.fillStyle = '#4a5568'; ctx.font = '11px sans-serif';
+        ctx.fillText('训练轮数', PAD.l + pw / 2, PAD.t + ph + 32);
+        /* DP optimal */
+        ctx.strokeStyle = '#805ad5'; ctx.lineWidth = 1.2; ctx.setLineDash([5, 4]);
+        var yOpt = PAD.t + ph * (1 - yFrac(DP_OPT));
+        ctx.beginPath(); ctx.moveTo(PAD.l, yOpt); ctx.lineTo(PAD.l + pw, yOpt); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#805ad5'; ctx.font = '10px sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText('DP最优 ' + (DP_OPT/1000).toFixed(1) + 'k', PAD.l + pw - 65, yOpt - 5);
+    }
+
+    function plotCurve(ctx, W, H, data, n, color, lineW) {
+        var arr = data.mean ? data.mean : data;
+        var pw = W - PAD.l - PAD.r, ph = H - PAD.t - PAD.b;
+        ctx.strokeStyle = color; ctx.lineWidth = lineW || 1.8;
+        ctx.beginPath();
+        for (var i = 0; i < n; i++) {
+            var x = PAD.l + (i / N_EPOCHS) * pw;
+            var f = Math.max(0, Math.min(1, yFrac(arr[i])));
+            var y = PAD.t + ph * (1 - f);
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+    }
+
+    function plotBand(ctx, W, H, data, n, color) {
+        if (!data.lo || !data.hi) return;
+        var pw = W - PAD.l - PAD.r, ph = H - PAD.t - PAD.b;
+        ctx.fillStyle = color; ctx.beginPath();
+        /* upper boundary forward */
+        for (var i = 0; i < n; i++) {
+            var x = PAD.l + (i / N_EPOCHS) * pw;
+            var y = PAD.t + ph * (1 - Math.max(0, Math.min(1, yFrac(data.hi[i]))));
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        /* lower boundary backward */
+        for (var i = n - 1; i >= 0; i--) {
+            var x = PAD.l + (i / N_EPOCHS) * pw;
+            var y = PAD.t + ph * (1 - Math.max(0, Math.min(1, yFrac(data.lo[i]))));
+            ctx.lineTo(x, y);
+        }
+        ctx.closePath(); ctx.fill();
+    }
+
+    function drawLegend(ctx, x, y, items) {
+        ctx.font = '10px sans-serif'; ctx.textAlign = 'left';
+        for (var i = 0; i < items.length; i++) {
+            var ix = x + (i % 3) * 140, iy = y + Math.floor(i / 3) * 16;
+            ctx.fillStyle = items[i][1]; ctx.fillRect(ix, iy, 14, 8);
+            ctx.fillStyle = '#4a5568'; ctx.fillText(items[i][0], ix + 18, iy + 8);
+        }
+    }
+
+    /* ======== Demo 1 ======== */
+    var demo1 = (function() {
+        var frame = 0, timer = null, running = false, stateIdx = 0;
+
+        function draw() {
+            var ctx1 = setupCvs('cv-d1-reward', 320, 260);
+            var ctx2 = setupCvs('cv-d1-policy', 320, 260);
+            if (!ctx1 || !ctx2) return;
+
+            ctx1.clearRect(0, 0, 320, 260);
+            drawAxesReward(ctx1, 320, 260);
+            if (frame > 0) plotCurve(ctx1, 320, 260, curves.baseline, frame, '#2b6cb0', 2);
+
+            ctx2.clearRect(0, 0, 320, 260);
+            var probs = policyAtEpoch(frame, stateIdx);
+            var bPad = { l: 40, r: 15, t: 15, b: 35 };
+            var bW = 320 - bPad.l - bPad.r, bH = 260 - bPad.t - bPad.b;
+            ctx2.strokeStyle = '#4a5568'; ctx2.lineWidth = 1;
+            ctx2.beginPath(); ctx2.moveTo(bPad.l, bPad.t); ctx2.lineTo(bPad.l, bPad.t + bH); ctx2.lineTo(bPad.l + bW, bPad.t + bH); ctx2.stroke();
+            ctx2.fillStyle = '#718096'; ctx2.font = '10px sans-serif'; ctx2.textAlign = 'right';
+            for (var v = 0; v <= 1; v += 0.25) {
+                var y = bPad.t + bH * (1 - v);
+                ctx2.fillText((v * 100).toFixed(0) + '%', bPad.l - 4, y + 3);
+                if (v > 0 && v < 1) { ctx2.strokeStyle = '#e2e8f0'; ctx2.lineWidth = 0.5; ctx2.beginPath(); ctx2.moveTo(bPad.l, y); ctx2.lineTo(bPad.l + bW, y); ctx2.stroke(); }
+            }
+            var colors = ['#2b6cb0', '#48bb78', '#d69e2e', '#c53030'];
+            var barW = bW / 4 * 0.65, gap = bW / 4;
+            ctx2.textAlign = 'center';
+            for (var i = 0; i < 4; i++) {
+                var x = bPad.l + gap * i + (gap - barW) / 2;
+                var h = probs[i] * bH;
+                ctx2.fillStyle = colors[i]; ctx2.globalAlpha = 0.7;
+                ctx2.fillRect(x, bPad.t + bH - h, barW, h);
+                ctx2.globalAlpha = 1;
+                ctx2.fillStyle = '#4a5568'; ctx2.font = '10px sans-serif';
+                ctx2.fillText(PRICES_LABELS[i] + '元', x + barW / 2, bPad.t + bH + 14);
+                ctx2.fillStyle = '#1a365d'; ctx2.font = 'bold 10px sans-serif';
+                ctx2.fillText((probs[i] * 100).toFixed(0) + '%', x + barW / 2, bPad.t + bH - h - 4);
+            }
+            document.getElementById('d1-status').textContent = '第 ' + frame + ' / ' + N_EPOCHS + ' 轮';
+        }
+
+        function step() {
+            if (frame >= N_EPOCHS) { clearInterval(timer); timer = null; running = false; document.getElementById('btn-d1').textContent = '开始训练'; return; }
+            frame += 2; if (frame > N_EPOCHS) frame = N_EPOCHS; draw();
+        }
+
+        return {
+            run: function() { if (running) { clearInterval(timer); timer = null; running = false; document.getElementById('btn-d1').textContent = '继续'; return; } running = true; document.getElementById('btn-d1').textContent = '暂停'; timer = setInterval(step, 30); },
+            reset: function() { if (timer) clearInterval(timer); timer = null; running = false; frame = 0; document.getElementById('btn-d1').textContent = '开始训练'; document.getElementById('d1-status').textContent = '尚未开始'; draw(); },
+            setState: function(idx) { stateIdx = idx; draw(); },
+            draw: draw
+        };
+    })();
+
+    /* ======== Demo 2: K comparison ======== */
+    var demo2 = (function() {
+        var frame = 0, timer = null, running = false, W = 620, H = 280;
+        function draw() {
+            var ctx = setupCvs('cv-d2', W, H); if (!ctx) return;
+            ctx.clearRect(0, 0, W, H); drawAxesReward(ctx, W, H);
+            if (frame > 0) {
+                plotBand(ctx, W, H, curves.K1, frame, 'rgba(43,108,176,0.12)');
+                plotBand(ctx, W, H, curves.K3, frame, 'rgba(72,187,120,0.12)');
+                plotCurve(ctx, W, H, curves.K1, frame, '#2b6cb0', 1.8);
+                plotCurve(ctx, W, H, curves.K3, frame, '#48bb78', 2.2);
+            }
+            drawLegend(ctx, PAD.l + 8, PAD.t + 4, [['K = 1（无复用）', '#2b6cb0'], ['K = 3（复用三轮）', '#48bb78']]);
+            document.getElementById('d2-status').textContent = '第 ' + frame + ' / ' + N_EPOCHS + ' 轮';
+        }
+        function step() { if (frame >= N_EPOCHS) { clearInterval(timer); timer = null; running = false; document.getElementById('btn-d2').textContent = '开始训练'; return; } frame += 2; if (frame > N_EPOCHS) frame = N_EPOCHS; draw(); }
+        return {
+            run: function() { if (running) { clearInterval(timer); timer = null; running = false; document.getElementById('btn-d2').textContent = '继续'; return; } running = true; document.getElementById('btn-d2').textContent = '暂停'; timer = setInterval(step, 30); },
+            reset: function() { if (timer) clearInterval(timer); timer = null; running = false; frame = 0; document.getElementById('btn-d2').textContent = '开始训练'; document.getElementById('d2-status').textContent = '尚未开始'; draw(); },
+            draw: draw
+        };
+    })();
+
+    /* ======== Demo 3: epsilon comparison ======== */
+    var demo3 = (function() {
+        var frame = 0, timer = null, running = false, W = 620, H = 280;
+        function draw() {
+            var ctx = setupCvs('cv-d3', W, H); if (!ctx) return;
+            ctx.clearRect(0, 0, W, H); drawAxesReward(ctx, W, H);
+            if (frame > 0) {
+                plotBand(ctx, W, H, curves.abl[6], frame, 'rgba(43,108,176,0.12)');
+                plotBand(ctx, W, H, curves.abl[7], frame, 'rgba(72,187,120,0.12)');
+                plotCurve(ctx, W, H, curves.abl[6], frame, '#2b6cb0', 1.8);
+                plotCurve(ctx, W, H, curves.abl[7], frame, '#48bb78', 2.2);
+            }
+            drawLegend(ctx, PAD.l + 8, PAD.t + 4, [['无裁剪', '#2b6cb0'], ['裁剪 ε = 0.2', '#48bb78']]);
+            document.getElementById('d3-status').textContent = '第 ' + frame + ' / ' + N_EPOCHS + ' 轮';
+        }
+        function step() { if (frame >= N_EPOCHS) { clearInterval(timer); timer = null; running = false; document.getElementById('btn-d3').textContent = '开始训练'; return; } frame += 2; if (frame > N_EPOCHS) frame = N_EPOCHS; draw(); }
+        return {
+            run: function() { if (running) { clearInterval(timer); timer = null; running = false; document.getElementById('btn-d3').textContent = '继续'; return; } running = true; document.getElementById('btn-d3').textContent = '暂停'; timer = setInterval(step, 30); },
+            reset: function() { if (timer) clearInterval(timer); timer = null; running = false; frame = 0; document.getElementById('btn-d3').textContent = '开始训练'; document.getElementById('d3-status').textContent = '尚未开始'; draw(); },
+            draw: draw
+        };
+    })();
+
+    /* ======== Demo 4: ablation ======== */
+    var demo4 = (function() {
+        var frame = 0, timer = null, running = false, W = 620, H = 300;
+        var ablColors = ['#a0aec0', '#2b6cb0', '#d69e2e', '#c53030', '#319795', '#805ad5', '#ed8936', '#48bb78'];
+        var ablBands  = ['rgba(160,174,192,0.12)','rgba(43,108,176,0.12)','rgba(214,158,46,0.12)','rgba(197,48,48,0.12)','rgba(49,151,149,0.12)','rgba(128,90,213,0.12)','rgba(237,137,54,0.12)','rgba(72,187,120,0.12)'];
+        var ablNames  = ['基线', '+裁剪', '+多轮', '+GAE', '+裁剪+多轮', '+裁剪+GAE', '+多轮+GAE', '全部（PPO）'];
+
+        function getChecked() {
+            var checks = document.querySelectorAll('#d4-checks input[type=checkbox]');
+            var on = [];
+            for (var i = 0; i < checks.length; i++) if (checks[i].checked) on.push(parseInt(checks[i].getAttribute('data-idx')));
+            return on;
+        }
+
+        function draw() {
+            var ctx = setupCvs('cv-d4', W, H); if (!ctx) return;
+            ctx.clearRect(0, 0, W, H); drawAxesReward(ctx, W, H);
+            var on = getChecked();
+            if (frame > 0) {
+                for (var k = 0; k < on.length; k++) { var idx = on[k]; plotBand(ctx, W, H, curves.abl[idx], frame, ablBands[idx]); }
+                for (var k = 0; k < on.length; k++) { var idx = on[k]; plotCurve(ctx, W, H, curves.abl[idx], frame, ablColors[idx], idx === 7 || idx === 0 ? 2.2 : 1.5); }
+            }
+            var items = [];
+            for (var k = 0; k < on.length; k++) items.push([ablNames[on[k]], ablColors[on[k]]]);
+            drawLegend(ctx, PAD.l + 8, PAD.t + 4, items);
+            document.getElementById('d4-status').textContent = '第 ' + frame + ' / ' + N_EPOCHS + ' 轮';
+        }
+
+        function step() { if (frame >= N_EPOCHS) { clearInterval(timer); timer = null; running = false; document.getElementById('btn-d4').textContent = '开始训练'; return; } frame += 2; if (frame > N_EPOCHS) frame = N_EPOCHS; draw(); }
+
+        return {
+            run: function() { if (running) { clearInterval(timer); timer = null; running = false; document.getElementById('btn-d4').textContent = '继续'; return; } running = true; document.getElementById('btn-d4').textContent = '暂停'; timer = setInterval(step, 30); },
+            reset: function() { if (timer) clearInterval(timer); timer = null; running = false; frame = 0; document.getElementById('btn-d4').textContent = '开始训练'; document.getElementById('d4-status').textContent = '尚未开始'; draw(); },
+            draw: draw
+        };
+    })();
+
+    /* ======== 策略热力图（使用真实训练数据） ======== */
+    function drawHeatmap() {
+        var hm = PPO_DATA.heatmap;
+        if (!hm) return;
+        var W = 520, H = 360;
+        var ctx = setupCvs('cv-heatmap', W, H);
+        if (!ctx) return;
+
+        var pad = { l: 55, r: 90, t: 15, b: 40 };
+        var pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
+        var maxDays = 30, maxSeats = 50;
+        var cellW = pw / maxDays, cellH = ph / maxSeats;
+
+        function scoreToRGB(s) {
+            var r, g, b;
+            if (s <= 0.5) {
+                var t = s / 0.5;
+                r = 72 + (214 - 72) * t; g = 187 + (158 - 187) * t; b = 120 + (46 - 120) * t;
+            } else {
+                var t = (s - 0.5) / 0.5;
+                r = 214 + (197 - 214) * t; g = 158 + (48 - 158) * t; b = 46 + (48 - 46) * t;
+            }
+            return 'rgb(' + Math.round(r) + ',' + Math.round(g) + ',' + Math.round(b) + ')';
+        }
+
+        /* 绘制色块 — 从真实策略概率计算期望价格 */
+        for (var d = 1; d <= maxDays; d++) {
+            for (var s = 1; s <= maxSeats; s++) {
+                var p = hm[s - 1][d - 1]; /* [p200, p400, p600, p800] */
+                var ep = p[0] * 200 + p[1] * 400 + p[2] * 600 + p[3] * 800;
+                var score = (ep - 400) / 400; /* 0 = 400元, 1 = 800元 */
+                score = Math.max(0, Math.min(1, score));
+                ctx.fillStyle = scoreToRGB(score);
+                ctx.fillRect(pad.l + (d - 1) * cellW, pad.t + (maxSeats - s) * cellH, cellW + 0.5, cellH + 0.5);
+            }
+        }
+
+        /* 坐标轴 */
+        ctx.strokeStyle = '#4a5568'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, pad.t + ph); ctx.lineTo(pad.l + pw, pad.t + ph); ctx.stroke();
+
+        ctx.fillStyle = '#718096'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+        for (var d = 5; d <= 30; d += 5) ctx.fillText(d, pad.l + (d - 0.5) * cellW, pad.t + ph + 14);
+        ctx.fillStyle = '#4a5568'; ctx.font = '11px sans-serif';
+        ctx.fillText('剩余天数', pad.l + pw / 2, pad.t + ph + 32);
+
+        ctx.textAlign = 'right'; ctx.fillStyle = '#718096'; ctx.font = '10px sans-serif';
+        for (var s = 10; s <= 50; s += 10) ctx.fillText(s, pad.l - 4, pad.t + (maxSeats - s) * cellH + cellH / 2 + 3);
+        ctx.save(); ctx.translate(14, pad.t + ph / 2); ctx.rotate(-Math.PI / 2);
+        ctx.fillStyle = '#4a5568'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('剩余座位数', 0, 0); ctx.restore();
+
+        /* 色条图例 */
+        var lx = W - pad.r + 14, ly = pad.t + 20, lw = 14, lh = ph - 40;
+        for (var i = 0; i < lh; i++) {
+            ctx.fillStyle = scoreToRGB(1 - i / lh);
+            ctx.fillRect(lx, ly + i, lw, 1.5);
+        }
+        ctx.strokeStyle = '#4a5568'; ctx.lineWidth = 0.5; ctx.strokeRect(lx, ly, lw, lh);
+        ctx.fillStyle = '#4a5568'; ctx.font = '10px sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText('800元', lx + lw + 4, ly + 6);
+        ctx.fillText('600元', lx + lw + 4, ly + lh / 2 + 3);
+        ctx.fillText('400元', lx + lw + 4, ly + lh);
+    }
+
+    /* ======== 暴露到全局 ======== */
+    window.demo1 = demo1; window.demo2 = demo2; window.demo3 = demo3; window.demo4 = demo4;
+
+    /* ======== 初始化 ======== */
+    function initAll() { demo1.draw(); demo2.draw(); demo3.draw(); demo4.draw(); drawHeatmap(); }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initAll);
+    else initAll();
+
+    })();
+    </script>
+</body>
+</html>

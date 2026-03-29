@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5.4.2 例子：投资组合配置 - 运筹智能</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .trans-table { width: auto; border-collapse: collapse; margin: 1rem auto; font-size: 0.95rem; }
+        .trans-table th, .trans-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: center; }
+        .trans-table th { background: var(--primary-color); color: white; }
+        .trans-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .result-box { background: var(--highlight-color); border: 2px solid var(--accent-color); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; text-align: center; }
+        .algo-box { background: #f7fafc; border: 2px solid var(--accent-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .algo-box .algo-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .algo-box ol { margin: 0.3rem 0 0.3rem 1.5rem; line-height: 2; }
+        .algo-box .algo-note { font-size: 0.9rem; color: #718096; margin-top: 0.5rem; }
+        .note { background: #f0fff4; border-left: 4px solid #48bb78; padding: 0.8rem 1.2rem; margin: 1.2rem 0; border-radius: 0 6px 6px 0; font-size: 0.95rem; }
+        .formula-block { background: var(--sidebar-bg); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; text-align: center; }
+        .rl-ctrl { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; margin-bottom:0.8rem; font-size:0.88rem; }
+        .rl-ctrl button { padding:0.3rem 0.7rem; border:1px solid #2b6cb0; background:white; color:#2b6cb0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.84rem; transition:all 0.15s; }
+        .rl-ctrl button:hover { background:#2b6cb0; color:white; }
+        .rl-ctrl label { font-size:0.86rem; color:#4a5568; }
+        .rl-ctrl select { padding:0.2rem 0.4rem; border:1px solid var(--border-color); border-radius:4px; font-size:0.84rem; }
+        .rl-info { background:#ebf4ff; border-radius:6px; padding:0.4rem 0.8rem; font-size:0.88rem; margin-top:0.6rem; }
+        .demo-container { border:2px solid var(--border-color); border-radius:8px; padding:1.2rem; margin:1.5rem 0; background:#fafafa; }
+        .demo-title { font-weight:700; color:var(--accent-color); margin-bottom:0.6rem; font-size:1.05rem; }
+        .demo-row { display:flex; gap:1rem; flex-wrap:wrap; justify-content:center; margin:0.8rem 0; }
+        .demo-panel { flex:1; min-width:280px; max-width:480px; }
+        .demo-panel canvas { width:100%; border:1px solid var(--border-color); border-radius:4px; background:white; }
+        .fig-caption { text-align:center; font-size:0.9rem; color:#718096; margin-top:0.5rem; margin-bottom:1rem; }
+        .arch-svg { display:block; margin:1rem auto; max-width:100%; }
+    </style>
+    <script defer src="../../js/code-copy.js"></script>
+</head>
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="book-title"><a href="../../index.html" style="text-decoration:none;color:inherit;">运筹智能</a></div>
+            <nav>
+                <ul>
+                <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
+                <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
+                <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.4.html">3.1.4 TD(λ)与资格迹</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.3.html">3.2.3 Double Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.1.1.html">5.1.1 DQN基本算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.1.2.html">5.1.2 DQN的关键改进</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.1.3.html">5.1.3 例子：库存管理</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.1.html">5.2.1 从Actor-Critic到PPO</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.2.html">5.2.2 连续动作空间与重参数化技巧</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.3.html">5.2.3 例子：机票动态定价</a></li>
+                <li><a href="../ch05/5.3.html">5.3 DDPG与TD3</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.3.1.html">5.3.1 DDPG与TD3算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.3.2.html">5.3.2 例子：广告实时竞价</a></li>
+                <li><a href="../ch05/5.4.html">5.4 Soft Actor-Critic</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.4.1.html">5.4.1 SAC算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.4.2.html" class="active">5.4.2 例子：投资组合配置</a></li>
+                <li><a href="../ch05/5.5.html">5.5 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.6.html">5.6 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>5.4.2 例子：投资组合配置</h1>
+
+            <p>上一小节介绍了SAC的理论框架和算法细节。本节通过一个简化的投资组合配置问题，展示SAC如何在连续动作空间中学习动态资产分配策略。这个例子同时体现了最大熵目标与投资组合分散化原则的天然契合。</p>
+
+            <!-- ==================== 问题描述 ==================== -->
+            <h2>问题背景</h2>
+
+            <p>考虑一个简化的投资组合配置问题。某投资者每个交易日需要决定如何将资金分配到三种资产：股票、债券和现金。股票风险高、预期收益也高；债券风险较低、收益中等；现金几乎无风险但收益最低。投资者的目标是在控制风险的前提下最大化长期收益。</p>
+
+            <!-- ==================== MDP建模 ==================== -->
+            <h2>MDP 建模</h2>
+
+            <div class="concept-card">
+                <div class="concept-name">投资组合配置 MDP</div>
+                <p><strong>状态：</strong>6维连续向量，各分量归一化到 $[0, 1]$：</p>
+                $$s_t = \big(w_{\text{stock}},\; w_{\text{bond}},\; w_{\text{cash}},\; r_{\text{stock}}^{\text{recent}},\; r_{\text{bond}}^{\text{recent}},\; \text{vol}\big) \tag{5.4-15}$$
+                <p style="margin-top:0.5rem;">其中 $w_{\text{stock}}, w_{\text{bond}}, w_{\text{cash}}$ 分别是当前三种资产的持仓比例，$r_{\text{stock}}^{\text{recent}}, r_{\text{bond}}^{\text{recent}}$ 是最近若干日的平均收益率（归一化后），$\text{vol}$ 是近期市场波动率的归一化值。</p>
+
+                <p><strong>动作：</strong>策略网络输出 $a = (a_1, a_2) \in [-1, 1]^2$，然后通过 softmax 变换得到目标配置权重：</p>
+                $$\big(w_{\text{stock}}',\; w_{\text{bond}}',\; w_{\text{cash}}'\big) = \text{softmax}\big(a_1,\; a_2,\; 0\big) \tag{5.4-16}$$
+                <p style="margin-top:0.5rem;">这种参数化方式保证了三个权重非负且恰好求和为1。以 $0$ 为第三个分量的参考点，当 $a_1$ 和 $a_2$ 都很小时，三种资产接近等权配置。</p>
+
+                <p><strong>奖励：</strong>每天的奖励等于组合收益减去交易成本和风险惩罚：</p>
+                $$R_t = \underbrace{r_{\text{portfolio},t}}_{\text{组合收益}} - \underbrace{c \cdot \lVert \Delta w_t \rVert_1}_{\text{交易成本}} - \underbrace{\beta \cdot r_{\text{portfolio},t}^2}_{\text{风险惩罚}} \tag{5.4-17}$$
+                <p style="margin-top:0.5rem;">其中 $r_{\text{portfolio},t} = w_{\text{stock}}' \cdot r_{\text{stock},t} + w_{\text{bond}}' \cdot r_{\text{bond},t} + w_{\text{cash}}' \cdot r_f$ 是当日组合收益率，$\lVert \Delta w_t \rVert_1$ 是调仓前后权重变化的绝对值之和，$c = 0.001$ 为交易成本系数，$\beta = 5.0$ 为风险厌恶系数。</p>
+                <p style="margin-top:0.3rem; font-size:0.9rem; color:#718096;">回合长度为252个交易日（约一年），折扣因子 $\gamma = 0.99$。</p>
+            </div>
+
+            <p>奖励函数（式(5.4-17)）中的二次惩罚项 $\beta \cdot r_{\text{portfolio},t}^2$ 使得智能体倾向于避免收益率的大幅波动，体现了风险厌恶。这与金融领域常用的均值-方差框架（Markowitz模型）有类似的精神。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">为什么最大熵适合投资组合？</div>
+                <p>SAC的熵正则化与投资组合理论中的<strong>分散化原则</strong>有天然的契合。在标准RL中，策略可能收敛到将全部资金押注在某一种资产上（例如历史收益最高的股票）。这种集中配置虽然在训练数据中表现优异，却极度脆弱：一旦市场环境变化，收益可能急剧下降。SAC的熵奖励 $-\alpha \log \pi(a \mid s)$ 自动惩罚这种过度集中的行为。当策略试图将所有权重集中到单一资产时，$\log \pi$ 会很大（概率集中），熵奖励很低；反之，分散化的配置对应更高的策略熵，获得额外的熵奖励。温度系数 $\alpha$ 的大小则控制了分散化的程度：$\alpha$ 越大，配置越均匀；$\alpha$ 较小时，策略可以更多地倾向高收益资产，同时仍保持一定程度的分散化。</p>
+            </div>
+
+            <!-- ==================== 完整代码 ==================== -->
+            <h2>完整实现代码</h2>
+
+            <p>下面给出使用 SAC 训练投资组合配置策略的完整 PyTorch 代码。环境使用简单的几何布朗运动（GBM）模拟股票价格，均值回归过程模拟债券收益率。代码中的网络架构和训练循环严格对应5.4.1节中的算法框（公式(5.4-11)至(5.4-14)）。</p>
+
+<pre><code class="language-python">import torch
+import torch.nn as nn
+import torch.optim as optim
+import numpy as np
+from collections import deque
+import random
+
+# ---- 简易市场模拟器 ----
+class MarketEnv:
+    """三资产市场环境：股票(GBM)、债券(均值回归)、现金(无风险)"""
+    def __init__(self, episode_len=252):
+        self.episode_len = episode_len  # 一年约252个交易日
+        self.rf = 0.0002               # 日无风险利率 ≈ 年化5%
+        self.stock_mu = 0.0005          # 股票日漂移 ≈ 年化12%
+        self.stock_sigma = 0.02         # 股票日波动率 ≈ 年化32%
+        self.bond_mu = 0.0003           # 债券长期均值
+        self.bond_kappa = 0.05          # 均值回归速度
+        self.bond_sigma = 0.005         # 债券波动率
+        self.cost = 0.001               # 交易成本系数
+        self.risk_beta = 5.0            # 风险惩罚系数
+        self.lookback = 10
+        self.reset()
+
+    def reset(self):
+        self.t = 0
+        self.weights = np.array([1/3, 1/3, 1/3])  # 等权初始化
+        self.stock_returns = deque(maxlen=self.lookback)
+        self.bond_returns = deque(maxlen=self.lookback)
+        for _ in range(self.lookback):
+            self.stock_returns.append(np.random.normal(self.stock_mu, self.stock_sigma))
+            self.bond_returns.append(np.random.normal(self.bond_mu, self.bond_sigma))
+        return self._get_state()
+
+    def _get_state(self):
+        recent_stock = np.mean(self.stock_returns)
+        recent_bond = np.mean(self.bond_returns)
+        vol = np.std(list(self.stock_returns))
+        # 归一化到 [0, 1] 范围
+        s = np.array([
+            self.weights[0], self.weights[1], self.weights[2],
+            np.clip((recent_stock + 0.05) / 0.1, 0, 1),
+            np.clip((recent_bond + 0.02) / 0.04, 0, 1),
+            np.clip(vol / 0.05, 0, 1)
+        ], dtype=np.float32)
+        return s
+
+    def step(self, action):
+        # action: (a1, a2) in [-1,1]^2 -> softmax -> 目标权重
+        logits = np.array([action[0], action[1], 0.0])
+        new_weights = np.exp(logits) / np.exp(logits).sum()
+        # 模拟资产收益
+        r_stock = np.random.normal(self.stock_mu, self.stock_sigma)
+        r_bond = self.bond_kappa * (self.bond_mu - np.mean(self.bond_returns)) \
+                 + np.random.normal(0, self.bond_sigma)
+        self.stock_returns.append(r_stock)
+        self.bond_returns.append(r_bond)
+        # 组合收益
+        r_port = new_weights[0]*r_stock + new_weights[1]*r_bond + new_weights[2]*self.rf
+        # 交易成本
+        trade_cost = self.cost * np.abs(new_weights - self.weights).sum()
+        # 奖励 = 收益 - 成本 - 风险惩罚
+        reward = r_port - trade_cost - self.risk_beta * r_port**2
+        self.weights = new_weights
+        self.t += 1
+        done = (self.t >= self.episode_len)
+        return self._get_state(), float(reward), done
+
+# ---- SAC 网络定义 ----
+class QNetwork(nn.Module):
+    def __init__(self, state_dim, action_dim, hidden=128):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(state_dim + action_dim, hidden), nn.ReLU(),
+            nn.Linear(hidden, hidden), nn.ReLU(),
+            nn.Linear(hidden, 1))
+
+    def forward(self, s, a):
+        return self.net(torch.cat([s, a], dim=-1)).squeeze(-1)
+
+class PolicyNetwork(nn.Module):
+    def __init__(self, state_dim, action_dim, hidden=128):
+        super().__init__()
+        self.shared = nn.Sequential(
+            nn.Linear(state_dim, hidden), nn.ReLU(),
+            nn.Linear(hidden, hidden), nn.ReLU())
+        self.mu_head = nn.Linear(hidden, action_dim)
+        self.log_std_head = nn.Linear(hidden, action_dim)
+
+    def forward(self, s):
+        h = self.shared(s)
+        mu = self.mu_head(h)
+        log_std = self.log_std_head(h).clamp(-5, 2)
+        return mu, log_std
+
+    def sample(self, s):
+        mu, log_std = self.forward(s)
+        std = log_std.exp()
+        eps = torch.randn_like(std)
+        a_pre = mu + std * eps                # 重参数化
+        a = torch.tanh(a_pre)                 # 压缩到 [-1,1]
+        # 计算 log_prob（需要 tanh 修正）
+        log_prob = (-0.5 * eps.pow(2) - log_std - 0.5*np.log(2*np.pi)).sum(-1)
+        log_prob -= (2*(np.log(2) - a_pre - torch.nn.functional.softplus(-2*a_pre))).sum(-1)
+        return a, log_prob
+
+# ---- 训练循环 ----
+def train_sac(n_episodes=200, batch_size=128, gamma=0.99, tau=0.005, lr=3e-4):
+    env = MarketEnv()
+    s_dim, a_dim = 6, 2
+    pi = PolicyNetwork(s_dim, a_dim)
+    q1, q2 = QNetwork(s_dim, a_dim), QNetwork(s_dim, a_dim)
+    q1_tgt = QNetwork(s_dim, a_dim); q1_tgt.load_state_dict(q1.state_dict())
+    q2_tgt = QNetwork(s_dim, a_dim); q2_tgt.load_state_dict(q2.state_dict())
+    log_alpha = torch.tensor(0.0, requires_grad=True)
+    target_entropy = -a_dim
+    opt_pi = optim.Adam(pi.parameters(), lr=lr)
+    opt_q = optim.Adam(list(q1.parameters())+list(q2.parameters()), lr=lr)
+    opt_a = optim.Adam([log_alpha], lr=lr)
+    buf = deque(maxlen=100_000)
+
+    for ep in range(n_episodes):
+        s, ep_ret = env.reset(), 0.0
+        done = False
+        while not done:
+            with torch.no_grad():
+                a, _ = pi.sample(torch.tensor(s).unsqueeze(0))
+                a_np = a.squeeze(0).numpy()
+            s2, r, done = env.step(a_np)
+            buf.append((s, a_np, r, s2, float(done)))
+            s, ep_ret = s2, ep_ret + r
+            if len(buf) < batch_size:
+                continue
+            batch = random.sample(buf, batch_size)
+            sb = torch.tensor(np.array([x[0] for x in batch]))
+            ab = torch.tensor(np.array([x[1] for x in batch]))
+            rb = torch.tensor(np.array([x[2] for x in batch]), dtype=torch.float32)
+            s2b = torch.tensor(np.array([x[3] for x in batch]))
+            db = torch.tensor(np.array([x[4] for x in batch]), dtype=torch.float32)
+            alpha = log_alpha.exp().detach()
+            # Q 网络更新（公式 5.4-11, 5.4-12）
+            with torch.no_grad():
+                a2, lp2 = pi.sample(s2b)
+                q_tgt = rb + gamma*(1-db)*(torch.min(q1_tgt(s2b,a2), q2_tgt(s2b,a2)) - alpha*lp2)
+            loss_q = ((q1(sb,ab)-q_tgt)**2 + (q2(sb,ab)-q_tgt)**2).mean()
+            opt_q.zero_grad(); loss_q.backward(); opt_q.step()
+            # 策略网络更新（公式 5.4-13）
+            a_new, lp_new = pi.sample(sb)
+            loss_pi = (alpha*lp_new - torch.min(q1(sb,a_new), q2(sb,a_new))).mean()
+            opt_pi.zero_grad(); loss_pi.backward(); opt_pi.step()
+            # 自动温度调节（公式 5.4-14）
+            loss_a = -(log_alpha.exp() * (lp_new.detach() + target_entropy)).mean()
+            opt_a.zero_grad(); loss_a.backward(); opt_a.step()
+            # 目标网络软更新（公式 5.4-10）
+            for p, pt in zip(q1.parameters(), q1_tgt.parameters()):
+                pt.data.copy_(tau*p.data + (1-tau)*pt.data)
+            for p, pt in zip(q2.parameters(), q2_tgt.parameters()):
+                pt.data.copy_(tau*p.data + (1-tau)*pt.data)
+        if (ep+1) % 20 == 0:
+            print(f"Episode {ep+1:4d} | Return: {ep_ret:.4f} | alpha: {log_alpha.exp().item():.4f}")
+    return pi
+
+if __name__ == "__main__":
+    train_sac()
+</code></pre>
+
+            <!-- ==================== 实现细节 ==================== -->
+            <h2>实现细节</h2>
+
+            <p>上述代码中有几个值得注意的实现细节：</p>
+            <ul>
+                <li><strong>市场模拟器</strong>中，股票价格服从几何布朗运动（日收益率为正态分布），债券收益率服从均值回归过程（Ornstein-Uhlenbeck过程的离散近似），现金提供固定的无风险利率。</li>
+                <li><strong>动作参数化</strong>：策略网络输出2维向量 $(a_1, a_2) \in [-1,1]^2$，通过 $\text{softmax}(a_1, a_2, 0)$ 映射为三资产权重。这种设计将2维连续动作映射到单纯形上，比直接输出3个权重再归一化更适合SAC的高斯策略。</li>
+                <li><strong>对数概率的 $\tanh$ 修正</strong>：由于动作经过了 $\tanh$ 压缩，计算 $\log \pi(a|s)$ 时需要加上雅可比修正项 $-\sum_i \log(1 - \tanh^2(u_i))$，其中 $u_i$ 是 $\tanh$ 之前的值。代码中使用数值稳定的等价形式实现。</li>
+            </ul>
+
+            <!-- ==================== 交互演示 ==================== -->
+            <h2>交互演示</h2>
+
+            <p>下面的交互演示展示了SAC在简化版投资组合配置问题上的学习过程。状态空间简化为二维（近期收益率、波动率），动作空间为二维连续量（股票配置比例、债券配置比例），现金比例由约束 $1 - w_{\text{stock}} - w_{\text{bond}}$ 自动确定。演示的核心是直观呈现 SAC 的三个关键机制：高斯策略分布如何从宽到窄收敛、温度系数 $\alpha$ 如何自动调节、以及熵正则化如何自然地产生分散化效果。</p>
+
+            <div class="demo-container">
+                <div class="demo-title">交互演示：SAC 学习投资组合配置策略</div>
+
+                <!-- 控制栏 -->
+                <div class="rl-ctrl">
+                    <button id="sac-btn-step" onclick="sacStep()">下一步</button>
+                    <button id="sac-btn-auto" onclick="sacToggleAuto()">自动训练</button>
+                    <button id="sac-btn-fast" onclick="sacFast()">快进到收敛</button>
+                    <button onclick="sacReset()">重置</button>
+                </div>
+                <div class="rl-info" id="sac-status">训练步 <strong>0</strong> | 温度 $\alpha$: <strong>0.50</strong> | 熵: <strong>--</strong> | 缓冲区: <strong>0</strong>/500</div>
+
+                <!-- 上方：网络架构图 + 温度计 -->
+                <div style="text-align:center; margin:0.8rem 0 0.2rem;">
+                    <canvas id="cvs-arch" width="540" height="300" style="width:100%;max-width:540px;border:1px solid var(--border-color);border-radius:4px;background:white;"></canvas>
+                </div>
+                <div class="fig-caption" style="margin-bottom:1rem;">SAC 网络架构：Actor 输出高斯分布参数，Twin Critics 评估动作价值，温度 $\alpha$ 自动调节探索程度</div>
+
+                <!-- 中间：策略分布 + 熵/温度曲线 -->
+                <div class="demo-row">
+                    <div class="demo-panel">
+                        <canvas id="cvs-policy" width="440" height="380"></canvas>
+                        <div class="fig-caption" style="margin-bottom:0;">策略分布演变：二维高斯在可行域（三角形）上的分布</div>
+                    </div>
+                    <div class="demo-panel">
+                        <canvas id="cvs-entropy" width="440" height="380"></canvas>
+                        <div class="fig-caption" style="margin-bottom:0;">熵与温度变化：策略熵逐步逼近目标熵，$\alpha$ 自动下调</div>
+                    </div>
+                </div>
+
+                <!-- 下方：数据面板 -->
+                <div class="rl-info" id="sac-data" style="font-family:monospace;font-size:0.84rem;line-height:1.8;white-space:pre-wrap;">状态: (近期收益=--, 波动率=--)
+高斯参数: μ=(--, --), σ=(--, --)
+采样动作: (股票=--, 债券=--, 现金=--)
+熵: -- (目标: --)  温度: α=--
+Q值: Q₁=--, Q₂=--</div>
+            </div>
+            <div class="fig-caption">图 5.4-5　SAC 学习投资组合配置策略的交互演示。左图展示策略网络输出的二维高斯分布如何在可行域（$w_{\text{stock}} + w_{\text{bond}} \le 1$ 的三角形区域）内从宽分布（探索）收敛到窄分布（利用）；右图展示策略熵逐步逼近目标熵、温度 $\alpha$ 自动下降的过程。即使收敛后，策略仍保持一定的分散性，体现了最大熵的分散化效果。</div>
+
+            <!-- ==================== 结果分析 ==================== -->
+            <h2>结果分析</h2>
+
+            <p>从交互演示中可以观察到SAC训练过程的几个典型特征：</p>
+
+            <ul>
+                <li><strong>策略从宽到窄收敛。</strong>训练初期，策略网络输出的高斯分布标准差较大（$\sigma$ 约为0.3），在可行域内几乎均匀分布，这对应了广泛的探索阶段。随着训练进行，分布逐渐收缩到高价值区域。但与TD3等确定性策略不同，SAC的策略即使收敛后仍保持一定的宽度，体现了最大熵目标对随机性的鼓励。</li>
+                <li><strong>温度自动下降。</strong>$\alpha$ 在训练初期保持较高值（约0.5），随后逐渐下降到0.05-0.15的范围。这对应了从探索到利用的自然过渡。注意 $\alpha$ 不会降到零，因为目标熵 $\bar{\mathcal{H}} = -\dim(\mathcal{A}) = -2$ 要求策略始终保持一定程度的随机性。</li>
+                <li><strong>分散化投资。</strong>收敛后的策略通常不会将全部资金集中在单一资产上。在中等波动率的市场环境下，策略倾向于将约40-50%分配给股票、25-35%给债券、其余给现金。这种分散化配置正是熵正则化的自然结果，与Markowitz均值-方差框架所推荐的分散化策略有类似的效果。</li>
+            </ul>
+
+            <div class="note">
+                <strong>与实际投资的差距：</strong>本例使用了高度简化的市场模型（价格服从GBM、收益率独立同分布），且只考虑三种资产。实际的投资组合配置问题涉及更多资产、非平稳市场、杠杆约束、流动性风险等复杂因素。此处的目的是展示SAC的算法机制，而非提供实际可用的投资策略。
+            </div>
+
+            <p>下一节将介绍一种与前面截然不同的范式：基于模型的深度强化学习，通过学习环境动态模型来大幅提高样本效率。</p>
+
+            <div class="chapter-nav">
+                <a href="../ch05/5.4.1.html">&larr; 5.4.1 SAC算法</a>
+                <a href="../ch05/5.5.html">5.5 基于模型的深度强化学习 &rarr;</a>
+            </div>
+        </main>
+    </div>
+
+    <!-- ==================== SAC 交互演示 JS ==================== -->
+    <script>
+    (function(){
+    "use strict";
+
+    /* ==========================================================
+       SAC Interactive Demo – Portfolio Allocation (2D continuous)
+       ==========================================================
+       State:  (recent_return, volatility) ∈ [0,1]²
+       Action: (stock_alloc, bond_alloc)   ∈ [0,1]², stock+bond ≤ 1
+       cash = 1 - stock - bond
+       Actor outputs Gaussian params (μ₁,μ₂,logσ₁,logσ₂)
+       Twin Critics Q₁, Q₂
+       Automatic temperature α tuning
+    ========================================================== */
+
+    /* ---------- Hyperparameters ---------- */
+    var GAMMA = 0.95;
+    var LR_Q = 0.008;
+    var LR_PI = 0.004;
+    var LR_ALPHA = 0.006;
+    var TAU = 0.008;
+    var BUFFER_MAX = 500;
+    var BATCH = 32;
+    var TARGET_ENTROPY = -2;  // -dim(A)
+
+    /* ---------- Tiny Neural Network Lib ---------- */
+    function randNorm(){ var u=Math.random(),v=Math.random(); return Math.sqrt(-2*Math.log(u+1e-12))*Math.cos(6.2831853*v); }
+    function clamp(x,lo,hi){ return x<lo?lo:(x>hi?hi:x); }
+    function tanh(x){ var e=Math.exp(2*x); return (e-1)/(e+1); }
+    function sigmoid(x){ return 1/(1+Math.exp(-x)); }
+    function relu(x){ return x>0?x:0; }
+
+    // Dense layer: weights[out][in], biases[out]
+    function makeLayer(ni,no){
+        var w=[], b=[];
+        var s = Math.sqrt(2.0/ni);
+        for(var o=0;o<no;o++){
+            w[o]=[];
+            for(var i=0;i<ni;i++) w[o][i]=randNorm()*s;
+            b[o]=0;
+        }
+        return {w:w,b:b,ni:ni,no:no};
+    }
+    function fwdLayer(layer,inp,act){
+        var out=[];
+        for(var o=0;o<layer.no;o++){
+            var s=layer.b[o];
+            for(var i=0;i<layer.ni;i++) s+=layer.w[o][i]*inp[i];
+            out[o]= act? act(s) : s;
+        }
+        return out;
+    }
+    function copyLayer(src){
+        var dst=makeLayer(src.ni,src.no);
+        for(var o=0;o<src.no;o++){
+            dst.b[o]=src.b[o];
+            for(var i=0;i<src.ni;i++) dst.w[o][i]=src.w[o][i];
+        }
+        return dst;
+    }
+    function softUpdate(tgt,src,tau){
+        for(var o=0;o<src.no;o++){
+            tgt.b[o]+= tau*(src.b[o]-tgt.b[o]);
+            for(var i=0;i<src.ni;i++) tgt.w[o][i]+= tau*(src.w[o][i]-tgt.w[o][i]);
+        }
+    }
+
+    /* ---------- Actor: 2 → 6(relu) → 4 (μ1,μ2,logσ1,logσ2) ---------- */
+    var actorL1, actorL2;
+    /* ---------- Critic 1 & 2: 4 → 6(relu) → 1 ---------- */
+    var c1L1, c1L2, c2L1, c2L2;
+    var c1L1t, c1L2t, c2L1t, c2L2t; // targets
+
+    function initNets(){
+        actorL1=makeLayer(2,6); actorL2=makeLayer(6,4);
+        // bias logσ heads to ~log(0.3) ≈ -1.2 so we start with wide exploration
+        actorL2.b[2]=-0.5; actorL2.b[3]=-0.5;
+        c1L1=makeLayer(4,6); c1L2=makeLayer(6,1);
+        c2L1=makeLayer(4,6); c2L2=makeLayer(6,1);
+        c1L1t=copyLayer(c1L1); c1L2t=copyLayer(c1L2);
+        c2L1t=copyLayer(c2L1); c2L2t=copyLayer(c2L2);
+    }
+
+    function actorForward(s){
+        // s=[ret,vol]
+        var h=fwdLayer(actorL1,s,relu);
+        var out=fwdLayer(actorL2,h,null);
+        // μ via sigmoid to [0,1], logσ clamped
+        var mu1=sigmoid(out[0]), mu2=sigmoid(out[1]);
+        var ls1=clamp(out[2],-4,-0.3), ls2=clamp(out[3],-4,-0.3);
+        return {mu:[mu1,mu2], logSig:[ls1,ls2], h:h, raw:out};
+    }
+
+    function actorSample(s){
+        var p=actorForward(s);
+        var sig1=Math.exp(p.logSig[0]), sig2=Math.exp(p.logSig[1]);
+        var eps1=randNorm(), eps2=randNorm();
+        var a1=clamp(p.mu[0]+sig1*eps1, 0, 1);
+        var a2=clamp(p.mu[1]+sig2*eps2, 0, 1);
+        // enforce stock+bond ≤ 1
+        if(a1+a2>1){ var sc=1/(a1+a2); a1*=sc; a2*=sc; }
+        // log_prob (diagonal Gaussian, ignore boundary corrections for demo)
+        var lp = -0.5*eps1*eps1 - p.logSig[0] - 0.5*eps2*eps2 - p.logSig[1] - Math.log(2*Math.PI);
+        return {a:[a1,a2], lp:lp, mu:p.mu, sig:[sig1,sig2], eps:[eps1,eps2]};
+    }
+
+    function criticForward(cL1,cL2,s,a){
+        var inp=[s[0],s[1],a[0],a[1]];
+        var h=fwdLayer(cL1,inp,relu);
+        return fwdLayer(cL2,h,null)[0];
+    }
+
+    /* ---------- Numerical gradients via finite differences ---------- */
+    function updateLayerFD(layer, lossFn, lr){
+        var eps=1e-3;
+        for(var o=0;o<layer.no;o++){
+            // bias
+            var orig=layer.b[o];
+            layer.b[o]=orig+eps; var lp=lossFn();
+            layer.b[o]=orig-eps; var lm=lossFn();
+            layer.b[o]=orig;
+            var g=(lp-lm)/(2*eps);
+            layer.b[o]-=lr*clamp(g,-5,5);
+            // weights
+            for(var i=0;i<layer.ni;i++){
+                var ow=layer.w[o][i];
+                layer.w[o][i]=ow+eps; lp=lossFn();
+                layer.w[o][i]=ow-eps; lm=lossFn();
+                layer.w[o][i]=ow;
+                g=(lp-lm)/(2*eps);
+                layer.w[o][i]-=lr*clamp(g,-5,5);
+            }
+        }
+    }
+
+    /* ---------- Market Environment ---------- */
+    var STOCK_MU=0.0005, STOCK_SIG=0.02;
+    var BOND_MU=0.0003, BOND_SIG=0.005;
+    var RF=0.0002, COST=0.001, RISK_BETA=5.0;
+
+    var envState, envWeights;
+
+    function envReset(){
+        var ret=0.5+0.2*randNorm(); // normalized recent return
+        var vol=0.3+0.15*randNorm(); // normalized volatility
+        envState=[clamp(ret,0,1), clamp(vol,0,1)];
+        envWeights=[1/3,1/3];
+        return envState.slice();
+    }
+
+    function envStep(action){
+        var ws=action[0], wb=action[1];
+        var wc=1-ws-wb;
+        // simulate daily returns
+        var vol = envState[1]*0.04+0.005; // map normalized vol to actual
+        var rStock = STOCK_MU + vol*randNorm();
+        var rBond = BOND_MU + BOND_SIG*randNorm();
+        var rPort = ws*rStock + wb*rBond + wc*RF;
+        var tradeCost = COST*(Math.abs(ws-envWeights[0])+Math.abs(wb-envWeights[1]));
+        var reward = (rPort - tradeCost - RISK_BETA*rPort*rPort)*1000;
+        envWeights=[ws,wb];
+        // next state: incorporate new return and vol info
+        var newRet = clamp(envState[0]+0.1*(rPort*500), 0, 1);
+        var newVol = clamp(envState[1]+0.05*randNorm(), 0, 1);
+        envState=[newRet,newVol];
+        return {s2:envState.slice(), r:reward};
+    }
+
+    /* ---------- Replay Buffer ---------- */
+    var buffer=[];
+    function bufPush(s,a,r,s2){
+        if(buffer.length>=BUFFER_MAX) buffer.shift();
+        buffer.push({s:s,a:a,r:r,s2:s2});
+    }
+    function bufSample(n){
+        var out=[];
+        for(var i=0;i<n;i++) out.push(buffer[Math.floor(Math.random()*buffer.length)]);
+        return out;
+    }
+
+    /* ---------- State ---------- */
+    var logAlpha, totalSteps;
+    var entropyHist=[], alphaHist=[];
+    var lastSample=null;
+    var autoTimer=null;
+    var lastQ1=0, lastQ2=0;
+
+    function getAlpha(){ return Math.exp(logAlpha); }
+
+    function sacInit(){
+        initNets();
+        logAlpha=Math.log(0.5);
+        totalSteps=0;
+        buffer=[];
+        entropyHist=[]; alphaHist=[];
+        lastSample=null;
+        lastQ1=0; lastQ2=0;
+        envReset();
+    }
+
+    /* ---------- Single training step ---------- */
+    function doStep(){
+        var s=envState.slice();
+        var sam=actorSample(s);
+        var res=envStep(sam.a);
+        bufPush(s, sam.a, res.r, res.s2);
+
+        lastSample={s:s, mu:sam.mu, sig:sam.sig, a:sam.a, lp:sam.lp};
+        totalSteps++;
+
+        if(buffer.length < BATCH) { recordHistory(sam); return; }
+
+        var batch=bufSample(BATCH);
+        var alpha=getAlpha();
+
+        // --- Update critics ---
+        function criticLoss(cL1x,cL2x){
+            var loss=0;
+            for(var i=0;i<batch.length;i++){
+                var b=batch[i];
+                var sam2=actorSample(b.s2);
+                var q1t=criticForward(c1L1t,c1L2t,b.s2,sam2.a);
+                var q2t=criticForward(c2L1t,c2L2t,b.s2,sam2.a);
+                var qMin=Math.min(q1t,q2t);
+                var y=b.r+GAMMA*(qMin - alpha*sam2.lp);
+                var pred=criticForward(cL1x,cL2x,b.s,b.a);
+                var e=pred-y;
+                loss+=e*e;
+            }
+            return loss/batch.length;
+        }
+        updateLayerFD(c1L1, function(){return criticLoss(c1L1,c1L2);}, LR_Q);
+        updateLayerFD(c1L2, function(){return criticLoss(c1L1,c1L2);}, LR_Q);
+        updateLayerFD(c2L1, function(){return criticLoss(c2L1,c2L2);}, LR_Q);
+        updateLayerFD(c2L2, function(){return criticLoss(c2L1,c2L2);}, LR_Q);
+
+        // --- Update actor ---
+        function actorLoss(){
+            var loss=0;
+            for(var i=0;i<batch.length;i++){
+                var b=batch[i];
+                var sam3=actorSample(b.s);
+                var q1v=criticForward(c1L1,c1L2,b.s,sam3.a);
+                var q2v=criticForward(c2L1,c2L2,b.s,sam3.a);
+                loss+= alpha*sam3.lp - Math.min(q1v,q2v);
+            }
+            return loss/batch.length;
+        }
+        updateLayerFD(actorL1, actorLoss, LR_PI);
+        updateLayerFD(actorL2, actorLoss, LR_PI);
+
+        // --- Update alpha ---
+        var meanLp=0;
+        for(var i=0;i<batch.length;i++){
+            var sam4=actorSample(batch[i].s);
+            meanLp+=sam4.lp;
+        }
+        meanLp/=batch.length;
+        var alphaGrad = -(meanLp + TARGET_ENTROPY);
+        logAlpha -= LR_ALPHA * clamp(alphaGrad,-2,2);
+        logAlpha = clamp(logAlpha, Math.log(0.01), Math.log(2.0));
+
+        // --- Soft update targets ---
+        softUpdate(c1L1t,c1L1,TAU); softUpdate(c1L2t,c1L2,TAU);
+        softUpdate(c2L1t,c2L1,TAU); softUpdate(c2L2t,c2L2,TAU);
+
+        // record Q values for display
+        lastQ1=criticForward(c1L1,c1L2,s,sam.a);
+        lastQ2=criticForward(c2L1,c2L2,s,sam.a);
+
+        recordHistory(sam);
+    }
+
+    function recordHistory(sam){
+        if(totalSteps%5===0){
+            var ent=0, nS=8;
+            for(var i=0;i<nS;i++){
+                var ss=[Math.random(), Math.random()];
+                var p=actorForward(ss);
+                ent+= 0.5*Math.log(2*Math.PI*Math.E)*2 + p.logSig[0] + p.logSig[1];
+            }
+            ent/=nS;
+            entropyHist.push(ent);
+            alphaHist.push(getAlpha());
+        }
+    }
+
+    /* ==================== DRAWING ==================== */
+    var DPR = window.devicePixelRatio || 1;
+
+    function setupCanvas(id,w,h){
+        var cvs=document.getElementById(id);
+        if(!cvs) return null;
+        cvs.width=w*DPR; cvs.height=h*DPR;
+        cvs.style.width=w+'px'; cvs.style.height=h+'px';
+        var ctx=cvs.getContext('2d');
+        ctx.setTransform(DPR,0,0,DPR,0,0);
+        return ctx;
+    }
+
+    /* --- Architecture Diagram (canvas) --- */
+    function drawArch(){
+        var ctx=setupCanvas('cvs-arch',540,300);
+        if(!ctx) return;
+        var W=540, H=300;
+        ctx.clearRect(0,0,W,H);
+        ctx.textBaseline='middle';
+
+        // --- Actor box ---
+        ctx.fillStyle='#f0fff4'; ctx.strokeStyle='#48bb78'; ctx.lineWidth=2;
+        roundRect(ctx, 15, 30, 200, 230, 8, true, true);
+        ctx.fillStyle='#276749'; ctx.font='bold 13px sans-serif'; ctx.textAlign='center';
+        ctx.fillText('Actor: \u9AD8\u65AF\u7B56\u7565 \u03C0', 115, 50);
+        ctx.font='11px sans-serif';
+        ctx.fillText('\u03B8', 173, 53);
+
+        // Input nodes
+        ctx.fillStyle='#ebf4ff'; ctx.strokeStyle='#2b6cb0'; ctx.lineWidth=1.2;
+        var inLabels=['ret','vol'];
+        var inY=[100,160];
+        for(var i=0;i<2;i++){
+            ctx.beginPath(); ctx.arc(55,inY[i],14,0,6.283); ctx.fill(); ctx.stroke();
+            ctx.fillStyle='#2d3748'; ctx.font='italic 11px sans-serif'; ctx.textAlign='center';
+            ctx.fillText(inLabels[i], 55, inY[i]);
+            ctx.fillStyle='#ebf4ff';
+        }
+
+        // Hidden layer
+        var hidY=[80,120,160,200];
+        ctx.fillStyle='#e2e8f0'; ctx.strokeStyle='#718096';
+        for(var i=0;i<4;i++){
+            ctx.beginPath(); ctx.arc(115,hidY[i],8,0,6.283); ctx.fill(); ctx.stroke();
+        }
+        ctx.fillStyle='#718096'; ctx.font='9px sans-serif';
+        ctx.fillText('\u00D76', 115, 222);
+
+        // Output: Gaussian params
+        var outLabels=['\u03BC_s','\u03BC_b','\u03C3_s','\u03C3_b'];
+        var outY=[75,115,165,205];
+        var outColors=['#2b6cb0','#2b6cb0','#c53030','#c53030'];
+        for(var i=0;i<4;i++){
+            ctx.fillStyle=i<2?'#dbeafe':'#fed7d7'; ctx.strokeStyle=outColors[i]; ctx.lineWidth=1.2;
+            ctx.beginPath(); ctx.arc(180,outY[i],12,0,6.283); ctx.fill(); ctx.stroke();
+            ctx.fillStyle=outColors[i]; ctx.font='italic 10px sans-serif';
+            ctx.fillText(outLabels[i], 180, outY[i]);
+        }
+
+        // Connections: input → hidden
+        ctx.strokeStyle='#b0b8c4'; ctx.lineWidth=0.8;
+        for(var i=0;i<2;i++) for(var j=0;j<4;j++){
+            ctx.beginPath(); ctx.moveTo(69,inY[i]); ctx.lineTo(107,hidY[j]); ctx.stroke();
+        }
+        // hidden → output
+        for(var i=0;i<4;i++) for(var j=0;j<4;j++){
+            ctx.beginPath(); ctx.moveTo(123,hidY[i]); ctx.lineTo(168,outY[j]); ctx.stroke();
+        }
+
+        // Draw small Gaussian bell curves
+        if(lastSample){
+            var mu1=lastSample.mu[0], mu2=lastSample.mu[1];
+            var sig1=lastSample.sig[0], sig2=lastSample.sig[1];
+            drawMiniGauss(ctx, 178, 63, 40, 20, mu1, sig1, '#2b6cb0');
+            drawMiniGauss(ctx, 178, 148, 40, 20, mu2, sig2, '#2b6cb0');
+        }
+
+        // --- Twin Critics ---
+        var cx=320, cy1=50, cy2=175;
+        ctx.fillStyle='#fffff0'; ctx.strokeStyle='#d69e2e'; ctx.lineWidth=2;
+        roundRect(ctx, cx, cy1, 140, 80, 8, true, true);
+        ctx.fillStyle='#975a16'; ctx.font='bold 12px sans-serif'; ctx.textAlign='center';
+        ctx.fillText('Critic Q\u2081', cx+70, cy1+25);
+        ctx.font='11px sans-serif'; ctx.fillStyle='#975a16';
+        ctx.fillText('(s, a) \u2192 Q\u2081', cx+70, cy1+50);
+        if(lastQ1!==0){
+            ctx.fillStyle='#4a5568'; ctx.font='10px sans-serif';
+            ctx.fillText('Q\u2081='+lastQ1.toFixed(1), cx+70, cy1+68);
+        }
+
+        ctx.fillStyle='#fffff0'; ctx.strokeStyle='#d69e2e'; ctx.lineWidth=2;
+        roundRect(ctx, cx, cy2, 140, 80, 8, true, true);
+        ctx.fillStyle='#975a16'; ctx.font='bold 12px sans-serif'; ctx.textAlign='center';
+        ctx.fillText('Critic Q\u2082', cx+70, cy2+25);
+        ctx.font='11px sans-serif'; ctx.fillStyle='#975a16';
+        ctx.fillText('(s, a) \u2192 Q\u2082', cx+70, cy2+50);
+        if(lastQ2!==0){
+            ctx.fillStyle='#4a5568'; ctx.font='10px sans-serif';
+            ctx.fillText('Q\u2082='+lastQ2.toFixed(1), cx+70, cy2+68);
+        }
+
+        // min box
+        ctx.fillStyle='#e9d8fd'; ctx.strokeStyle='#805ad5'; ctx.lineWidth=1.5;
+        roundRect(ctx, cx+30, cy2+95, 80, 28, 6, true, true);
+        ctx.fillStyle='#553c9a'; ctx.font='bold 11px sans-serif';
+        ctx.fillText('min(Q\u2081, Q\u2082)', cx+70, cy2+109);
+
+        // lines from critics to min
+        ctx.strokeStyle='#805ad5'; ctx.lineWidth=1.2;
+        ctx.beginPath(); ctx.moveTo(cx+70,cy1+80); ctx.lineTo(cx+70,cy2+95); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx+70,cy2+80); ctx.lineTo(cx+70,cy2+95); ctx.stroke();
+
+        // line from actor to critics
+        ctx.strokeStyle='#718096'; ctx.lineWidth=1;
+        ctx.setLineDash([4,3]);
+        ctx.beginPath(); ctx.moveTo(215,130); ctx.lineTo(cx,cy1+50); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(215,130); ctx.lineTo(cx,cy2+50); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // --- Temperature gauge ---
+        var gx=490, gy=30, gw=35, gh=230;
+        ctx.fillStyle='#fafafa'; ctx.strokeStyle='#805ad5'; ctx.lineWidth=1.5;
+        roundRect(ctx, gx, gy, gw, gh, 6, true, true);
+        var alpha=getAlpha();
+        var fillH = (alpha/2.0)*gh;
+        fillH=clamp(fillH, 4, gh-4);
+        ctx.fillStyle='rgba(128,90,213,0.25)';
+        ctx.fillRect(gx+3, gy+gh-fillH, gw-6, fillH-3);
+        ctx.fillStyle='#805ad5'; ctx.font='bold 11px sans-serif'; ctx.textAlign='center';
+        ctx.fillText('\u03B1', gx+gw/2, gy-10);
+        ctx.font='10px sans-serif';
+        ctx.fillText(alpha.toFixed(2), gx+gw/2, gy+gh+14);
+        ctx.fillStyle='#a0aec0'; ctx.font='9px sans-serif'; ctx.textAlign='right';
+        ctx.fillText('2.0', gx-3, gy+8);
+        ctx.fillText('1.0', gx-3, gy+gh/2);
+        ctx.fillText('0', gx-3, gy+gh-2);
+        var pointerY=gy+gh - fillH;
+        ctx.fillStyle='#805ad5';
+        ctx.beginPath();
+        ctx.moveTo(gx+gw+2, pointerY);
+        ctx.lineTo(gx+gw+8, pointerY-4);
+        ctx.lineTo(gx+gw+8, pointerY+4);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle='#718096'; ctx.font='9px sans-serif'; ctx.textAlign='center';
+        ctx.fillText('\u9AD8\u63A2\u7D22', gx+gw/2, gy+15);
+        ctx.fillText('\u9AD8\u5229\u7528', gx+gw/2, gy+gh-10);
+    }
+
+    function drawMiniGauss(ctx, cx, cy, w, h, mu, sig, color){
+        ctx.strokeStyle=color; ctx.lineWidth=1.5;
+        ctx.beginPath();
+        for(var i=0;i<=40;i++){
+            var x=i/40;
+            var z=(x-mu)/Math.max(sig,0.05);
+            var y=Math.exp(-0.5*z*z);
+            var px=cx-w/2+x*w;
+            var py=cy+h/2-y*h;
+            if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+        }
+        ctx.stroke();
+    }
+
+    function roundRect(ctx,x,y,w,h,r,fill,stroke){
+        ctx.beginPath();
+        ctx.moveTo(x+r,y);
+        ctx.lineTo(x+w-r,y); ctx.arcTo(x+w,y,x+w,y+r,r);
+        ctx.lineTo(x+w,y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+        ctx.lineTo(x+r,y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
+        ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r);
+        ctx.closePath();
+        if(fill) ctx.fill();
+        if(stroke) ctx.stroke();
+    }
+
+    /* --- Policy Distribution (2D contour in triangle) --- */
+    function drawPolicy(){
+        var ctx=setupCanvas('cvs-policy',440,380);
+        if(!ctx) return;
+        var W=440, H=380;
+        ctx.clearRect(0,0,W,H);
+
+        var padL=55, padR=20, padT=30, padB=50;
+        var plotW=W-padL-padR, plotH=H-padT-padB;
+
+        var repState=[0.5, 0.4];
+        var p=actorForward(repState);
+        var mu1=p.mu[0], mu2=p.mu[1];
+        var sig1=Math.exp(p.logSig[0]), sig2=Math.exp(p.logSig[1]);
+
+        // Draw heatmap of policy density
+        var res=2;
+        for(var px=0; px<plotW; px+=res){
+            for(var py=0; py<plotH; py+=res){
+                var ax=px/plotW;
+                var ay=1-py/plotH;
+                if(ax+ay>1.02) continue;
+                var z1=(ax-mu1)/Math.max(sig1,0.01);
+                var z2=(ay-mu2)/Math.max(sig2,0.01);
+                var density=Math.exp(-0.5*(z1*z1+z2*z2));
+                if(density<0.01) continue;
+                var r=Math.round(43+212*(1-density));
+                var g=Math.round(108+147*(1-density));
+                var b=Math.round(176+79*(1-density));
+                var alpha_c=0.15+0.7*density;
+                ctx.fillStyle='rgba('+r+','+g+','+b+','+alpha_c+')';
+                ctx.fillRect(padL+px, padT+py, res, res);
+            }
+        }
+
+        // Draw feasible triangle boundary
+        ctx.strokeStyle='#4a5568'; ctx.lineWidth=1.5; ctx.setLineDash([5,3]);
+        ctx.beginPath();
+        ctx.moveTo(padL, padT);
+        ctx.lineTo(padL, padT+plotH);
+        ctx.lineTo(padL+plotW, padT+plotH);
+        ctx.lineTo(padL, padT);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Label the triangle constraint
+        ctx.fillStyle='#4a5568'; ctx.font='10px sans-serif'; ctx.textAlign='center';
+        ctx.save();
+        ctx.translate(padL+plotW*0.55, padT+plotH*0.25);
+        ctx.rotate(Math.atan2(-plotH, plotW));
+        ctx.fillText('stock + bond = 1', 0, -8);
+        ctx.restore();
+
+        // Shade infeasible region
+        ctx.fillStyle='rgba(200,200,200,0.15)';
+        ctx.beginPath();
+        ctx.moveTo(padL, padT);
+        ctx.lineTo(padL+plotW, padT);
+        ctx.lineTo(padL+plotW, padT+plotH);
+        ctx.lineTo(padL, padT);
+        ctx.closePath(); ctx.fill();
+
+        // Draw 2σ ellipse
+        ctx.strokeStyle='#c53030'; ctx.lineWidth=2;
+        ctx.beginPath();
+        for(var t=0;t<=64;t++){
+            var angle=t/64*6.2832;
+            var ex=mu1+2*sig1*Math.cos(angle);
+            var ey=mu2+2*sig2*Math.sin(angle);
+            var epx=padL+ex*plotW;
+            var epy=padT+(1-ey)*plotH;
+            if(t===0) ctx.moveTo(epx,epy); else ctx.lineTo(epx,epy);
+        }
+        ctx.closePath(); ctx.stroke();
+
+        // Label ellipse
+        ctx.fillStyle='#c53030'; ctx.font='10px sans-serif'; ctx.textAlign='left';
+        var lblX=padL+clamp((mu1+2*sig1)*plotW+4, padL, padL+plotW-30);
+        var lblY=padT+(1-mu2)*plotH;
+        ctx.fillText('2\u03C3', lblX, lblY);
+
+        // Draw sampled points
+        var nPts=Math.min(buffer.length, 30);
+        ctx.fillStyle='rgba(192,86,33,0.45)';
+        for(var i=buffer.length-nPts;i<buffer.length;i++){
+            var ba=buffer[i].a;
+            var bpx=padL+ba[0]*plotW;
+            var bpy=padT+(1-ba[1])*plotH;
+            ctx.beginPath(); ctx.arc(bpx,bpy,2.5,0,6.283); ctx.fill();
+        }
+
+        // Draw mean as crosshair
+        var mpx=padL+mu1*plotW, mpy=padT+(1-mu2)*plotH;
+        ctx.strokeStyle='#c53030'; ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.moveTo(mpx-6,mpy); ctx.lineTo(mpx+6,mpy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(mpx,mpy-6); ctx.lineTo(mpx,mpy+6); ctx.stroke();
+
+        // Axes
+        ctx.strokeStyle='#cbd5e0'; ctx.lineWidth=1;
+        ctx.beginPath();
+        ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.lineTo(padL+plotW, padT+plotH);
+        ctx.stroke();
+
+        // Axis labels and ticks
+        ctx.fillStyle='#4a5568'; ctx.font='11px sans-serif'; ctx.textAlign='center';
+        for(var i=0;i<=4;i++){
+            var v=(i*25)+'%';
+            var x=padL+(i/4)*plotW;
+            ctx.fillText(v, x, padT+plotH+16);
+            ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=0.5;
+            if(i>0){ ctx.beginPath(); ctx.moveTo(x,padT); ctx.lineTo(x,padT+plotH); ctx.stroke(); }
+        }
+        ctx.fillText('\u80A1\u7968\u914D\u7F6E\u6BD4\u4F8B', padL+plotW/2, padT+plotH+38);
+
+        ctx.textAlign='right';
+        for(var i=0;i<=4;i++){
+            var v=(i*25)+'%';
+            var y=padT+plotH-(i/4)*plotH;
+            ctx.fillText(v, padL-6, y+4);
+            ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=0.5;
+            if(i>0){ ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(padL+plotW,y); ctx.stroke(); }
+        }
+        ctx.save();
+        ctx.translate(14, padT+plotH/2);
+        ctx.rotate(-Math.PI/2);
+        ctx.textAlign='center'; ctx.fillStyle='#4a5568'; ctx.font='11px sans-serif';
+        ctx.fillText('\u503A\u5238\u914D\u7F6E\u6BD4\u4F8B', 0, 0);
+        ctx.restore();
+
+        // Legend
+        ctx.textAlign='left'; ctx.font='10px sans-serif';
+        ctx.fillStyle='rgba(43,108,176,0.6)';
+        ctx.fillRect(padL+5, padT+5, 12, 12);
+        ctx.fillStyle='#2d3748';
+        ctx.fillText('\u7B56\u7565\u5BC6\u5EA6', padL+20, padT+15);
+        ctx.strokeStyle='#c53030'; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.moveTo(padL+5,padT+27); ctx.lineTo(padL+17,padT+27); ctx.stroke();
+        ctx.fillStyle='#c53030';
+        ctx.fillText('2\u03C3 \u7B49\u9AD8\u7EBF', padL+20, padT+31);
+        ctx.fillStyle='rgba(192,86,33,0.6)';
+        ctx.beginPath(); ctx.arc(padL+11,padT+43,3,0,6.283); ctx.fill();
+        ctx.fillStyle='#c05621';
+        ctx.fillText('\u91C7\u6837\u52A8\u4F5C', padL+20, padT+47);
+
+        // Info: current σ
+        ctx.fillStyle='#718096'; ctx.font='10px sans-serif'; ctx.textAlign='right';
+        ctx.fillText('\u03C3_stock='+sig1.toFixed(3)+', \u03C3_bond='+sig2.toFixed(3), padL+plotW, padT+plotH+38);
+    }
+
+    /* --- Entropy & Temperature Curves --- */
+    function drawEntropy(){
+        var ctx=setupCanvas('cvs-entropy',440,380);
+        if(!ctx) return;
+        var W=440, H=380;
+        ctx.clearRect(0,0,W,H);
+
+        var padL=50, padR=50, padT=30, padB=50;
+        var plotW=W-padL-padR, plotH_half=(H-padT-padB-20)/2;
+
+        drawSubChart(ctx, padL, padT, plotW, plotH_half, entropyHist, '\u7B56\u7565\u71B5 H(\u03C0)', '#2b6cb0', true);
+
+        var topBot = padT+plotH_half+20;
+        drawSubChart(ctx, padL, topBot, plotW, plotH_half, alphaHist, '\u6E29\u5EA6 \u03B1', '#805ad5', false);
+
+        ctx.fillStyle='#4a5568'; ctx.font='11px sans-serif'; ctx.textAlign='center';
+        ctx.fillText('\u8BAD\u7EC3\u6B65\u6570', padL+plotW/2, H-8);
+    }
+
+    function drawSubChart(ctx, ox, oy, pw, ph, data, label, color, showTarget){
+        ctx.fillStyle='#fafafa';
+        ctx.fillRect(ox, oy, pw, ph);
+
+        ctx.strokeStyle='#cbd5e0'; ctx.lineWidth=1;
+        ctx.beginPath();
+        ctx.moveTo(ox, oy); ctx.lineTo(ox, oy+ph); ctx.lineTo(ox+pw, oy+ph);
+        ctx.stroke();
+
+        ctx.save();
+        ctx.fillStyle=color; ctx.font='bold 11px sans-serif';
+        ctx.translate(ox-35, oy+ph/2);
+        ctx.rotate(-Math.PI/2);
+        ctx.textAlign='center';
+        ctx.fillText(label, 0, 0);
+        ctx.restore();
+
+        if(data.length<2){
+            ctx.fillStyle='#a0aec0'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+            ctx.fillText('\u5F00\u59CB\u8BAD\u7EC3\u540E\u663E\u793A\u66F2\u7EBF', ox+pw/2, oy+ph/2);
+            if(showTarget){
+                ctx.strokeStyle='#805ad5'; ctx.lineWidth=1; ctx.setLineDash([4,3]);
+                var ty=oy+ph*0.4;
+                ctx.beginPath(); ctx.moveTo(ox,ty); ctx.lineTo(ox+pw,ty); ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle='#805ad5'; ctx.font='10px sans-serif'; ctx.textAlign='left';
+                ctx.fillText('\u76EE\u6807\u71B5: '+TARGET_ENTROPY.toFixed(1), ox+pw-80, ty-5);
+            }
+            return;
+        }
+
+        var n=data.length;
+        var minV=Infinity, maxV=-Infinity;
+        for(var i=0;i<n;i++){
+            if(data[i]<minV) minV=data[i];
+            if(data[i]>maxV) maxV=data[i];
+        }
+        if(showTarget){
+            minV=Math.min(minV, TARGET_ENTROPY-0.3);
+            maxV=Math.max(maxV, TARGET_ENTROPY+0.3);
+        }
+        if(maxV-minV<0.1) { maxV=minV+1; }
+        var range=maxV-minV;
+
+        ctx.strokeStyle=color; ctx.lineWidth=2;
+        ctx.beginPath();
+        for(var i=0;i<n;i++){
+            var px=ox+(i/(n-1))*pw;
+            var py=oy+ph-((data[i]-minV)/range)*ph;
+            if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+        }
+        ctx.stroke();
+
+        if(showTarget){
+            ctx.strokeStyle='#805ad5'; ctx.lineWidth=1; ctx.setLineDash([4,3]);
+            var ty=oy+ph-((TARGET_ENTROPY-minV)/range)*ph;
+            ty=clamp(ty, oy+2, oy+ph-2);
+            ctx.beginPath(); ctx.moveTo(ox,ty); ctx.lineTo(ox+pw,ty); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle='#805ad5'; ctx.font='10px sans-serif'; ctx.textAlign='left';
+            ctx.fillText('\u76EE\u6807\u71B5: '+TARGET_ENTROPY.toFixed(1), ox+pw-80, ty-5);
+        }
+
+        ctx.fillStyle='#4a5568'; ctx.font='10px sans-serif'; ctx.textAlign='center';
+        var maxStep=n*5;
+        for(var i=0;i<=4;i++){
+            var xVal=Math.round(maxStep*i/4);
+            var x=ox+(i/4)*pw;
+            ctx.fillText(xVal.toString(), x, oy+ph+13);
+        }
+
+        ctx.textAlign='right';
+        for(var i=0;i<=3;i++){
+            var v=minV+range*(i/3);
+            var y=oy+ph-(i/3)*ph;
+            ctx.fillText(v.toFixed(1), ox-5, y+3);
+        }
+
+        ctx.fillStyle=color; ctx.font='bold 10px sans-serif'; ctx.textAlign='right';
+        var lastVal=data[data.length-1];
+        var lastPy=oy+ph-((lastVal-minV)/range)*ph;
+        ctx.fillText(lastVal.toFixed(2), ox+pw+40, lastPy+3);
+    }
+
+    /* --- Data Panel --- */
+    function updateDataPanel(){
+        var el=document.getElementById('sac-data');
+        if(!el) return;
+        if(!lastSample){
+            el.textContent='\u72B6\u6001: (\u8FD1\u671F\u6536\u76CA=\u2014, \u6CE2\u52A8\u7387=\u2014)\n\u9AD8\u65AF\u53C2\u6570: \u03BC=(\u2014, \u2014), \u03C3=(\u2014, \u2014)\n\u91C7\u6837\u52A8\u4F5C: (\u80A1\u7968=\u2014, \u503A\u5238=\u2014, \u73B0\u91D1=\u2014)\n\u71B5: \u2014 (\u76EE\u6807: '+TARGET_ENTROPY.toFixed(1)+')  \u6E29\u5EA6: \u03B1=\u2014\nQ\u503C: Q\u2081=\u2014, Q\u2082=\u2014';
+            return;
+        }
+        var s=lastSample;
+        var cash=(1-s.a[0]-s.a[1]);
+        var ent = entropyHist.length>0 ? entropyHist[entropyHist.length-1] : 0;
+        var lines=[
+            '\u72B6\u6001: (\u8FD1\u671F\u6536\u76CA='+s.s[0].toFixed(2)+', \u6CE2\u52A8\u7387='+s.s[1].toFixed(2)+')',
+            '\u9AD8\u65AF\u53C2\u6570: \u03BC=('+s.mu[0].toFixed(3)+', '+s.mu[1].toFixed(3)+'), \u03C3=('+s.sig[0].toFixed(3)+', '+s.sig[1].toFixed(3)+')',
+            '\u91C7\u6837\u52A8\u4F5C: (\u80A1\u7968='+s.a[0].toFixed(2)+', \u503A\u5238='+s.a[1].toFixed(2)+', \u73B0\u91D1='+cash.toFixed(2)+')',
+            '\u71B5: '+ent.toFixed(2)+' (\u76EE\u6807: '+TARGET_ENTROPY.toFixed(1)+')  \u6E29\u5EA6: \u03B1='+getAlpha().toFixed(3),
+            'Q\u503C: Q\u2081='+lastQ1.toFixed(1)+', Q\u2082='+lastQ2.toFixed(1)
+        ];
+        el.textContent=lines.join('\n');
+    }
+
+    /* --- Status Bar --- */
+    function updateStatus(){
+        var el=document.getElementById('sac-status');
+        if(!el) return;
+        var ent = entropyHist.length>0 ? entropyHist[entropyHist.length-1].toFixed(2) : '\u2014';
+        el.innerHTML='\u8BAD\u7EC3\u6B65 <strong>'+totalSteps+'</strong> | \u6E29\u5EA6 $\\alpha$: <strong>'+getAlpha().toFixed(2)+'</strong> | \u71B5: <strong>'+ent+'</strong> | \u7F13\u51B2\u533A: <strong>'+buffer.length+'</strong>/'+BUFFER_MAX;
+        if(window.renderMathInElement) renderMathInElement(el, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+    }
+
+    function redrawAll(){
+        drawArch();
+        drawPolicy();
+        drawEntropy();
+        updateDataPanel();
+        updateStatus();
+    }
+
+    /* ---------- Global Interface ---------- */
+    window.sacStep = function(){
+        doStep();
+        redrawAll();
+    };
+
+    window.sacToggleAuto = function(){
+        var btn=document.getElementById('sac-btn-auto');
+        if(autoTimer){
+            clearInterval(autoTimer);
+            autoTimer=null;
+            if(btn) btn.textContent='\u81EA\u52A8\u8BAD\u7EC3';
+        } else {
+            autoTimer=setInterval(function(){
+                for(var i=0;i<5;i++) doStep();
+                redrawAll();
+            }, 80);
+            if(btn) btn.textContent='\u6682\u505C';
+        }
+    };
+
+    window.sacFast = function(){
+        if(autoTimer){ clearInterval(autoTimer); autoTimer=null;
+            var btn=document.getElementById('sac-btn-auto');
+            if(btn) btn.textContent='\u81EA\u52A8\u8BAD\u7EC3';
+        }
+        for(var i=0;i<500;i++) doStep();
+        redrawAll();
+    };
+
+    window.sacReset = function(){
+        if(autoTimer){ clearInterval(autoTimer); autoTimer=null;
+            var btn=document.getElementById('sac-btn-auto');
+            if(btn) btn.textContent='\u81EA\u52A8\u8BAD\u7EC3';
+        }
+        sacInit();
+        envReset();
+        redrawAll();
+    };
+
+    // Initialize
+    sacInit();
+    envReset();
+    setTimeout(redrawAll, 200);
+
+    })();
+    </script>
+</body>
+</html>

@@ -185,14 +185,14 @@
 
             <p>这个公式也可以写成更紧凑的期望形式：</p>
 
-            $$Q^*(s,a) = \mathbb{E}_{S' \sim P(\cdot|s,a)}\!\left[R(s,a,S') + \gamma\, \max_{a'} Q^*(S',a')\right] \tag{2.2-9'}$$
+            $$Q^*(s,a) = \mathbb{E}_{S' \sim P(\cdot|s,a)}\!\left[R(s,a,S') + \gamma\, \max_{a'} Q^*(S',a')\right] \tag{2.2-10}$$
 
             <p>后面第五章的 DQN 算法正是从这个期望形式出发，用采样来逼近期望。</p>
 
             <p>对比 $Q$ 的贝尔曼期望方程(2.1-10)：期望方程对下一步动作按策略 $\pi$ 做<strong>加权平均</strong> $\sum_{a'} \pi(a'|s') Q(s',a')$，最优方程则取<strong>最大值</strong> $\max_{a'} Q^*(s',a')$。将(2.2-9)当作迭代规则使用，就得到基于 $Q$ 值的值迭代：</p>
 
             <div class="formula-block">
-                $$q_{k+1}(s,a) = \sum_{s'} P(s' \mid s,a)\left[R(s,a,s') + \gamma\, \max_{a'} q_k(s',a')\right] \tag{2.2-10}$$
+                $$q_{k+1}(s,a) = \sum_{s'} P(s' \mid s,a)\left[R(s,a,s') + \gamma\, \max_{a'} q_k(s',a')\right] \tag{2.2-11}$$
             </div>
 
             <p>对网约车例子运行 $Q$ 值迭代至收敛，得到所有6个 $Q^*$ 值：</p>
@@ -213,7 +213,7 @@
 
             <p>注意表中加粗的 $Q^*$ 值恰好与前面 $V^*$ 值迭代的收敛结果相同：$56.3$，$47.7$，$60.0$。这并非巧合，而是贝尔曼最优方程(2.2-4)的直接体现：$V^*(s) = \max_a Q^*(s,a)$。每个状态的 $V^*$ 就是该状态下所有动作的 $Q^*$ 值取最大。$Q^*$ 表比 $V^*$ 信息更丰富：它不仅告诉我们每个状态的最优价值，还告诉我们每个动作各自的价值，以及最优动作比次优动作好多少。</p>
 
-            <p>有了 $Q^*$，最优策略可以直接读出：每个状态选 $Q^*$ 值最大的动作，无需再访问模型。这一性质使得 $Q$ 值成为无模型控制算法的核心对象。3.2节的 SARSA 和 Q-learning 正是将公式(2.2-10)的思想从"已知模型的精确计算"推广到"从经验中采样学习"。</p>
+            <p>有了 $Q^*$，最优策略可以直接读出：每个状态选 $Q^*$ 值最大的动作，无需再访问模型。这一性质使得 $Q$ 值成为无模型控制算法的核心对象。3.2节的 SARSA 和 Q-learning 正是将公式(2.2-11)的思想从"已知模型的精确计算"推广到"从经验中采样学习"。</p>
 
             <!-- ==================== 对比 ==================== -->
             <h2>策略迭代与值迭代的比较</h2>
@@ -253,7 +253,7 @@
                 <li>利用 $V^\pi$ 计算动作值函数 $Q^\pi(s,a)$（一步前瞻），通过贪婪选择获得更好的策略</li>
                 <li><strong>策略迭代</strong>交替进行评估与改进，在有限步内收敛到最优策略 $\pi^*$</li>
                 <li><strong>值迭代</strong>将评估压缩为一步，直接对值函数做贝尔曼最优更新，同样收敛到 $V^*$</li>
-                <li>值迭代也可以直接对 $Q$ 值进行（公式(2.2-10)），得到的 $Q^*$ 可以直接读出最优策略，无需访问模型</li>
+                <li>值迭代也可以直接对 $Q$ 值进行（公式(2.2-11)），得到的 $Q^*$ 可以直接读出最优策略，无需访问模型</li>
                 <li>以上算法都需要已知模型（$P$ 和 $R$），当模型未知或状态空间过大时，需要无模型的学习方法</li>
             </ol>
 
@@ -268,7 +268,7 @@
 
                 <p>给定一个度量空间 $(X, d)$，算子 $\mathcal{T}: X \to X$ 称为 $\gamma$-<strong>压缩映射</strong>，如果存在常数 $\gamma \in [0,1)$ 使得对所有 $x_1, x_2 \in X$：</p>
                 <div class="formula-block">
-                    $$d(\mathcal{T}x_1,\; \mathcal{T}x_2) \leq \gamma \, d(x_1, x_2) \tag{2.2-11}$$
+                    $$d(\mathcal{T}x_1,\; \mathcal{T}x_2) \leq \gamma \, d(x_1, x_2) \tag{2.2-12}$$
                 </div>
                 <p>直觉上，对任意两个点施加算子 $\mathcal{T}$ 后，它们之间的距离至少缩小了 $\gamma$ 倍。注意 $\gamma$ 必须严格小于 1，否则算子只是非扩张的（nonexpansive），不保证收敛。</p>
 
@@ -292,7 +292,7 @@
                     </div>
                     <p>对任意 $m > n$，利用三角不等式：</p>
                     <div class="formula-block">
-                        $$d(x_m, x_n) \leq \sum_{i=n}^{m-1} d(x_{i+1}, x_i) \leq \sum_{i=n}^{m-1} \gamma^i \, d(x_1, x_0) \leq \frac{\gamma^n}{1 - \gamma} \, d(x_1, x_0) \tag{2.2-12}$$
+                        $$d(x_m, x_n) \leq \sum_{i=n}^{m-1} d(x_{i+1}, x_i) \leq \sum_{i=n}^{m-1} \gamma^i \, d(x_1, x_0) \leq \frac{\gamma^n}{1 - \gamma} \, d(x_1, x_0) \tag{2.2-13}$$
                     </div>
                     <p>当 $n \to \infty$ 时，右端趋于 0。因此 $\{x_k\}$ 是 Cauchy 序列，在完备度量空间中必收敛到某个极限 $x^*$。</p>
                     <p>还需验证 $x^*$ 确实是不动点。由于压缩映射是连续的（Lipschitz 连续），可以对 $x_{k+1} = \mathcal{T}(x_k)$ 两端取极限：</p>
@@ -318,7 +318,7 @@
                     <div class="step-label">证明 $\|\mathcal{T}v_1 - \mathcal{T}v_2\|_\infty \leq \gamma \|v_1 - v_2\|_\infty$</div>
 
                     <div class="formula-block">
-                        $$\|\mathcal{T}v_1 - \mathcal{T}v_2\|_\infty = \max_{s} \left|\mathcal{T}v_1(s) - \mathcal{T}v_2(s)\right| \tag{2.2-13}$$
+                        $$\|\mathcal{T}v_1 - \mathcal{T}v_2\|_\infty = \max_{s} \left|\mathcal{T}v_1(s) - \mathcal{T}v_2(s)\right| \tag{2.2-14}$$
                     </div>
 
                     <p>展开算子定义，需要处理两个 max 的差。关键不等式是：对任意函数 $f,g$，$|\max_a f(a) - \max_a g(a)| \leq \max_a |f(a) - g(a)|$。</p>
@@ -350,7 +350,7 @@
                     <p>展开算子并消去 $R(s,a)$ 项：</p>
 
                     <div class="formula-block">
-                        $$\|\mathcal{T}_\pi v_1 - \mathcal{T}_\pi v_2\|_\infty = \max_s \left| \sum_a \pi(a|s) \, \gamma \sum_{s'} P(s'|s,a) \big(v_1(s') - v_2(s')\big) \right| \tag{2.2-14}$$
+                        $$\|\mathcal{T}_\pi v_1 - \mathcal{T}_\pi v_2\|_\infty = \max_s \left| \sum_a \pi(a|s) \, \gamma \sum_{s'} P(s'|s,a) \big(v_1(s') - v_2(s')\big) \right| \tag{2.2-15}$$
                     </div>
 
                     <p>对策略概率 $\pi(a|s)$ 和转移概率 $P(s'|s,a)$ 逐层放缩，凸组合不超过最大值：</p>

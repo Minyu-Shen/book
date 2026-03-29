@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5.3.1 DDPG与TD3算法 - 运筹智能</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .trans-table { width: auto; border-collapse: collapse; margin: 1rem auto; font-size: 0.95rem; }
+        .trans-table th, .trans-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: center; }
+        .trans-table th { background: var(--primary-color); color: white; }
+        .trans-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .result-box { background: var(--highlight-color); border: 2px solid var(--accent-color); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; text-align: center; }
+        .algo-box { background: #f7fafc; border: 2px solid var(--accent-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .algo-box .algo-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .algo-box ol { margin: 0.3rem 0 0.3rem 1.5rem; line-height: 2; }
+        .algo-box .algo-note { font-size: 0.9rem; color: #718096; margin-top: 0.5rem; }
+        .note { background: var(--highlight-color); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .formula-block { background: var(--code-bg); padding: 1.2rem 1.5rem; margin: 1.5rem 0; border-radius: 6px; overflow-x: auto; text-align: center; }
+        .derivation { background: #fffff0; border: 1px solid #ecc94b; border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; }
+        .derivation summary { font-weight: 700; color: #975a16; cursor: pointer; font-size: 1rem; }
+        .derivation summary:hover { color: var(--accent-color); }
+        .optional-reading { background: #f0fff4; border: 1px solid #9ae6b4; border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; }
+        .optional-reading summary { font-weight: 700; color: #276749; cursor: pointer; font-size: 1rem; }
+        .optional-reading summary:hover { color: var(--accent-color); }
+        .fig-caption { text-align: center; font-size: 0.92rem; color: #4a5568; margin: 0.8rem 0 1.5rem 0; }
+        .update-step { background: #ebf4ff; border-left: 3px solid #2b6cb0; padding: 0.8rem 1.2rem; margin: 1rem 0; border-radius: 0 6px 6px 0; }
+        .update-step .step-label { font-weight: 600; color: #2b6cb0; margin-bottom: 0.3rem; }
+
+        /* Interactive demo styles */
+        .demo-box { border: 2px solid var(--border-color); border-radius: 8px; padding: 1.2rem; margin: 1.5rem 0; background: #fafafa; }
+        .demo-box .demo-title { font-weight: 700; color: var(--accent-color); margin-bottom: 0.6rem; font-size: 1.05rem; }
+        .rl-ctrl { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; margin-bottom: 0.8rem; font-size: 0.88rem; }
+        .rl-ctrl button { padding: 0.3rem 0.7rem; border: 1px solid #2b6cb0; background: white; color: #2b6cb0; border-radius: 5px; cursor: pointer; font-family: inherit; font-size: 0.84rem; transition: all 0.15s; }
+        .rl-ctrl button:hover { background: #2b6cb0; color: white; }
+        .rl-ctrl button.active-btn { background: #2b6cb0; color: white; }
+        .rl-info { background: #ebf4ff; border-radius: 6px; padding: 0.4rem 0.8rem; font-size: 0.88rem; margin-bottom: 0.8rem; }
+        .demo-legend { font-size: 0.78rem; color: #718096; margin-top: 0.3rem; text-align: center; }
+    </style>
+    <script defer src="../../js/code-copy.js"></script>
+</head>
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="book-title"><a href="../../index.html" style="text-decoration:none;color:inherit;">运筹智能</a></div>
+            <nav>
+                <ul>
+                <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
+                <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
+                <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.4.html">3.1.4 TD(λ)与资格迹</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.3.html">3.2.3 Double Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.1.1.html">5.1.1 DQN基本算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.1.2.html">5.1.2 DQN的关键改进</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.1.3.html">5.1.3 例子：库存管理</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.1.html">5.2.1 从Actor-Critic到PPO</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.2.html">5.2.2 连续动作空间与重参数化技巧</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.3.html">5.2.3 例子：机票动态定价</a></li>
+                <li><a href="../ch05/5.3.html">5.3 DDPG与TD3</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.3.1.html" class="active">5.3.1 DDPG与TD3算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.3.2.html">5.3.2 例子：广告实时竞价</a></li>
+                <li><a href="../ch05/5.4.html">5.4 Soft Actor-Critic</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.4.1.html">5.4.1 SAC算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.4.2.html">5.4.2 例子：投资组合配置</a></li>
+                <li><a href="../ch05/5.5.html">5.5 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.6.html">5.6 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>5.3.1 DDPG与TD3算法</h1>
+
+            <p>5.2节介绍的PPO适用于离散和连续动作空间，但它属于 on-policy 算法：每次策略更新后，旧数据就不再使用（虽然PPO对同一批数据做多轮更新，但批与批之间的数据仍然被丢弃）。在许多管理科学场景中，与环境交互的代价很高，例如仿真器运行一次需要数分钟，或者历史数据无法重新采集。此时，能够反复利用历史数据的 off-policy 算法就更加高效。</p>
+
+            <p>本节将介绍两种面向连续动作空间的 off-policy 算法：<strong>DDPG</strong>（Deep Deterministic Policy Gradient）和 <strong>TD3</strong>（Twin Delayed DDPG）。它们的核心思想是使用一个<strong>确定性策略</strong>直接输出连续动作值，而不是输出概率分布。</p>
+
+            <p>这两个算法有清晰的发展脉络。Silver et al.（2014）首先提出了<strong>确定性策略梯度</strong>（Deterministic Policy Gradient, DPG）定理，为确定性策略的优化提供了理论基础。Lillicrap et al.（2016）将 DPG 与深度神经网络以及 DQN 的两个关键技术（经验回放和目标网络）结合，提出了 DDPG，首次实现了端到端的连续控制深度强化学习。然而，DDPG 在实践中暴露出 $Q$ 值过估计和训练不稳定的问题。Fujimoto et al.（2018）系统分析了这些问题的根源，在 DDPG 基础上引入三项针对性改进，形成了 TD3。因此，TD3 可以看作 DDPG 的修补版，每项改进都针对一个具体的失效模式。在实践中，TD3 已基本取代 DDPG，成为连续动作空间 off-policy 学习的默认选择。</p>
+
+            <!-- ==================== 从Actor-Critic到确定性策略 ==================== -->
+            <h2>从Actor-Critic到确定性策略</h2>
+
+            <p>在5.2节的连续动作设置中，策略被参数化为高斯分布 $\pi_\theta(a \mid s) = \mathcal{N}\bigl(\mu_\theta(s),\, \sigma_\theta(s)^2\bigr)$。执行动作时需要从分布中采样，计算策略梯度时需要求对数概率 $\log \pi_\theta(a \mid s)$。一个自然的问题是：能不能跳过概率分布，让策略网络直接输出一个动作值？即定义一个<strong>确定性策略</strong>：</p>
+
+            $$a = \mu_\theta(s) \tag{5.3-1}$$
+
+            <p>给定状态 $s$，策略 $\mu_\theta$ 确定性地输出一个动作 $a \in \mathbb{R}^d$，没有随机性。确定性策略与随机策略的核心区别不在于"要不要采样"（两者在训练时都需要探索噪声），而在于<strong>梯度信号的质量</strong>：</p>
+
+            <ul>
+                <li><strong>梯度携带方向信息</strong>。确定性策略梯度通过链式法则计算 $\nabla_a Q \cdot \nabla_\theta \mu_\theta$，其中 $\nabla_a Q$ 直接告诉我们"动作往哪个方向调能增大 $Q$"。而随机策略梯度（对数导数技巧）只得到一个标量信号 $Q(s,a) \cdot \nabla_\theta \log\pi_\theta(a|s)$——它知道"这个 $a$ 的 $Q$ 值有多大"，但不知道"$a$ 往哪个方向调会更好"。这正是5.2.2节讨论的对数导数技巧与重参数化的区别。</li>
+                <li><strong>高维优势</strong>。当动作维度 $d$ 很大时，这个差距被放大。随机策略梯度的方差随 $d$ 增长，因为 $\nabla_\theta \log \pi_\theta$ 需要在 $d$ 维空间中仅凭标量反馈推断方向。确定性策略梯度的方差则不受 $d$ 影响，因为 $\nabla_a Q$ 直接提供了 $d$ 维的方向向量。</li>
+            </ul>
+
+            <div class="note">
+                <strong>探索问题：两者都需要噪声。</strong>确定性策略本身不含随机性，需要在训练时向动作添加噪声来探索（后文将详细讨论）。随机策略天然包含探索，但实践中也往往需要额外机制（如 PPO 的熵奖励）来防止过早收敛。因此，"随机策略天然探索、确定性策略不能探索"并非一个本质区别——两者都需要某种形式的探索激励。真正的区别在于上面说的梯度信号质量。
+            </div>
+
+            <!-- ==================== 确定性策略梯度（DPG） ==================== -->
+            <h2>确定性策略梯度</h2>
+
+            <p>确定性策略的优化目标与随机策略相同：最大化期望累计回报 $J(\theta)$（定义见3.3.1节）。问题是如何计算 $\nabla_\theta J(\theta)$。</p>
+
+            <p>回顾3.3.1节的<strong>随机策略梯度定理</strong>：</p>
+
+            $$\nabla_\theta J(\theta) = \mathbb{E}_{s \sim d^{\pi_\theta},\, a \sim \pi_\theta}\!\left[\nabla_\theta \log \pi_\theta(a \mid s)\, Q^{\pi_\theta}(s, a)\right]$$
+
+            <p>其中 $d^{\pi_\theta}(s)$ 是策略 $\pi_\theta$ 下的状态分布。这个公式之所以有效，是因为它将对策略参数的梯度转化为了一个期望，可以用采样来估计。</p>
+
+            <p>Silver et al.（2014）证明了一个类似的定理，适用于确定性策略。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">确定性策略梯度定理（Deterministic Policy Gradient Theorem）</div>
+                <p>设 $\mu_\theta(s)$ 是一个确定性策略，$d^{\mu_\theta}(s)$ 是其下的状态分布。假设 $Q^{\mu_\theta}(s,a)$ 关于 $a$ 可微，则：</p>
+                $$\nabla_\theta J(\theta) = \mathbb{E}_{s \sim d^{\mu_\theta}}\!\left[\nabla_\theta \mu_\theta(s) \cdot \nabla_a Q^{\mu_\theta}(s, a)\Big|_{a = \mu_\theta(s)}\right] \tag{5.3-2}$$
+            </div>
+
+            <p>这个公式的含义非常直观。将它拆解为两个部分：</p>
+
+            <ul>
+                <li>$\nabla_a Q^{\mu_\theta}(s, a)\big|_{a = \mu_\theta(s)}$：在当前动作处，$Q$ 值关于动作的梯度。它指出了动作应该朝哪个方向调整才能增大 $Q$ 值。</li>
+                <li>$\nabla_\theta \mu_\theta(s)$：策略网络的参数如何影响输出动作。它是从动作空间到参数空间的映射。</li>
+            </ul>
+
+            <p>两者相乘（通过链式法则），就得到了参数 $\theta$ 应该如何调整才能增大 $Q$ 值。整个过程就是一次<strong>链式求导</strong>：先问"动作往哪个方向变会更好"，再问"参数往哪个方向变会让动作朝那个方向移动"。</p>
+
+            <div class="derivation">
+                <details>
+                    <summary>与随机策略梯度的对比</summary>
+                    <p style="margin-top:0.8rem;">随机策略梯度与确定性策略梯度在形式上有着深刻的联系。Silver et al.（2014）证明，当随机策略的方差趋于零时，随机策略梯度收敛到确定性策略梯度。</p>
+                    <p>具体来说，考虑高斯策略 $\pi_\theta(a \mid s) = \mathcal{N}(\mu_\theta(s), \sigma^2 I)$。随机策略梯度为：</p>
+                    $$\nabla_\theta J = \mathbb{E}_{s, a}\!\left[\nabla_\theta \log \pi_\theta(a \mid s)\, Q^{\pi_\theta}(s, a)\right]$$
+                    <p>当 $\sigma \to 0$ 时，分布坍缩到 $\mu_\theta(s)$，上式收敛到：</p>
+                    $$\nabla_\theta J = \mathbb{E}_{s}\!\left[\nabla_\theta \mu_\theta(s) \cdot \nabla_a Q^{\mu_\theta}(s, a)\Big|_{a = \mu_\theta(s)}\right]$$
+                    <p>这正是确定性策略梯度定理（公式(5.3-2)）。因此，确定性策略梯度可以看作随机策略梯度在零方差极限下的特例。</p>
+                    <p>注意确定性策略梯度的期望只对 $s$ 取，不需要对 $a$ 取期望。这是因为确定性策略下动作 $a = \mu_\theta(s)$ 是状态的确定函数，不存在需要边缘化的随机性。这意味着确定性策略梯度比随机策略梯度需要更少的样本来估计。</p>
+                </details>
+            </div>
+
+            <p>公式(5.3-2)中有一个关键要求：$Q^{\mu_\theta}(s, a)$ 必须关于 $a$ 可微。这意味着我们需要一个可微分的 $Q$ 函数近似器，而神经网络正好满足这个条件。这自然地引出了 Actor-Critic 架构：</p>
+
+            <ul>
+                <li><strong>Critic</strong>：一个神经网络 $Q_\phi(s, a)$，输入状态和动作，输出 $Q$ 值的估计。</li>
+                <li><strong>Actor</strong>：一个神经网络 $\mu_\theta(s)$，输入状态，输出确定性动作。</li>
+            </ul>
+
+            <p>Actor 的更新方向由 Critic 提供的梯度信号决定：将 $\mu_\theta(s)$ 代入 $Q_\phi(s, a)$，对整个复合函数 $Q_\phi\bigl(s, \mu_\theta(s)\bigr)$ 关于 $\theta$ 求梯度，然后沿梯度方向更新。</p>
+
+            <!-- ==================== DDPG算法 ==================== -->
+            <h2>DDPG算法</h2>
+
+            <p>有了确定性策略梯度定理，如何将其变成一个实用的深度强化学习算法？Lillicrap et al.（2016）提出的 <strong>DDPG</strong>（Deep Deterministic Policy Gradient）给出了答案：将确定性策略梯度与 DQN 的经验回放和目标网络相结合。</p>
+
+            <div class="note">
+                <strong>DDPG 更像 DQN 还是 PPO？</strong>虽然 DDPG 使用了 Actor-Critic 架构，但它的精神更接近 <strong>DQN</strong>（value-based）而非 PPO（policy-based）。原因在于：DDPG 的 Actor 本质上是在做<strong>连续空间中的 $\arg\max$</strong>——它通过梯度上升寻找使 $Q_\phi(s,a)$ 最大的动作 $a$，这与 DQN 在离散空间中枚举所有动作取 $\arg\max_a Q(s,a)$ 的逻辑完全一致。如果动作空间是离散的，我们根本不需要 Actor 网络，直接枚举就是 DQN。Actor 存在的唯一理由是连续动作无法枚举。因此，DDPG 不妨理解为"DQN 到连续动作空间的自然延伸"。
+            </div>
+
+            <h3>四个网络与经验回放</h3>
+
+            <p>DDPG 维护四个神经网络和一个经验回放缓冲区：</p>
+
+            <ul>
+                <li><strong>Actor</strong> $\mu_\theta(s)$：输入状态，输出确定性动作。这是<strong>正在训练的</strong>策略网络。</li>
+                <li><strong>Critic</strong> $Q_\phi(s,a)$：输入状态和动作，输出 $Q$ 值估计。也是<strong>正在训练的</strong>网络。</li>
+                <li><strong>目标 Actor</strong> $\mu_{\theta'}(s)$：Actor 的<strong>冻结副本</strong>。参数不通过梯度更新，而是缓慢跟踪主 Actor（软更新）。</li>
+                <li><strong>目标 Critic</strong> $Q_{\phi'}(s,a)$：Critic 的<strong>冻结副本</strong>。同样通过软更新跟踪主 Critic。</li>
+                <li><strong>经验回放缓冲区</strong> $\mathcal{D}$：存储历史转移 $(s, a, r, s')$（与 DQN 相同，参见5.1.1节）。</li>
+            </ul>
+
+            <p>为什么需要目标网络？如果用正在训练的 Critic 来计算 TD 目标 $y = r + \gamma Q_\phi(s', a')$，那么每次更新 $\phi$ 后目标值也跟着变，造成"追赶移动靶"的不稳定。冻结的目标网络提供了一个稳定的参考点。软更新公式为：</p>
+
+            $$\theta' \leftarrow \tau \theta + (1 - \tau) \theta' \tag{5.3-3}$$
+            $$\phi' \leftarrow \tau \phi + (1 - \tau) \phi' \tag{5.3-4}$$
+
+            <p>其中 $\tau$ 很小（通常 $\tau = 0.005$），目标网络每步只向主网络移动一小步。</p>
+
+            <h3>训练流程</h3>
+
+            <p>下图展示了 DDPG 每一步训练的完整流程。实心圆标记正在训练的网络，斜线填充标记冻结的目标网络。</p>
+
+            <!-- 训练流程 SVG -->
+            <div style="margin:1.5rem 0;">
+                <svg viewBox="0 0 780 345" style="width:100%;max-width:780px;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <pattern id="frozen" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+                            <line x1="0" y1="0" x2="0" y2="6" stroke="#718096" stroke-width="1.2" stroke-opacity="0.5"/>
+                        </pattern>
+                    </defs>
+                    <rect width="780" height="345" fill="#fafafa" rx="8"/>
+
+                    <!-- ===== 阶段标题 ===== -->
+                    <foreignObject x="10" y="5" width="200" height="22">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#2b6cb0;font-weight:700;">① 数据采集</div>
+                    </foreignObject>
+                    <foreignObject x="260" y="5" width="200" height="22">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#2b6cb0;font-weight:700;">② 计算 TD 目标</div>
+                    </foreignObject>
+                    <foreignObject x="520" y="5" width="200" height="22">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#c53030;font-weight:700;">③ 更新网络</div>
+                    </foreignObject>
+
+                    <!-- ===== 阶段①：数据采集 ===== -->
+                    <rect x="40" y="78" width="100" height="40" rx="6" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                    <circle cx="40" cy="78" r="5" fill="#2b6cb0"/>
+                    <foreignObject x="40" y="78" width="100" height="40">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:40px;font-size:13px;color:#2b6cb0;font-weight:600;">Actor $\mu_\theta$</div>
+                    </foreignObject>
+                    <foreignObject x="68" y="55" width="44" height="18">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#4a5568;text-align:center;">$s$</div>
+                    </foreignObject>
+                    <line x1="90" y1="68" x2="90" y2="78" stroke="#4a5568" stroke-width="1.2" stroke-linecap="round"/>
+                    <line x1="90" y1="118" x2="90" y2="142" stroke="#2b6cb0" stroke-width="1.2" stroke-linecap="round"/>
+                    <polygon points="86,139 90,145 94,139" fill="#2b6cb0"/>
+                    <foreignObject x="30" y="148" width="120" height="34">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#2b6cb0;text-align:center;">$a = \mu_\theta(s) + \epsilon$<br/><span style="font-size:10px;color:#718096;">探索噪声</span></div>
+                    </foreignObject>
+                    <line x1="90" y1="182" x2="90" y2="247" stroke="#d69e2e" stroke-width="1.2" stroke-linecap="round"/>
+                    <polygon points="86,244 90,250 94,244" fill="#d69e2e"/>
+
+                    <!-- ===== 经验回放缓冲区 ===== -->
+                    <rect x="20" y="250" width="740" height="28" rx="6" fill="#fefcbf" stroke="#d69e2e" stroke-width="2"/>
+                    <foreignObject x="20" y="250" width="740" height="28">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:28px;font-size:12px;color:#975a16;font-weight:600;">经验回放 $\mathcal{D}$：存储 $(s, a, r, s')$</div>
+                    </foreignObject>
+
+                    <!-- ===== Buffer → ②：s' 分叉进入两个目标网络 ===== -->
+                    <line x1="268" y1="250" x2="268" y2="73" stroke="#d69e2e" stroke-width="1.2" stroke-linecap="round"/>
+                    <line x1="268" y1="156" x2="289" y2="156" stroke="#d69e2e" stroke-width="1.2" stroke-linecap="round"/>
+                    <polygon points="286,153 292,156 286,159" fill="#d69e2e"/>
+                    <line x1="268" y1="73" x2="289" y2="73" stroke="#d69e2e" stroke-width="1.2" stroke-linecap="round"/>
+                    <polygon points="286,70 292,73 286,76" fill="#d69e2e"/>
+                    <foreignObject x="250" y="200" width="20" height="18">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:10px;color:#975a16;text-align:center;">$s'$</div>
+                    </foreignObject>
+
+                    <!-- ===== 阶段②：计算 TD 目标 ===== -->
+                    <rect x="292" y="55" width="88" height="36" rx="6" fill="url(#frozen)" stroke="#718096" stroke-width="1.5"/>
+                    <rect x="292" y="55" width="88" height="36" rx="6" fill="#f7fafc" fill-opacity="0.7" stroke="#718096" stroke-width="1.5"/>
+                    <foreignObject x="292" y="55" width="88" height="36">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:36px;font-size:12px;color:#718096;font-weight:600;">Critic $Q_{\phi'}$</div>
+                    </foreignObject>
+                    <rect x="292" y="138" width="88" height="36" rx="6" fill="url(#frozen)" stroke="#718096" stroke-width="1.5"/>
+                    <rect x="292" y="138" width="88" height="36" rx="6" fill="#f7fafc" fill-opacity="0.7" stroke="#718096" stroke-width="1.5"/>
+                    <foreignObject x="292" y="138" width="88" height="36">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:36px;font-size:12px;color:#718096;font-weight:600;">Actor $\mu_{\theta'}$</div>
+                    </foreignObject>
+                    <!-- a'：Target Actor 顶 → Target Critic 底 -->
+                    <line x1="340" y1="138" x2="340" y2="97" stroke="#718096" stroke-width="1.2" stroke-linecap="round"/>
+                    <polygon points="336,97 340,91 344,97" fill="#718096"/>
+                    <foreignObject x="346" y="108" width="30" height="18">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#718096;">$a'$</div>
+                    </foreignObject>
+                    <!-- Target Critic 右侧输出 → y 公式 → Critic Q_φ（连续阶梯路径） -->
+                    <line x1="380" y1="73" x2="496" y2="73" stroke="#718096" stroke-width="1.2" stroke-linecap="round"/>
+                    <line x1="496" y1="73" x2="496" y2="57" stroke="#718096" stroke-width="1.2" stroke-linecap="round"/>
+                    <line x1="496" y1="57" x2="546" y2="57" stroke="#718096" stroke-width="1.2" stroke-linecap="round"/>
+                    <polygon points="546,54 552,57 546,60" fill="#718096"/>
+                    <foreignObject x="400" y="42" width="94" height="28">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:10px;color:#718096;font-weight:600;line-height:1.3;">$y = r + \gamma Q_{\phi'}(s', a')$</div>
+                    </foreignObject>
+
+                    <!-- ===== Buffer → ③：采样 (s,a) 和 s（右侧竖线，不穿越梯度曲线） ===== -->
+                    <line x1="742" y1="250" x2="742" y2="61" stroke="#d69e2e" stroke-width="1.2" stroke-linecap="round"/>
+                    <!-- 分叉 → Critic Q_φ 右边缘 (y=61) -->
+                    <line x1="742" y1="61" x2="646" y2="61" stroke="#d69e2e" stroke-width="1.2" stroke-linecap="round"/>
+                    <polygon points="646,58 640,61 646,64" fill="#d69e2e"/>
+                    <!-- 分叉 → Actor μ_θ 右边缘 (y=125，高于梯度曲线起点 y=130) -->
+                    <line x1="742" y1="125" x2="646" y2="125" stroke="#d69e2e" stroke-width="1.2" stroke-linecap="round"/>
+                    <polygon points="646,122 640,125 646,128" fill="#d69e2e"/>
+                    <!-- 标签 -->
+                    <foreignObject x="695" y="46" width="40" height="14">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:9px;color:#975a16;font-weight:600;">$(s,a)$</div>
+                    </foreignObject>
+                    <foreignObject x="710" y="110" width="16" height="14">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:9px;color:#975a16;font-weight:600;">$s$</div>
+                    </foreignObject>
+
+                    <!-- ===== 阶段③：更新网络 ===== -->
+                    <!-- ③a Critic Q_φ -->
+                    <rect x="552" y="43" width="88" height="36" rx="6" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                    <circle cx="552" cy="43" r="5" fill="#2b6cb0"/>
+                    <foreignObject x="552" y="43" width="88" height="36">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:36px;font-size:13px;color:#2b6cb0;font-weight:600;">Critic $Q_\phi$</div>
+                    </foreignObject>
+                    <!-- ③a 标签（右上角） -->
+                    <foreignObject x="624" y="28" width="18" height="14">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:10px;color:#c53030;font-weight:700;">③a</div>
+                    </foreignObject>
+                    <foreignObject x="555" y="81" width="100" height="14">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:10px;color:#c53030;">最小化 $(y - Q_\phi)^2$</div>
+                    </foreignObject>
+
+                    <!-- 分隔线 -->
+                    <line x1="540" y1="97" x2="730" y2="97" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>
+
+                    <!-- ③b Actor μ_θ -->
+                    <rect x="552" y="115" width="88" height="36" rx="6" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                    <circle cx="552" cy="115" r="5" fill="#2b6cb0"/>
+                    <foreignObject x="552" y="115" width="88" height="36">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:36px;font-size:13px;color:#2b6cb0;font-weight:600;">Actor $\mu_\theta$</div>
+                    </foreignObject>
+                    <!-- ③b 标签（右上角） -->
+                    <foreignObject x="624" y="101" width="18" height="14">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:10px;color:#c53030;font-weight:700;">③b</div>
+                    </foreignObject>
+
+                    <!-- Actor 底 → μ_θ(s) → Frozen Critic 顶 -->
+                    <line x1="585" y1="151" x2="585" y2="179" stroke="#4a5568" stroke-width="1.2" stroke-linecap="round"/>
+                    <polygon points="581,179 585,185 589,179" fill="#4a5568"/>
+                    <foreignObject x="591" y="161" width="50" height="16">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:10px;color:#4a5568;">$\mu_\theta(s)$</div>
+                    </foreignObject>
+
+                    <!-- Frozen Critic（Q_φ 的冻结拷贝） -->
+                    <rect x="552" y="185" width="88" height="36" rx="6" fill="url(#frozen)" stroke="#718096" stroke-width="1.5"/>
+                    <rect x="552" y="185" width="88" height="36" rx="6" fill="#f7fafc" fill-opacity="0.7" stroke="#718096" stroke-width="1.5"/>
+                    <foreignObject x="552" y="185" width="88" height="36">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:36px;font-size:12px;color:#718096;font-weight:600;">Critic $Q_\phi$</div>
+                    </foreignObject>
+                    <foreignObject x="548" y="222" width="100" height="16">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:9px;color:#718096;text-align:center;">（$Q_\phi$ 的冻结拷贝）</div>
+                    </foreignObject>
+
+                    <!-- 梯度曲线：Frozen Critic 右 → Actor 右 -->
+                    <path d="M 640,203 C 676,203 676,133 640,133" fill="none" stroke="#c53030" stroke-width="1.5" stroke-dasharray="5,3" stroke-linecap="round"/>
+                    <polygon points="644,129 640,133 644,137" fill="#c53030"/>
+                    <foreignObject x="678" y="153" width="60" height="38">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:9px;color:#c53030;line-height:1.4;text-align:left;">$\nabla_\theta Q_\phi$<br/>只更新 $\theta$</div>
+                    </foreignObject>
+
+                    <!-- ===== ④ 软更新（紫色虚线折线，从③训练网络 → ②目标网络） ===== -->
+                    <!-- Critic Q_φ → Target Critic Q_φ'（Π形：先上后左再下） -->
+                    <line x1="552" y1="48" x2="552" y2="30" stroke="#805ad5" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="3,3"/>
+                    <line x1="552" y1="30" x2="386" y2="30" stroke="#805ad5" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="3,3"/>
+                    <line x1="386" y1="30" x2="386" y2="68" stroke="#805ad5" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="3,3"/>
+                    <polygon points="386,65 380,68 386,71" fill="#805ad5"/>
+                    <!-- Actor μ_θ → Target Actor μ_θ' -->
+                    <line x1="552" y1="120" x2="440" y2="120" stroke="#805ad5" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="3,3"/>
+                    <line x1="440" y1="120" x2="440" y2="152" stroke="#805ad5" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="3,3"/>
+                    <line x1="440" y1="152" x2="386" y2="152" stroke="#805ad5" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="3,3"/>
+                    <polygon points="386,149 380,152 386,155" fill="#805ad5"/>
+                    <!-- ④ 标签（两条折线之间的空隙） -->
+                    <foreignObject x="418" y="76" width="80" height="36">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:10px;color:#805ad5;font-weight:600;text-align:center;">④ 软更新<br/><span style="font-size:9px;font-weight:400;">$\tau\!=\!0.005$</span></div>
+                    </foreignObject>
+
+                    <!-- ===== 分隔线 ===== -->
+                    <line x1="248" y1="22" x2="248" y2="240" stroke="#e2e8f0" stroke-width="1"/>
+                    <line x1="500" y1="22" x2="500" y2="240" stroke="#e2e8f0" stroke-width="1"/>
+
+                    <!-- ===== 图例 ===== -->
+                    <rect x="20" y="295" width="740" height="38" rx="4" fill="#f7fafc"/>
+                    <circle cx="42" cy="314" r="4" fill="#2b6cb0"/>
+                    <foreignObject x="50" y="305" width="90" height="18">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:10px;color:#4a5568;">训练中的网络</div>
+                    </foreignObject>
+                    <rect x="155" y="306" width="14" height="14" rx="2" fill="url(#frozen)" stroke="#718096" stroke-width="1"/>
+                    <rect x="155" y="306" width="14" height="14" rx="2" fill="#f7fafc" fill-opacity="0.7" stroke="#718096" stroke-width="1"/>
+                    <foreignObject x="174" y="305" width="100" height="18">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:10px;color:#4a5568;">冻结（不更新参数）</div>
+                    </foreignObject>
+                    <line x1="300" y1="314" x2="318" y2="314" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
+                    <foreignObject x="324" y="305" width="50" height="18">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:10px;color:#4a5568;">数据流</div>
+                    </foreignObject>
+                    <line x1="400" y1="314" x2="418" y2="314" stroke="#c53030" stroke-width="1.5" stroke-dasharray="5,3" stroke-linecap="round"/>
+                    <foreignObject x="424" y="305" width="70" height="18">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:10px;color:#4a5568;">梯度方向</div>
+                    </foreignObject>
+                    <line x1="520" y1="314" x2="538" y2="314" stroke="#805ad5" stroke-width="1.2" stroke-dasharray="3,3" stroke-linecap="round"/>
+                    <polygon points="538,311 544,314 538,317" fill="#805ad5"/>
+                    <foreignObject x="548" y="305" width="70" height="18">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:10px;color:#4a5568;">软更新</div>
+                    </foreignObject>
+                </svg>
+                <div class="fig-caption">图 5.3-1：DDPG 的训练流程。①&nbsp;Actor 选动作（加噪声），存入经验回放缓冲区。②&nbsp;采样 $s'$，分叉进入两个冻结的目标网络，得到 TD 目标 $y$。③a&nbsp;采样 $(s,a)$ 连同 $y$，输入 Critic $Q_\phi$ 最小化 TD 误差。③b&nbsp;采样 $s$ 输入 Actor $\mu_\theta$，输出动作经冻结的 $Q_\phi$ 拷贝计算 $Q$ 值，梯度回传只更新 $\theta$。④&nbsp;训练网络参数缓慢软更新到目标网络。</div>
+            </div>
+
+            <p>下面逐步拆解这个训练流程：</p>
+
+            <p><strong>① 数据采集。</strong>Actor 网络 $\mu_\theta$ 输出确定性动作，叠加高斯探索噪声：</p>
+
+            $$a = \mu_\theta(s) + \epsilon, \quad \epsilon \sim \mathcal{N}(0, \sigma^2) \tag{5.3-5}$$
+
+            <p>执行动作后观测奖励 $r$ 和下一个状态 $s'$，将转移 $(s, a, r, s')$ 存入经验回放缓冲区 $\mathcal{D}$。注意探索噪声只在数据采集时加，不参与后续的梯度计算。原始 DDPG 论文使用 Ornstein-Uhlenbeck（OU）过程产生时间相关噪声，但后续研究发现简单的高斯噪声通常效果相当。</p>
+
+            <p><strong>② 计算 TD 目标。</strong>从 $\mathcal{D}$ 中采样一个小批量 $\{(s_i, a_i, r_i, s_i')\}$，用<strong>两个冻结的目标网络</strong>（目标 Actor $\mu_{\theta'}$ 和目标 Critic $Q_{\phi'}$）联合计算 TD 目标：</p>
+
+            $$y_i = r_i + \gamma\, Q_{\phi'}(s_i',\, \mu_{\theta'}(s_i')) \tag{5.3-6}$$
+
+            <p>目标 Actor $\mu_{\theta'}$ 为下一个状态选动作 $a_i' = \mu_{\theta'}(s_i')$，目标 Critic $Q_{\phi'}$ 评估该动作的价值。由于两个目标网络都是冻结的，$y_i$ 不会随当前主网络的参数变化而变化，提供了稳定的回归目标。</p>
+
+            <p><strong>③ 更新主网络。</strong>分别更新 Critic 和 Actor：</p>
+
+            <ul>
+                <li><strong>Critic 更新</strong>——最小化 TD 误差：$$L(\phi) = \frac{1}{N} \sum_{i=1}^{N} \bigl(y_i - Q_\phi(s_i, a_i)\bigr)^2 \tag{5.3-7}$$</li>
+                <li><strong>Actor 更新</strong>——最大化 Critic 给出的 $Q$ 值。根据确定性策略梯度定理（公式(5.3-2)）：$$\nabla_\theta J \approx \frac{1}{N} \sum_{i=1}^{N} \nabla_a Q_\phi(s_i, a)\Big|_{a = \mu_\theta(s_i)} \cdot \nabla_\theta \mu_\theta(s_i) \tag{5.3-8}$$
+                在实现中，这等价于将 $\mu_\theta(s)$ 代入 $Q_\phi(s, a)$，对复合函数 $Q_\phi(s, \mu_\theta(s))$ 关于 $\theta$ 做梯度上升。</li>
+            </ul>
+
+            <div class="note">
+                <strong>实现细节：避免 Critic 被更新两次。</strong>Actor 的更新需要对复合函数 $Q_\phi\bigl(s,\, \mu_\theta(s)\bigr)$ 做反向传播。梯度从 $Q_\phi$ 的输出一路流回 $\mu_\theta$ 的参数 $\theta$，途中也会经过 $Q_\phi$ 自身的参数 $\phi$。如果不加处理，这次反向传播会同时计算 $\phi$ 的梯度，导致 Critic 在一步之内被更新两次——一次来自步骤③的 TD 误差，一次来自 Actor 的梯度上升。标准做法是：先完成 Critic 更新；然后在计算 Actor 梯度之前，冻结 Critic 的参数（在 PyTorch 中对 $Q_\phi$ 的所有参数设置 <code>requires_grad = False</code>）；完成 Actor 更新后再解冻。这既避免了 Critic 被意外更新，也节省了不必要的梯度计算开销。
+            </div>
+
+            <p><strong>④ 软更新目标网络。</strong>主网络更新后，用公式(5.3-3)和(5.3-4)将目标网络向主网络缓慢靠拢。</p>
+
+            <p>注意确定性策略梯度（公式(5.3-2)）中的期望只对状态分布取，不涉及对动作分布的积分。因此，即使经验回放中的数据来自过去的策略（动作不同），只要状态分布差异不大，梯度估计仍然近似正确。这使得确定性策略特别适合与经验回放结合使用。</p>
+
+            <div class="algo-box">
+                <div class="algo-title">DDPG 算法</div>
+                <ol>
+                    <li>初始化 Critic 网络 $Q_\phi(s,a)$、Actor 网络 $\mu_\theta(s)$</li>
+                    <li>初始化目标网络：$\phi' \leftarrow \phi$，$\theta' \leftarrow \theta$</li>
+                    <li>初始化经验回放缓冲区 $\mathcal{D}$</li>
+                    <li>对每个 episode：
+                        <ol type="a">
+                            <li>观测初始状态 $s_0$</li>
+                            <li>对每步 $t = 0, 1, 2, \ldots$：
+                                <ol type="i">
+                                    <li>选择动作 $a_t = \mu_\theta(s_t) + \epsilon_t$，$\epsilon_t \sim \mathcal{N}(0, \sigma^2)$</li>
+                                    <li>执行 $a_t$，观测 $r_t, s_{t+1}$</li>
+                                    <li>将 $(s_t, a_t, r_t, s_{t+1})$ 存入 $\mathcal{D}$</li>
+                                    <li>从 $\mathcal{D}$ 中随机采样小批量 $\{(s_i, a_i, r_i, s_i')\}$</li>
+                                    <li>计算 TD 目标：$y_i = r_i + \gamma\, Q_{\phi'}(s_i', \mu_{\theta'}(s_i'))$</li>
+                                    <li>更新 Critic：最小化 $\frac{1}{N}\sum_i (y_i - Q_\phi(s_i, a_i))^2$</li>
+                                    <li>更新 Actor：沿 $\nabla_\theta \frac{1}{N}\sum_i Q_\phi(s_i, \mu_\theta(s_i))$ 做梯度上升</li>
+                                    <li>软更新目标网络：$\phi' \leftarrow \tau\phi + (1-\tau)\phi'$，$\theta' \leftarrow \tau\theta + (1-\tau)\theta'$</li>
+                                </ol>
+                            </li>
+                        </ol>
+                    </li>
+                </ol>
+                <div class="algo-note">DDPG = DPG + 经验回放 + 目标网络（软更新）+ 探索噪声。它将 DQN 的成功经验移植到了连续动作空间。</div>
+            </div>
+
+            <!-- ==================== DDPG的问题：Q值过估计 ==================== -->
+            <h2>DDPG的问题：$Q$ 值过估计</h2>
+
+            <p>DDPG在许多连续控制任务中取得了不错的效果，但在实践中也暴露出一个严重的问题：<strong>$Q$ 值的过估计</strong>（overestimation）。</p>
+
+            <p>回顾3.2.3节对 Q-learning 过估计问题的讨论。当 $Q$ 函数近似器存在误差时，$\max_a Q(s,a)$ 倾向于选中那些因误差而被高估的动作，导致 $Q$ 值的系统性偏高。在 DQN 中，Double Q-learning 的思想成功缓解了这个问题（参见3.2.3节和5.1.2节）。</p>
+
+            <p>在 DDPG 中，过估计问题实际上更加严重。原因在于确定性策略的 Actor 更新方式：</p>
+
+            $$\theta \leftarrow \theta + \alpha \nabla_\theta Q_\phi\bigl(s, \mu_\theta(s)\bigr)$$
+
+            <p>Actor 沿着 Critic 的梯度方向调整策略，目标是找到使 $Q_\phi(s, a)$ 最大的动作 $a$。如果 Critic 在某些区域存在过高的估计误差，Actor 就会学到专门利用这些误差的策略，将动作调整到 $Q_\phi$ 的虚假峰值处。</p>
+
+            <p>与 DQN 中的离散 $\max$ 操作相比，连续空间中的梯度上升更具破坏性。离散空间中 $\max$ 只能在有限个候选动作中选择；而在连续空间中，Actor 可以精确地爬到 $Q_\phi$ 的任意窄峰上，找到那些恰好被高估的"漏洞"。</p>
+
+            <p>这种过估计形成恶性循环：</p>
+            <ol>
+                <li>Critic 对某些 $(s, a)$ 对的 $Q$ 值估计偏高；</li>
+                <li>Actor 被更新到这些高估区域，输出的动作偏向这些虚假峰值；</li>
+                <li>这些偏差的动作又被用于计算 TD 目标 $y = r + \gamma Q_{\phi'}(s', \mu_{\theta'}(s'))$，进一步传播过估计；</li>
+                <li>Critic 的过估计进一步加剧，形成正反馈循环。</li>
+            </ol>
+
+            <p>在实践中，这会导致 DDPG 的训练不稳定，性能波动大，对超参数敏感。</p>
+
+            <!-- ==================== 交互动画：Q值过估计对比 ==================== -->
+            <div class="demo-box" id="overest-demo">
+                <div class="demo-title">交互演示：$Q$ 值过估计对比</div>
+                <p style="font-size:0.9rem;color:#4a5568;margin-bottom:0.8rem;">下图展示了单 Critic 与双 Critic 在估计 $Q(s,a)$ 时的区别。黑色实线是真实 $Q$ 值，红色实线是单个 Critic 的带噪声估计，绿色和蓝色虚线分别是双 Critic 中 $Q_1$ 和 $Q_2$ 的估计，绿色粗线是 $\min(Q_1, Q_2)$。观察 $\max_a$ 的位置：单 Critic 容易在噪声峰值处过估计，而 $\min(Q_1, Q_2)$ 给出更保守的估计。</p>
+                <div class="rl-ctrl">
+                    <button id="overest-btn-resample" onclick="OverestDemo.resample()">重新采样噪声</button>
+                    <button id="overest-btn-auto" onclick="OverestDemo.toggleAuto()">自动演示</button>
+                </div>
+                <div style="text-align:center;">
+                    <canvas id="overest-canvas" width="600" height="320" style="width:100%;max-width:600px;height:auto;display:block;margin:0 auto;border:1px solid #e2e8f0;border-radius:8px;background:white;"></canvas>
+                </div>
+                <div class="demo-legend">
+                    <span style="color:#2d3748;font-weight:600;">&#9473;</span> 真实 $Q(s,a)$ &nbsp;&nbsp;
+                    <span style="color:#c53030;font-weight:600;">&#9473;</span> 单 Critic 估计 &nbsp;&nbsp;
+                    <span style="color:#48bb78;font-weight:600;">- -</span> $Q_1$ &nbsp;&nbsp;
+                    <span style="color:#2b6cb0;font-weight:600;">- -</span> $Q_2$ &nbsp;&nbsp;
+                    <span style="color:#48bb78;font-weight:700;">━━</span> $\min(Q_1, Q_2)$
+                </div>
+                <div id="overest-info" class="rl-info" style="margin-top:0.5rem; font-size:0.85rem;"></div>
+            </div>
+            <div class="fig-caption">图 5.3-2：$Q$ 值过估计对比动画。红色实线（单 Critic）的 $\max_a \hat{Q}(s,a)$ 系统性地高于黑色实线（真实值），绿色粗线 $\max_a\min(Q_1,Q_2)$ 更接近真实最大值。点击"重新采样噪声"观察不同噪声实例下的效果。</div>
+
+            <script>
+            const OverestDemo = (function() {
+                'use strict';
+                let trueQ = [], singleQ = [], q1 = [], q2 = [], minQ = [];
+                let autoTimer = null, isAuto = false;
+                const N = 100; // number of action samples
+
+                function trueQFunc(a) {
+                    // Broad gentle hill — noise peaks clearly stand out as overestimation
+                    return 1.8 * Math.exp(-((a - 0.5) ** 2) / 0.1) + 0.5;
+                }
+
+                function generateNoise(seed) {
+                    // Less smoothing + higher amplitude → jagged curves with obvious spurious peaks
+                    const raw = [];
+                    for (let i = 0; i < N; i++) raw.push((Math.random() - 0.5) * 2.4);
+                    const smooth = [];
+                    for (let i = 0; i < N; i++) {
+                        let sum = 0, cnt = 0;
+                        for (let j = Math.max(0, i - 2); j <= Math.min(N - 1, i + 2); j++) {
+                            sum += raw[j]; cnt++;
+                        }
+                        smooth.push(sum / cnt);
+                    }
+                    return smooth;
+                }
+
+                function resample() {
+                    trueQ = []; singleQ = []; q1 = []; q2 = []; minQ = [];
+                    const noise1 = generateNoise();
+                    const noise2 = generateNoise();
+                    const noiseSingle = generateNoise();
+
+                    for (let i = 0; i < N; i++) {
+                        const a = i / (N - 1);
+                        const tq = trueQFunc(a);
+                        trueQ.push(tq);
+                        singleQ.push(tq + noiseSingle[i]);
+                        q1.push(tq + noise1[i]);
+                        q2.push(tq + noise2[i]);
+                        minQ.push(Math.min(tq + noise1[i], tq + noise2[i]));
+                    }
+                    draw();
+                }
+
+                function getCtx() {
+                    const c = document.getElementById('overest-canvas');
+                    if (!c) return null;
+                    const dpr = window.devicePixelRatio || 1;
+                    const W = 600, H = 320;
+                    if (c.width !== W * dpr || c.height !== H * dpr) {
+                        c.width = W * dpr; c.height = H * dpr;
+                    }
+                    const ctx = c.getContext('2d');
+                    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                    return ctx;
+                }
+
+                function draw() {
+                    const ctx = getCtx();
+                    if (!ctx) return;
+                    const W = 600, H = 320;
+                    ctx.clearRect(0, 0, W, H);
+
+                    const pad = { l: 50, r: 20, t: 20, b: 40 };
+                    const pw = W - pad.l - pad.r;
+                    const ph = H - pad.t - pad.b;
+
+                    // Find y range
+                    const allVals = trueQ.concat(singleQ, q1, q2);
+                    let yMin = Math.min(...allVals) - 0.3;
+                    let yMax = Math.max(...allVals) + 0.3;
+
+                    function toX(i) { return pad.l + (i / (N - 1)) * pw; }
+                    function toY(v) { return pad.t + (1 - (v - yMin) / (yMax - yMin)) * ph; }
+
+                    // Grid
+                    ctx.strokeStyle = '#edf2f7';
+                    ctx.lineWidth = 0.5;
+                    for (let i = 0; i <= 4; i++) {
+                        const y = pad.t + ph * i / 4;
+                        ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+                    }
+
+                    // Axes
+                    ctx.strokeStyle = '#cbd5e0';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, H - pad.b); ctx.lineTo(W - pad.r, H - pad.b);
+                    ctx.stroke();
+
+                    // Axis labels
+                    ctx.fillStyle = '#718096';
+                    ctx.font = '12px "Source Han Serif SC", Georgia, serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('动作 a', pad.l + pw / 2, H - 6);
+                    ctx.save();
+                    ctx.translate(14, pad.t + ph / 2);
+                    ctx.rotate(-Math.PI / 2);
+                    ctx.fillText('Q(s, a)', 0, 0);
+                    ctx.restore();
+
+                    // Ticks
+                    ctx.fillStyle = '#a0aec0';
+                    ctx.font = '10px monospace';
+                    ctx.textAlign = 'right';
+                    for (let i = 0; i <= 4; i++) {
+                        const v = yMin + (yMax - yMin) * (4 - i) / 4;
+                        ctx.fillText(v.toFixed(1), pad.l - 5, pad.t + ph * i / 4 + 4);
+                    }
+                    ctx.textAlign = 'center';
+                    for (let v = 0; v <= 1; v += 0.2) {
+                        ctx.fillText(v.toFixed(1), pad.l + v * pw, H - pad.b + 16);
+                    }
+
+                    // Helper: draw curve
+                    function drawCurve(data, color, width, dash) {
+                        ctx.strokeStyle = color;
+                        ctx.lineWidth = width;
+                        ctx.setLineDash(dash || []);
+                        ctx.lineCap = 'round';
+                        ctx.beginPath();
+                        for (let i = 0; i < N; i++) {
+                            const px = toX(i), py = toY(data[i]);
+                            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                        }
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                    }
+
+                    // Draw curves
+                    drawCurve(trueQ, '#2d3748', 2.5);             // True Q (black)
+                    drawCurve(q1, '#48bb78', 1.2, [6, 3]);        // Q1 (green dashed)
+                    drawCurve(q2, '#2b6cb0', 1.2, [6, 3]);        // Q2 (blue dashed)
+                    drawCurve(minQ, '#48bb78', 3);                  // min(Q1,Q2) (green thick)
+                    drawCurve(singleQ, '#c53030', 1.8);            // Single critic (red solid)
+
+                    // Mark max positions
+                    let trueMaxIdx = 0, singleMaxIdx = 0, minMaxIdx = 0;
+                    for (let i = 0; i < N; i++) {
+                        if (trueQ[i] > trueQ[trueMaxIdx]) trueMaxIdx = i;
+                        if (singleQ[i] > singleQ[singleMaxIdx]) singleMaxIdx = i;
+                        if (minQ[i] > minQ[minMaxIdx]) minMaxIdx = i;
+                    }
+
+                    // True max marker
+                    function drawMarker(idx, data, color, label, yOffset) {
+                        const px = toX(idx), py = toY(data[idx]);
+                        ctx.fillStyle = color;
+                        ctx.beginPath();
+                        ctx.arc(px, py, 5, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.strokeStyle = 'white'; ctx.lineWidth = 1.5;
+                        ctx.stroke();
+                        ctx.fillStyle = color;
+                        ctx.font = 'bold 11px "Source Han Serif SC", Georgia, serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(label, px, py + yOffset);
+                    }
+
+                    drawMarker(trueMaxIdx, trueQ, '#2d3748', 'max Q*', -12);
+                    drawMarker(singleMaxIdx, singleQ, '#c53030', 'max Q\u0302', -12);
+                    drawMarker(minMaxIdx, minQ, '#48bb78', 'max min', 20);
+
+                    // Info panel
+                    const infoEl = document.getElementById('overest-info');
+                    if (infoEl) {
+                        const trueMax = trueQ[trueMaxIdx].toFixed(2);
+                        const singleMax = singleQ[singleMaxIdx].toFixed(2);
+                        const minMax = minQ[minMaxIdx].toFixed(2);
+                        const overestSingle = (singleQ[singleMaxIdx] - trueQ[trueMaxIdx]).toFixed(2);
+                        const overestMin = (minQ[minMaxIdx] - trueQ[trueMaxIdx]).toFixed(2);
+                        infoEl.innerHTML = `真实 $\\max Q^*$ = <strong>${trueMax}</strong> &nbsp;|&nbsp; ` +
+                            `单Critic $\\max \\hat{Q}$ = <strong style="color:#c53030;">${singleMax}</strong> (过估计 <span style="color:#c53030;font-weight:700;">+${overestSingle}</span>) &nbsp;|&nbsp; ` +
+                            `$\\max\\min(Q_1,Q_2)$ = <strong style="color:#48bb78;">${minMax}</strong> (偏差 <span style="color:#48bb78;font-weight:700;">${overestMin}</span>)`;
+                        if (window.renderMathInElement) {
+                            renderMathInElement(infoEl, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});
+                        }
+                    }
+                }
+
+                function toggleAuto() {
+                    isAuto = !isAuto;
+                    const btn = document.getElementById('overest-btn-auto');
+                    if (isAuto) {
+                        btn.textContent = '停止';
+                        btn.classList.add('active-btn');
+                        autoTimer = setInterval(resample, 1200);
+                    } else {
+                        btn.textContent = '自动演示';
+                        btn.classList.remove('active-btn');
+                        clearInterval(autoTimer);
+                    }
+                }
+
+                // Init
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', resample);
+                } else {
+                    resample();
+                }
+
+                return { resample, toggleAuto };
+            })();
+            </script>
+
+            <!-- ==================== TD3：三项改进 ==================== -->
+            <h2>TD3：三项改进</h2>
+
+            <p>Fujimoto et al.（2018）对上述问题进行了系统分析，提出了 <strong>TD3</strong> 算法。TD3 的全称是 Twin Delayed Deep Deterministic policy gradient，名字中包含三个 D（Delayed、Deep、Deterministic），因此缩写为 TD3。它在 DDPG 的基础上引入三项针对性改进，显著提升了训练的稳定性和最终性能。</p>
+
+            <h3>改进一：双 Critic 网络（Twin Critics）</h3>
+
+            <p>TD3 同时维护两个独立的 Critic 网络 $Q_{\phi_1}(s,a)$ 和 $Q_{\phi_2}(s,a)$，各自有独立的参数和目标网络。在计算 TD 目标时，取两者的较小值：</p>
+
+            <div class="formula-block">
+            $$y = r + \gamma \min\bigl(Q_{\phi_1'}(s', \tilde{a}'),\; Q_{\phi_2'}(s', \tilde{a}')\bigr) \tag{5.3-9}$$
+            </div>
+
+            <p>读者可能注意到，这一做法与3.2.3节的 Double Q-learning 都旨在解决过估计问题，但机制不同。Double Q-learning 用一个网络选动作、另一个网络评估价值，通过解耦选择与评估来抑制偏差；TD3 的 Twin Critics 则更加直接，同时训练两个独立的 Critic，计算 TD 目标时取两者的较小值。这是一种<strong>保守估计</strong>策略：即使某个 Critic 过高估计了某个 $(s', a')$，只要另一个 Critic 没有犯同样的错误，取最小值就能抑制过估计。</p>
+
+            <div class="note">
+                <strong>为什么取 $\min$ 有效？</strong><br>
+                两个独立训练的 Critic 虽然都可能存在估计误差，但它们不太可能在同一个 $(s, a)$ 处同时严重高估。取最小值相当于选择更保守的那个估计。虽然这可能引入轻微的低估偏差，但低估比高估安全得多：高估会被 Actor 积极利用并放大，而低估只是让 Actor 稍微保守一些。
+            </div>
+
+            <h3>改进二：延迟策略更新（Delayed Policy Update）</h3>
+
+            <p>在 DDPG 中，Actor 和 Critic 每一步都同时更新。但 Critic 的估计在训练初期并不准确，基于不准确的 Critic 来更新 Actor 可能导致 Actor 走偏。</p>
+
+            <p>TD3 的解决方案很简单：让 Actor 的更新频率低于 Critic。具体来说，每更新 Critic $d$ 次（通常 $d = 2$），才更新一次 Actor 和目标网络。这样做的效果是让 Critic 有更多的时间来"消化"新数据、减小估计误差，然后再用更准确的 Critic 来指导 Actor 更新。</p>
+
+            <!-- ==================== 交互动画：延迟更新可视化 ==================== -->
+            <div class="demo-box" id="delay-demo">
+                <div class="demo-title">交互演示：延迟策略更新</div>
+                <p style="font-size:0.9rem;color:#4a5568;margin-bottom:0.8rem;">下方时间线展示 Critic 和 Actor 的更新频率差异。Critic 每步都更新（蓝色方块），Actor 每 $d=2$ 步更新一次（红色方块）。右侧曲线展示模拟的 Critic 损失变化：在两次 Actor 更新之间，Critic 损失趋于下降，说明 Critic 在 Actor 不变的情况下更容易稳定。</p>
+                <div class="rl-ctrl">
+                    <button onclick="DelayDemo.step()">下一步</button>
+                    <button onclick="DelayDemo.toggleAuto()">自动播放</button>
+                    <button onclick="DelayDemo.reset()">重置</button>
+                    <span style="font-size:0.84rem;color:#718096;margin-left:0.5rem;">延迟参数 $d$ =
+                        <select id="delay-d-select" onchange="DelayDemo.setD(this.value)" style="font-size:0.84rem;padding:0.1rem 0.3rem;border:1px solid #cbd5e0;border-radius:3px;">
+                            <option value="2" selected>2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                        </select>
+                    </span>
+                </div>
+                <div style="text-align:center;">
+                    <canvas id="delay-canvas" width="600" height="260" style="width:100%;max-width:600px;height:auto;display:block;margin:0 auto;border:1px solid #e2e8f0;border-radius:8px;background:white;"></canvas>
+                </div>
+                <div class="demo-legend">
+                    <span style="display:inline-block;width:12px;height:12px;background:#2b6cb0;border-radius:2px;vertical-align:middle;"></span> Critic 更新 &nbsp;&nbsp;
+                    <span style="display:inline-block;width:12px;height:12px;background:#c53030;border-radius:2px;vertical-align:middle;"></span> Actor 更新 &nbsp;&nbsp;
+                    <span style="display:inline-block;width:12px;height:12px;background:#cbd5e0;border-radius:2px;vertical-align:middle;"></span> 未更新 &nbsp;&nbsp;
+                    <span style="color:#48bb78;font-weight:600;">&#9473;</span> Critic 损失
+                </div>
+            </div>
+            <div class="fig-caption">图 5.3-3：延迟策略更新可视化。Critic 每步更新，Actor 每 $d$ 步更新一次。两次 Actor 更新之间，Critic 可以积累更多训练步来稳定估计，从而为 Actor 提供更可靠的梯度信号。</div>
+
+            <script>
+            const DelayDemo = (function() {
+                'use strict';
+                let step_ = 0, d_ = 2, autoTimer = null, isAuto = false;
+                const MAX_STEPS = 30;
+                let criticLosses = [];
+
+                function init() {
+                    step_ = 0;
+                    criticLosses = [];
+                    // Pre-generate a plausible critic loss trajectory
+                    let loss = 1.0;
+                    for (let i = 0; i < MAX_STEPS; i++) {
+                        criticLosses.push(loss);
+                        // Loss decreases within each actor-update window, jumps up after actor update
+                        if ((i + 1) % d_ === 0) {
+                            loss = loss * 0.85 + 0.15 + Math.random() * 0.2; // jump up after actor update
+                        } else {
+                            loss = loss * 0.9 - 0.02 + (Math.random() - 0.5) * 0.05; // decrease
+                        }
+                        loss = Math.max(0.1, Math.min(1.5, loss));
+                    }
+                }
+
+                function getCtx() {
+                    const c = document.getElementById('delay-canvas');
+                    if (!c) return null;
+                    const dpr = window.devicePixelRatio || 1;
+                    const W = 600, H = 260;
+                    if (c.width !== W * dpr || c.height !== H * dpr) {
+                        c.width = W * dpr; c.height = H * dpr;
+                    }
+                    const ctx = c.getContext('2d');
+                    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                    return ctx;
+                }
+
+                function draw() {
+                    const ctx = getCtx();
+                    if (!ctx) return;
+                    const W = 600, H = 260;
+                    ctx.clearRect(0, 0, W, H);
+
+                    // Layout: top half = timeline, bottom half = critic loss curve
+                    const timelineY = 50;
+                    const timelineH = 60;
+                    const chartTop = 140;
+                    const chartBot = 240;
+                    const pad = { l: 60, r: 20 };
+                    const pw = W - pad.l - pad.r;
+
+                    // ---- Timeline ----
+                    ctx.fillStyle = '#2d3748';
+                    ctx.font = 'bold 12px "Source Han Serif SC", Georgia, serif';
+                    ctx.textAlign = 'left';
+                    ctx.fillText('更新时间线', pad.l, 20);
+
+                    // Step labels
+                    ctx.fillStyle = '#718096';
+                    ctx.font = '10px "Source Han Serif SC", Georgia, serif';
+                    ctx.textAlign = 'left';
+                    ctx.fillText('Critic', pad.l - 48, timelineY + 12);
+                    ctx.fillText('Actor', pad.l - 48, timelineY + 38);
+
+                    const displaySteps = Math.min(MAX_STEPS, 20);
+                    const boxW = Math.min(24, (pw - 10) / displaySteps);
+                    const gap = 2;
+
+                    for (let i = 0; i < displaySteps; i++) {
+                        const x = pad.l + i * (boxW + gap);
+
+                        // Critic row (always updates)
+                        if (i < step_) {
+                            ctx.fillStyle = '#2b6cb0';
+                        } else {
+                            ctx.fillStyle = '#e2e8f0';
+                        }
+                        ctx.fillRect(x, timelineY, boxW, 18);
+                        if (i < step_) {
+                            ctx.strokeStyle = '#1a4d8c';
+                            ctx.lineWidth = 1;
+                            ctx.strokeRect(x, timelineY, boxW, 18);
+                        }
+
+                        // Actor row (updates every d steps)
+                        if (i < step_ && (i + 1) % d_ === 0) {
+                            ctx.fillStyle = '#c53030';
+                        } else if (i < step_) {
+                            ctx.fillStyle = '#fed7d7';
+                        } else {
+                            ctx.fillStyle = '#e2e8f0';
+                        }
+                        ctx.fillRect(x, timelineY + 26, boxW, 18);
+                        if (i < step_ && (i + 1) % d_ === 0) {
+                            ctx.strokeStyle = '#9b2c2c';
+                            ctx.lineWidth = 1;
+                            ctx.strokeRect(x, timelineY + 26, boxW, 18);
+                        }
+
+                        // Step number
+                        ctx.fillStyle = '#a0aec0';
+                        ctx.font = '8px monospace';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(String(i + 1), x + boxW / 2, timelineY + 60);
+                    }
+
+                    // Current step indicator
+                    if (step_ > 0 && step_ <= displaySteps) {
+                        const cx = pad.l + (step_ - 1) * (boxW + gap) + boxW / 2;
+                        ctx.fillStyle = '#d69e2e';
+                        ctx.beginPath();
+                        ctx.moveTo(cx - 4, timelineY - 6);
+                        ctx.lineTo(cx + 4, timelineY - 6);
+                        ctx.lineTo(cx, timelineY - 1);
+                        ctx.fill();
+                    }
+
+                    // ---- Critic loss chart ----
+                    ctx.fillStyle = '#2d3748';
+                    ctx.font = 'bold 12px "Source Han Serif SC", Georgia, serif';
+                    ctx.textAlign = 'left';
+                    ctx.fillText('Critic 损失', pad.l, chartTop - 8);
+
+                    // Axes
+                    ctx.strokeStyle = '#cbd5e0';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(pad.l, chartTop);
+                    ctx.lineTo(pad.l, chartBot);
+                    ctx.lineTo(W - pad.r, chartBot);
+                    ctx.stroke();
+
+                    if (step_ < 1) return;
+
+                    // Find y range
+                    const visLosses = criticLosses.slice(0, step_);
+                    let lMin = Math.min(...visLosses) - 0.1;
+                    let lMax = Math.max(...visLosses) + 0.1;
+                    const lph = chartBot - chartTop;
+
+                    function toX(i) { return pad.l + (i / (displaySteps - 1)) * pw; }
+                    function toY(v) { return chartTop + (1 - (v - lMin) / (lMax - lMin)) * lph; }
+
+                    // Shade actor update intervals
+                    for (let i = 0; i < step_; i++) {
+                        if ((i + 1) % d_ === 0) {
+                            const x = toX(i);
+                            ctx.strokeStyle = 'rgba(197,48,48,0.25)';
+                            ctx.lineWidth = 1;
+                            ctx.setLineDash([3, 3]);
+                            ctx.beginPath();
+                            ctx.moveTo(x, chartTop);
+                            ctx.lineTo(x, chartBot);
+                            ctx.stroke();
+                            ctx.setLineDash([]);
+                        }
+                    }
+
+                    // Critic loss curve
+                    ctx.strokeStyle = '#48bb78';
+                    ctx.lineWidth = 2;
+                    ctx.lineCap = 'round';
+                    ctx.beginPath();
+                    for (let i = 0; i < step_; i++) {
+                        const px = toX(i), py = toY(criticLosses[i]);
+                        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                    }
+                    ctx.stroke();
+
+                    // Dots
+                    for (let i = 0; i < step_; i++) {
+                        const px = toX(i), py = toY(criticLosses[i]);
+                        ctx.fillStyle = '#48bb78';
+                        ctx.beginPath();
+                        ctx.arc(px, py, 3, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                function doStep() {
+                    if (step_ >= MAX_STEPS) return;
+                    step_++;
+                    draw();
+                }
+
+                function toggleAuto() {
+                    isAuto = !isAuto;
+                    if (isAuto) {
+                        autoTimer = setInterval(() => {
+                            if (step_ >= MAX_STEPS) { toggleAuto(); return; }
+                            doStep();
+                        }, 400);
+                    } else {
+                        clearInterval(autoTimer);
+                    }
+                }
+
+                function reset() {
+                    if (isAuto) toggleAuto();
+                    init();
+                    draw();
+                }
+
+                function setD(val) {
+                    d_ = parseInt(val);
+                    reset();
+                }
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', () => { init(); draw(); });
+                } else {
+                    init(); draw();
+                }
+
+                return { step: doStep, toggleAuto, reset, setD };
+            })();
+            </script>
+
+            <h3>改进三：目标策略平滑（Target Policy Smoothing）</h3>
+
+            <p>在计算 TD 目标时，DDPG 使用 $\mu_{\theta'}(s')$ 来选择下一步的动作。如果 $Q_\phi$ 在 $\mu_{\theta'}(s')$ 附近的某个狭窄区域恰好有一个虚假的高值，这个误差就会被直接传入 TD 目标。</p>
+
+            <p>TD3 的第三项改进是对目标动作添加噪声：</p>
+
+            $$\tilde{a}' = \mu_{\theta'}(s') + \epsilon, \quad \epsilon \sim \text{clip}\bigl(\mathcal{N}(0, \tilde{\sigma}^2),\, -c,\, c\bigr) \tag{5.3-10}$$
+
+            <p>其中 $\tilde{\sigma}$ 是目标噪声的标准差，$c$ 是裁剪范围（通常 $\tilde{\sigma} = 0.2$，$c = 0.5$）。噪声被裁剪以确保目标动作不会偏离太远。</p>
+
+            <p>添加噪声的效果是对 $Q$ 函数在目标动作附近做了一次<strong>局部平滑</strong>。如果 $Q$ 的真实值在那个区域是平坦的，加噪声后的平均值不会变化太多；但如果 $Q$ 在那里有一个因估计误差产生的尖锐峰值，加噪声后峰值会被抹平。这正是我们想要的效果。</p>
+
+            <div class="algo-box">
+                <div class="algo-title">TD3 算法（Twin Delayed DDPG）</div>
+                <ol>
+                    <li>初始化两个 Critic 网络 $Q_{\phi_1}$、$Q_{\phi_2}$ 和 Actor 网络 $\mu_\theta$</li>
+                    <li>初始化目标网络：$\phi_1' \leftarrow \phi_1$，$\phi_2' \leftarrow \phi_2$，$\theta' \leftarrow \theta$</li>
+                    <li>初始化经验回放缓冲区 $\mathcal{D}$</li>
+                    <li>对每个 episode：
+                        <ol type="a">
+                            <li>观测初始状态 $s_0$</li>
+                            <li>对每步 $t = 0, 1, 2, \ldots$：
+                                <ol type="i">
+                                    <li>选择动作 $a_t = \mu_\theta(s_t) + \epsilon$，$\epsilon \sim \mathcal{N}(0, \sigma^2)$（探索噪声）</li>
+                                    <li>执行 $a_t$，观测 $r_t, s_{t+1}$</li>
+                                    <li>将 $(s_t, a_t, r_t, s_{t+1})$ 存入 $\mathcal{D}$</li>
+                                    <li>从 $\mathcal{D}$ 中随机采样小批量 $\{(s_i, a_i, r_i, s_i')\}_{i=1}^N$</li>
+                                    <li>计算目标动作（含平滑噪声）：$\tilde{a}_i' = \mu_{\theta'}(s_i') + \text{clip}(\epsilon, -c, c)$，$\epsilon \sim \mathcal{N}(0, \tilde{\sigma}^2)$</li>
+                                    <li>计算 TD 目标：$y_i = r_i + \gamma \min\bigl(Q_{\phi_1'}(s_i', \tilde{a}_i'),\, Q_{\phi_2'}(s_i', \tilde{a}_i')\bigr)$</li>
+                                    <li>更新两个 Critic：分别最小化 $\frac{1}{N}\sum_i (y_i - Q_{\phi_j}(s_i, a_i))^2$，$j=1,2$</li>
+                                    <li>每 $d$ 步执行以下更新（延迟更新）：
+                                        <ul style="list-style:disc;">
+                                            <li>更新 Actor：$\theta \leftarrow \theta + \alpha_\theta \frac{1}{N}\sum_i \nabla_\theta Q_{\phi_1}(s_i, \mu_\theta(s_i))$</li>
+                                            <li>软更新所有目标网络：$\phi_j' \leftarrow \tau\phi_j + (1-\tau)\phi_j'$，$\theta' \leftarrow \tau\theta + (1-\tau)\theta'$</li>
+                                        </ul>
+                                    </li>
+                                </ol>
+                            </li>
+                        </ol>
+                    </li>
+                </ol>
+                <div class="algo-note">TD3 相比 DDPG 的三项改进：(1) 双 Critic 取最小值，抑制过估计；(2) 延迟更新 Actor，让 Critic 先稳定；(3) 目标策略平滑，防止利用 $Q$ 函数窄峰。注意 Actor 更新时只使用 $Q_{\phi_1}$。</div>
+            </div>
+
+            <!-- TD3 改进对比 -->
+            <table class="trans-table" style="width:100%;">
+                <thead>
+                    <tr><th>组件</th><th>DDPG</th><th>TD3</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Critic 数量</td><td>1个</td><td>2个（取 $\min$）</td></tr>
+                    <tr><td>Actor 更新频率</td><td>每步更新</td><td>每 $d$ 步更新一次</td></tr>
+                    <tr><td>目标动作</td><td>$\mu_{\theta'}(s')$</td><td>$\mu_{\theta'}(s') + \text{clip}(\epsilon, -c, c)$</td></tr>
+                    <tr><td>过估计</td><td>严重</td><td>受控</td></tr>
+                    <tr><td>训练稳定性</td><td>对超参数敏感</td><td>更稳健</td></tr>
+                </tbody>
+            </table>
+            <div class="fig-caption">表 5.3-1：DDPG 与 TD3 的关键区别。</div>
+
+            <!-- ==================== 小结 ==================== -->
+            <h2>小结</h2>
+
+            <p>本节从确定性策略出发，介绍了 DDPG 和 TD3 两种面向连续动作空间的 off-policy 深度强化学习算法。</p>
+
+            <p>DDPG 将确定性策略梯度定理与 DQN 的经验回放和目标网络相结合，首次实现了端到端的连续控制深度强化学习。但 DDPG 受 $Q$ 值过估计问题困扰，训练稳定性不足。TD3 通过三项简洁的改进（双 Critic、延迟更新、目标平滑）系统性地解决了这个问题。</p>
+
+            <table class="trans-table" style="width:100%;">
+                <thead>
+                    <tr><th>比较维度</th><th>PPO（5.2节）</th><th>DDPG</th><th>TD3</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>策略类型</td><td>随机</td><td>确定性</td><td>确定性</td></tr>
+                    <tr><td>数据利用</td><td>On-policy</td><td>Off-policy</td><td>Off-policy</td></tr>
+                    <tr><td>探索方式</td><td>策略自带随机性</td><td>行为噪声</td><td>行为噪声</td></tr>
+                    <tr><td>$Q$ 过估计</td><td>不涉及</td><td>严重</td><td>受控（Twin + Smooth）</td></tr>
+                    <tr><td>数据效率</td><td>较低（on-policy）</td><td>较高（replay）</td><td>较高（replay）</td></tr>
+                    <tr><td>训练稳定性</td><td>较好（裁剪）</td><td>差</td><td>较好</td></tr>
+                </tbody>
+            </table>
+
+            <p>TD3 仍然需要手动设置探索噪声的大小，这个超参数对性能有显著影响：噪声太小则探索不足，噪声太大则数据质量差。5.4节将要介绍的 <strong>Soft Actor-Critic</strong>（SAC）从一个不同的角度解决这个问题：它将策略的随机性（熵）纳入优化目标，让智能体自动学习合适的探索程度。</p>
+
+            <div class="result-box">
+                <strong>核心要点：</strong>DDPG 用确定性策略 + DQN 技术实现了连续动作的 off-policy 学习；TD3 通过双 Critic（抑制过估计）、延迟更新（稳定 Actor 学习）、目标平滑（避免利用 $Q$ 的窄峰）三项改进，显著提升了训练的稳定性和性能。在连续控制的 off-policy 场景中，TD3 是一个简洁、可靠的基线选择。
+            </div>
+
+            <div class="chapter-nav">
+                <a href="../ch05/5.3.html">&larr; 5.3 DDPG与TD3</a>
+                <a href="../ch05/5.3.2.html">5.3.2 例子：广告实时竞价 &rarr;</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

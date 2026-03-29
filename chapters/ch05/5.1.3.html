@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>5.1.3 例子：库存管理 - 运筹智能</title>
+    <title>5.1.3 例子：报童问题 - 运筹智能</title>
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -49,8 +49,10 @@
         .ablation-controls input[type="checkbox"] { width:16px; height:16px; cursor:pointer; }
 
         /* 回放缓冲区可视化 */
-        .buffer-viz { display:flex; flex-wrap:wrap; gap:4px; margin:0.8rem 0; justify-content:center; }
-        .buffer-item { width:32px; height:32px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:0.65rem; color:white; font-weight:600; border:1px solid rgba(0,0,0,0.1); }
+        .buffer-viz { display:flex; flex-wrap:wrap; gap:4px; margin:0.8rem 0; justify-content:center; position:relative; }
+        .buffer-item { width:32px; height:32px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:0.65rem; color:white; font-weight:600; border:1px solid rgba(0,0,0,0.1); cursor:pointer; }
+        .buffer-item:hover { transform:scale(1.3); z-index:10; box-shadow:0 2px 8px rgba(0,0,0,0.3); }
+        .buffer-tooltip { position:fixed; background:#2d3748; color:white; padding:0.4rem 0.7rem; border-radius:6px; font-size:0.8rem; line-height:1.5; pointer-events:none; z-index:100; white-space:nowrap; display:none; box-shadow:0 2px 8px rgba(0,0,0,0.2); }
     </style>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
@@ -97,10 +99,17 @@
                 <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
                 <li class="sidebar-subsection"><a href="../ch05/5.1.1.html">5.1.1 DQN基本算法</a></li>
                 <li class="sidebar-subsection"><a href="../ch05/5.1.2.html">5.1.2 DQN的关键改进</a></li>
-                <li class="sidebar-subsection"><a href="../ch05/5.1.3.html" class="active">5.1.3 例子：库存管理</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.1.3.html" class="active">5.1.3 例子：报童问题</a></li>
                 <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.1.html">5.2.1 从Actor-Critic到PPO</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.2.html">5.2.2 连续动作空间与重参数化技巧</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.3.html">5.2.3 例子：机票动态定价</a></li>
                 <li><a href="../ch05/5.3.html">5.3 DDPG与TD3</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.3.1.html">5.3.1 DDPG与TD3算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.3.2.html">5.3.2 例子：广告实时竞价</a></li>
                 <li><a href="../ch05/5.4.html">5.4 Soft Actor-Critic</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.4.1.html">5.4.1 SAC算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.4.2.html">5.4.2 例子：投资组合配置</a></li>
                 <li><a href="../ch05/5.5.html">5.5 基于模型的深度强化学习</a></li>
                 <li><a href="../ch05/5.6.html">5.6 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
                 <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
@@ -129,17 +138,30 @@
         </aside>
 
         <main class="main-content">
-            <h1>5.1.3 例子：库存管理</h1>
+            <h1>5.1.3 例子：报童问题</h1>
 
-            <p>前两节分别介绍了 DQN 的基本算法（5.1.1节）和三项关键改进：Double DQN、Dueling 架构、优先经验回放（5.1.2节）。理论讲完了，但一个核心问题仍然悬而未决：这些改进究竟能带来多大的实际收益？它们各自解决了什么具体问题？本节通过一个库存管理的例子，让读者在交互演示中逐一观察每项改进的效果，最终通过消融实验（ablation study）看清它们的互补关系。</p>
+            <p>前两节分别介绍了 DQN 的基本算法（5.1.1节）和三项关键改进：Double DQN、Dueling 架构、优先经验回放（5.1.2节）。理论讲完了，但一个核心问题仍然悬而未决：这些改进究竟能带来多大的实际收益？本节通过一个经典的报童问题，让读者在交互演示中逐一观察每项改进的效果，最终通过消融实验看清它们的互补关系。</p>
+
+            <!-- ==================== 问题描述 ==================== -->
+            <h2>报童问题</h2>
+
+            <p><strong>报童问题</strong>（newsvendor problem）是运筹学中最经典的库存管理模型。经典的单期版本是：报童每天早上决定进多少份报纸，当天的需求 $D$ 是随机的。报纸卖不完产生<strong>持有成本</strong>（滞销亏损），不够卖则面临<strong>缺货损失</strong>（错失利润），进货本身有<strong>订货成本</strong>。报童的目标是选择进货量，使得期望利润最大。</p>
+
+            <p>我们考虑这个问题的<strong>多期推广</strong>：报童每天观察当前库存水平，决定补多少货。卖不完的报纸可以留到明天继续卖（不像经典版本中报纸隔天就过期），但每天持有库存要付仓储费。这就构成了一个典型的序贯决策问题，可以建模为 MDP。在一般形式中，报童每期面临三种成本的权衡：</p>
+
+            <ul style="margin: 0.5rem 0 1rem 2rem; line-height: 2;">
+                <li><strong>持有成本</strong> $c_h$：按期末剩余库存收取，反映仓储和资金占用的代价</li>
+                <li><strong>缺货惩罚</strong> $c_p$：按未满足的需求收取，反映错失销售和客户流失的代价。通常 $c_p > c_h$，因为缺货比过剩代价更高</li>
+                <li><strong>订货成本</strong> $c_o$：按订货量收取，反映采购和物流的支出</li>
+            </ul>
+
+            <p>加上每单位销售收入 $p$，报童的单期利润就是 $p \cdot \text{销售量} - c_h \cdot \text{剩余库存} - c_p \cdot \text{缺货量} - c_o \cdot \text{订货量}$。下面我们用一组具体的参数来演示 DQN 如何求解这个问题。</p>
 
             <!-- ==================== 问题建模 ==================== -->
-            <h2>问题建模</h2>
-
-            <p>考虑一个零售商每天需要决定向供应商订多少货。需求是随机的，库存太多会产生持有成本，库存不足则面临缺货损失。这是运筹学中经典的报童问题（newsvendor problem）的多期推广，也是管理科学中最自然的序贯决策场景之一。</p>
+            <h2>MDP 建模</h2>
 
             <div class="concept-card">
-                <div class="concept-name">库存管理 MDP</div>
+                <div class="concept-name">报童问题 MDP</div>
                 <ul style="margin:0.3rem 0 0.3rem 1.5rem; line-height:2;">
                     <li><strong>状态</strong>：当前库存水平 $s \in \{0, 1, \ldots, 30\}$，共31个离散状态</li>
                     <li><strong>动作</strong>：订货量 $a \in \{0, 5, 10, 15, 20\}$，共5个离散档位</li>
@@ -147,20 +169,20 @@
                     <li><strong>状态转移</strong>：$s' = \min\!\big(\max(s + a - D,\; 0),\; 30\big)$</li>
                     <li><strong>奖励</strong>：</li>
                 </ul>
-                $$R = \underbrace{10 \cdot \min(s, D)}_{\text{销售收入}} - \underbrace{1 \cdot (s + a - D)^+}_{\text{持有成本}} - \underbrace{5 \cdot (D - s)^+}_{\text{缺货惩罚}} - \underbrace{2 \cdot a}_{\text{订货成本}} \tag{5.1-13}$$
+                $$R = \underbrace{10 \cdot \min(s, D)}_{\text{销售收入}} - \underbrace{1 \cdot (s + a - D)^+}_{\text{持有成本}} - \underbrace{5 \cdot (D - s)^+}_{\text{缺货惩罚}} - \underbrace{2 \cdot a}_{\text{订货成本}} \tag{5.1-12}$$
                 <p style="margin-top:0.5rem; font-size:0.9rem; color:#718096;">其中 $(x)^+ = \max(x, 0)$。库存上限为30，下限为0（不允许欠货）。折扣因子 $\gamma = 0.99$。</p>
             </div>
 
-            <p>奖励函数（式(5.1-13)）的四项分别对应零售商面临的四种经济因素。销售收入取决于实际能卖出的量 $\min(s, D)$，即库存和需求中较小者。持有成本按期末剩余库存 $(s + a - D)^+$ 计算。缺货惩罚按未满足的需求 $(D - s)^+$ 计算，单位惩罚（5元）高于持有成本（1元），反映了"缺货比过剩代价更高"的常见商业逻辑。订货成本与订货量 $a$ 成正比。</p>
+            <p>奖励函数（式(5.1-12)）对应前面描述的四种经济因素：单位售价 $p=10$，持有成本 $c_h=1$，缺货惩罚 $c_p=5$（远高于持有成本，反映"缺货比过剩代价更高"），订货成本 $c_o=2$。需求 $D$ 服从 Poisson 分布，均值为8。</p>
 
-            <p>这个问题虽然只有31个状态和5个动作，用动态规划可以精确求解（最优策略的长期平均回合奖励约为 $50.2$），但它包含了管理科学问题中的典型特征：随机需求、库存约束、多种成本的权衡。更重要的是，它足够小，使我们能在浏览器中实时运行训练并可视化每项 DQN 改进的效果。</p>
+            <p>这个问题虽然只有31个状态和5个动作，用动态规划（2.2节）可以精确求解（最优策略的长期平均回合奖励约为 $50.2$），但它包含了管理科学问题中的典型特征：随机需求、库存约束、多种成本的权衡。更重要的是，它足够小，使我们能在浏览器中可视化每项 DQN 改进的效果。</p>
 
             <!-- ==================== Step 1: 基础DQN ==================== -->
             <h2>Step 1：基础 DQN</h2>
 
             <p>先用最基本的 DQN（经验回放 + 目标网络，不含任何改进）来解决这个库存管理问题。Q网络的输入是归一化的库存水平 $s/30$，经过两个64维隐藏层，输出5个动作的 $Q$ 值。</p>
 
-            <p>点击下方按钮开始训练。左侧的热力图展示 $Q(s, a)$ 值随训练进展的变化：横轴为5个订货量，纵轴为不同库存水平（采样显示）；颜色越暖表示 $Q$ 值越高。右侧是回合奖励的训练曲线。下方的柱状图显示当前学到的策略，即在每个库存水平上选择的订货量。</p>
+            <p>点击下方按钮开始训练。左侧的热力图展示 $Q(s, a)$ 值随训练进展的变化：横轴为5个订货量，纵轴为不同库存水平（采样显示）；颜色越暖表示 $Q$ 值越高。右侧是回合奖励的训练曲线。</p>
 
             <div class="dqn-demo">
                 <div class="demo-title">交互演示 1：基础 DQN 训练过程</div>
@@ -179,14 +201,16 @@
                         <canvas id="cv-reward1" width="300" height="260"></canvas>
                     </div>
                 </div>
-                <div class="demo-panel" style="margin-top:0.8rem;">
-                    <div class="demo-panel-title">当前学到的策略（每个库存水平的订货量）</div>
-                    <canvas id="cv-policy1" width="620" height="140"></canvas>
-                </div>
             </div>
-            <div class="fig-caption">图 5.1-5 &nbsp; 基础 DQN 在库存管理问题上的训练过程。热力图中颜色越暖（红色）表示 $Q$ 值越高，越冷（蓝色）表示越低。策略柱状图显示智能体在每个库存水平上学到的订货量。</div>
+            <div class="fig-caption">图 5.1-6 &nbsp; 基础 DQN 在报童问题上的训练过程。左侧热力图中颜色越暖（红色）表示 $Q$ 值越高，越冷（蓝色）表示越低。右侧为回合奖励曲线，紫色虚线为动态规划求得的最优策略奖励。</div>
 
-            <p>可以观察到几个现象。首先，训练初期奖励波动剧烈，直到大约第120回合左右才趋于稳定。其次，热力图中的 $Q$ 值分布逐渐呈现出合理的模式：库存低时（$s \leq 5$），$Q$ 值最高的动作是大量订货（$a = 15$ 或 $a = 20$）；库存高时（$s \geq 20$），最优动作是不订货（$a = 0$）。这符合直觉。但如果仔细观察 $Q$ 值的绝对大小，会发现它们普遍偏高，这正是 $\max$ 运算导致的过高估计问题。</p>
+            <div class="note">
+                <p>本节所有交互演示中的训练曲线和Q值数据均为<strong>预计算的模拟数据</strong>，而非浏览器中实时训练的神经网络。这些曲线基于确定性种子的随机生成器产生，其收敛速度、噪声水平和最终值经过校准，忠实反映了各配置在此类问题上的典型表现。实际训练代码见本节末尾的 Python 实现。</p>
+            </div>
+
+            <p>可以观察到几个现象。首先，训练初期奖励波动剧烈，直到大约第120回合左右才趋于稳定。其次，热力图展示的是<strong>Q网络的输出</strong>（而非表格查询），$Q$ 值分布逐渐呈现出合理的模式：库存低时（$s \leq 5$），$Q$ 值最高的动作是大量订货（$a = 15$ 或 $a = 20$）；库存高时（$s \geq 20$），最优动作是不订货（$a = 0$）。这符合直觉：库存不足时应多补货以避免缺货惩罚，库存充足时应少补货以减少持有成本。但如果仔细观察 $Q$ 值的绝对大小，会发现它们普遍偏高，这正是 $\max$ 运算导致的过高估计问题（5.1.2节）。</p>
+
+            <p>另一个值得注意的现象是：即使训练充分收敛，基础 DQN 的回合奖励（约42）仍低于动态规划求得的最优值（50.2），无法达到全局最优。这是深度强化学习与表格方法的一个根本区别：表格Q-learning（3.2.2节）在理论上可以收敛到 $Q^*$，因为每个 $(s,a)$ 的Q值独立更新互不干扰。而Q网络用一组共享参数 $\theta$ 近似所有状态的Q值，更新一个状态的Q值不可避免地影响其他状态，这种<strong>函数近似误差</strong>加上探索不充分，使得DQN无法保证收敛到最优策略。这也是为什么5.1.2节的改进如此重要——它们虽然不能完全消除这个差距，但能缩小它。</p>
 
             <!-- ==================== Step 2: Double DQN ==================== -->
             <h2>Step 2：加入 Double DQN</h2>
@@ -212,7 +236,7 @@
                     </div>
                 </div>
             </div>
-            <div class="fig-caption">图 5.1-6 &nbsp; 左：基础 DQN（蓝色）与 Double DQN（红色）的回合奖励曲线对比。右：训练结束后，在 $s \in \{0, 5, 10, 15, 20\}$ 处的 $\max_a Q(s,a)$ 估计值与动态规划求得的真实值的对比。基础 DQN 的 $Q$ 值普遍高于真实值（过高估计），Double DQN 更接近真实值。</div>
+            <div class="fig-caption">图 5.1-7 &nbsp; 左：基础 DQN（蓝色）与 Double DQN（红色）的回合奖励曲线对比。右：训练结束后，在 $s \in \{0, 5, 10, 15, 20\}$ 处的 $\max_a Q(s,a)$ 估计值与动态规划求得的真实值的对比。基础 DQN 的 $Q$ 值普遍高于真实值（过高估计），Double DQN 更接近真实值。</div>
 
             <p>左图中，红色曲线（Double DQN）不仅收敛速度稍快，波动也更小。右图更加直观：在5个采样状态上，基础 DQN 的 $Q$ 值估计（蓝色柱）普遍高于真实值（紫色虚线），平均过高估计约15%。而 Double DQN（红色柱）的估计值明显更接近真实值。</p>
 
@@ -240,9 +264,11 @@
                     </div>
                 </div>
             </div>
-            <div class="fig-caption">图 5.1-7 &nbsp; Dueling 架构训练后的 $V(s)$ 曲线（左）和 $A(s,a)$ 热力图（右）。$V(s)$ 在 $s \approx 10$ 附近取得最大值，反映了中等库存最优的经济直觉。$A(s,a)$ 的正负分布则清晰地显示了在每个库存水平上应该多订还是少订。</div>
+            <div class="fig-caption">图 5.1-8 &nbsp; Dueling 架构训练后的 $V(s)$ 曲线（左）和 $A(s,a)$ 热力图（右）。</div>
 
-            <p>Dueling 架构的优势在于：$V(s)$ 的学习可以利用所有动作的经验，不需要为每个动作单独积累样本。在训练初期，即使某些 $(s,a)$ 对还没有被充分探索，$V(s)$ 也能从其他动作的转移中获得信息。这使得 Dueling 架构在训练早期就能给出较好的 $Q$ 值估计，尤其在动作空间较大时效果更为显著。</p>
+            <p>$V(s)$ 曲线呈倒U形，在 $s \approx 10$ 附近取得最大值。这符合报童问题的经济直觉：库存太低（$s \approx 0$）意味着频繁缺货，遭受大量缺货惩罚（$c_p = 5$ 远高于持有成本 $c_h = 1$），因此状态价值低；库存太高（$s \geq 20$）虽然不会缺货，但每天都要支付高额持有成本，而多余库存对应的需求可能根本不出现；中等库存（$s \approx 8 \sim 12$，接近平均需求 $\mathbb{E}[D] = 8$）恰好在缺货风险和持有成本之间取得平衡。$A(s,a)$ 热力图则展示了在每个库存水平上哪些订货量优于平均：库存低时大量订货（$a=15, 20$）的优势为正，库存高时不订货（$a=0$）的优势为正。</p>
+
+            <p>Dueling 架构的优势在于：$V(s)$ 的学习可以利用所有动作的经验，不需要为每个动作单独积累样本。在训练初期，即使某些 $(s,a)$ 对还没有被充分探索，$V(s)$ 也能从其他动作的转移中获得信息。这使得 Dueling 架构在训练早期就能给出较好的 $Q$ 值估计，尤其在动作空间较大时效果更为明显。</p>
 
             <!-- ==================== Step 4: 优先经验回放 ==================== -->
             <h2>Step 4：加入优先经验回放</h2>
@@ -253,26 +279,29 @@
 
             <div class="dqn-demo">
                 <div class="demo-title">交互演示 4：优先经验回放的缓冲区可视化</div>
+                <p style="font-size:0.88rem;color:#4a5568;margin-bottom:0.6rem;">点击下方按钮模拟80步交互，生成经验缓冲区。每个小方块代表一条转移 $(s,a,r,s')$，颜色编码其 TD 误差大小：<span style="color:#c53030;font-weight:600;">红色</span> = 高TD误差（高优先级），<span style="color:#2b6cb0;font-weight:600;">蓝色</span> = 低TD误差（低优先级）。鼠标悬停在小方块上会显示该条转移的状态、动作、奖励和TD误差（浏览器原生提示框）。</p>
                 <div class="rl-ctrl">
                     <button id="btn-train4" onclick="demo4Run()">生成回放缓冲区</button>
                     <button id="btn-reset4" onclick="demo4Reset()">重置</button>
                 </div>
                 <div class="demo-panel" style="margin:0.5rem 0;">
-                    <div class="demo-panel-title">缓冲区中的转移样本（按 TD 误差着色，红色 = 高优先级，蓝色 = 低优先级）</div>
+                    <div class="demo-panel-title">缓冲区（80条转移，颜色 = TD误差大小）</div>
                     <div id="buffer-container" style="min-height:80px;"></div>
                 </div>
                 <div class="demo-grid">
                     <div class="demo-panel">
-                        <div class="demo-panel-title">采样概率分布（前20个样本）</div>
+                        <div class="demo-panel-title">按TD误差排序的采样概率（前20高优先级）</div>
                         <canvas id="cv-priority" width="300" height="200"></canvas>
                     </div>
                     <div class="demo-panel">
-                        <div class="demo-panel-title">高优先级转移示例</div>
+                        <div class="demo-panel-title">高优先级转移详情</div>
                         <div id="priority-examples" style="font-size:0.88rem; line-height:1.8; padding:0.5rem;"></div>
                     </div>
                 </div>
             </div>
-            <div class="fig-caption">图 5.1-8 &nbsp; 优先经验回放的缓冲区可视化。每个小方块代表一条转移，颜色越红表示 TD 误差越大（采样优先级越高）。右下方列出了几条高优先级转移，可以看到它们大多涉及缺货或大量订货等极端情况。</div>
+            <div class="fig-caption">图 5.1-9 &nbsp; 优先经验回放的缓冲区可视化。左下方柱状图展示TD误差最大的20条转移的采样概率分布。右下方列出高优先级转移的详细信息。</div>
+
+            <p>为什么高TD误差的转移往往对应"意外"事件？TD误差 $\delta = r + \gamma \max_{a'} Q(s', a') - Q(s, a)$ 衡量的是实际收到的奖励 $r + \gamma \max_{a'} Q(s', a')$ 与Q网络预期的 $Q(s,a)$ 之差。当需求出现异常波动时（例如库存为5但需求突然飙到15），缺货惩罚远超网络预期，TD误差就会很大。类似地，库存很高时需求恰好也很高导致意外大卖，同样会产生大的TD误差。这些"意外"转移正是Q网络当前估计最不准的地方，优先回放它们能加速网络对极端情况的学习。</p>
 
             <!-- ==================== 消融实验 ==================== -->
             <h2>消融实验：每项改进贡献了多少？</h2>
@@ -292,7 +321,7 @@
                 <canvas id="cv-ablation" width="640" height="340"></canvas>
                 <div id="ablation-legend" style="text-align:center; font-size:0.85rem; margin-top:0.3rem;"></div>
             </div>
-            <div class="fig-caption">图 5.1-9 &nbsp; 消融实验：不同 DQN 改进组合的训练曲线。灰色为基础 DQN，蓝色为 +Double，黄色为 +Dueling，红色为 +PER，绿色为全部启用。紫色虚线为最优策略的回合奖励（动态规划求解）。</div>
+            <div class="fig-caption">图 5.1-10 &nbsp; 消融实验：不同 DQN 改进组合的训练曲线。灰色为基础 DQN，蓝色为 +Double，黄色为 +Dueling，红色为 +PER，绿色为全部启用。紫色虚线为最优策略的回合奖励（动态规划求解）。</div>
 
             <p>从消融实验中可以得出以下结论：</p>
 
@@ -312,16 +341,21 @@
             <!-- ==================== 完整代码 ==================== -->
             <h2>完整 Python 实现</h2>
 
-            <p>通过上面的交互演示，读者已经直观地理解了每项改进的作用。下面给出将三项改进（Double DQN + Dueling 架构 + 优先经验回放）整合在一起的完整 PyTorch 代码，供实际使用参考。</p>
+            <p>下面的代码实现了报童问题上的 DQN 及三项改进。通过 <code>use_double</code>、<code>use_dueling</code>、<code>use_per</code> 三个开关，读者可以自由组合八种配置，复现消融实验的结果。</p>
 
 <pre><code class="language-python">import torch
 import torch.nn as nn
 import numpy as np
-from collections import namedtuple
+from collections import namedtuple, deque
+
+# ==================== 配置开关 ====================
+use_double  = True   # Double DQN
+use_dueling = True   # Dueling 架构
+use_per     = True   # 优先经验回放
 
 # ==================== 环境 ====================
-class InventoryEnv:
-    """库存管理环境：状态为库存水平，动作为订货量"""
+class NewsvendorEnv:
+    """报童问题：状态为库存水平，动作为订货量。"""
     def __init__(self, max_inv=30, mean_demand=8):
         self.max_inv = max_inv
         self.mean_demand = mean_demand
@@ -332,49 +366,74 @@ class InventoryEnv:
         return self.state
 
     def step(self, action_idx):
-        order = self.actions[action_idx]
+        s, order = self.state, self.actions[action_idx]
         demand = np.random.poisson(self.mean_demand)
-        sold = min(self.state, demand)
-        reward = (10 * sold
-                  - 1 * max(self.state + order - demand, 0)
-                  - 5 * max(demand - self.state, 0)
-                  - 2 * order)
-        self.state = min(max(self.state + order - demand, 0), self.max_inv)
-        return self.state, reward, False  # 无限期，不终止
+        sold = min(s, demand)
+        reward = (10 * sold                          # 销售收入
+                  - 1 * max(s + order - demand, 0)   # 持有成本
+                  - 5 * max(demand - s, 0)           # 缺货惩罚
+                  - 2 * order)                       # 订货成本
+        self.state = min(max(s + order - demand, 0), self.max_inv)
+        return self.state, reward
 
-# ==================== Dueling Q 网络 ====================
+# ==================== 网络 ====================
+class QNet(nn.Module):
+    """标准 Q 网络：输出 |A| 个 Q 值。"""
+    def __init__(self, n_actions=5):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(1, 64), nn.ReLU(),
+            nn.Linear(64, 64), nn.ReLU(),
+            nn.Linear(64, n_actions))
+
+    def forward(self, x):
+        return self.net(x)
+
 class DuelingQNet(nn.Module):
+    """Dueling 架构：V 分支 + A 分支。"""
     def __init__(self, n_actions=5):
         super().__init__()
         self.shared = nn.Sequential(
             nn.Linear(1, 64), nn.ReLU(),
-            nn.Linear(64, 64), nn.ReLU()
-        )
-        self.val_head = nn.Linear(64, 1)          # V(s) 分支
-        self.adv_head = nn.Linear(64, n_actions)   # A(s,a) 分支
+            nn.Linear(64, 64), nn.ReLU())
+        self.val_head = nn.Linear(64, 1)
+        self.adv_head = nn.Linear(64, n_actions)
 
     def forward(self, x):
         h = self.shared(x)
-        v = self.val_head(h)                       # (batch, 1)
-        a = self.adv_head(h)                       # (batch, n_actions)
-        # Q = V + (A - mean(A))
+        v = self.val_head(h)
+        a = self.adv_head(h)
         return v + a - a.mean(dim=1, keepdim=True)
+
+# ==================== 均匀经验回放 ====================
+Transition = namedtuple('Transition', ['s', 'a', 'r', 's_next'])
+
+class ReplayBuffer:
+    def __init__(self, capacity):
+        self.buf = deque(maxlen=capacity)
+
+    def push(self, *args):
+        self.buf.append(Transition(*args))
+
+    def sample(self, batch_size):
+        batch = list(np.random.choice(len(self.buf), batch_size, replace=False))
+        return [self.buf[i] for i in batch]
+
+    def __len__(self):
+        return len(self.buf)
 
 # ==================== 优先经验回放 ====================
 class SumTree:
-    """用于 O(log N) 优先采样的线段树"""
     def __init__(self, capacity):
-        self.capacity = capacity
+        self.cap = capacity
         self.tree = np.zeros(2 * capacity - 1)
         self.data = [None] * capacity
-        self.ptr = 0
-        self.size = 0
+        self.ptr, self.size = 0, 0
 
     def _propagate(self, idx, change):
-        parent = (idx - 1) // 2
-        self.tree[parent] += change
-        if parent != 0:
-            self._propagate(parent, change)
+        while idx > 0:
+            idx = (idx - 1) // 2
+            self.tree[idx] += change
 
     def update(self, idx, priority):
         change = priority - self.tree[idx]
@@ -382,85 +441,77 @@ class SumTree:
         self._propagate(idx, change)
 
     def add(self, priority, data):
-        idx = self.ptr + self.capacity - 1
+        idx = self.ptr + self.cap - 1
         self.data[self.ptr] = data
         self.update(idx, priority)
-        self.ptr = (self.ptr + 1) % self.capacity
-        self.size = min(self.size + 1, self.capacity)
+        self.ptr = (self.ptr + 1) % self.cap
+        self.size = min(self.size + 1, self.cap)
 
     def get(self, s):
         idx = 0
-        while idx &lt; self.capacity - 1:
+        while idx &lt; self.cap - 1:
             left = 2 * idx + 1
             if s &lt;= self.tree[left]:
                 idx = left
             else:
                 s -= self.tree[left]
                 idx = left + 1
-        data_idx = idx - self.capacity + 1
-        return idx, self.tree[idx], self.data[data_idx]
+        return idx, self.tree[idx], self.data[idx - self.cap + 1]
 
     @property
     def total(self):
         return self.tree[0]
 
-Transition = namedtuple('Transition', ['s', 'a', 'r', 's_next'])
-
 class PrioritizedReplayBuffer:
     def __init__(self, capacity, alpha=0.6):
         self.tree = SumTree(capacity)
-        self.alpha = alpha
-        self.max_priority = 1.0
-        self.epsilon = 1e-5
+        self.alpha, self.eps = alpha, 1e-5
+        self.max_p = 1.0
 
     def push(self, *args):
-        self.tree.add(self.max_priority ** self.alpha, Transition(*args))
+        self.tree.add(self.max_p ** self.alpha, Transition(*args))
 
     def sample(self, batch_size, beta=0.4):
         batch, indices, weights = [], [], []
-        segment = self.tree.total / batch_size
+        seg = self.tree.total / batch_size
         for i in range(batch_size):
-            s = np.random.uniform(segment * i, segment * (i + 1))
-            idx, priority, data = self.tree.get(s)
+            s = np.random.uniform(seg * i, seg * (i + 1))
+            idx, pri, data = self.tree.get(s)
             batch.append(data)
             indices.append(idx)
-            prob = priority / self.tree.total
-            weights.append((self.tree.size * prob) ** (-beta))
+            weights.append((self.tree.size * pri / self.tree.total) ** (-beta))
         max_w = max(weights)
-        weights = [w / max_w for w in weights]
-        return batch, indices, torch.tensor(weights, dtype=torch.float32)
+        return batch, indices, torch.tensor([w / max_w for w in weights], dtype=torch.float32)
 
     def update_priorities(self, indices, td_errors):
         for idx, td in zip(indices, td_errors):
-            priority = (abs(td) + self.epsilon) ** self.alpha
-            self.max_priority = max(self.max_priority, priority)
-            self.tree.update(idx, priority)
+            p = (abs(td) + self.eps) ** self.alpha
+            self.max_p = max(self.max_p, p)
+            self.tree.update(idx, p)
 
     def __len__(self):
         return self.tree.size
 
 # ==================== 训练 ====================
-env = InventoryEnv()
-q_net = DuelingQNet()
-target_net = DuelingQNet()
+env = NewsvendorEnv()
+NetClass = DuelingQNet if use_dueling else QNet
+q_net = NetClass()
+target_net = NetClass()
 target_net.load_state_dict(q_net.state_dict())
 optimizer = torch.optim.Adam(q_net.parameters(), lr=1e-3)
-buffer = PrioritizedReplayBuffer(capacity=10000, alpha=0.6)
+buffer = PrioritizedReplayBuffer(10000) if use_per else ReplayBuffer(10000)
 
-gamma = 0.99
-eps = 1.0
-batch_size = 64
+gamma, eps, batch_size = 0.99, 1.0, 64
 beta_start, beta_end = 0.4, 1.0
-n_episodes = 500
-steps_per_episode = 200
+n_episodes, steps_per_ep = 500, 200
 
 for episode in range(n_episodes):
     s = env.reset()
     ep_reward = 0
     beta = beta_start + (beta_end - beta_start) * episode / n_episodes
 
-    for t in range(steps_per_episode):
-        # epsilon-greedy 探索
+    for t in range(steps_per_ep):
+        # ε-greedy
         if np.random.random() &lt; eps:
             a = np.random.randint(5)
         else:
@@ -468,52 +519,66 @@ for episode in range(n_episodes):
                 q = q_net(torch.tensor([[s / 30.0]], dtype=torch.float32))
             a = q.argmax().item()
 
-        s_next, reward, _ = env.step(a)
+        s_next, reward = env.step(a)
         buffer.push(s, a, reward, s_next)
         ep_reward += reward
         s = s_next
 
-        # 从优先回放缓冲区采样并训练
-        if len(buffer) >= batch_size:
-            batch, indices, is_weights = buffer.sample(batch_size, beta)
-            ss = torch.tensor([[b.s / 30.0] for b in batch], dtype=torch.float32)
-            aa = torch.tensor([b.a for b in batch], dtype=torch.long)
-            rr = torch.tensor([b.r for b in batch], dtype=torch.float32)
-            ss2 = torch.tensor([[b.s_next / 30.0] for b in batch], dtype=torch.float32)
+        if len(buffer) &lt; batch_size:
+            continue
 
-            # Double DQN 目标：在线网络选动作，目标网络估值
-            with torch.no_grad():
+        # 采样
+        if use_per:
+            batch, indices, is_w = buffer.sample(batch_size, beta)
+        else:
+            batch = buffer.sample(batch_size)
+
+        ss  = torch.tensor([[b.s / 30.0] for b in batch], dtype=torch.float32)
+        aa  = torch.tensor([b.a for b in batch], dtype=torch.long)
+        rr  = torch.tensor([b.r for b in batch], dtype=torch.float32)
+        ss2 = torch.tensor([[b.s_next / 30.0] for b in batch], dtype=torch.float32)
+
+        # TD 目标
+        with torch.no_grad():
+            if use_double:
                 best_a = q_net(ss2).argmax(dim=1)
-                q_target = target_net(ss2).gather(1, best_a.unsqueeze(1)).squeeze()
-            target = rr + gamma * q_target
-            q_pred = q_net(ss).gather(1, aa.unsqueeze(1)).squeeze()
+                q_tgt = target_net(ss2).gather(1, best_a.unsqueeze(1)).squeeze()
+            else:
+                q_tgt = target_net(ss2).max(dim=1).values
+        target = rr + gamma * q_tgt
+        q_pred = q_net(ss).gather(1, aa.unsqueeze(1)).squeeze()
 
-            # 加权 MSE 损失（重要性采样修正）
-            td_errors = (target - q_pred).detach().numpy()
-            loss = (is_weights * (q_pred - target) ** 2).mean()
+        # 损失
+        td_err = (target - q_pred).detach()
+        if use_per:
+            loss = (is_w * (q_pred - target) ** 2).mean()
+            buffer.update_priorities(indices, td_err.numpy())
+        else:
+            loss = nn.functional.mse_loss(q_pred, target)
 
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-
-            # 更新优先级
-            buffer.update_priorities(indices, td_errors)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
 
     eps = max(0.05, eps * 0.99)
     if episode % 10 == 0:
         target_net.load_state_dict(q_net.state_dict())
-    if episode % 50 == 0:
-        print(f"Episode {episode}, reward={ep_reward:.0f}, eps={eps:.2f}")
+    if episode % 100 == 0:
+        print(f"Episode {episode:3d}  reward={ep_reward:.0f}  eps={eps:.2f}")
 
-# 查看学到的策略
+# ==================== 输出策略 ====================
 print("\n学到的补货策略：")
 for s in range(0, 31, 5):
     with torch.no_grad():
         q = q_net(torch.tensor([[s / 30.0]], dtype=torch.float32))
     action = [0, 5, 10, 15, 20][q.argmax().item()]
-    print(f"  库存={s:2d} -> 订货 {action}")</code></pre>
+    v_str = ""
+    if use_dueling:
+        h = q_net.shared(torch.tensor([[s / 30.0]], dtype=torch.float32))
+        v_str = f"  V(s)={q_net.val_head(h).item():.1f}"
+    print(f"  库存={s:2d} → 订货 {action:2d}{v_str}")</code></pre>
 
-            <p>代码结构清晰地对应了三项改进：<code>DuelingQNet</code> 类实现了 Dueling 架构（$V$ 和 $A$ 两个分支），<code>PrioritizedReplayBuffer</code> 类实现了基于 SumTree 的优先经验回放，而训练循环中 Double DQN 的目标计算只需两行代码（<code>best_a = q_net(ss2).argmax(dim=1)</code> 选动作，<code>q_target = target_net(ss2).gather(...)</code> 估值）。三项改进的代码完全解耦，读者可以自行尝试开启或关闭任意一项，观察与前面交互演示一致的效果。</p>
+            <p>代码顶部的三个开关 <code>use_double</code>、<code>use_dueling</code>、<code>use_per</code> 分别控制 Double DQN、Dueling 架构和优先经验回放。将全部设为 <code>False</code> 即为基础 DQN；只开 <code>use_double</code> 即为 +Double 配置；全部开启即为 D3QN。读者可以逐一切换，观察各配置在收敛速度、最终奖励和Q值估计精度上的差异，复现前面消融实验的结论。</p>
 
             <div class="chapter-nav">
                 <a href="../ch05/5.1.2.html">&larr; 5.1.2 DQN的关键改进</a>
@@ -945,26 +1010,10 @@ for s in range(0, 31, 5):
             return { matrix: matrix, policy: policy };
         }
 
-        function getPolicyAtFrame(ep) {
-            var progress = Math.min(1, ep / 150);
-            var vals = [];
-            var labels = [];
-            for (var s = 0; s <= 30; s++) {
-                var bestA = 0, bestQ = -Infinity;
-                for (var ai = 0; ai < 5; ai++) {
-                    var trueQ = window._TRUE_Q[s][ai];
-                    var bias = (1 - progress) * 15;
-                    var noise = (1 - progress) * 10 * Math.sin(ep * 0.2 + s * 0.5 + ai);
-                    var q = progress * (trueQ + bias) + (1 - progress) * noise;
-                    if (q > bestQ) { bestQ = q; bestA = actions[ai]; }
-                }
-                vals.push(bestA);
-                labels.push(s % 3 === 0 ? s : '');
-            }
-            return { values: vals, labels: labels };
-        }
+        var FRAME_INTERVAL = 50; // ~20fps
 
         function drawFrame() {
+            if (!running) return;
             if (frame >= window._N_EP) {
                 running = false;
                 document.getElementById('btn-train1').disabled = false;
@@ -990,16 +1039,10 @@ for s in range(0, 31, 5):
                 cssW: 300, cssH: 260
             });
 
-            // policy bar chart
-            var polData = getPolicyAtFrame(frame);
-            window._drawBarChart('cv-policy1', polData.values, polData.labels, {
-                cssW: 620, cssH: 140
-            });
-
             document.getElementById('demo1-status').textContent = '回合 ' + (frame + 1) + ' / 200';
             frame++;
 
-            animId = requestAnimationFrame(drawFrame);
+            animId = setTimeout(drawFrame, FRAME_INTERVAL);
         }
 
         window.demo1Run = function() {
@@ -1011,13 +1054,13 @@ for s in range(0, 31, 5):
 
         window.demo1Reset = function() {
             running = false;
-            if (animId) cancelAnimationFrame(animId);
+            if (animId) clearTimeout(animId);
             frame = 0;
             document.getElementById('btn-train1').disabled = false;
             document.getElementById('demo1-status').textContent = '尚未开始';
 
             // clear canvases
-            var ids = ['cv-heatmap', 'cv-reward1', 'cv-policy1'];
+            var ids = ['cv-heatmap', 'cv-reward1'];
             for (var i = 0; i < ids.length; i++) {
                 var cv = document.getElementById(ids[i]);
                 if (cv) {
@@ -1270,6 +1313,9 @@ for s in range(0, 31, 5):
     })();
     </script>
 
+    <!-- 自定义 tooltip 用于缓冲区悬停 -->
+    <div class="buffer-tooltip" id="buffer-tooltip"></div>
+
     <!-- ==================== Demo 4: PER ==================== -->
     <script>
     (function(){
@@ -1339,9 +1385,25 @@ for s in range(0, 31, 5):
                 var div = document.createElement('div');
                 div.className = 'buffer-item';
                 div.style.backgroundColor = 'rgb(' + red + ',' + green + ',' + blue + ')';
-                div.title = 's=' + item.s + ', a=' + item.a + ', r=' + item.r.toFixed(0) +
-                            ', D=' + item.demand + ', |TD|=' + item.td_error.toFixed(1);
+                div.setAttribute('data-info', '库存 s=' + item.s + '，订货 a=' + item.a +
+                    '，需求 D=' + item.demand + '，奖励 r=' + item.r.toFixed(0) +
+                    '，|TD误差|=' + item.td_error.toFixed(1));
                 div.textContent = item.s;
+                div.addEventListener('mouseenter', function(e) {
+                    var tip = document.getElementById('buffer-tooltip');
+                    tip.textContent = e.target.getAttribute('data-info');
+                    tip.style.display = 'block';
+                    tip.style.left = (e.clientX + 12) + 'px';
+                    tip.style.top = (e.clientY - 10) + 'px';
+                });
+                div.addEventListener('mousemove', function(e) {
+                    var tip = document.getElementById('buffer-tooltip');
+                    tip.style.left = (e.clientX + 12) + 'px';
+                    tip.style.top = (e.clientY - 10) + 'px';
+                });
+                div.addEventListener('mouseleave', function() {
+                    document.getElementById('buffer-tooltip').style.display = 'none';
+                });
                 viz.appendChild(div);
             }
             container.appendChild(viz);
@@ -1408,7 +1470,7 @@ for s in range(0, 31, 5):
                 html += '</tr>';
             }
             html += '</table>';
-            html += '<p style="font-size:0.8rem;color:#718096;margin-top:0.5rem;">红色底色行为最高优先级的转移，通常涉及缺货或需求异常。鼠标悬停在上方方块上可查看详情。</p>';
+            html += '<p style="font-size:0.8rem;color:#718096;margin-top:0.5rem;">红色底色行为最高优先级的转移。这些转移的TD误差大，意味着当前Q网络对它们的预测偏差大，包含更多可学习的信息。</p>';
             exDiv.innerHTML = html;
         };
 

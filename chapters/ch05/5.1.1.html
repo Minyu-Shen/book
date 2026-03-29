@@ -142,10 +142,17 @@
                 <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
                 <li class="sidebar-subsection"><a href="../ch05/5.1.1.html" class="active">5.1.1 DQN基本算法</a></li>
                 <li class="sidebar-subsection"><a href="../ch05/5.1.2.html">5.1.2 DQN的关键改进</a></li>
-                <li class="sidebar-subsection"><a href="../ch05/5.1.3.html">5.1.3 例子：库存管理</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.1.3.html">5.1.3 例子：报童问题</a></li>
                 <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.1.html">5.2.1 从Actor-Critic到PPO</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.2.html">5.2.2 连续动作空间与重参数化技巧</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.3.html">5.2.3 例子：机票动态定价</a></li>
                 <li><a href="../ch05/5.3.html">5.3 DDPG与TD3</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.3.1.html">5.3.1 DDPG与TD3算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.3.2.html">5.3.2 例子：广告实时竞价</a></li>
                 <li><a href="../ch05/5.4.html">5.4 Soft Actor-Critic</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.4.1.html">5.4.1 SAC算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.4.2.html">5.4.2 例子：投资组合配置</a></li>
                 <li><a href="../ch05/5.5.html">5.5 基于模型的深度强化学习</a></li>
                 <li><a href="../ch05/5.6.html">5.6 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
                 <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
@@ -181,7 +188,7 @@
             <!-- ==================== 从Q表到Q网络 ==================== -->
             <h2>从Q表到Q网络</h2>
 
-            <p>回顾3.1.2节中的Q-learning：我们维护一张Q表（Q-table），表的行是状态 $s$，列是动作 $a$，每个单元格存储 $Q(s,a)$ 的估计值。每次经历一个转移 $(S_t, A_t, R_t, S_{t+1})$，就更新对应单元格的值。这种方法在状态空间 $\mathcal{S}$ 和动作空间 $\mathcal{A}$ 都很小时非常有效。</p>
+            <p>回顾3.2.2节中的Q-learning：我们维护一张Q表（Q-table），表的行是状态 $s$，列是动作 $a$，每个单元格存储 $Q(s,a)$ 的估计值。每次经历一个转移 $(S_t, A_t, R_t, S_{t+1})$，就更新对应单元格的值。这种方法在状态空间 $\mathcal{S}$ 和动作空间 $\mathcal{A}$ 都很小时非常有效。</p>
 
             <p>但在许多管理科学问题中，状态空间可能非常庞大，甚至是连续的：</p>
             <ul style="margin: 0.5rem 0 1rem 2rem; line-height: 2;">
@@ -194,107 +201,197 @@
 
             <p>解决方案是用一个参数化的函数来<strong>近似</strong> $Q^*(s,a)$，而不是逐个存储。在第四章中，我们已经知道神经网络是一种强大的函数近似器。自然的想法是：用一个参数为 $\theta$ 的神经网络来代替Q表格。</p>
 
-            <p>从数学上看，$Q^*(s,a)$ 是关于 $s$ 和 $a$ 的函数。一种直觉的实现方式是把 $(s, a)$ 一起作为网络输入，输出一个标量 $Q$ 值。但这样每次想知道哪个动作最好，就需要对每个候选动作分别做一次前向传播，效率很低。更好的做法是：只输入状态 $s$，让网络一次性输出所有动作的 $Q$ 值。</p>
+            <p>从数学上看，$Q^*(s,a)$ 是关于 $s$ 和 $a$ 的函数，用神经网络来近似它有两种自然的架构（见图 5.1-1）：</p>
+
+            <ul style="margin: 0.5rem 0 1rem 2rem; line-height: 2;">
+                <li><strong>架构一</strong>：把 $(s, a)$ 一起作为网络输入，输出一个标量 $Q$ 值。每次想比较不同动作的优劣，需要对每个候选动作分别做一次前向传播。</li>
+                <li><strong>架构二</strong>：只输入状态 $s$，让网络一次性输出所有动作的 $Q$ 值。只需一次前向传播就能得到 $\arg\max_a Q(s,a;\theta)$，效率高得多。DQN 采用这种架构。</li>
+            </ul>
 
             <div class="concept-card">
                 <div class="concept-name">Q网络（Q-Network）</div>
-                <p>用神经网络近似最优动作值函数 $Q^*(s,a)$。网络的输入是状态 $s$，输出层有 $|\mathcal{A}|$ 个节点，第 $i$ 个输出对应动作 $a_i$ 的Q值估计。只需一次前向传播，就能同时得到所有动作的Q值，从而高效地计算 $\arg\max_a Q(s,a;\theta)$。</p>
+                <p>用神经网络近似最优动作值函数 $Q^*(s,a)$。DQN 采用架构二：网络输入是状态 $s$，输出层有 $|\mathcal{A}|$ 个节点，第 $i$ 个输出对应动作 $a_i$ 的Q值估计。只需一次前向传播，就能同时得到所有动作的Q值，从而高效地计算 $\arg\max_a Q(s,a;\theta)$。</p>
             </div>
 
-            <!-- Q网络结构示意图 SVG -->
+            <!-- 两种Q网络架构示意图（带前向传播动画） -->
             <div style="text-align:center; margin: 1.5rem 0 0.5rem 0;">
-                <svg width="520" height="260" viewBox="0 0 520 260" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;">
-                    <!-- 输入层标签 -->
-                    <text x="50" y="25" text-anchor="middle" font-size="14" fill="#1a365d" font-weight="700">输入层</text>
-                    <text x="50" y="42" text-anchor="middle" font-size="12" fill="#718096">状态 $s$</text>
-                    <!-- 隐藏层标签 -->
-                    <text x="210" y="25" text-anchor="middle" font-size="14" fill="#1a365d" font-weight="700">隐藏层</text>
-                    <!-- 输出层标签 -->
-                    <text x="420" y="25" text-anchor="middle" font-size="14" fill="#1a365d" font-weight="700">输出层</text>
-                    <text x="420" y="42" text-anchor="middle" font-size="12" fill="#718096">Q值</text>
+                <div style="display:flex; justify-content:center; gap:1.5rem; flex-wrap:wrap; align-items:flex-start;">
+                    <!-- 架构一 -->
+                    <div>
+                        <svg id="arch1-svg" width="290" height="300" viewBox="0 0 290 300" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;">
+                            <style>
+                                .arch-label { font-family: "Source Han Serif SC", Georgia, serif; }
+                                @keyframes fwdSweep1 {
+                                    0%,15% { opacity:0.15; }
+                                    25%,40% { opacity:1; }
+                                    60%,100% { opacity:0.15; }
+                                }
+                                @keyframes fwdSweep2 {
+                                    0%,30% { opacity:0.15; }
+                                    40%,55% { opacity:1; }
+                                    70%,100% { opacity:0.15; }
+                                }
+                                @keyframes fwdSweep3 {
+                                    0%,50% { opacity:0.15; }
+                                    60%,75% { opacity:1; }
+                                    85%,100% { opacity:0.15; }
+                                }
+                                @keyframes fwdSweep4 {
+                                    0%,65% { opacity:0.15; }
+                                    75%,90% { opacity:1; }
+                                    95%,100% { opacity:0.15; }
+                                }
+                                .a1-input { animation: fwdSweep1 3.5s ease-in-out infinite; }
+                                .a1-hidden1 { animation: fwdSweep2 3.5s ease-in-out infinite; }
+                                .a1-hidden2 { animation: fwdSweep3 3.5s ease-in-out infinite; }
+                                .a1-output { animation: fwdSweep4 3.5s ease-in-out infinite; }
+                            </style>
+                            <!-- 层标签 -->
+                            <text x="55" y="18" text-anchor="middle" font-size="13" fill="#1a365d" font-weight="700" class="arch-label">输入</text>
+                            <text x="145" y="18" text-anchor="middle" font-size="13" fill="#1a365d" font-weight="700" class="arch-label">隐藏层</text>
+                            <text x="240" y="18" text-anchor="middle" font-size="13" fill="#1a365d" font-weight="700" class="arch-label">输出</text>
 
-                    <!-- 输入节点 -->
-                    <circle cx="50" cy="80" r="18" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
-                    <text x="50" y="85" text-anchor="middle" font-size="12" fill="#2b6cb0" font-style="italic">s</text>
-                    <text x="50" y="85" text-anchor="middle" font-size="8" fill="#2b6cb0" dy="4" dx="5">1</text>
+                            <!-- 连线：输入→隐藏 (5 inputs, 3 hidden) -->
+                            <g class="a1-hidden1" stroke="#cbd5e0" stroke-width="1" stroke-linecap="round">
+                                <line x1="73" y1="60" x2="119" y2="90"/><line x1="73" y1="60" x2="119" y2="150"/><line x1="73" y1="60" x2="119" y2="210"/>
+                                <line x1="73" y1="110" x2="119" y2="90"/><line x1="73" y1="110" x2="119" y2="150"/><line x1="73" y1="110" x2="119" y2="210"/>
+                                <line x1="73" y1="160" x2="119" y2="90"/><line x1="73" y1="160" x2="119" y2="150"/><line x1="73" y1="160" x2="119" y2="210"/>
+                                <line x1="73" y1="210" x2="119" y2="90"/><line x1="73" y1="210" x2="119" y2="150"/><line x1="73" y1="210" x2="119" y2="210"/>
+                                <line x1="73" y1="260" x2="119" y2="90"/><line x1="73" y1="260" x2="119" y2="150"/><line x1="73" y1="260" x2="119" y2="210"/>
+                            </g>
+                            <!-- 连线：隐藏→输出 -->
+                            <g class="a1-output" stroke="#cbd5e0" stroke-width="1" stroke-linecap="round">
+                                <line x1="161" y1="90" x2="218" y2="160"/>
+                                <line x1="161" y1="150" x2="218" y2="160"/>
+                                <line x1="161" y1="210" x2="218" y2="160"/>
+                            </g>
 
-                    <circle cx="50" cy="130" r="18" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
-                    <text x="50" y="135" text-anchor="middle" font-size="12" fill="#2b6cb0" font-style="italic">s</text>
-                    <text x="50" y="135" text-anchor="middle" font-size="8" fill="#2b6cb0" dy="4" dx="5">2</text>
+                            <!-- 输入节点: s1(60) s2(110) ...(160) sn(210) a(260) — 均匀间距50 -->
+                            <g class="a1-input">
+                                <circle cx="55" cy="60" r="17" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                                <foreignObject x="35" y="48" width="40" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:14px;color:#2b6cb0;">$s_1$</div></foreignObject>
+                                <circle cx="55" cy="110" r="17" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                                <foreignObject x="35" y="98" width="40" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:14px;color:#2b6cb0;">$s_2$</div></foreignObject>
+                                <circle cx="55" cy="160" r="17" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                                <text x="55" y="165" text-anchor="middle" font-size="14" fill="#2b6cb0" class="arch-label">...</text>
+                                <circle cx="55" cy="210" r="17" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                                <foreignObject x="35" y="198" width="40" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:14px;color:#2b6cb0;">$s_n$</div></foreignObject>
+                                <!-- 输入节点 a -->
+                                <circle cx="55" cy="260" r="17" fill="#fed7d7" stroke="#c53030" stroke-width="2"/>
+                                <foreignObject x="35" y="248" width="40" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:14px;color:#c53030;">$a$</div></foreignObject>
+                            </g>
 
-                    <circle cx="50" cy="180" r="18" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
-                    <text x="50" y="185" text-anchor="middle" font-size="12" fill="#2b6cb0">...</text>
+                            <!-- 隐藏层节点 -->
+                            <g class="a1-hidden2">
+                                <circle cx="140" cy="90" r="15" fill="#f0fff4" stroke="#38a169" stroke-width="2"/>
+                                <circle cx="140" cy="150" r="15" fill="#f0fff4" stroke="#38a169" stroke-width="2"/>
+                                <circle cx="140" cy="210" r="15" fill="#f0fff4" stroke="#38a169" stroke-width="2"/>
+                            </g>
 
-                    <circle cx="50" cy="230" r="18" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
-                    <text x="50" y="235" text-anchor="middle" font-size="12" fill="#2b6cb0" font-style="italic">s</text>
-                    <text x="50" y="235" text-anchor="middle" font-size="8" fill="#2b6cb0" dy="4" dx="6">n</text>
+                            <!-- 输出节点 -->
+                            <g class="a1-output">
+                                <circle cx="240" cy="160" r="20" fill="#fffff0" stroke="#d69e2e" stroke-width="2.5"/>
+                                <foreignObject x="210" y="146" width="60" height="28"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:15px;color:#975a16;font-weight:600;">$Q$</div></foreignObject>
+                            </g>
 
-                    <!-- 隐藏层节点 -->
-                    <circle cx="180" cy="100" r="16" fill="#f0fff4" stroke="#38a169" stroke-width="2"/>
-                    <circle cx="180" cy="155" r="16" fill="#f0fff4" stroke="#38a169" stroke-width="2"/>
-                    <circle cx="180" cy="210" r="16" fill="#f0fff4" stroke="#38a169" stroke-width="2"/>
+                            <!-- 参数标注 -->
+                            <foreignObject x="100" y="275" width="80" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:14px;color:#2b6cb0;">$\theta$</div></foreignObject>
+                        </svg>
+                        <div style="font-size:0.88rem;color:#4a5568;margin-top:0.3rem;font-weight:600;">架构一：输入 $(s, a)$，输出标量 $Q$</div>
+                    </div>
 
-                    <circle cx="280" cy="100" r="16" fill="#f0fff4" stroke="#38a169" stroke-width="2"/>
-                    <circle cx="280" cy="155" r="16" fill="#f0fff4" stroke="#38a169" stroke-width="2"/>
-                    <circle cx="280" cy="210" r="16" fill="#f0fff4" stroke="#38a169" stroke-width="2"/>
+                    <!-- 架构二 (DQN) -->
+                    <div>
+                        <svg id="arch2-svg" width="350" height="300" viewBox="0 0 350 300" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;">
+                            <style>
+                                @keyframes fwdSweep1b {
+                                    0%,15% { opacity:0.15; }
+                                    25%,40% { opacity:1; }
+                                    60%,100% { opacity:0.15; }
+                                }
+                                @keyframes fwdSweep2b {
+                                    0%,30% { opacity:0.15; }
+                                    40%,55% { opacity:1; }
+                                    70%,100% { opacity:0.15; }
+                                }
+                                @keyframes fwdSweep3b {
+                                    0%,50% { opacity:0.15; }
+                                    60%,75% { opacity:1; }
+                                    85%,100% { opacity:0.15; }
+                                }
+                                @keyframes fwdSweep4b {
+                                    0%,65% { opacity:0.15; }
+                                    75%,90% { opacity:1; }
+                                    95%,100% { opacity:0.15; }
+                                }
+                                .a2-input { animation: fwdSweep1b 3.5s ease-in-out infinite; }
+                                .a2-hidden1 { animation: fwdSweep2b 3.5s ease-in-out infinite; }
+                                .a2-hidden2 { animation: fwdSweep3b 3.5s ease-in-out infinite; }
+                                .a2-output { animation: fwdSweep4b 3.5s ease-in-out infinite; }
+                            </style>
+                            <!-- 层标签 -->
+                            <text x="55" y="18" text-anchor="middle" font-size="13" fill="#1a365d" font-weight="700" class="arch-label">输入</text>
+                            <text x="145" y="18" text-anchor="middle" font-size="13" fill="#1a365d" font-weight="700" class="arch-label">隐藏层</text>
+                            <text x="240" y="18" text-anchor="middle" font-size="13" fill="#1a365d" font-weight="700" class="arch-label">输出</text>
 
-                    <!-- 输出节点 -->
-                    <circle cx="420" cy="95" r="20" fill="#fffff0" stroke="#d69e2e" stroke-width="2"/>
-                    <text x="420" y="99" text-anchor="middle" font-size="11" fill="#975a16" font-style="italic">Q(s,a</text>
-                    <text x="450" y="99" text-anchor="middle" font-size="8" fill="#975a16">1</text>
-                    <text x="455" y="99" text-anchor="middle" font-size="11" fill="#975a16">)</text>
+                            <!-- 连线：输入→隐藏 -->
+                            <g class="a2-hidden1" stroke="#cbd5e0" stroke-width="1" stroke-linecap="round">
+                                <line x1="73" y1="80" x2="119" y2="90"/><line x1="73" y1="80" x2="119" y2="150"/><line x1="73" y1="80" x2="119" y2="210"/>
+                                <line x1="73" y1="130" x2="119" y2="90"/><line x1="73" y1="130" x2="119" y2="150"/><line x1="73" y1="130" x2="119" y2="210"/>
+                                <line x1="73" y1="180" x2="119" y2="90"/><line x1="73" y1="180" x2="119" y2="150"/><line x1="73" y1="180" x2="119" y2="210"/>
+                                <line x1="73" y1="230" x2="119" y2="90"/><line x1="73" y1="230" x2="119" y2="150"/><line x1="73" y1="230" x2="119" y2="210"/>
+                            </g>
+                            <!-- 连线：隐藏→输出 (4 output positions: 100, 148, 196, 244) -->
+                            <g class="a2-output" stroke="#cbd5e0" stroke-width="1" stroke-linecap="round">
+                                <line x1="161" y1="90" x2="218" y2="100"/><line x1="161" y1="90" x2="218" y2="148"/><line x1="161" y1="90" x2="218" y2="244"/>
+                                <line x1="161" y1="150" x2="218" y2="100"/><line x1="161" y1="150" x2="218" y2="148"/><line x1="161" y1="150" x2="218" y2="244"/>
+                                <line x1="161" y1="210" x2="218" y2="100"/><line x1="161" y1="210" x2="218" y2="148"/><line x1="161" y1="210" x2="218" y2="244"/>
+                            </g>
 
-                    <circle cx="420" cy="160" r="20" fill="#fffff0" stroke="#d69e2e" stroke-width="2"/>
-                    <text x="420" y="164" text-anchor="middle" font-size="11" fill="#975a16" font-style="italic">Q(s,a</text>
-                    <text x="450" y="164" text-anchor="middle" font-size="8" fill="#975a16">2</text>
-                    <text x="455" y="164" text-anchor="middle" font-size="11" fill="#975a16">)</text>
+                            <!-- 输入节点 s only: 80, 130, 180, 230 — 间距50 -->
+                            <g class="a2-input">
+                                <circle cx="55" cy="80" r="17" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                                <foreignObject x="35" y="68" width="40" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:14px;color:#2b6cb0;">$s_1$</div></foreignObject>
+                                <circle cx="55" cy="130" r="17" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                                <foreignObject x="35" y="118" width="40" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:14px;color:#2b6cb0;">$s_2$</div></foreignObject>
+                                <circle cx="55" cy="180" r="17" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                                <text x="55" y="185" text-anchor="middle" font-size="14" fill="#2b6cb0" class="arch-label">...</text>
+                                <circle cx="55" cy="230" r="17" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                                <foreignObject x="35" y="218" width="40" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:14px;color:#2b6cb0;">$s_n$</div></foreignObject>
+                            </g>
 
-                    <circle cx="420" cy="225" r="20" fill="#fffff0" stroke="#d69e2e" stroke-width="2"/>
-                    <text x="420" y="229" text-anchor="middle" font-size="11" fill="#975a16" font-style="italic">Q(s,a</text>
-                    <text x="452" y="229" text-anchor="middle" font-size="8" fill="#975a16">m</text>
-                    <text x="458" y="229" text-anchor="middle" font-size="11" fill="#975a16">)</text>
+                            <!-- 隐藏层节点 -->
+                            <g class="a2-hidden2">
+                                <circle cx="140" cy="90" r="15" fill="#f0fff4" stroke="#38a169" stroke-width="2"/>
+                                <circle cx="140" cy="150" r="15" fill="#f0fff4" stroke="#38a169" stroke-width="2"/>
+                                <circle cx="140" cy="210" r="15" fill="#f0fff4" stroke="#38a169" stroke-width="2"/>
+                            </g>
 
-                    <!-- 连线：输入到隐藏1 -->
-                    <line x1="68" y1="80" x2="164" y2="100" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="68" y1="80" x2="164" y2="155" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="68" y1="80" x2="164" y2="210" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="68" y1="130" x2="164" y2="100" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="68" y1="130" x2="164" y2="155" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="68" y1="130" x2="164" y2="210" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="68" y1="180" x2="164" y2="100" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="68" y1="180" x2="164" y2="155" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="68" y1="180" x2="164" y2="210" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="68" y1="230" x2="164" y2="100" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="68" y1="230" x2="164" y2="155" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="68" y1="230" x2="164" y2="210" stroke="#cbd5e0" stroke-width="1"/>
+                            <!-- 输出节点：a1, a2, ..., a|A| -->
+                            <g class="a2-output">
+                                <circle cx="240" cy="100" r="16" fill="#fffff0" stroke="#d69e2e" stroke-width="2.5"/>
+                                <foreignObject x="260" y="87" width="80" height="26"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#975a16;font-weight:600;white-space:nowrap;">$Q(s,a_1)$</div></foreignObject>
+                                <circle cx="240" cy="148" r="16" fill="#fffff0" stroke="#d69e2e" stroke-width="2.5"/>
+                                <foreignObject x="260" y="135" width="80" height="26"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#975a16;font-weight:600;white-space:nowrap;">$Q(s,a_2)$</div></foreignObject>
+                                <!-- 省略号 -->
+                                <circle cx="240" cy="196" r="16" fill="#fffff0" stroke="#d69e2e" stroke-width="1.5" stroke-dasharray="3,3"/>
+                                <text x="240" y="201" text-anchor="middle" font-size="16" fill="#975a16" class="arch-label">...</text>
+                                <circle cx="240" cy="244" r="16" fill="#fffff0" stroke="#d69e2e" stroke-width="2.5"/>
+                                <foreignObject x="260" y="231" width="100" height="26"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px;color:#975a16;font-weight:600;white-space:nowrap;">$Q(s,a_{|\mathcal{A}|})$</div></foreignObject>
+                            </g>
 
-                    <!-- 连线：隐藏1到隐藏2 -->
-                    <line x1="196" y1="100" x2="264" y2="100" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="196" y1="100" x2="264" y2="155" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="196" y1="100" x2="264" y2="210" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="196" y1="155" x2="264" y2="100" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="196" y1="155" x2="264" y2="155" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="196" y1="155" x2="264" y2="210" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="196" y1="210" x2="264" y2="100" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="196" y1="210" x2="264" y2="155" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="196" y1="210" x2="264" y2="210" stroke="#cbd5e0" stroke-width="1"/>
+                            <!-- 参数标注 -->
+                            <foreignObject x="100" y="275" width="80" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:14px;color:#2b6cb0;">$\theta$</div></foreignObject>
 
-                    <!-- 连线：隐藏2到输出 -->
-                    <line x1="296" y1="100" x2="400" y2="95" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="296" y1="100" x2="400" y2="160" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="296" y1="100" x2="400" y2="225" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="296" y1="155" x2="400" y2="95" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="296" y1="155" x2="400" y2="160" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="296" y1="155" x2="400" y2="225" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="296" y1="210" x2="400" y2="95" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="296" y1="210" x2="400" y2="160" stroke="#cbd5e0" stroke-width="1"/>
-                    <line x1="296" y1="210" x2="400" y2="225" stroke="#cbd5e0" stroke-width="1"/>
-
-                    <!-- 参数标注 -->
-                    <text x="130" y="250" text-anchor="middle" font-size="13" fill="#2b6cb0" font-style="italic">θ</text>
-                </svg>
+                            <!-- 通常采用标记 -->
+                            <rect x="195" y="42" width="90" height="22" rx="4" fill="#2b6cb0" fill-opacity="0.1" stroke="#2b6cb0" stroke-width="1"/>
+                            <text x="240" y="57" text-anchor="middle" font-size="11" fill="#2b6cb0" font-weight="700" class="arch-label">通常采用</text>
+                        </svg>
+                        <div style="font-size:0.88rem;color:#4a5568;margin-top:0.3rem;font-weight:600;">架构二：输入 $s$，输出 $|\mathcal{A}|$ 个 $Q$ 值</div>
+                    </div>
+                </div>
             </div>
-            <div class="fig-caption">图 5.1-1 &nbsp; Q网络结构示意：输入状态向量 $s$，输出所有动作的Q值估计。网络参数 $\theta$ 通过训练学习。</div>
+            <div class="fig-caption">图 5.1-1 &nbsp; Q网络的两种架构。架构一将状态 $s$ 和动作 $a$ 拼接输入，每次只输出一个 $Q$ 值；架构二只输入 $s$，一次输出所有 $|\mathcal{A}|$ 个动作的Q值。动画展示前向传播过程：信号从输入层逐层传递到输出层。DQN 通常采用架构二，因为只需一次前向传播即可比较所有动作。</div>
 
             <p>对比Q表和Q网络：</p>
 
@@ -312,35 +409,48 @@
 
             <p>泛化能力是Q网络的关键优势。在表格方法中，在状态 $s_1$ 处获得的经验完全不会帮助估计状态 $s_2$ 的Q值，即使 $s_1$ 和 $s_2$ 非常相似。而神经网络的参数是所有状态共享的，在某个状态处的训练会影响相似状态的输出，从而加速学习。例如在网约车调度中，如果网络学到了"高峰时段在需求密集区域接单Q值高"这一模式，那么对所有高峰时段的密集区域，网络都会给出较高的接单Q值，即使其中某些具体的（区域，时段）组合从未被访问过。</p>
 
+            <!-- ==================== 探索策略 ==================== -->
+            <h2>探索与数据采集：$\varepsilon$-greedy</h2>
+
+            <p>有了Q网络之后，智能体如何用它来选择动作？最直接的做法是每次都选Q值最高的动作（贪心策略），但这样可能永远不会尝试那些暂时Q值较低但实际上更优的动作。这正是3.2.1节讨论的<strong>探索-利用困境</strong>。DQN 沿用了表格Q-learning中的 $\varepsilon$-greedy 策略（3.2.1节式(3.2-2)）来平衡二者：</p>
+
+            $$A_t = \begin{cases} \text{随机动作}, & \text{以概率 } \varepsilon \\ \arg\max_a Q(S_t, a; \theta), & \text{以概率 } 1 - \varepsilon \end{cases} \tag{5.1-1}$$
+
+            <p>与表格方法不同的是，DQN 通常让 $\varepsilon$ 随训练<strong>逐步衰减</strong>：训练初期 $\varepsilon$ 较大（如1.0），智能体大量随机探索以积累经验；随着Q网络逐渐学到好的估计，$\varepsilon$ 线性衰减到一个较小的值（如0.01），转为以利用为主。在网约车的例子中，这意味着一开始司机对各区域各时段的收益规律不了解，需要到处跑来积累经验；等熟悉之后，就主要按经验选择最优路线，只偶尔做少量探索。</p>
+
+            <p>注意，$\varepsilon$-greedy 使得智能体的行为策略（用于收集数据的策略）和目标策略（Q网络正在逼近的贪心策略 $\arg\max_a Q^*$）并不相同。这正是 Q-learning 的 off-policy 特性（3.2.1节）：智能体用一种策略探索，学到的却是另一种（最优）策略的Q值。</p>
+
+            <p>智能体在 $\varepsilon$-greedy 策略下与环境交互，每步产生一条转移数据 $(S_t, A_t, R_t, S_{t+1})$。接下来的问题是：如何用这些数据来训练Q网络？</p>
+
             <!-- ==================== 损失函数与训练目标 ==================== -->
             <h2>损失函数与训练目标</h2>
 
-            <p>有了Q网络 $Q(s,a;\theta)$，下一个问题是：如何训练它？回顾3.1.2节的Q-learning更新规则：</p>
+            <p>回顾3.2.2节的Q-learning更新规则：</p>
 
             $$Q(S_t, A_t) \leftarrow Q(S_t, A_t) + \alpha \left[ R_t + \gamma \max_{a} Q(S_{t+1}, a) - Q(S_t, A_t) \right]$$
 
             <p>表格Q-learning直接修改表格中的一个单元格。对于神经网络，我们不能直接修改某个输出值，而是需要定义一个<strong>损失函数</strong>，然后通过梯度下降来更新参数 $\theta$。</p>
 
-            <p>从贝尔曼最优方程出发（2.2.2节式(2.2-9')），最优动作值函数满足：</p>
+            <p>从贝尔曼最优方程出发（2.2.2节式(2.2-10)），最优动作值函数满足：</p>
 
-            $$Q^*(s, a) = \mathbb{E}\left[R + \gamma \max_{a'} Q^*(S', a') \;\middle|\; S=s, A=a\right] \tag{5.1-1}$$
+            $$Q^*(s, a) = \mathbb{E}\left[R + \gamma \max_{a'} Q^*(S', a') \;\middle|\; S=s, A=a\right] \tag{5.1-2}$$
 
             <p>其中 $R$ 和 $S'$ 都是随机变量——在网约车例子中，司机接单后乘客去哪里（$S'$）以及对应的车费（$R$）是随机的。如果 Q 网络已经完美逼近了 $Q^*$，那么上式两端应该相等。因此，训练目标就是最小化两端之差的平方：</p>
 
             <div class="concept-card">
                 <div class="concept-name">DQN 损失函数（初步版本）</div>
-                $$L(\theta) = \mathbb{E}_{(S,A,R,S')}\left[\left(\underbrace{R + \gamma \max_{a'} Q(S', a'; \theta)}_{\text{TD目标（target）}} - \underbrace{Q(S, A; \theta)}_{\text{当前估计}}\right)^2\right] \tag{5.1-2}$$
+                $$L(\theta) = \mathbb{E}_{(S,A,R,S')}\left[\left(\underbrace{R + \gamma \max_{a'} Q(S', a'; \theta)}_{\text{TD目标（target）}} - \underbrace{Q(S, A; \theta)}_{\text{当前估计}}\right)^2\right] \tag{5.1-3}$$
                 <p style="margin-top:0.5rem;">期望是对经验转移 $(S,A,R,S')$ 取的。但我们不可能穷举所有转移来精确计算这个期望。DQN 的做法是用<strong>采样</strong>来逼近：让智能体在环境中不断交互，收集真实的转移样本 $(s_t, a_t, r_t, s_{t+1})$，每个样本提供期望的一次无偏估计。大量样本的平均趋近真实期望——这正是蒙特卡洛思想在损失函数上的应用。</p>
             </div>
 
             <p>对每个样本 $(s_t, a_t, r_t, s_{t+1})$，该损失的梯度为：</p>
 
-            $$\nabla_\theta L = -2\left(r_t + \gamma \max_{a'} Q(s_{t+1}, a'; \theta) - Q(s_t, a_t; \theta)\right) \nabla_\theta Q(s_t, a_t; \theta) \tag{5.1-3}$$
+            $$\nabla_\theta L = -2\left(r_t + \gamma \max_{a'} Q(s_{t+1}, a'; \theta) - Q(s_t, a_t; \theta)\right) \nabla_\theta Q(s_t, a_t; \theta) \tag{5.1-4}$$
 
             <p>看起来很简单：用梯度下降不断减小TD误差的平方即可。然而，如果直接这样做，训练往往会<strong>不稳定甚至发散</strong>。原因主要有两个：</p>
 
             <div class="note">
-                <p><strong>问题一：目标不稳定。</strong>在监督学习中，训练标签（如图像的类别）是固定的。但在公式(5.1-2)中，TD目标 $R + \gamma \max_{a'} Q(S', a'; \theta)$ 本身依赖于参数 $\theta$。每当 $\theta$ 更新一次，目标也随之变化。这就像射击一个不断移动的靶子，参数可能在追逐不断变化的目标中来回振荡，无法收敛。</p>
+                <p><strong>问题一：目标不稳定。</strong>在监督学习中，训练标签（如图像的类别）是固定的。但在公式(5.1-3)中，TD目标 $R + \gamma \max_{a'} Q(S', a'; \theta)$ 本身依赖于参数 $\theta$。每当 $\theta$ 更新一次，目标也随之变化。这就像射击一个不断移动的靶子，参数可能在追逐不断变化的目标中来回振荡，无法收敛。</p>
             </div>
 
             <div class="note">
@@ -357,7 +467,7 @@
             <div class="concept-card">
                 <div class="concept-name">经验回放缓冲区（Replay Buffer）</div>
                 <p>维护一个固定容量为 $N$ 的缓冲区 $\mathcal{D}$，存储智能体的历史转移：</p>
-                $$\mathcal{D} = \{(s_i, a_i, r_i, s_i')\}_{i=1}^{N} \tag{5.1-4}$$
+                $$\mathcal{D} = \{(s_i, a_i, r_i, s_i')\}_{i=1}^{N} \tag{5.1-5}$$
                 <p style="margin-top:0.5rem;">每当智能体产生一条新的转移，将其存入缓冲区（如果缓冲区已满，则覆盖最旧的数据）。训练时，从 $\mathcal{D}$ 中均匀随机抽取大小为 $B$ 的mini-batch来计算梯度。</p>
             </div>
 
@@ -397,7 +507,7 @@
                     <li><strong>目标网络</strong>（target network）$Q(s,a;\theta^-)$：用于计算TD目标，参数每隔 $C$ 步才从在线网络复制一次</li>
                 </ul>
                 <p style="margin-top:0.5rem;">损失函数变为：</p>
-                $$L(\theta) = \mathbb{E}_{(S,A,R,S') \sim \mathcal{D}}\left[\left(R + \gamma \max_{a'} Q(S', a'; \theta^-) - Q(S, A; \theta)\right)^2\right] \tag{5.1-5}$$
+                $$L(\theta) = \mathbb{E}_{(S,A,R,S') \sim \mathcal{D}}\left[\left(R + \gamma \max_{a'} Q(S', a'; \theta^-) - Q(S, A; \theta)\right)^2\right] \tag{5.1-6}$$
                 <p style="margin-top:0.3rem;">其中 $\theta^-$ 在两次同步之间保持不变，因此TD目标不会随每次梯度更新而变化。</p>
             </div>
 
@@ -405,50 +515,80 @@
 
             <!-- 目标网络同步示意图 SVG -->
             <div style="text-align:center; margin: 1.5rem 0 0.5rem 0;">
-                <svg width="520" height="220" viewBox="0 0 520 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;">
-                    <!-- 在线网络（上方，持续更新） -->
-                    <rect x="30" y="20" width="460" height="50" rx="8" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
-                    <foreignObject x="30" y="28" width="460" height="36"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:14px;color:#1e40af;font-weight:700;">在线网络 $\theta$（每步梯度更新）</div></foreignObject>
+                <svg width="520" height="230" viewBox="0 0 520 230" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;">
+                    <!-- 坐标轴 -->
+                    <line x1="60" y1="180" x2="500" y2="180" stroke="#cbd5e0" stroke-width="1.5" stroke-linecap="round"/>
+                    <!-- x轴标签 -->
+                    <foreignObject x="0" y="186" width="60" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:right;font-size:12px;color:#718096;">训练步</div></foreignObject>
+                    <line x1="60" y1="178" x2="60" y2="182" stroke="#cbd5e0" stroke-width="1.5"/>
+                    <foreignObject x="35" y="186" width="50" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:12px;color:#718096;">$0$</div></foreignObject>
+                    <line x1="170" y1="178" x2="170" y2="182" stroke="#cbd5e0" stroke-width="1.5"/>
+                    <foreignObject x="145" y="186" width="50" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:12px;color:#718096;">$C$</div></foreignObject>
+                    <line x1="280" y1="178" x2="280" y2="182" stroke="#cbd5e0" stroke-width="1.5"/>
+                    <foreignObject x="255" y="186" width="50" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:12px;color:#718096;">$2C$</div></foreignObject>
+                    <line x1="390" y1="178" x2="390" y2="182" stroke="#cbd5e0" stroke-width="1.5"/>
+                    <foreignObject x="365" y="186" width="50" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:12px;color:#718096;">$3C$</div></foreignObject>
 
-                    <!-- 目标网络（下方，间歇冻结） -->
-                    <!-- 第一段冻结 -->
-                    <rect x="30" y="130" width="140" height="50" rx="8" fill="#fefcbf" stroke="#d69e2e" stroke-width="2"/>
-                    <foreignObject x="30" y="136" width="140" height="38"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:12px;color:#975a16;line-height:1.4;"><strong>$\theta^-$ 冻结</strong><br/>步数 $0 \sim C$</div></foreignObject>
-                    <!-- 第二段冻结 -->
-                    <rect x="190" y="130" width="140" height="50" rx="8" fill="#fefcbf" stroke="#d69e2e" stroke-width="2"/>
-                    <foreignObject x="190" y="136" width="140" height="38"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:12px;color:#975a16;line-height:1.4;"><strong>$\theta^-$ 冻结</strong><br/>步数 $C \sim 2C$</div></foreignObject>
-                    <!-- 第三段冻结 -->
-                    <rect x="350" y="130" width="140" height="50" rx="8" fill="#fefcbf" stroke="#d69e2e" stroke-width="2"/>
-                    <foreignObject x="350" y="136" width="140" height="38"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:12px;color:#975a16;line-height:1.4;"><strong>$\theta^-$ 冻结</strong><br/>步数 $2C \sim 3C$</div></foreignObject>
+                    <!-- θ（在线网络）：连续变化的曲线 -->
+                    <path d="M60,150 C80,145 100,130 120,125 S150,110 170,105 S200,90 220,88 S250,80 280,75 S310,68 340,62 S370,55 390,50 S420,44 460,38" fill="none" stroke="#2b6cb0" stroke-width="2.5" stroke-linecap="round"/>
+                    <!-- θ标签 -->
+                    <foreignObject x="462" y="24" width="50" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px;color:#2b6cb0;font-weight:700;">$\theta$</div></foreignObject>
 
-                    <!-- 同步箭头 -->
-                    <line x1="170" y1="70" x2="170" y2="128" stroke="#c53030" stroke-width="2" stroke-linecap="round"/>
-                    <circle cx="170" cy="128" r="3" fill="#c53030"/>
-                    <foreignObject x="175" y="88" width="110" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#c53030;font-weight:600;">$\theta^- \!\leftarrow\! \theta$</div></foreignObject>
+                    <!-- θ⁻（目标网络）：阶梯函数 -->
+                    <!-- 第一段：0~C -->
+                    <line x1="60" y1="150" x2="170" y2="150" stroke="#d69e2e" stroke-width="2.5" stroke-linecap="round"/>
+                    <!-- 跳变到θ在C时的值 -->
+                    <line x1="170" y1="150" x2="170" y2="105" stroke="#d69e2e" stroke-width="1.5" stroke-dasharray="4,3"/>
+                    <!-- 第二段：C~2C -->
+                    <line x1="170" y1="105" x2="280" y2="105" stroke="#d69e2e" stroke-width="2.5" stroke-linecap="round"/>
+                    <!-- 跳变 -->
+                    <line x1="280" y1="105" x2="280" y2="75" stroke="#d69e2e" stroke-width="1.5" stroke-dasharray="4,3"/>
+                    <!-- 第三段：2C~3C -->
+                    <line x1="280" y1="75" x2="390" y2="75" stroke="#d69e2e" stroke-width="2.5" stroke-linecap="round"/>
+                    <!-- 跳变 -->
+                    <line x1="390" y1="75" x2="390" y2="50" stroke="#d69e2e" stroke-width="1.5" stroke-dasharray="4,3"/>
+                    <!-- 第四段：3C~ -->
+                    <line x1="390" y1="50" x2="460" y2="50" stroke="#d69e2e" stroke-width="2.5" stroke-linecap="round"/>
+                    <!-- θ⁻标签 -->
+                    <foreignObject x="462" y="38" width="50" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px;color:#d69e2e;font-weight:700;">$\theta^-$</div></foreignObject>
 
-                    <line x1="330" y1="70" x2="330" y2="128" stroke="#c53030" stroke-width="2" stroke-linecap="round"/>
-                    <circle cx="330" cy="128" r="3" fill="#c53030"/>
-                    <foreignObject x="335" y="88" width="110" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#c53030;font-weight:600;">$\theta^- \!\leftarrow\! \theta$</div></foreignObject>
+                    <!-- 同步箭头（从旧θ⁻水平线向上跳到θ的位置，表示θ⁻被赋值） -->
+                    <!-- 第C步: θ⁻从y=150跳到y=105 -->
+                    <line x1="170" y1="146" x2="170" y2="112" stroke="#c53030" stroke-width="2" stroke-linecap="round"/>
+                    <polygon points="170,108 166,116 174,116" fill="#c53030"/>
+                    <foreignObject x="176" y="118" width="95" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#c53030;font-weight:600;">$\theta^- \!\leftarrow\! \theta$</div></foreignObject>
+                    <!-- 第2C步: θ⁻从y=105跳到y=75 -->
+                    <line x1="280" y1="101" x2="280" y2="82" stroke="#c53030" stroke-width="2" stroke-linecap="round"/>
+                    <polygon points="280,78 276,86 284,86" fill="#c53030"/>
+                    <foreignObject x="286" y="84" width="95" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#c53030;font-weight:600;">$\theta^- \!\leftarrow\! \theta$</div></foreignObject>
+                    <!-- 第3C步: θ⁻从y=75跳到y=50 -->
+                    <line x1="390" y1="71" x2="390" y2="57" stroke="#c53030" stroke-width="2" stroke-linecap="round"/>
+                    <polygon points="390,53 386,61 394,61" fill="#c53030"/>
+                    <foreignObject x="396" y="57" width="95" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#c53030;font-weight:600;">$\theta^- \!\leftarrow\! \theta$</div></foreignObject>
 
-                    <!-- 时间轴标注 -->
-                    <foreignObject x="30" y="192" width="140" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:11px;color:#718096;">第 $C$ 步同步</div></foreignObject>
-                    <foreignObject x="190" y="192" width="140" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:11px;color:#718096;">第 $2C$ 步同步</div></foreignObject>
-                    <foreignObject x="350" y="192" width="140" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:11px;color:#718096;">第 $3C$ 步同步</div></foreignObject>
+                    <!-- 图例 -->
+                    <line x1="70" y1="16" x2="100" y2="16" stroke="#2b6cb0" stroke-width="2.5" stroke-linecap="round"/>
+                    <foreignObject x="105" y="5" width="140" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#2b6cb0;font-weight:600;">$\theta$（每步更新）</div></foreignObject>
+                    <line x1="255" y1="16" x2="285" y2="16" stroke="#d69e2e" stroke-width="2.5" stroke-linecap="round"/>
+                    <foreignObject x="290" y="5" width="170" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:12px;color:#d69e2e;font-weight:600;">$\theta^-$（冻结，每 $C$ 步同步）</div></foreignObject>
+
+                    <!-- y轴标签 -->
+                    <foreignObject x="0" y="85" width="55" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:right;font-size:12px;color:#718096;">参数值</div></foreignObject>
                 </svg>
             </div>
-            <div class="fig-caption">图 5.1-3 &nbsp; 目标网络的参数同步机制。上方的在线网络 $\theta$ 每步都通过梯度下降更新；下方的目标网络 $\theta^-$ 在两次同步之间保持冻结（参数不变），每隔 $C$ 步（红色箭头）将 $\theta$ 复制给 $\theta^-$。冻结期间 TD 目标保持稳定，避免了"追逐移动靶子"的问题。</div>
+            <div class="fig-caption">图 5.1-3 &nbsp; 目标网络的参数同步机制。蓝色曲线是在线网络 $\theta$，每步梯度更新使其持续变化；黄色阶梯线是目标网络 $\theta^-$，在两次同步之间保持冻结。每隔 $C$ 步（红色箭头），将 $\theta$ 复制给 $\theta^-$，使阶梯跳到当前 $\theta$ 的值。冻结期间 TD 目标保持稳定，避免了"追逐移动靶子"的问题。</div>
 
             <details class="optional-reading">
                 <summary>补充阅读：软更新（Soft Update）</summary>
                 <p style="margin-top:0.5rem;">除了每隔 $C$ 步硬复制参数，另一种常见做法是<strong>软更新</strong>（soft update），也称为 Polyak 平均：每一步都用一个很小的比例 $\tau$（如 $\tau=0.005$）将在线网络参数混入目标网络：</p>
-                $$\theta^- \leftarrow \tau\,\theta + (1-\tau)\,\theta^- \tag{5.1-6}$$
+                $$\theta^- \leftarrow \tau\,\theta + (1-\tau)\,\theta^- \tag{5.1-7}$$
                 <p>软更新使目标网络参数平滑地跟随在线网络，避免了硬复制时的突变。这种方式在后续算法（如5.3节的SAC）中被广泛采用。</p>
             </details>
 
             <!-- ==================== DQN算法 ==================== -->
             <h2>DQN算法</h2>
 
-            <p>将Q网络、经验回放和目标网络三者结合起来，就得到了完整的DQN算法。下面给出算法的伪代码：</p>
+            <p>将Q网络、经验回放、目标网络和 $\varepsilon$-greedy 探索结合起来，就得到了完整的DQN算法。下面给出算法的伪代码：</p>
 
             <div class="algo-box">
                 <div class="algo-title">算法：Deep Q-Network（DQN）</div>
@@ -475,7 +615,7 @@
                 <div class="algo-note">典型超参数：缓冲区容量 $N=10^5 \sim 10^6$，mini-batch大小 $B=32$，目标网络更新频率 $C=1000$，折扣因子 $\gamma=0.99$，探索率 $\varepsilon$ 从1.0线性衰减至0.01。</div>
             </div>
 
-            <p>与表格Q-learning（3.1.2节）对比，DQN的核心结构可以简洁地概括为：</p>
+            <p>与表格Q-learning（3.2.2节）对比，DQN的核心结构可以简洁地概括为：</p>
 
             <div class="result-box">
                 <strong>DQN = Q-learning + 神经网络 + 经验回放 + 目标网络</strong>
@@ -488,28 +628,30 @@
 
             <p>在第一章中，网约车司机只需考虑3个区域和1种时段。现在假设城市仍然分为3个区域（市中心 $c$、郊区 $b$、机场 $a$），但引入4个时段（早高峰、白天、晚高峰、夜间），用整数 $0,1,2,3$ 表示。状态定义为<strong>（区域, 时段）</strong>的组合，状态空间大小为 $|\mathcal{S}| = 3 \times 4 = 12$。动作仍为2个：接单或空驶到另一个区域。</p>
 
-            <p>与第三章一样，接单后的车费取决于乘客的目的地（即下一个状态 $s'$），奖励是 $R(s, a, s')$ 而非 $R(s, a)$（参见2.2.2节式(2.2-9)的讨论）。例如早高峰在市中心接单，送到郊区车费8元，送到机场车费12元。不同时段下，转移概率和车费都会变化：</p>
+            <p>与第三章一样，接单后的车费取决于乘客的目的地（即下一个状态 $s'$），奖励是 $R(s, a, s')$ 而非 $R(s, a)$（参见2.2.2节式(2.2-9)的讨论）。但现在引入了时段维度，同一区域的同一动作在不同时段下的表现会不同。这很符合直觉：</p>
 
             <ul style="margin: 0.5rem 0 1rem 2rem; line-height: 2;">
-                <li>早高峰（时段0）：市中心接单后去机场的概率高、车费高（$r=12$）</li>
-                <li>夜间（时段3）：市中心接单车费低（$r=4$），但机场有红眼航班，去市中心车费升至 $r=16$</li>
+                <li><strong>转移概率随时段变化。</strong>早高峰时市中心接单，乘客更可能去郊区（通勤需求）；夜间则更可能是短途，留在市中心的概率更高。</li>
+                <li><strong>车费随时段变化。</strong>高峰时段打车需求旺盛，平台溢价使车费上浮（例如早高峰的车费是基准的 $1.2$ 倍）；夜间需求少，车费相应下降（基准的 $0.8$ 倍）。</li>
             </ul>
 
-            <p>DQN 不需要知道这些概率和车费的分布——它只需要从一次次真实的接单经历中学习。每次接单后，司机观察到实际的目的地 $s'$ 和车费 $r$，这就是一个转移样本 $(s,a,r,s')$。DQN 用这些样本来逼近贝尔曼方程的期望。下表列出了部分时段的奖励和转移：</p>
+            <p>因此，即使是同一个状态-动作对（如"市中心接单"），在不同时段下的即时奖励 $R$ 和转移概率 $P(s'|s,a)$ 都不同。下表给出了几个代表性的场景：</p>
 
             <table class="trans-table" style="width:100%;">
                 <thead>
                     <tr><th>区域</th><th>时段</th><th>动作</th><th>可能的转移</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td rowspan="2">市中心 $c$</td><td rowspan="2">0（早高峰）</td><td>接单</td><td>→ $c$（概率0.5，车费5）、→ $b$（概率0.3，车费8）、→ $a$（概率0.2，车费12）</td></tr>
+                    <tr><td rowspan="2">市中心 $c$</td><td rowspan="2">0（早高峰）</td><td>接单</td><td>→ $c$（概率0.3，车费6）、→ $b$（概率0.5，车费10）、→ $a$（概率0.2，车费14）</td></tr>
                     <tr><td>空驶去机场</td><td>→ $a$（确定，油费 $-4$）</td></tr>
-                    <tr><td rowspan="2">市中心 $c$</td><td rowspan="2">3（夜间）</td><td>接单</td><td>→ $c$（概率0.3，车费3）、→ $b$（概率0.5，车费4）、→ $a$（概率0.2，车费6）</td></tr>
+                    <tr><td rowspan="2">市中心 $c$</td><td rowspan="2">3（夜间）</td><td>接单</td><td>→ $c$（概率0.6，车费4）、→ $b$（概率0.3，车费6）、→ $a$（概率0.1，车费10）</td></tr>
                     <tr><td>空驶去机场</td><td>→ $a$（确定，油费 $-4$）</td></tr>
-                    <tr><td rowspan="2">机场 $a$</td><td rowspan="2">3（夜间）</td><td>接单</td><td>→ $c$（概率0.7，车费16）、→ $b$（概率0.3，车费10）</td></tr>
+                    <tr><td rowspan="2">机场 $a$</td><td rowspan="2">3（夜间）</td><td>接单</td><td>→ $c$（概率0.8，车费11）、→ $b$（概率0.2，车费8）</td></tr>
                     <tr><td>空驶去市中心</td><td>→ $c$（确定，油费 $-5$）</td></tr>
                 </tbody>
             </table>
+
+            <p>对比表中两个时段下市中心接单的情况：早高峰通勤需求旺盛，乘客去郊区的概率最高（0.5），平台溢价使车费上浮（送到郊区10元 vs 基准8元）；夜间短途为主，留在市中心的概率升至0.6，车费则因需求低迷而下降（送到郊区仅6元）。机场夜间的情况也很符合直觉：红眼航班旅客多数前往市中心（概率0.8），但夜间车费偏低（11元）。DQN 不需要事先知道这些规律，它通过反复与环境交互，自动从采样数据中学到各时段各区域的最优决策。</p>
 
             <p>虽然12个状态仍然可以用表格方法处理，但这个例子帮助我们理解DQN的工作方式。状态被表示为一个特征向量：例如用独热编码（one-hot encoding）表示区域（3维）和时段（4维），拼接后得到7维输入向量。Q网络接收这个7维向量，输出2个动作的Q值。</p>
 
@@ -518,7 +660,9 @@
             <!-- ==================== 交互演示：DQN ==================== -->
             <h2>交互演示</h2>
 
-            <p>下面的交互演示在12状态的网约车环境（3个区域 $\times$ 4个时段）中逐步运行DQN。最上方的神经网络图实时展示所有72个权重连接、隐藏层激活值和输出Q值；中间左侧的热力图展示所有状态的最优Q值估计，右侧的算法面板逐步高亮正在执行的伪代码行；底部的数据面板显示当前步的具体数值。你可以逐子步观察DQN算法的每一个环节，也可以快进到收敛观察最终策略。</p>
+            <p>下面的交互演示在12状态的网约车环境（3个区域 $\times$ 4个时段）中逐步运行DQN。网络结构为 $7 \to 8 \to 2$：输入层7个节点（3维区域独热 + 4维时段独热），隐藏层8个 ReLU 节点，输出层2个节点分别对应接单和空驶的Q值。注意所有8个隐藏节点在每次前向传播中<strong>同时参与计算</strong>，每个节点接收全部7个输入的加权和，不存在"某个节点只负责某个状态"的分工。正是这种全连接结构使得不同状态可以共享参数，实现泛化。输出层的两个节点分别对应两个动作：接单和空驶。虽然"空驶"在不同区域的目的地不同（市中心空驶去机场，机场空驶去市中心），但作为动作编码它们共享同一个输出节点，具体去向由环境决定。</p>
+
+            <p>训练初期缓冲区中样本不足（少于 mini-batch 大小 $B=4$），此时只收集数据不做梯度更新。缓冲区积累到足够样本后才开始训练。你可以逐子步观察DQN算法的每一个环节，也可以快进到收敛观察最终策略。</p>
 
             <div class="dqn-demo">
                 <div class="demo-title">交互演示：DQN 算法逐步执行</div>
@@ -594,6 +738,152 @@
 
             <p>DQN 的基本框架——Q网络 + 经验回放 + 目标网络——已经足以处理许多问题。但在实践中，还有三项重要改进可以显著提升 DQN 的性能：Double DQN（减少Q值过估计）、Dueling 架构（分离状态价值和动作优势）和优先经验回放（让有信息量的样本被更多地学习）。下一节将逐一介绍这三项改进。</p>
 
+            <!-- ==================== 完整代码 ==================== -->
+            <h2>完整 Python 实现</h2>
+
+            <p>下面的代码完整实现了本节交互演示中的 DQN 算法，包括12状态网约车环境（3区域 $\times$ 4时段）、Q网络（$7 \to 8 \to 2$）、经验回放和目标网络。运行后可观察Q值收敛过程和最终策略。</p>
+
+<pre><code class="language-python">import torch
+import torch.nn as nn
+import numpy as np
+from collections import deque
+import random
+
+# ==================== 环境：12状态网约车 MDP ====================
+class TaxiEnv:
+    """3区域 × 4时段的网约车环境，与5.1.1节交互演示一致。"""
+    ZONES = ['c', 'b', 'a']  # 市中心、郊区、机场
+    ZONE_NAMES = {'c': '市中心', 'b': '郊区', 'a': '机场'}
+    PERIOD_NAMES = ['早高峰', '白天', '晚高峰', '夜间']
+    ACTIONS = ['接单', '空驶']
+
+    # 基础车费（按目的地）
+    PICKUP_BASE = {
+        'c': [('c', 5), ('b', 8), ('a', 12)],
+        'b': [('c', 5), ('b', 1), ('a', 8)],
+        'a': [('c', 14), ('b', 10)],
+    }
+    # 转移概率随时段变化
+    PICKUP_PROBS = {
+        'c': [[0.3, 0.5, 0.2], [0.5, 0.3, 0.2], [0.4, 0.4, 0.2], [0.6, 0.3, 0.1]],
+        'b': [[0.2, 0.7, 0.1], [0.1, 0.8, 0.1], [0.15, 0.75, 0.1], [0.1, 0.85, 0.05]],
+        'a': [[0.5, 0.5], [0.6, 0.4], [0.55, 0.45], [0.8, 0.2]],
+    }
+    # 车费缩放因子（高峰溢价，夜间降价）
+    PERIOD_SCALE = [1.2, 1.0, 1.1, 0.8]
+    # 空驶目的地和油费
+    DEADHEAD = {'c': ('a', -4), 'b': ('c', -3), 'a': ('c', -5)}
+
+    def __init__(self):
+        self.zone = 'c'
+        self.period = 0
+
+    def reset(self):
+        self.zone = random.choice(self.ZONES)
+        self.period = 0
+        return self._state_vec()
+
+    def _state_vec(self):
+        """返回7维 one-hot 向量: [c, b, a, P0, P1, P2, P3]"""
+        v = [0.0] * 7
+        v[self.ZONES.index(self.zone)] = 1.0
+        v[3 + self.period] = 1.0
+        return v
+
+    def step(self, action):
+        if action == 0:  # 接单
+            base = self.PICKUP_BASE[self.zone]
+            probs = self.PICKUP_PROBS[self.zone][self.period]
+            scale = self.PERIOD_SCALE[self.period]
+            idx = np.random.choice(len(base), p=probs)
+            next_zone, base_fare = base[idx]
+            reward = round(base_fare * scale, 1)
+        else:  # 空驶
+            next_zone, reward = self.DEADHEAD[self.zone]
+
+        self.zone = next_zone
+        self.period = (self.period + 1) % 4
+        return self._state_vec(), reward
+
+# ==================== Q 网络 (7 → 8 → 2) ====================
+class QNet(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(7, 8), nn.ReLU(),
+            nn.Linear(8, 2)
+        )
+
+    def forward(self, x):
+        return self.net(x)
+
+# ==================== DQN 训练 ====================
+env = TaxiEnv()
+q_net = QNet()
+target_net = QNet()
+target_net.load_state_dict(q_net.state_dict())
+optimizer = torch.optim.Adam(q_net.parameters(), lr=0.008)
+
+gamma = 0.9
+buf_size, batch_size, target_freq = 200, 4, 50
+eps_start, eps_end, eps_decay = 1.0, 0.05, 500
+replay_buffer = deque(maxlen=buf_size)
+
+total_steps = 0
+for episode in range(100):
+    s = env.reset()
+    ep_reward = 0
+    for t in range(50):
+        eps = eps_end + (eps_start - eps_end) * np.exp(-total_steps / eps_decay)
+        if random.random() < eps:
+            a = random.randint(0, 1)
+        else:
+            with torch.no_grad():
+                q = q_net(torch.tensor([s], dtype=torch.float32))
+            a = q.argmax().item()
+
+        s_next, reward = env.step(a)
+        replay_buffer.append((s, a, reward, s_next))
+        ep_reward += reward
+        s = s_next
+
+        # 训练
+        if len(replay_buffer) >= batch_size:
+            batch = random.sample(replay_buffer, batch_size)
+            ss = torch.tensor([b[0] for b in batch], dtype=torch.float32)
+            aa = torch.tensor([b[1] for b in batch], dtype=torch.long)
+            rr = torch.tensor([b[2] for b in batch], dtype=torch.float32)
+            ss2 = torch.tensor([b[3] for b in batch], dtype=torch.float32)
+
+            with torch.no_grad():
+                q_target = target_net(ss2).max(dim=1).values
+            target = rr + gamma * q_target
+            q_pred = q_net(ss).gather(1, aa.unsqueeze(1)).squeeze()
+            loss = nn.functional.mse_loss(q_pred, target)
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+        total_steps += 1
+        if total_steps % target_freq == 0:
+            target_net.load_state_dict(q_net.state_dict())
+
+    if episode % 20 == 0:
+        print(f"Episode {episode:3d}, eps={eps:.2f}, reward={ep_reward:.0f}")
+
+# ==================== 输出策略 ====================
+print("\n学到的策略：")
+for zone in TaxiEnv.ZONES:
+    for period in range(4):
+        env.zone, env.period = zone, period
+        sv = env._state_vec()
+        with torch.no_grad():
+            q = q_net(torch.tensor([sv], dtype=torch.float32))[0]
+        best = TaxiEnv.ACTIONS[q.argmax().item()]
+        print(f"  {TaxiEnv.ZONE_NAMES[zone]}·{TaxiEnv.PERIOD_NAMES[period]}: "
+              f"Q(接单)={q[0]:.1f}, Q(空驶)={q[1]:.1f} → {best}")</code></pre>
+
             <div class="chapter-nav">
                 <a href="../ch05/5.1.html">&larr; 5.1 Deep Q-Network</a>
                 <a href="../ch05/5.1.2.html">5.1.2 DQN的关键改进 &rarr;</a>
@@ -627,18 +917,29 @@
         var OUTPUT_LABELS = ['Q(接单)','Q(空驶)'];
 
         // === 环境定义 ===
+        // 时段: 0=早高峰, 1=白天, 2=晚高峰, 3=夜间
+        // 车费缩放因子（高峰溢价，夜间降价）
         var PERIOD_SCALE = [1.2, 1.0, 1.1, 0.8];
+        // 各区域接单的基础转移（概率和基础车费）
         var ENV_PICKUP_BASE = {
-            c: [{to:'c',p:0.5,r:5}, {to:'b',p:0.3,r:8}, {to:'a',p:0.2,r:12}],
-            b: [{to:'c',p:0.1,r:5}, {to:'b',p:0.8,r:1}, {to:'a',p:0.1,r:8}],
-            a: [{to:'c',p:0.6,r:14},{to:'b',p:0.4,r:10}]
+            c: [{to:'c',r:5}, {to:'b',r:8}, {to:'a',r:12}],
+            b: [{to:'c',r:5}, {to:'b',r:1}, {to:'a',r:8}],
+            a: [{to:'c',r:14},{to:'b',r:10}]
+        };
+        // 各区域接单的转移概率（随时段变化）
+        // 早高峰：市中心→郊区概率高（通勤）；夜间：短途多，留在本地概率高
+        var ENV_PICKUP_PROBS = {
+            c: [[0.3,0.5,0.2], [0.5,0.3,0.2], [0.4,0.4,0.2], [0.6,0.3,0.1]],
+            b: [[0.2,0.7,0.1], [0.1,0.8,0.1], [0.15,0.75,0.1], [0.1,0.85,0.05]],
+            a: [[0.5,0.5],     [0.6,0.4],     [0.55,0.45],     [0.8,0.2]]
         };
         var ENV_DEADHEAD = {c:{to:'a',r:-4}, b:{to:'c',r:-3}, a:{to:'c',r:-5}};
 
         function getPickupTransitions(zone, period) {
             var base = ENV_PICKUP_BASE[zone];
+            var probs = ENV_PICKUP_PROBS[zone][period];
             var scale = PERIOD_SCALE[period];
-            return base.map(function(t) { return {to:t.to, p:t.p, r:Math.round(t.r*scale*10)/10}; });
+            return base.map(function(t, i) { return {to:t.to, p:probs[i], r:Math.round(t.r*scale*10)/10}; });
         }
 
         function stepEnv(zone, period, action) {
@@ -791,7 +1092,7 @@
         var NN_W = 540, NN_H = 280;
 
         // 节点位置布局
-        var NODE_R_IN = 14, NODE_R_HID = 14, NODE_R_OUT = 18;
+        var NODE_R_IN = 14, NODE_R_HID = 14, NODE_R_OUT = 26;
         var layerX = [70, 270, 470]; // 输入、隐藏、输出层x
         function inputY(i) { return 30 + i * (NN_H - 60) / 6; }      // 7 nodes
         function hiddenY(i) { return 22 + i * (NN_H - 44) / 7; }     // 8 nodes
@@ -969,13 +1270,13 @@
 
                 // Q值
                 ctx.fillStyle = '#2d3748';
-                ctx.font = 'bold 11px "JetBrains Mono", monospace';
+                ctx.font = 'bold 12px "JetBrains Mono", monospace';
                 ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                ctx.fillText(outputActs[i].toFixed(2), x, y - 5);
+                ctx.fillText(outputActs[i].toFixed(2), x, y - 6);
 
                 // 标签
                 ctx.fillStyle = '#718096';
-                ctx.font = '9px "Source Han Serif SC", Georgia, serif';
+                ctx.font = '10px "Source Han Serif SC", Georgia, serif';
                 ctx.fillText(OUTPUT_LABELS[i], x, y + 10);
             }
 
@@ -990,17 +1291,18 @@
             ctx.fillText('隐藏层 (8, ReLU)', layerX[1], NN_H - 6);
             ctx.fillText('输出层 (2)', layerX[2], NN_H - 6);
 
-            // --- 权重图例 ---
+            // --- 权重图例（右上角，避开输入节点） ---
+            var legendX = NN_W - 80;
             ctx.font = '9px "Source Han Serif SC", Georgia, serif';
             ctx.textAlign = 'left';
             // 蓝 = 正权重
             ctx.strokeStyle = 'rgba(43,108,176,0.8)'; ctx.lineWidth = 2; ctx.lineCap = 'round';
-            ctx.beginPath(); ctx.moveTo(8, 10); ctx.lineTo(28, 10); ctx.stroke();
-            ctx.fillStyle = '#2b6cb0'; ctx.fillText('正权重', 31, 13);
+            ctx.beginPath(); ctx.moveTo(legendX, 10); ctx.lineTo(legendX + 20, 10); ctx.stroke();
+            ctx.fillStyle = '#2b6cb0'; ctx.fillText('正权重', legendX + 23, 13);
             // 红 = 负权重
             ctx.strokeStyle = 'rgba(197,48,48,0.8)'; ctx.lineWidth = 2;
-            ctx.beginPath(); ctx.moveTo(8, 24); ctx.lineTo(28, 24); ctx.stroke();
-            ctx.fillStyle = '#c53030'; ctx.fillText('负权重', 31, 27);
+            ctx.beginPath(); ctx.moveTo(legendX, 24); ctx.lineTo(legendX + 20, 24); ctx.stroke();
+            ctx.fillStyle = '#c53030'; ctx.fillText('负权重', legendX + 23, 27);
         }
 
         // 动画循环（用于weight flash衰减）

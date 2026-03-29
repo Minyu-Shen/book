@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5.2.1 从Actor-Critic到PPO - 运筹智能</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .trans-table { width: auto; border-collapse: collapse; margin: 1rem auto; font-size: 0.95rem; }
+        .trans-table th, .trans-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: center; }
+        .trans-table th { background: var(--primary-color); color: white; }
+        .trans-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .result-box { background: var(--highlight-color); border: 2px solid var(--accent-color); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; text-align: center; }
+        .algo-box { background: #f7fafc; border: 2px solid var(--accent-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .algo-box .algo-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .algo-box ol { margin: 0.3rem 0 0.3rem 1.5rem; line-height: 2; }
+        .algo-box .algo-note { font-size: 0.9rem; color: #718096; margin-top: 0.5rem; }
+        .note { background: var(--highlight-color); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .formula-block { background: var(--code-bg); padding: 1.2rem 1.5rem; margin: 1.5rem 0; border-radius: 6px; overflow-x: auto; text-align: center; }
+        .optional-reading { background: #f0fff4; border: 1px solid #9ae6b4; border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; }
+        .optional-reading summary { font-weight: 700; color: #276749; cursor: pointer; font-size: 1rem; }
+        .optional-reading summary:hover { color: var(--accent-color); }
+        .fig-caption { text-align:center; font-size:0.9rem; color:#718096; margin-top:0.5rem; margin-bottom:1.5rem; }
+        .rl-ctrl { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; margin-bottom:0.8rem; font-size:0.88rem; }
+        .rl-ctrl button { padding:0.3rem 0.7rem; border:1px solid #2b6cb0; background:white; color:#2b6cb0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.84rem; transition:all 0.15s; }
+        .rl-ctrl button:hover { background:#2b6cb0; color:white; }
+        .rl-ctrl label { font-size:0.85rem; color:#4a5568; }
+        .rl-ctrl input[type="range"] { width:120px; vertical-align:middle; }
+    </style>
+    <script defer src="../../js/code-copy.js"></script>
+</head>
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="book-title"><a href="../../index.html" style="text-decoration:none;color:inherit;">运筹智能</a></div>
+            <nav>
+                <ul>
+                <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
+                <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
+                <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.4.html">3.1.4 TD(λ)与资格迹</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.3.html">3.2.3 Double Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.1.1.html">5.1.1 DQN基本算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.1.2.html">5.1.2 DQN的关键改进</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.1.3.html">5.1.3 例子：库存管理</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.1.html" class="active">5.2.1 从Actor-Critic到PPO</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.2.html">5.2.2 连续动作空间与重参数化技巧</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.3.html">5.2.3 例子：机票动态定价</a></li>
+                <li><a href="../ch05/5.3.html">5.3 DDPG与TD3</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.3.1.html">5.3.1 DDPG与TD3算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.3.2.html">5.3.2 例子：广告实时竞价</a></li>
+                <li><a href="../ch05/5.4.html">5.4 Soft Actor-Critic</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.4.1.html">5.4.1 SAC算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.4.2.html">5.4.2 例子：投资组合配置</a></li>
+                <li><a href="../ch05/5.5.html">5.5 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.6.html">5.6 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>5.2.1 从Actor-Critic到PPO</h1>
+
+            <!-- ==================== Critic 网络 ==================== -->
+            <h2>Critic 网络：用神经网络估计 $V^\pi(s)$</h2>
+
+            <p><a href="../ch03/3.3.html">第3.3节</a>介绍了 Actor-Critic 框架：Actor（策略 $\pi$）决定在每个状态下选什么动作，Critic（值函数 $V$）评估每个状态的好坏。在 <a href="../ch03/3.3.3.html">3.3.3节</a>中，$\pi$ 和 $V$ 都用查表实现——每个状态-动作对一个参数。但正如 5.1 节所讨论的，查表方法在状态空间很大或连续时不再可行。</p>
+
+            <p>5.1 节的 DQN 已经展示了解决方案：用神经网络替代表格。DQN 用一个网络 $Q_\theta(s,a)$ 来近似动作值函数。同样的思路可以用于 Actor-Critic 的两个组件：</p>
+            <ul>
+                <li><strong>Critic 网络</strong> $V_\phi(s)$：用一个参数为 $\phi$ 的神经网络近似状态值函数 $V^\pi(s)$。网络输入是状态特征向量，输出是单个标量——对该状态长期回报的估计。与 DQN 的区别是：DQN 输出 $|\mathcal{A}|$ 个 $Q$ 值（每个动作一个），Critic 只输出一个 $V$ 值。</li>
+                <li><strong>Actor 网络</strong> $\pi_\theta(a|s)$：用一个参数为 $\theta$ 的神经网络参数化策略。网络输入状态，输出动作的概率分布（离散动作用 softmax，连续动作用高斯分布，后者将在 <a href="5.2.2.html">5.2.2节</a>详细讨论）。</li>
+            </ul>
+
+            <p>先来看 Critic 网络的结构。下面的动画展示了它的前向传播过程：状态特征输入后，经过隐藏层的非线性变换，最终输出一个标量 $V_\phi(s)$。</p>
+
+            <!-- Critic 网络动画（SVG，与 5.1.1 风格一致） -->
+            <div style="text-align:center; margin:1.5rem 0 0.5rem 0;">
+                <svg width="350" height="280" viewBox="0 0 350 280" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;">
+                    <style>
+                        .vc-label { font-family: "Source Han Serif SC", Georgia, serif; }
+                        @keyframes vcSweep1 { 0%,15% { opacity:0.15; } 25%,40% { opacity:1; } 60%,100% { opacity:0.15; } }
+                        @keyframes vcSweep2 { 0%,30% { opacity:0.15; } 40%,55% { opacity:1; } 70%,100% { opacity:0.15; } }
+                        @keyframes vcSweep3 { 0%,50% { opacity:0.15; } 60%,75% { opacity:1; } 85%,100% { opacity:0.15; } }
+                        @keyframes vcSweep4 { 0%,65% { opacity:0.15; } 75%,90% { opacity:1; } 95%,100% { opacity:0.15; } }
+                        .vc-input { animation: vcSweep1 3.5s ease-in-out infinite; }
+                        .vc-conn1 { animation: vcSweep2 3.5s ease-in-out infinite; }
+                        .vc-hidden { animation: vcSweep3 3.5s ease-in-out infinite; }
+                        .vc-output { animation: vcSweep4 3.5s ease-in-out infinite; }
+                    </style>
+                    <!-- 层标签 -->
+                    <text x="55" y="18" text-anchor="middle" font-size="13" fill="#1a365d" font-weight="700" class="vc-label">输入</text>
+                    <text x="155" y="18" text-anchor="middle" font-size="13" fill="#1a365d" font-weight="700" class="vc-label">隐藏层</text>
+                    <text x="260" y="18" text-anchor="middle" font-size="13" fill="#1a365d" font-weight="700" class="vc-label">输出</text>
+
+                    <!-- 连线：输入→隐藏 -->
+                    <g class="vc-conn1" stroke="#cbd5e0" stroke-width="1" stroke-linecap="round">
+                        <line x1="73" y1="70" x2="129" y2="80"/><line x1="73" y1="70" x2="129" y2="140"/><line x1="73" y1="70" x2="129" y2="200"/>
+                        <line x1="73" y1="120" x2="129" y2="80"/><line x1="73" y1="120" x2="129" y2="140"/><line x1="73" y1="120" x2="129" y2="200"/>
+                        <line x1="73" y1="170" x2="129" y2="80"/><line x1="73" y1="170" x2="129" y2="140"/><line x1="73" y1="170" x2="129" y2="200"/>
+                        <line x1="73" y1="220" x2="129" y2="80"/><line x1="73" y1="220" x2="129" y2="140"/><line x1="73" y1="220" x2="129" y2="200"/>
+                    </g>
+                    <!-- 连线：隐藏→输出 -->
+                    <g class="vc-output" stroke="#cbd5e0" stroke-width="1" stroke-linecap="round">
+                        <line x1="171" y1="80" x2="238" y2="145"/>
+                        <line x1="171" y1="140" x2="238" y2="145"/>
+                        <line x1="171" y1="200" x2="238" y2="145"/>
+                    </g>
+
+                    <!-- 输入节点 -->
+                    <g class="vc-input">
+                        <circle cx="55" cy="70" r="17" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                        <foreignObject x="35" y="58" width="40" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:14px;color:#2b6cb0;">$s_1$</div></foreignObject>
+                        <circle cx="55" cy="120" r="17" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                        <foreignObject x="35" y="108" width="40" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:14px;color:#2b6cb0;">$s_2$</div></foreignObject>
+                        <circle cx="55" cy="170" r="17" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                        <text x="55" y="175" text-anchor="middle" font-size="14" fill="#2b6cb0" class="vc-label">...</text>
+                        <circle cx="55" cy="220" r="17" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                        <foreignObject x="35" y="208" width="40" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:14px;color:#2b6cb0;">$s_n$</div></foreignObject>
+                    </g>
+
+                    <!-- 隐藏层节点 -->
+                    <g class="vc-hidden">
+                        <circle cx="150" cy="80" r="15" fill="#f0fff4" stroke="#38a169" stroke-width="2"/>
+                        <circle cx="150" cy="140" r="15" fill="#f0fff4" stroke="#38a169" stroke-width="2"/>
+                        <circle cx="150" cy="200" r="15" fill="#f0fff4" stroke="#38a169" stroke-width="2"/>
+                    </g>
+
+                    <!-- 输出节点：单个 V(s) -->
+                    <g class="vc-output">
+                        <circle cx="260" cy="145" r="20" fill="#fffff0" stroke="#d69e2e" stroke-width="2.5"/>
+                        <foreignObject x="284" y="132" width="60" height="26"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:14px;color:#975a16;font-weight:600;white-space:nowrap;">$V(s)$</div></foreignObject>
+                    </g>
+
+                    <!-- 参数标注 -->
+                    <foreignObject x="110" y="250" width="80" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:14px;color:#2b6cb0;">$\phi$</div></foreignObject>
+                </svg>
+            </div>
+            <div class="fig-caption">图 5.2-1 &nbsp; Critic 网络的前向传播。输入层接收状态特征向量 $s$，经过隐藏层的非线性变换，输出单个标量 $V_\phi(s)$。与图 5.1-1 的 DQN 网络对比：DQN 输出 $|\mathcal{A}|$ 个 $Q$ 值，Critic 只输出 1 个 $V$ 值。</div>
+
+            <p>Critic 的训练目标是让 $V_\phi(s)$ 尽可能接近真实的期望回报 $V^\pi(s)$。第三章介绍了两种估计回报的方式，它们同样适用于深度网络的训练：</p>
+            <ul>
+                <li><strong>TD 目标</strong>（<a href="../ch03/3.1.2.html">3.1.2节</a>）：$\hat{G}_t = R_t + \gamma V_\phi(S_{t+1})$，只需一步真实奖励加上下一状态的估值。偏差较大（依赖 $V_\phi$ 的准确性）但方差低。</li>
+                <li><strong>蒙特卡洛回报</strong>（<a href="../ch03/3.1.1.html">3.1.1节</a>）：$\hat{G}_t = R_t + \gamma R_{t+1} + \gamma^2 R_{t+2} + \cdots$，使用整条轨迹的实际奖励。无偏但方差高。</li>
+            </ul>
+
+            <p>两种方式都可以用来构造 Critic 的损失函数：</p>
+
+            $$L_{\text{critic}}(\phi) = \mathbb{E}_t\!\left[\bigl(V_\phi(S_t) - \hat{G}_t\bigr)^2\right]$$
+
+            <p>这就是一个标准的回归问题，用随机梯度下降最小化即可，与第四章介绍的神经网络训练方式完全一致。下一节的 GAE 将提供一种介于 TD 和 MC 之间、更灵活的回报估计方式。</p>
+
+            <!-- ==================== GAE ==================== -->
+            <h2>从 $V$ 到优势估计：广义优势估计（GAE）</h2>
+
+            <p>有了 Critic 网络 $V_\phi$ 之后，我们可以为 Actor 的每次决策评估好坏。回顾 <a href="../ch03/3.3.3.html">3.3.3节</a>的<strong>优势函数</strong> $A^\pi(s, a) = Q^\pi(s, a) - V^\pi(s)$：它衡量在状态 $s$ 下选择动作 $a$ 比按策略 $\pi$ 的平均水平好多少。3.3.3节用单步 TD 误差作为优势的估计（式(3.3-6)）：</p>
+
+            $$\hat{A}_t = \delta_t = R_t + \gamma V_\phi(S_{t+1}) - V_\phi(S_t)$$
+
+            <p>但单步估计偏差较大（它完全依赖 $V_\phi$ 对下一状态的估计，如果 $V_\phi$ 不准确，$\hat{A}_t$ 也不准确）。<a href="../ch03/3.1.4.html">3.1.4节</a>介绍的 $\lambda$-回报思想（式(3.1-14)）提供了一种更好的方案。将它应用于优势函数估计，得到<strong>广义优势估计</strong>（GAE, Schulman et al., 2016）：</p>
+
+            <div class="formula-block">
+            $$\hat{A}_t^{\text{GAE}} = \sum_{l=0}^{T-t} (\gamma\lambda)^l \,\delta_{t+l} \tag{5.2-1}$$
+            </div>
+
+            <p>其中 $\delta_{t+l} = R_{t+l} + \gamma V_\phi(S_{t+l+1}) - V_\phi(S_{t+l})$ 是每步的 TD 误差。参数 $\lambda \in [0, 1]$ 控制偏差-方差的权衡：$\lambda = 0$ 时 GAE 退化为单步 TD 误差 $\delta_t$（低方差、高偏差）；$\lambda = 1$ 时等价于蒙特卡洛回报减去基线（高方差、低偏差）。实践中 $\lambda = 0.95$ 是常见的选择。实现上利用递推关系从后往前计算：</p>
+
+            $$\hat{A}_t^{\text{GAE}} = \delta_t + \gamma\lambda\,\hat{A}_{t+1}^{\text{GAE}} \tag{5.2-2}$$
+
+            <p>只需一次反向遍历即可完成。下面的演示展示了不同 $\lambda$ 下，计算 $\hat{A}_t^{\text{GAE}}$ 时各步 TD 误差 $\delta_{t+l}$ 的权重 $(\gamma\lambda)^l$：</p>
+
+            <!-- GAE 可视化 -->
+            <div style="border:2px solid var(--border-color); border-radius:8px; padding:1.2rem; margin:1.5rem 0; background:#fafafa;">
+                <div style="font-weight:700; color:var(--accent-color); margin-bottom:0.6rem; font-size:1.05rem;">GAE 的 $\lambda$ 权重可视化</div>
+                <div class="rl-ctrl">
+                    <label>$\lambda$: <input type="range" id="gae-lambda" min="0" max="100" value="95" oninput="drawGAE()"> <span id="gae-lambda-val">0.95</span></label>
+                    <label>计算 $\hat{A}_t$ 的起始步: <input type="range" id="gae-step" min="0" max="3" value="0" oninput="drawGAE()"> $t=$ <span id="gae-step-val">0</span></label>
+                </div>
+                <div style="display:flex; justify-content:center;">
+                    <canvas id="gae-canvas" width="560" height="300" style="border:1px solid var(--border-color); border-radius:4px; background:white; max-width:100%;"></canvas>
+                </div>
+            </div>
+            <div class="fig-caption">图 5.2-2 &nbsp; GAE 的权重可视化。上方柱状图为各步的 TD 误差 $\delta_{t+l}$，下方柱状图为对应的权重 $(\gamma\lambda)^l$。$\lambda$ 越小，权重越集中在当前步（偏差高、方差低）；$\lambda$ 越大，权重越平坦（偏差低、方差高）。绿色框中的 $\hat{A}_t^{\text{GAE}}$ 是加权求和的结果。</div>
+
+            <!-- ==================== Actor 目标函数 ==================== -->
+            <h2>Actor 的目标函数</h2>
+
+            <p>有了 Critic 提供的优势估计 $\hat{A}_t$，接下来的问题是：如何用它来改进 Actor？<a href="../ch03/3.3.3.html">3.3.3节</a>的 Actor-Critic 中，Actor 的更新规则是：</p>
+
+            $$\theta \leftarrow \theta + \alpha_\theta \cdot \hat{A}_t \cdot \nabla_\theta \log \pi_\theta(A_t \mid S_t) \tag{5.2-3}$$
+
+            <p>这等价于对以下<strong>代理目标函数</strong>做随机梯度上升：</p>
+
+            <div class="formula-block">
+            $$L(\theta) = \mathbb{E}_t\!\left[\hat{A}_t \cdot \log \pi_\theta(A_t \mid S_t)\right] \tag{5.2-4}$$
+            </div>
+
+            <p>这里需要说明记号 $\mathbb{E}_t$。式(5.2-4)对应的理论目标函数是：</p>
+
+            $$L(\theta) = \sum_s d_{\pi_\theta}(s) \sum_a \pi_\theta(a|s)\, A^{\pi_\theta}(s,a) \cdot \log \pi_\theta(a|s)$$
+
+            <p>其中 $d_{\pi_\theta}(s)$ 是策略 $\pi_\theta$ 的（折扣）状态访问分布，衡量按 $\pi_\theta$ 行动时各状态被访问到的频率。期望是对所有状态（按 $d_{\pi_\theta}$ 加权）和所有动作（按 $\pi_\theta$ 加权）求的。在实践中，我们无法精确计算这个期望，而是用采集到的一批轨迹数据来做<strong>样本平均</strong>估计。如果这批数据共包含 $N$ 个时间步 $\{(S_t, A_t, R_t, S_{t+1})\}_{t=0}^{N-1}$，从中计算出优势估计 $\hat{A}_t$，则</p>
+
+            $$\mathbb{E}_t[\cdot] \;=\; \frac{1}{N}\sum_{t=0}^{N-1}[\cdot]$$
+
+            <p>后文中所有出现的 $\mathbb{E}_t$ 都是这个含义：对已收集数据的样本平均，用来估计理论期望。</p>
+
+            <p>$L(\theta)$ 的含义很直接：对于优势为正的动作（$\hat{A}_t > 0$，比平均好），增大 $\log \pi_\theta$（即增大该动作的概率）使 $L$ 增加；对于优势为负的动作（$\hat{A}_t < 0$，比平均差），减小该动作的概率使 $L$ 增加。最大化 $L(\theta)$ 就是在让策略向着更好的方向调整。</p>
+
+            <p>第3.3节中策略使用softmax加one-hot特征参数化，每个状态-动作对独立地由一个参数 $\theta_{s,a}$ 控制，参数空间与策略空间的关系是直接的、可控的。但当策略由深度神经网络参数化后，参数量从几个增加到数千甚至数百万个，一次参数更新对策略行为的影响变得不可预测。这正是本节要解决的核心问题。</p>
+
+            <!-- ==================== 步长问题 ==================== -->
+            <h2>步长问题：训练不稳定的根源</h2>
+
+            <p>用深度网络参数化的Actor-Critic面临一个棘手的问题：<strong>学习率该设多大？</strong>太大，策略可能在一次更新后急剧变差；而策略梯度方法是 on-policy 的，训练数据由当前策略采集，一个变差的策略会产生低质量的轨迹（例如反复选择差的动作、很少探索到高回报的区域），这些低质量数据又用于下一轮更新，导致策略进一步恶化，形成恶性循环。学习率太小则训练速度过慢。</p>
+
+            <p>问题的根源在于：标准梯度上升在<strong>参数空间</strong>中以欧氏距离度量步长 $\|\theta_{\text{new}} - \theta_{\text{old}}\|_2$，但参数空间中的距离与策略分布之间的差异并不对应。考虑一个softmax策略的两个场景：</p>
+
+            <ul>
+                <li><strong>场景A</strong>：偏好值 $h(s,a_0) = 100$，$h(s,a_1) = 100$。此时 $\pi(a_0|s) = 0.5$。将 $h(s,a_0)$ 增大 $1$ 至 $101$，策略变为 $\pi(a_0|s) = \frac{e^{101}}{e^{101}+e^{100}} \approx 0.731$。</li>
+                <li><strong>场景B</strong>：偏好值 $h(s,a_0) = 0$，$h(s,a_1) = 0$。此时同样 $\pi(a_0|s) = 0.5$。将 $h(s,a_0)$ 同样增大 $1$ 至 $1$，策略变为 $\pi(a_0|s) = \frac{e^{1}}{e^{1}+e^{0}} \approx 0.731$。</li>
+            </ul>
+
+            <p>这两个场景中参数变化量相同（都增大了 $1$），初始策略也相同（$\pi = 0.5$），结果一样。但换一个例子就不同了：如果 $h(s,a_0) = 5$，$h(s,a_1) = 0$，此时 $\pi(a_0|s) \approx 0.993$，再将 $h(s,a_0)$ 增大 $1$ 至 $6$，策略几乎不变（$\pi \approx 0.998$）。同样大小的参数更新，在不同的参数区域对策略的影响截然不同：在 $\pi$ 接近 $0$ 或 $1$ 的饱和区域，参数变化几乎不改变策略；而在 $\pi$ 接近 $0.5$ 的敏感区域，同样的变化可能导致策略剧烈偏移。</p>
+
+            <p>在深度网络中，这个问题更加严重：参数 $\theta$ 经过多层非线性变换才映射到策略分布，梯度的大小与策略变化之间的关系完全不透明。<strong>固定学习率无法可靠地控制策略变化的大小</strong>。一个自然的想法是：不在参数空间里度量步长，而是直接在<strong>策略分布空间</strong>中控制新旧策略的差异。</p>
+
+            <!-- ==================== KL 散度 ==================== -->
+            <h2>用KL散度衡量策略变化</h2>
+
+            <p>衡量两个概率分布差异的标准工具是<strong>KL散度</strong>（Kullback-Leibler divergence）。给定两个分布 $p$ 和 $q$，KL散度定义为：</p>
+
+            $$\text{KL}(p \| q) = \sum_x p(x) \log \frac{p(x)}{q(x)} \tag{5.2-5}$$
+
+            <p>KL散度量化了两个分布之间的差异大小。需要注意一个极端情况：如果 $p$ 认为某事件可能发生（$p(x) > 0$），但 $q$ 认为该事件几乎不可能（$q(x) \to 0$），求和中对应项 $p(x) \log \frac{p(x)}{q(x)} \to +\infty$，KL散度趋向无穷大。换言之，$q$ 完全遗漏了 $p$ 认为重要的事件，这是最严重的偏差。KL散度具有以下性质：</p>
+            <ul>
+                <li>$\text{KL}(p \| q) \geq 0$，等号成立当且仅当 $p = q$（两个分布完全相同）。</li>
+                <li>$p$ 和 $q$ 越不同，KL散度越大。</li>
+                <li>KL散度是<strong>不对称的</strong>：$\text{KL}(p \| q) \neq \text{KL}(q \| p)$。</li>
+            </ul>
+
+            <p>下面通过一个伯努利分布（抛硬币）的例子建立直觉。固定 $p$ 为正面概率 $0.6$ 的硬币，拖动滑块改变 $q$ 的正面概率 $q_1$，观察KL散度如何变化。</p>
+
+            <div style="border:2px solid var(--border-color); border-radius:8px; padding:1rem; margin:1rem 0; background:#fafafa;">
+                <div class="rl-ctrl">
+                    <label>$q_1$: <input type="range" id="kl-q1" min="1" max="99" value="60" oninput="drawKLDemo()"> <span id="kl-q1-val">0.60</span></label>
+                    <span id="kl-val-display" style="font-size:0.88rem; color:#1a365d; font-weight:600;">KL(p‖q) = 0.000</span>
+                </div>
+                <div style="display:flex; justify-content:center;">
+                    <canvas id="kl-demo-canvas" width="500" height="200" style="border:1px solid var(--border-color); border-radius:4px; background:white; max-width:100%;"></canvas>
+                </div>
+            </div>
+            <div class="fig-caption">图 5.2-3 &nbsp; KL散度的直觉。左侧柱状图显示 $p$（蓝色）和 $q$（橙色）的概率分布；右侧曲线显示 $\text{KL}(p\|q)$ 随 $q_1$ 的变化。当 $q_1 = 0.6$ 时两个分布相同，$\text{KL} = 0$；当 $q_1$ 偏离 $0.6$ 越远，KL散度越大；当 $q_1 \to 0$ 或 $q_1 \to 1$ 时 $\text{KL} \to \infty$，因为 $q$ 认为不可能的事件 $p$ 认为可能发生。</div>
+
+            <p>回到策略优化的场景。每次更新前的策略参数记为 $\theta_{\text{old}}$，更新后的新参数记为 $\theta$。一次参数更新 $\theta_{\text{old}} \to \theta$ 在每个状态 $s$ 下会改变动作的概率分布。我们用KL散度来衡量这个分布变化有多大：</p>
+
+            $$\text{KL}\big(\pi_{\theta_{\text{old}}}(\cdot|s) \| \pi_\theta(\cdot|s)\big) = \sum_a \pi_{\theta_{\text{old}}}(a|s) \log \frac{\pi_{\theta_{\text{old}}}(a|s)}{\pi_\theta(a|s)} \tag{5.2-6}$$
+
+            <p>如果能在每次更新后保证所有状态上的平均KL散度足够小，就能控制策略变化的幅度，避免前面所说的恶性循环。</p>
+
+            <details class="optional-reading">
+                <summary>选读：KL散度与Bregman散度</summary>
+                <p>KL散度是<strong>Bregman散度</strong>（Bregman divergence）的一个特例。给定一个严格凸函数 $\phi$，Bregman散度定义为 $D_\phi(p, q) = \phi(p) - \phi(q) - \nabla\phi(q)^\top(p - q)$。当 $\phi$ 取负熵函数 $\phi(p) = \sum_x p(x) \log p(x)$ 时，Bregman散度恰好退化为KL散度。</p>
+                <p>熟悉在线学习（online learning）和在线凸优化（online convex optimization）的读者可能会认出这个结构：镜像下降（mirror descent）算法正是以Bregman散度为核心工具，通过约束相邻决策之间的散度来保证算法的稳定性。TRPO和PPO中通过KL散度控制策略更新步长的思想，与镜像下降中通过Bregman散度约束决策变化的思想是同源的。</p>
+            </details>
+
+            <!-- ==================== TRPO ==================== -->
+            <h2>TRPO：在信任区域内优化</h2>
+
+            <p>有了KL散度作为策略变化的度量工具，接下来的做法对管理科学中熟悉约束优化的读者来说是自然的：既然无约束的梯度上升步长不可控，那就把它变成一个<strong>带约束的优化问题</strong>——在保证策略变化（由KL散度度量）不超过某个阈值的前提下，尽可能提升策略的性能。这正是Schulman et al.（2015）提出的<strong>TRPO</strong>（Trust Region Policy Optimization）的思路。</p>
+
+            <p>TRPO要解决的问题是：我们手里有一批用当前策略 $\pi_{\theta_{\text{old}}}$ 收集的轨迹数据 $\{(S_t, A_t, R_t, S_{t+1})\}$。利用 Critic 网络 $V_\phi$，可以为每个时间步计算优势估计 $\hat{A}_t$（例如 TD 误差 $\hat{A}_t = R_t + \gamma V_\phi(S_{t+1}) - V_\phi(S_t)$）。于是我们得到一批带标注的样本 $\{(S_t, A_t, \hat{A}_t)\}$。如何用这批数据来寻找一个更好的策略 $\pi_\theta$？</p>
+
+            <p>式(5.2-2)使用的是采集到的批数据的经验平均 $\mathbb{E}_t$。当数据恰好由当前策略 $\pi_\theta$ 采集时（on-policy），$\nabla_\theta L$ 是策略梯度 $\nabla_\theta J(\theta)$ 的无偏估计。但现在数据来自旧策略 $\pi_{\theta_{\text{old}}}$：状态 $S_t$ 是按 $\pi_{\theta_{\text{old}}}$ 访问到的，动作 $A_t$ 是从 $\pi_{\theta_{\text{old}}}(\cdot|S_t)$ 采样的。如果用这批旧数据去估计新参数 $\theta$ 下的梯度，结果会有偏差。我们需要构造一个新的目标函数，使其既能用旧数据计算，又能正确指引优化方向。</p>
+
+            <h3>重要性采样</h3>
+
+            <p>在推导代理目标之前，先介绍一个关键工具：<strong>重要性采样</strong>（importance sampling）。假设我们想计算 $\mathbb{E}_{x \sim p}[f(x)]$，但无法从分布 $p$ 中采样，只有从另一个分布 $q$ 中采到的样本。重要性采样的核心恒等式是：</p>
+
+            $$\mathbb{E}_{x \sim p}[f(x)] = \sum_x f(x)\, p(x) = \sum_x f(x)\, \frac{p(x)}{q(x)}\, q(x) = \mathbb{E}_{x \sim q}\!\left[f(x) \cdot \frac{p(x)}{q(x)}\right]$$
+
+            <p>（对于连续分布，将求和换成积分即可，数学性质完全相同。）也就是说，从 $q$ 中采样，但给每个样本乘以<strong>重要性权重</strong> $\frac{p(x)}{q(x)}$，就能无偏地估计 $p$ 下的期望。直觉上，$q$ 采样到但 $p$ 很少出现的点（$\frac{p}{q}$ 小）会被压低权重，反之则被放大。</p>
+
+            <p>但重要性采样有一个实际问题：当 $p$ 和 $q$ 差异较大时，某些样本的权重 $\frac{p(x)}{q(x)}$ 会非常大，导致估计的<strong>方差</strong>急剧增加。下面用一个简单的例子来演示这个现象。</p>
+
+            <p>假设我们想估计 $p$ 分布下 $x$ 的均值（真实值为 $2.0$，紫色虚线），但只能从 $q$ 分布中采样（绿色圆点）。通过重要性采样，我们给每个样本乘以权重 $\frac{p(x)}{q(x)}$，得到加权平均作为估计值（红色虚线）。拖动滑块改变 $q$ 的均值，观察当 $q$ 远离 $p$ 时发生了什么：</p>
+
+            <!-- 重要性采样演示 -->
+            <div style="border:2px solid var(--border-color); border-radius:8px; padding:1.2rem; margin:1.5rem 0; background:#fafafa;">
+                <div style="font-weight:700; color:var(--accent-color); margin-bottom:0.6rem; font-size:1.05rem;">重要性采样演示</div>
+                <div class="rl-ctrl">
+                    <label>采样分布 $q$ 的均值: <input type="range" id="is-q-mean" min="-10" max="50" value="20" step="1" oninput="drawIS()"> <span id="is-q-mean-val">2.0</span></label>
+                    <button onclick="isResample()">重新采样</button>
+                </div>
+                <div style="display:flex; justify-content:center;">
+                    <canvas id="is-demo-canvas" width="560" height="300" style="border:1px solid var(--border-color); border-radius:4px; background:white; max-width:100%;"></canvas>
+                </div>
+            </div>
+            <div class="fig-caption">图 5.2-4 &nbsp; 重要性采样演示。所有圆点都是从采样分布 $q$（绿色曲线）中采到的样本，颜色表示该样本的重要性权重 $p(x)/q(x)$ 大小：绿色 = 权重接近 1（$p$ 和 $q$ 在此处密度相近），黄色 = 中等权重，红色 = 极大权重（$p$ 密度远高于 $q$）。下半部分的柱状图显示每个样本的权重值。当 $q$ 远离 $p$ 时，少数红色样本主导了整个估计，方差急剧增大。</div>
+
+            <p>可以观察到：当 $q$ 的均值等于 $2.0$（与 $p$ 相同）时，所有权重都接近 $1$，IS 估计非常准确。一旦 $q$ 的均值偏移到 $4.0$ 或更远，少数样本获得极大权重（红色），IS 估计开始剧烈波动，有效样本量急剧下降。在策略优化中，$p$ 对应新策略 $\pi_\theta$，$q$ 对应旧策略 $\pi_{\theta_{\text{old}}}$——如果两个策略差异过大，重要性采样的方差就会失控。这正是信任区域要解决的问题。</p>
+
+            <h3>从策略梯度推导代理目标</h3>
+
+            <p>对已收集数据中的每个时间步 $t$，定义新旧策略在该样本 $(S_t, A_t)$ 上的<strong>概率比率</strong>（即动作分布上的重要性权重）：</p>
+
+            $$r_t(\theta) = \frac{\pi_\theta(A_t \mid S_t)}{\pi_{\theta_{\text{old}}}(A_t \mid S_t)} \tag{5.2-7}$$
+
+            <p>$r_t(\theta)$ 是逐样本定义的：它比较的是新策略和旧策略对同一个状态-动作对 $(S_t, A_t)$ 给出的概率之比，而不是对所有状态求和的全局量。这个比率的含义很直观：</p>
+            <ul>
+                <li>$r_t > 1$：新策略比旧策略更倾向于选择动作 $A_t$。</li>
+                <li>$r_t < 1$：新策略更不倾向于选择动作 $A_t$。</li>
+                <li>$r_t = 1$：新旧策略对 $A_t$ 的偏好相同（更新前就是这种情况）。</li>
+            </ul>
+
+            <p>利用重要性采样和 $r_t(\theta)$，我们可以把策略梯度中的期望从 $\pi_\theta$ 的分布转换到 $\pi_{\theta_{\text{old}}}$ 的分布。策略梯度定理（<a href="../ch03/3.3.1.html">3.3.1节</a>）告诉我们：</p>
+
+            $$\nabla_\theta J(\theta) = \mathbb{E}_{\pi_\theta}\!\left[\hat{A}_t \cdot \nabla_\theta \log \pi_\theta(A_t \mid S_t)\right]$$
+
+            <p>其中 $\mathbb{E}_{\pi_\theta}$ 表示对策略 $\pi_\theta$ 产生的轨迹取期望——状态 $S_t$ 按 $\pi_\theta$ 的状态访问分布出现，动作 $A_t$ 从 $\pi_\theta(\cdot|S_t)$ 采样。注意 $\hat{A}_t$ 不含参数 $\theta$（它是用旧策略的 Critic 计算的固定数值），所以 $\nabla_\theta$ 只作用于 $\log \pi_\theta$。将恒等式 $\nabla_\theta \log \pi_\theta = \frac{\nabla_\theta \pi_\theta}{\pi_\theta}$ 代入：</p>
+
+            $$\nabla_\theta J(\theta) = \mathbb{E}_{\pi_\theta}\!\left[\hat{A}_t \cdot \frac{\nabla_\theta \pi_\theta(A_t \mid S_t)}{\pi_\theta(A_t \mid S_t)}\right]$$
+
+            <p>现在做两步近似，将这个期望从 $\pi_\theta$ 转换到 $\pi_{\theta_{\text{old}}}$ 下：</p>
+            <ol>
+                <li><strong>状态分布近似</strong>：近似认为两个策略的状态访问分布相同，即按 $\pi_\theta$ 行动时各状态被访问的频率与按 $\pi_{\theta_{\text{old}}}$ 行动时相近。当两个策略足够接近时这一近似成立，信任区域约束正是为了保证这一点。</li>
+                <li><strong>动作分布的重要性采样</strong>：在每个状态 $S_t$ 上，动作 $A_t$ 原本从 $\pi_\theta(\cdot|S_t)$ 采样，通过乘以比率 $\frac{\pi_\theta(A_t|S_t)}{\pi_{\theta_{\text{old}}}(A_t|S_t)}$ 将其转换为从 $\pi_{\theta_{\text{old}}}(\cdot|S_t)$ 采样。</li>
+            </ol>
+
+            <p>代入后，重要性采样引入的 $\pi_\theta(A_t|S_t)$ 与分母中的 $\pi_\theta(A_t|S_t)$ 恰好约掉：</p>
+
+            $$\nabla_\theta J(\theta) \approx \mathbb{E}_{\pi_{\theta_{\text{old}}}}\!\left[\frac{\cancel{\pi_\theta(A_t|S_t)}}{\pi_{\theta_{\text{old}}}(A_t|S_t)} \cdot \hat{A}_t \cdot \frac{\nabla_\theta \pi_\theta(A_t|S_t)}{\cancel{\pi_\theta(A_t|S_t)}}\right] = \mathbb{E}_{\pi_{\theta_{\text{old}}}}\!\left[\frac{\nabla_\theta \pi_\theta(A_t \mid S_t)}{\pi_{\theta_{\text{old}}}(A_t \mid S_t)} \cdot \hat{A}_t\right]$$
+
+            <p>其中 $\mathbb{E}_{\pi_{\theta_{\text{old}}}}$ 表示对旧策略产生的轨迹取期望——这正是我们手中的数据所估计的。最后一步：由于 $\pi_{\theta_{\text{old}}}(A_t|S_t)$ 和 $\hat{A}_t$ 都不含参数 $\theta$（它们是旧策略产生的固定数值），所以</p>
+
+            $$\frac{\nabla_\theta \pi_\theta(A_t|S_t)}{\pi_{\theta_{\text{old}}}(A_t|S_t)} = \nabla_\theta \frac{\pi_\theta(A_t|S_t)}{\pi_{\theta_{\text{old}}}(A_t|S_t)} = \nabla_\theta\, r_t(\theta)$$
+
+            <p>因此上面得到的表达式恰好是以下函数对 $\theta$ 的梯度：</p>
+
+            <div class="formula-block">
+            $$L^{\text{TRPO}}(\theta) = \mathbb{E}_{t}\!\left[\frac{\pi_\theta(A_t \mid S_t)}{\pi_{\theta_{\text{old}}}(A_t \mid S_t)} \cdot \hat{A}_t\right] = \mathbb{E}_{t}\!\left[r_t(\theta) \cdot \hat{A}_t\right] \tag{5.2-8}$$
+            </div>
+
+            <p>这就是TRPO的<strong>代理目标</strong>。它不是对式(5.2-2)做简单替换得到的，而是通过上述推导构造出的一个新函数。在实际计算中，$\mathbb{E}_{\pi_{\theta_{\text{old}}}}$ 用采集到的这批数据的经验平均 $\mathbb{E}_t$ 来估计——这正是 $\mathbb{E}_t$ 记号的含义。$L^{\text{TRPO}}$ 的核心性质是：在 $\theta = \theta_{\text{old}}$ 处，它的梯度与真实策略性能 $J(\theta)$ 的梯度相同。因此在 $\theta_{\text{old}}$ 附近，最大化 $L^{\text{TRPO}}$ 等价于最大化真实性能。</p>
+
+            <div class="note">
+                <strong>关于推导的简化说明。</strong>上面的推导给出了代理目标的形式和直觉，过程比较简洁。TRPO原论文（Schulman et al., 2015）中真正复杂的部分不在于推导这个目标函数，而在于<strong>证明</strong>：在信任区域约束下，最大化代理目标能保证策略的真实性能单调改进。这个证明需要用到Kakade &amp; Langford（2002）的策略性能差分引理、全变差距离与KL散度之间的Pinsker不等式等工具，推导链条很长。另一个复杂之处在于TRPO的<strong>实现</strong>——如何高效求解带KL约束的优化问题（下文将讨论）。本书略去了理论证明，但代理目标的推导本身是完整的。
+            </div>
+
+            <p>逐项理解这个公式：</p>
+            <ul>
+                <li>$\hat{A}_t$ 是在旧策略下估计的优势：衡量动作 $A_t$ 比该状态的平均水平好多少（$\hat{A}_t > 0$）或差多少（$\hat{A}_t < 0$）。</li>
+                <li>$r_t(\theta)$ 是概率比率：衡量新策略对动作 $A_t$ 的偏好相比旧策略变化了多少。</li>
+                <li>乘积 $r_t \cdot \hat{A}_t$ 的含义：一个好动作（$\hat{A}_t > 0$）的概率在新策略中增大了（$r_t > 1$），乘积为正，对目标有正贡献；一个差动作的概率被降低了，乘积同样为正。</li>
+                <li>期望 $\mathbb{E}_t[\cdot]$ 是对旧策略收集的所有时间步取平均。</li>
+            </ul>
+
+            <p>最大化 $L^{\text{TRPO}}(\theta)$ 会让新策略尽可能强化好的动作、弱化差的动作。但如果不加约束，$r_t$ 可以任意偏离 $1$，代理目标对真实性能的近似就不再准确（因为上述推导依赖"策略足够接近"的近似），更新可能适得其反。</p>
+
+            <h3>TRPO的约束优化</h3>
+
+            <p>TRPO通过添加KL散度约束来限制策略变化：</p>
+
+            <div class="formula-block">
+            $$\max_\theta \;\; \mathbb{E}_{t}\!\left[r_t(\theta) \cdot \hat{A}_t\right] \quad \text{s.t.} \quad \mathbb{E}_{t}\!\left[\text{KL}\big(\pi_{\theta_{\text{old}}}(\cdot|S_t) \| \pi_\theta(\cdot|S_t)\big)\right] \leq \delta \tag{5.2-9}$$
+            </div>
+
+            <p>式(5.2-7)中，目标项和约束项的 $\mathbb{E}_t$ 含义相同——都是对采集到的这批数据中所有时间步取平均。约束项在每个时间步 $t$ 计算状态 $S_t$ 处新旧策略的KL散度，再取平均。整个约束的含义是：在所有满足"新旧策略的平均KL散度不超过 $\delta$"的参数 $\theta$ 中，选择使代理目标最大的那个。阈值 $\delta$ 定义了<strong>信任区域</strong>的大小——在这个区域内，代理目标是真实性能的良好近似。</p>
+
+            <p>TRPO在理论上有一个很好的性质：只要 $\delta$ 足够小，每次更新都能保证策略单调改进。但在实现上，求解这个约束优化问题并不容易。</p>
+
+            <p>困难在于：KL散度 $\text{KL}(\pi_{\theta_{\text{old}}} \| \pi_\theta)$ 是 $\theta$ 的复杂非线性函数，直接处理这个约束没有封闭形式的解。TRPO的做法是在 $\theta_{\text{old}}$ 处对KL散度做<strong>二阶泰勒展开</strong>。由于KL散度在 $\theta = \theta_{\text{old}}$ 处取到最小值零，一阶项消失，展开从二阶项开始：</p>
+
+            $$\mathbb{E}_s\!\left[\text{KL}\big(\pi_{\theta_{\text{old}}}(\cdot|s) \| \pi_\theta(\cdot|s)\big)\right] \approx \frac{1}{2}(\theta - \theta_{\text{old}})^\top \mathbf{F}\, (\theta - \theta_{\text{old}})$$
+
+            <p>其中 $\mathbf{F}$ 是<strong>Fisher信息矩阵</strong>——KL散度对 $\theta$ 的Hessian矩阵在 $\theta_{\text{old}}$ 处的值。这个近似将非线性的KL约束变成了二次约束，使问题化为一个标准的<strong>二次约束优化</strong>，其最优更新方向为 $\Delta\theta \propto \mathbf{F}^{-1}\nabla_\theta L^{\text{TRPO}}$。但 $\mathbf{F}$ 的维度等于参数数量（可能是数百万），直接求逆不可行。TRPO因此使用<strong>共轭梯度法</strong>迭代地计算 $\mathbf{F}^{-1}\nabla_\theta L^{\text{TRPO}}$（只需反复计算 $\mathbf{F}$ 与向量的乘积，而不需要显式存储 $\mathbf{F}$），再通过<strong>线搜索</strong>沿此方向确定满足约束的步长。</p>
+
+            <p>这套二阶优化流程保证了理论上的收敛性，但实现复杂、计算成本高。PyTorch等深度学习框架的自动微分只提供一阶梯度（反向传播），而TRPO额外需要Hessian-vector乘积，这需要手动实现二阶微分逻辑，无法直接用标准的 <code>loss.backward()</code> + <code>optimizer.step()</code> 流程完成。</p>
+
+            <div class="note">
+                <strong>历史脉络</strong>：在TRPO之前，Kakade（2001）提出的<strong>自然策略梯度</strong>已经注意到应当在策略分布空间（而非参数空间）中度量步长，但其步长仍是固定超参数。TRPO的贡献在于将步长控制升级为硬约束，并给出了完整的求解算法。PPO（下文）则是TRPO的实用化简化。
+            </div>
+
+            <!-- ==================== PPO ==================== -->
+            <h2>PPO：用裁剪替代约束</h2>
+
+            <p><strong>PPO</strong>（Proximal Policy Optimization，Schulman et al., 2017）的核心观察是：TRPO的KL约束虽然有效，但实现代价太大（共轭梯度、线搜索、Fisher矩阵近似）。能否用更简单的方式达到类似效果？</p>
+
+            <p>PPO的答案是：不去显式约束KL散度，而是直接在目标函数中<strong>裁剪概率比率 $r_t(\theta)$</strong>，使其不能偏离 $1$ 太远。这样，即使用标准的一阶梯度优化器（如Adam），策略更新的幅度也会被自动限制。</p>
+
+            <h3>PPO-Clip目标函数</h3>
+
+            <div class="formula-block">
+            $$L^{\text{CLIP}}(\theta) = \mathbb{E}_t\!\left[\min\!\Big(r_t(\theta)\, \hat{A}_t,\;\; \text{clip}\big(r_t(\theta),\; 1-\epsilon,\; 1+\epsilon\big)\, \hat{A}_t\Big)\right] \tag{5.2-10}$$
+            </div>
+
+            <p>其中 $\epsilon$ 是裁剪参数，通常取 $0.1 \sim 0.2$。$\text{clip}(r, 1-\epsilon, 1+\epsilon)$ 将比率限制在 $[1-\epsilon, 1+\epsilon]$ 范围内。公式中 $\min$ 的作用是取两项中<strong>更保守</strong>的那个：</p>
+
+            <ul>
+                <li><strong>当 $\hat{A}_t > 0$（好动作）</strong>：我们希望增大 $r_t$（增大好动作的概率）。未裁剪项 $r_t \hat{A}_t$ 随 $r_t$ 线性增长。但裁剪项在 $r_t > 1+\epsilon$ 后变成常数 $(1+\epsilon)\hat{A}_t$。$\min$ 取两者较小值，于是 $r_t$ 超过 $1+\epsilon$ 后梯度为零，更新停止。</li>
+                <li><strong>当 $\hat{A}_t < 0$（差动作）</strong>：我们希望减小 $r_t$（减小差动作的概率）。未裁剪项随 $r_t$ 减小而增大（因为 $\hat{A}_t < 0$）。但裁剪项在 $r_t < 1-\epsilon$ 后变成常数。同理，$r_t$ 低于 $1-\epsilon$ 后更新停止。</li>
+            </ul>
+
+            <p>PPO-Clip在不使用二阶优化的前提下，实现了类似信任区域的效果：比率 $r_t$ 被隐式地限制在 $[1-\epsilon, 1+\epsilon]$ 范围内。</p>
+
+            <p>下面的演示展示了PPO-Clip目标函数的形状。拖动 $\epsilon$ 滑块观察裁剪区域的变化；点击按钮切换 $\hat{A}_t > 0$ 和 $\hat{A}_t < 0$ 两种情况。注意蓝色实线（$L^{\text{CLIP}}$）在浅红色区域内是平坦的——梯度为零，策略不再继续向该方向更新。</p>
+
+            <div style="border:2px solid var(--border-color); border-radius:8px; padding:1.2rem; margin:1.5rem 0; background:#fafafa;">
+                <div style="font-weight:700; color:var(--accent-color); margin-bottom:0.6rem; font-size:1.05rem;">交互演示：PPO-Clip 目标函数</div>
+                <div class="rl-ctrl">
+                    <label>$\epsilon$: <input type="range" id="clip-eps" min="5" max="50" value="20" oninput="drawClipDemo()"> <span id="clip-eps-val">0.20</span></label>
+                    <button onclick="toggleAdvSign()">切换优势符号</button>
+                    <span id="clip-adv-label" style="font-size:0.88rem; color:#4a5568;">当前：好动作 ($\hat{A}_t > 0$)</span>
+                </div>
+                <div style="display:flex; justify-content:center; margin:0.8rem 0;">
+                    <canvas id="clip-demo-canvas" width="600" height="300" style="border:1px solid var(--border-color); border-radius:4px; background:white; max-width:100%;"></canvas>
+                </div>
+                <div style="background:#ebf4ff; border-radius:6px; padding:0.5rem 0.8rem; font-size:0.85rem; margin-top:0.5rem; line-height:1.7;" id="clip-explain">
+                </div>
+            </div>
+            <div class="fig-caption">图 5.2-5 &nbsp; PPO-Clip目标函数的交互演示。蓝色实线为 $L^{\text{CLIP}}$，灰色虚线为未裁剪的 $r_t \hat{A}_t$。浅蓝色为信任区域 $[1-\epsilon, 1+\epsilon]$，浅红色为裁剪生效区域（梯度为零）。</div>
+
+            <!-- ==================== PPO 算法 ==================== -->
+            <h2>PPO-Clip算法</h2>
+
+            <div class="algo-box">
+                <div class="algo-title">PPO-Clip 算法</div>
+                <ol>
+                    <li>初始化策略参数 $\theta$（Actor）和值函数参数 $\phi$（Critic）</li>
+                    <li>对每次迭代：
+                        <ol type="a">
+                            <li>用当前策略 $\pi_{\theta_{\text{old}}}$ 收集一批轨迹数据</li>
+                            <li>对每条轨迹中的每步，计算优势估计 $\hat{A}_t$（使用GAE，见下文）</li>
+                            <li>对收集到的数据进行 $K$ 轮小批量梯度更新（每轮称为一个 epoch，即将这批数据完整扫一遍；$K$ 个 epoch 意味着每条样本被用于更新 $K$ 次）：
+                                <ol type="i">
+                                    <li>计算 $r_t(\theta) = \pi_\theta(A_t \mid S_t) / \pi_{\theta_{\text{old}}}(A_t \mid S_t)$</li>
+                                    <li>计算裁剪目标 $L^{\text{CLIP}}(\theta)$（式(5.2-10)）</li>
+                                    <li>更新Actor：$\theta \leftarrow \theta + \alpha_\theta \nabla_\theta L^{\text{CLIP}}(\theta)$</li>
+                                    <li>更新Critic：最小化 $\bigl(V_\phi(S_t) - \hat{G}_t\bigr)^2$</li>
+                                </ol>
+                            </li>
+                            <li>令 $\theta_{\text{old}} \leftarrow \theta$</li>
+                        </ol>
+                    </li>
+                </ol>
+                <div class="algo-note">PPO对同一批数据进行多轮更新（通常 $K=3 \sim 10$），大幅提高了数据利用率。裁剪机制保证即使多轮更新，策略也不会偏离太远。</div>
+            </div>
+
+            <!-- ==================== 为什么PPO是默认选择 ==================== -->
+            <h2>为什么PPO是默认选择</h2>
+
+            <p>PPO自2017年提出以来，迅速成为应用最广泛的策略优化算法。核心优势在于：</p>
+
+            <ul>
+                <li><strong>实现简洁</strong>。相比TRPO需要共轭梯度法和线搜索，PPO只需在标准随机梯度上升中加入一个裁剪操作。</li>
+                <li><strong>训练稳定</strong>。裁剪机制提供了隐式的信任区域。超参数（$\epsilon$、$K$、$\lambda$）在大部分任务中使用默认值就能取得不错效果。</li>
+                <li><strong>数据效率</strong>。通过重要性采样和多轮更新，PPO可以对一批数据进行多次利用，比纯 on-policy 方法高效得多。</li>
+                <li><strong>适用范围广</strong>。离散和连续动作空间都适用，在Atari游戏、机器人控制、大语言模型对齐（RLHF）以及各种管理科学场景中都有成功应用。</li>
+            </ul>
+
+            <!-- ==================== 小结 ==================== -->
+            <h2>小结</h2>
+
+            <p>本节从第3.3.3节的Actor-Critic出发，识别了深度网络策略训练的步长问题，引入KL散度作为策略变化的度量，介绍了TRPO的信任区域约束优化，最终推导了PPO-Clip算法。下表对比DQN与PPO两类深度强化学习方法：</p>
+
+            <table class="trans-table" style="width:100%;">
+                <thead>
+                    <tr><th>比较维度</th><th>DQN（5.1节）</th><th>PPO（本节）</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>学习对象</td><td>$Q_\theta(s,a)$</td><td>$\pi_\theta$（Actor）+ $V_\phi$（Critic）</td></tr>
+                    <tr><td>策略导出方式</td><td>$\arg\max_a Q_\theta(s,a)$</td><td>直接从 $\pi_\theta$ 采样</td></tr>
+                    <tr><td>动作空间</td><td>离散</td><td>离散或连续</td></tr>
+                    <tr><td>更新方式</td><td>最小化TD误差</td><td>最大化裁剪代理目标 + 最小化值函数损失</td></tr>
+                    <tr><td>数据利用</td><td>off-policy（经验回放）</td><td>多轮复用同批数据（介于on/off之间）</td></tr>
+                    <tr><td>核心技巧</td><td>经验回放 + 目标网络</td><td>PPO-Clip + GAE</td></tr>
+                    <tr><td>典型应用</td><td>离散决策（Atari、库存管理）</td><td>通用首选（机器人、RLHF、调度、定价）</td></tr>
+                </tbody>
+            </table>
+
+            <div class="result-box">
+                <strong>核心要点：</strong>PPO在Actor-Critic的基础上，通过裁剪概率比率来隐式限制策略更新幅度，实现了类似TRPO信任区域的效果，但只需一阶优化器即可实现。它是目前最常用的策略优化算法。
+            </div>
+
+            <div class="chapter-nav">
+                <a href="../ch05/5.2.html">&larr; 5.2 Policy Gradient与PPO</a>
+                <a href="../ch05/5.2.2.html">5.2.2 连续动作空间与重参数化技巧 &rarr;</a>
+            </div>
+        </main>
+    </div>
+
+    <!-- ==================== KL散度演示 JS ==================== -->
+    <script>
+    (function(){
+        'use strict';
+        var P1 = 0.6; // fixed p
+
+        window.drawKLDemo = function() {
+            var q1 = parseInt(document.getElementById('kl-q1').value) / 100;
+            document.getElementById('kl-q1-val').textContent = q1.toFixed(2);
+
+            // Compute KL
+            var kl = 0;
+            if (q1 > 0.001 && q1 < 0.999) {
+                kl = P1 * Math.log(P1 / q1) + (1 - P1) * Math.log((1 - P1) / (1 - q1));
+            } else {
+                kl = 99;
+            }
+            document.getElementById('kl-val-display').textContent = 'KL(p\u2016q) = ' + (kl > 10 ? '\u221E' : kl.toFixed(3));
+
+            var cvs = document.getElementById('kl-demo-canvas');
+            var dpr = window.devicePixelRatio || 1;
+            var W = 500, H = 200;
+            cvs.width = W * dpr; cvs.height = H * dpr;
+            cvs.style.width = W + 'px'; cvs.style.height = H + 'px';
+            var ctx = cvs.getContext('2d');
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, W, H);
+
+            // Left: bar chart
+            var bx = 30, by = 20, bw = 160, bh = 150;
+            ctx.fillStyle = '#1a365d'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('p vs q', bx + bw/2, by);
+
+            var barW = 30, gap = 20;
+            var labels = ['正面', '反面'];
+            var pVals = [P1, 1-P1];
+            var qVals = [q1, 1-q1];
+
+            ctx.strokeStyle = '#4a5568'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(bx, by + 12); ctx.lineTo(bx, by + bh); ctx.lineTo(bx + bw, by + bh); ctx.stroke();
+
+            for (var i = 0; i < 2; i++) {
+                var cx = bx + 25 + i * 75;
+                // p bar (blue)
+                var hp = pVals[i] * (bh - 20);
+                ctx.fillStyle = '#2b6cb0';
+                ctx.fillRect(cx, by + bh - hp, barW, hp);
+                // q bar (orange)
+                var hq = qVals[i] * (bh - 20);
+                ctx.fillStyle = '#d69e2e';
+                ctx.fillRect(cx + barW + 3, by + bh - hq, barW, hq);
+                // label
+                ctx.fillStyle = '#4a5568'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+                ctx.fillText(labels[i], cx + barW + 1, by + bh + 14);
+            }
+            // Legend
+            ctx.fillStyle = '#2b6cb0'; ctx.fillRect(bx + 5, by + bh + 22, 10, 8);
+            ctx.fillStyle = '#4a5568'; ctx.font = '10px sans-serif'; ctx.textAlign = 'left';
+            ctx.fillText('p (0.60)', bx + 18, by + bh + 30);
+            ctx.fillStyle = '#d69e2e'; ctx.fillRect(bx + 85, by + bh + 22, 10, 8);
+            ctx.fillStyle = '#4a5568';
+            ctx.fillText('q (' + q1.toFixed(2) + ')', bx + 98, by + bh + 30);
+
+            // Right: KL curve
+            var rx = 230, ry = 20, rw = 250, rh = 150;
+            ctx.fillStyle = '#1a365d'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('KL(p\u2016q) vs q\u2081', rx + rw/2, ry);
+
+            var padL = 40, padB = 25, padT = 15;
+            var plotW = rw - padL - 10, plotH = rh - padB - padT;
+            var ox = rx + padL, oy = ry + padT;
+
+            ctx.strokeStyle = '#4a5568'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox, oy + plotH); ctx.lineTo(ox + plotW, oy + plotH); ctx.stroke();
+
+            // Axes
+            ctx.fillStyle = '#718096'; ctx.font = '9px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('0', ox, oy + plotH + 12);
+            ctx.fillText('0.5', ox + plotW * 0.5, oy + plotH + 12);
+            ctx.fillText('1', ox + plotW, oy + plotH + 12);
+            ctx.fillText('q\u2081', ox + plotW / 2, oy + plotH + 22);
+            ctx.textAlign = 'right';
+            var klMax = 3;
+            ctx.fillText('0', ox - 3, oy + plotH + 3);
+            ctx.fillText(klMax.toFixed(0), ox - 3, oy + 3);
+
+            // Draw KL curve
+            ctx.strokeStyle = '#2b6cb0'; ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (var px = 0; px <= plotW; px++) {
+                var qq = 0.01 + (px / plotW) * 0.98;
+                var klv = P1 * Math.log(P1 / qq) + (1 - P1) * Math.log((1 - P1) / (1 - qq));
+                klv = Math.min(klv, klMax);
+                var yy = oy + plotH * (1 - klv / klMax);
+                if (px === 0) ctx.moveTo(ox + px, yy); else ctx.lineTo(ox + px, yy);
+            }
+            ctx.stroke();
+
+            // Current point
+            var curX = ox + ((q1 - 0.01) / 0.98) * plotW;
+            var curKL = Math.min(kl, klMax);
+            var curY = oy + plotH * (1 - curKL / klMax);
+            ctx.fillStyle = '#c53030';
+            ctx.beginPath(); ctx.arc(curX, curY, 5, 0, 2 * Math.PI); ctx.fill();
+            ctx.fillStyle = '#c53030'; ctx.font = '10px sans-serif'; ctx.textAlign = 'left';
+            ctx.fillText(kl > 10 ? '\u221E' : kl.toFixed(3), curX + 7, curY - 3);
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', drawKLDemo);
+        } else { drawKLDemo(); }
+    })();
+    </script>
+
+    <!-- ==================== PPO-Clip 交互演示 JS ==================== -->
+    <script>
+    (function(){
+        'use strict';
+        var advPositive = true;
+
+        window.toggleAdvSign = function() {
+            advPositive = !advPositive;
+            var label = document.getElementById('clip-adv-label');
+            label.innerHTML = advPositive ? '当前：好动作 ($\\hat{A}_t > 0$)' : '当前：差动作 ($\\hat{A}_t < 0$)';
+            if (window.renderMathInElement) {
+                renderMathInElement(label, {delimiters: [{left:'$',right:'$',display:false}]});
+            }
+            drawClipDemo();
+        };
+
+        window.drawClipDemo = function() {
+            var eps = parseInt(document.getElementById('clip-eps').value) / 100;
+            document.getElementById('clip-eps-val').textContent = eps.toFixed(2);
+
+            var cvs = document.getElementById('clip-demo-canvas');
+            var dpr = window.devicePixelRatio || 1;
+            var W = 600, H = 300;
+            cvs.width = W * dpr; cvs.height = H * dpr;
+            cvs.style.width = W + 'px'; cvs.style.height = H + 'px';
+            var ctx = cvs.getContext('2d');
+            ctx.scale(dpr, dpr);
+
+            var padL = 50, padR = 30, padT = 30, padB = 45;
+            var plotW = W - padL - padR, plotH = H - padT - padB;
+
+            ctx.clearRect(0, 0, W, H);
+
+            // Title
+            ctx.fillStyle = '#1a365d'; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText(advPositive ? '好动作 (A\u0302>0)：鼓励增大概率' : '差动作 (A\u0302<0)：鼓励减小概率', W/2, 18);
+
+            var A = advPositive ? 1.0 : -1.0;
+            var rMin = 0, rMax = 2.5;
+
+            function xPos(r) { return padL + ((r - rMin) / (rMax - rMin)) * plotW; }
+
+            // y range
+            var yMax = Math.abs(A) * 2.8, yMin = -yMax;
+            function yPos(v) { return padT + (1 - (v - yMin) / (yMax - yMin)) * plotH; }
+
+            // Axes
+            ctx.strokeStyle = '#4a5568'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + plotH); ctx.lineTo(padL + plotW, padT + plotH); ctx.stroke();
+
+            // Clip region shading (red = gradient is zero)
+            ctx.fillStyle = 'rgba(252,129,129,0.15)';
+            if (A > 0) {
+                ctx.fillRect(xPos(1 + eps), padT, xPos(rMax) - xPos(1 + eps), plotH);
+            } else {
+                ctx.fillRect(xPos(rMin), padT, xPos(1 - eps) - xPos(rMin), plotH);
+            }
+
+            // Trust region shading [1-eps, 1+eps] (blue = normal gradient)
+            ctx.fillStyle = 'rgba(219,234,254,0.4)';
+            ctx.fillRect(xPos(1 - eps), padT, xPos(1 + eps) - xPos(1 - eps), plotH);
+
+            // Zero line
+            if (yMin < 0 && yMax > 0) {
+                ctx.strokeStyle = '#cbd5e0'; ctx.lineWidth = 0.5;
+                ctx.beginPath(); ctx.moveTo(padL, yPos(0)); ctx.lineTo(padL + plotW, yPos(0)); ctx.stroke();
+            }
+
+            // Vertical guides: 1-eps, 1, 1+eps
+            ctx.strokeStyle = '#cbd5e0'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+            [1-eps, 1, 1+eps].forEach(function(v) {
+                if (v >= rMin && v <= rMax) {
+                    ctx.beginPath(); ctx.moveTo(xPos(v), padT); ctx.lineTo(xPos(v), padT + plotH); ctx.stroke();
+                }
+            });
+            ctx.setLineDash([]);
+
+            // X axis labels
+            ctx.fillStyle = '#718096'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('1-\u03B5=' + (1-eps).toFixed(2), xPos(1-eps), padT + plotH + 16);
+            ctx.fillText('1', xPos(1), padT + plotH + 16);
+            ctx.fillText('1+\u03B5=' + (1+eps).toFixed(2), xPos(1+eps), padT + plotH + 16);
+            ctx.fillStyle = '#4a5568'; ctx.font = '12px sans-serif';
+            ctx.fillText('概率比率 r\u209C(\u03B8) = \u03C0\u03B8 / \u03C0old', padL + plotW/2, padT + plotH + 38);
+
+            // Y axis label
+            ctx.save(); ctx.translate(14, padT + plotH/2); ctx.rotate(-Math.PI/2);
+            ctx.fillStyle = '#4a5568'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('目标函数值', 0, 0); ctx.restore();
+
+            // Y axis ticks
+            ctx.fillStyle = '#718096'; ctx.font = '10px sans-serif'; ctx.textAlign = 'right';
+            var yStep = yMax / 2;
+            for (var v = yMin; v <= yMax + 0.01; v += yStep) {
+                var y = yPos(v);
+                if (y >= padT - 2 && y <= padT + plotH + 2) ctx.fillText(v.toFixed(1), padL - 5, y + 3);
+            }
+
+            // rA line (dashed)
+            ctx.strokeStyle = '#a0aec0'; ctx.lineWidth = 1.5; ctx.setLineDash([5,3]);
+            ctx.beginPath();
+            for (var px = 0; px <= plotW; px += 2) {
+                var r = rMin + (px / plotW) * (rMax - rMin);
+                var y = r * A;
+                var sy = yPos(y);
+                if (sy < padT - 10 || sy > padT + plotH + 10) { ctx.moveTo(padL + px, Math.max(padT, Math.min(padT+plotH, sy))); continue; }
+                if (px === 0) ctx.moveTo(padL + px, sy); else ctx.lineTo(padL + px, sy);
+            }
+            ctx.stroke(); ctx.setLineDash([]);
+            // rA label - positioned at the end of the dashed line
+            ctx.fillStyle = '#a0aec0'; ctx.font = '12px sans-serif'; ctx.textAlign = 'left';
+            var rAEndY = yPos(rMax * A);
+            rAEndY = Math.max(padT + 12, Math.min(padT + plotH - 5, rAEndY));
+            ctx.fillText('r\u00B7A\u0302 (未裁剪)', padL + plotW - 90, rAEndY - 8);
+
+            // PPO-Clip line (solid blue)
+            ctx.strokeStyle = '#2b6cb0'; ctx.lineWidth = 3;
+            ctx.beginPath();
+            var started = false;
+            for (var px = 0; px <= plotW; px += 1) {
+                var r = rMin + (px / plotW) * (rMax - rMin);
+                var rC = Math.max(1 - eps, Math.min(1 + eps, r));
+                var val = Math.min(r * A, rC * A);
+                var sy = yPos(val);
+                if (sy < padT - 10 || sy > padT + plotH + 10) { started = false; continue; }
+                sy = Math.max(padT, Math.min(padT+plotH, sy));
+                if (!started) { ctx.moveTo(padL + px, sy); started = true; }
+                else ctx.lineTo(padL + px, sy);
+            }
+            ctx.stroke();
+
+            // Legend box (top-left, away from data)
+            var lgX = padL + 8, lgY = padT + 6;
+            ctx.fillStyle = '#2b6cb0'; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(lgX, lgY + 4); ctx.lineTo(lgX + 20, lgY + 4); ctx.stroke();
+            ctx.fillStyle = '#1a365d'; ctx.font = '12px sans-serif'; ctx.textAlign = 'left';
+            ctx.fillText('PPO-Clip', lgX + 24, lgY + 8);
+            ctx.strokeStyle = '#a0aec0'; ctx.lineWidth = 1.5; ctx.setLineDash([5,3]);
+            ctx.beginPath(); ctx.moveTo(lgX, lgY + 20); ctx.lineTo(lgX + 20, lgY + 20); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = '#718096'; ctx.font = '12px sans-serif';
+            ctx.fillText('r\u00B7A\u0302 (未裁剪)', lgX + 24, lgY + 24);
+
+            // Region labels
+            if (A > 0) {
+                var clipCenterX = (xPos(1 + eps) + xPos(rMax)) / 2;
+                ctx.fillStyle = '#c53030'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+                ctx.fillText('裁剪区 (梯度=0)', clipCenterX, padT + plotH - 10);
+                ctx.fillStyle = '#2b6cb0'; ctx.font = '12px sans-serif';
+                ctx.fillText('正常更新区', (xPos(1 - eps) + xPos(1 + eps)) / 2, padT + plotH - 10);
+            } else {
+                var clipCenterX = (xPos(rMin) + xPos(1 - eps)) / 2;
+                ctx.fillStyle = '#c53030'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+                ctx.fillText('裁剪区 (梯度=0)', clipCenterX, padT + plotH - 10);
+                ctx.fillStyle = '#2b6cb0'; ctx.font = '12px sans-serif';
+                ctx.fillText('正常更新区', (xPos(1 - eps) + xPos(1 + eps)) / 2, padT + plotH - 10);
+            }
+
+            // Update explanation panel
+            var el = document.getElementById('clip-explain');
+            if (A > 0) {
+                el.innerHTML = '<strong>解读</strong>：当 $\\hat{A}_t > 0$（动作比平均好），我们希望增大它的概率（$r_t$ 增大）。在信任区域 $[1-\\epsilon, 1+\\epsilon]$ 内，目标函数正常增长。一旦 $r_t > 1+\\epsilon$（浅红色区域），裁剪使目标函数变平，梯度为零，阻止策略继续偏离。';
+            } else {
+                el.innerHTML = '<strong>解读</strong>：当 $\\hat{A}_t < 0$（动作比平均差），我们希望减小它的概率（$r_t$ 减小）。在信任区域内，目标函数正常增长。一旦 $r_t < 1-\\epsilon$（浅红色区域），裁剪使目标函数变平，阻止策略继续偏离。';
+            }
+            if (window.renderMathInElement) {
+                renderMathInElement(el, {delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+            }
+        };
+
+        // Initial draw after DOM ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function(){ drawClipDemo(); });
+        } else { drawClipDemo(); }
+    })();
+    </script>
+
+    <script>
+    (function(){
+        'use strict';
+        // trust region comparison demo removed
+        return; // skip all code below
+        var cvs, ctx, W = 580, H = 280;
+        var dpr = window.devicePixelRatio || 1;
+        var history = { vanilla: [], trpo: [], ppo: [] };
+        var theta = { vanilla: 0, trpo: 0, ppo: 0 };
+        var step = 0;
+        var autoTimer = null;
+
+        // True advantage: action 0 is better (A=1)
+        var TRUE_A = 3.0; // Larger advantage makes differences more visible
+
+        function sigmoid(x) { return 1 / (1 + Math.exp(-x)); }
+
+        function policyProb(th) { return sigmoid(th); }  // pi(a0) = sigmoid(theta)
+
+        function klDiv(p, q) {
+            p = Math.max(1e-8, Math.min(1-1e-8, p));
+            q = Math.max(1e-8, Math.min(1-1e-8, q));
+            return p * Math.log(p/q) + (1-p) * Math.log((1-p)/(1-q));
+        }
+
+        function reset() {
+            theta = { vanilla: 0, trpo: 0, ppo: 0 };
+            history = { vanilla: [{p:0.5, kl:0}], trpo: [{p:0.5, kl:0}], ppo: [{p:0.5, kl:0}] };
+            step = 0;
+            if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+            draw();
+        }
+
+        function doStep() {
+            var lr = parseInt(document.getElementById('trust-lr').value) / 100;
+            var eps = 0.2;
+            var klMax = 0.02;
+
+            // --- Vanilla PG ---
+            var pV = policyProb(theta.vanilla);
+            var gradV = pV * (1 - pV) * 2 * TRUE_A;
+            theta.vanilla += lr * gradV;
+            var newPV = policyProb(theta.vanilla);
+            history.vanilla.push({ p: newPV, kl: klDiv(pV, newPV) });
+
+            // --- TRPO ---
+            var pT = policyProb(theta.trpo);
+            var gradT = pT * (1 - pT) * 2 * TRUE_A;
+            var stepSize = lr;
+            for (var i = 0; i < 20; i++) {
+                var newTh = theta.trpo + stepSize * gradT;
+                var newP = policyProb(newTh);
+                if (klDiv(pT, newP) <= klMax) break;
+                stepSize *= 0.7;
+            }
+            theta.trpo += stepSize * gradT;
+            var newPT = policyProb(theta.trpo);
+            history.trpo.push({ p: newPT, kl: klDiv(pT, newPT) });
+
+            // --- PPO ---
+            var pP = policyProb(theta.ppo);
+            var gradP = pP * (1 - pP) * 2 * TRUE_A;
+            var newThCandidate = theta.ppo + lr * gradP;
+            var newPP = policyProb(newThCandidate);
+            var ratio = newPP / Math.max(pP, 1e-8);
+            if (ratio > 1 + eps) {
+                var target = pP * (1 + eps);
+                target = Math.min(target, 1 - 1e-8);
+                theta.ppo = Math.log(target / (1 - target));
+            } else {
+                theta.ppo = newThCandidate;
+            }
+            newPP = policyProb(theta.ppo);
+            history.ppo.push({ p: newPP, kl: klDiv(pP, newPP) });
+
+            step++;
+            draw();
+        }
+
+        function draw() {
+            if (!cvs) return;
+            cvs.width = W * dpr; cvs.height = H * dpr;
+            cvs.style.width = W + 'px'; cvs.style.height = H + 'px';
+            ctx = cvs.getContext('2d');
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, W, H);
+
+            var midX = W / 2;
+            drawPolicy(10, 15, midX - 25, H - 50);
+            drawKL(midX + 15, 15, midX - 40, H - 50);
+        }
+
+        function drawPolicy(ox, oy, pw, ph) {
+            ctx.fillStyle = '#1a365d'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('\u03C0(a\u2080) 的演化', ox + pw/2, oy);
+
+            var padL = 40, padB = 25, padT = 15;
+            var plotW = pw - padL - 5, plotH = ph - padB - padT;
+            var baseX = ox + padL, baseY = oy + padT;
+
+            ctx.strokeStyle = '#4a5568'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(baseX, baseY); ctx.lineTo(baseX, baseY + plotH); ctx.lineTo(baseX + plotW, baseY + plotH); ctx.stroke();
+
+            ctx.fillStyle = '#718096'; ctx.font = '10px sans-serif'; ctx.textAlign = 'right';
+            [0, 0.25, 0.5, 0.75, 1.0].forEach(function(v) {
+                var y = baseY + plotH * (1 - v);
+                ctx.fillText(v.toFixed(2), baseX - 3, y + 3);
+                ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 0.5;
+                ctx.beginPath(); ctx.moveTo(baseX, y); ctx.lineTo(baseX + plotW, y); ctx.stroke();
+            });
+
+            ctx.fillStyle = '#718096'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('步数', baseX + plotW/2, baseY + plotH + 20);
+
+            var n = Math.max(history.vanilla.length, 2);
+            var maxN = Math.max(n, 30);
+
+            var colors = { vanilla: '#a0aec0', trpo: '#805ad5', ppo: '#2b6cb0' };
+            var labels = { vanilla: '固定步长', trpo: 'TRPO', ppo: 'PPO' };
+
+            ['vanilla', 'trpo', 'ppo'].forEach(function(key) {
+                var data = history[key];
+                ctx.strokeStyle = colors[key]; ctx.lineWidth = 2;
+                ctx.beginPath();
+                for (var i = 0; i < data.length; i++) {
+                    var x = baseX + (i / (maxN - 1)) * plotW;
+                    var y = baseY + plotH * (1 - data[i].p);
+                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            });
+
+            var lx = baseX + 5, ly = baseY + 8;
+            ['vanilla', 'trpo', 'ppo'].forEach(function(key, idx) {
+                ctx.fillStyle = colors[key];
+                ctx.fillRect(lx, ly + idx * 16, 14, 3);
+                ctx.fillStyle = '#4a5568'; ctx.font = '10px sans-serif'; ctx.textAlign = 'left';
+                ctx.fillText(labels[key], lx + 18, ly + idx * 16 + 5);
+            });
+        }
+
+        function drawKL(ox, oy, pw, ph) {
+            ctx.fillStyle = '#1a365d'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('每步 KL 散度', ox + pw/2, oy);
+
+            var padL = 45, padB = 25, padT = 15;
+            var plotW = pw - padL - 5, plotH = ph - padB - padT;
+            var baseX = ox + padL, baseY = oy + padT;
+
+            ctx.strokeStyle = '#4a5568'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(baseX, baseY); ctx.lineTo(baseX, baseY + plotH); ctx.lineTo(baseX + plotW, baseY + plotH); ctx.stroke();
+
+            var maxKL = 0.01;
+            ['vanilla', 'trpo', 'ppo'].forEach(function(key) {
+                history[key].forEach(function(d) { if (d.kl > maxKL) maxKL = d.kl; });
+            });
+            maxKL *= 1.2;
+
+            ctx.fillStyle = '#718096'; ctx.font = '10px sans-serif'; ctx.textAlign = 'right';
+            for (var v = 0; v <= maxKL + 0.001; v += maxKL / 4) {
+                var y = baseY + plotH * (1 - v / maxKL);
+                ctx.fillText(v.toFixed(3), baseX - 3, y + 3);
+            }
+
+            ctx.fillStyle = '#718096'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('步数', baseX + plotW/2, baseY + plotH + 20);
+
+            var n = Math.max(history.vanilla.length, 2);
+            var maxN = Math.max(n, 30);
+            var colors = { vanilla: '#a0aec0', trpo: '#805ad5', ppo: '#2b6cb0' };
+
+            ['vanilla', 'trpo', 'ppo'].forEach(function(key) {
+                var data = history[key];
+                ctx.fillStyle = colors[key];
+                for (var i = 1; i < data.length; i++) {
+                    var x = baseX + (i / (maxN - 1)) * plotW;
+                    var barH = (data[i].kl / maxKL) * plotH;
+                    ctx.globalAlpha = 0.6;
+                    ctx.fillRect(x - 2, baseY + plotH - barH, 4, barH);
+                }
+                ctx.globalAlpha = 1.0;
+            });
+
+            // TRPO constraint line
+            ctx.strokeStyle = '#805ad5'; ctx.lineWidth = 1; ctx.setLineDash([4,3]);
+            var constraintY = baseY + plotH * (1 - 0.02 / maxKL);
+            if (constraintY >= baseY && constraintY <= baseY + plotH) {
+                ctx.beginPath(); ctx.moveTo(baseX, constraintY); ctx.lineTo(baseX + plotW, constraintY); ctx.stroke();
+                ctx.fillStyle = '#805ad5'; ctx.font = '9px sans-serif'; ctx.textAlign = 'left';
+                ctx.fillText('\u03B4=0.02', baseX + plotW - 40, constraintY - 3);
+            }
+            ctx.setLineDash([]);
+        }
+
+        window.trustStep = doStep;
+        window.trustAuto = function() {
+            if (autoTimer) { clearInterval(autoTimer); autoTimer = null; return; }
+            autoTimer = setInterval(function() {
+                doStep();
+                if (step >= 50) { clearInterval(autoTimer); autoTimer = null; }
+            }, 150);
+        };
+        window.trustReset = reset;
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                cvs = document.getElementById('trust-canvas');
+                reset();
+            });
+        } else {
+            cvs = document.getElementById('trust-canvas');
+            reset();
+        }
+    })();
+    </script>
+    <!-- Critic 网络现在用 SVG+CSS 动画，不需要 JS -->
+    <script>
+    (function(){
+      var canvas = document.getElementById('critic-net-canvas');
+      if (!canvas) return; // canvas removed, skip all
+      var W = 560, H = 260;
+      var dpr = window.devicePixelRatio || 1;
+      canvas.width = W * dpr; canvas.height = H * dpr;
+      canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+      var ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+
+      var states = [
+        {name: '', features: [0.7, 0.2, 0.9, 0.4], V: 48.6}
+      ];
+      var currentState = 0;
+      var inputLabels = ['s\u2081', 's\u2082', 's\u2083', 's\u2084'];
+      var layerLabels = ['输入层 (状态)', '隐藏层', '输出层'];
+      var layerX = [100, 280, 460];
+      var nodeR = 14, topMargin = 48;
+      var inputY = [], hiddenY = [], outputY = [];
+
+      function computePositions() {
+        var usableH = H - topMargin - 30;
+        inputY = []; for (var i = 0; i < 4; i++) inputY.push(topMargin + (usableH / 3) * i);
+        hiddenY = []; for (var i = 0; i < 6; i++) hiddenY.push(topMargin + (usableH / 5) * i);
+        outputY = [topMargin + usableH / 2];
+      }
+      computePositions();
+
+      var animPhase = 0, animProgress = 0, animTimer = null, showResult = false;
+
+      function lerp(a, b, t) { return a + (b - a) * t; }
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+        var st = states[currentState];
+        ctx.font = '13px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillStyle = '#4a5568';
+        for (var l = 0; l < 3; l++) ctx.fillText(layerLabels[l], layerX[l], 6);
+
+        // Connections input->hidden
+        for (var i = 0; i < inputY.length; i++) for (var j = 0; j < hiddenY.length; j++) {
+          ctx.strokeStyle = animPhase >= 2 ? '#2b6cb0' : '#cbd5e0'; ctx.lineWidth = animPhase >= 2 ? 1.8 : 1.2;
+          ctx.beginPath(); ctx.moveTo(layerX[0]+nodeR, inputY[i]); ctx.lineTo(layerX[1]-nodeR, hiddenY[j]); ctx.stroke();
+        }
+        // Connections hidden->output
+        for (var j = 0; j < hiddenY.length; j++) {
+          ctx.strokeStyle = animPhase >= 3 ? '#2b6cb0' : '#cbd5e0'; ctx.lineWidth = animPhase >= 3 ? 1.8 : 1.2;
+          ctx.beginPath(); ctx.moveTo(layerX[1]+nodeR, hiddenY[j]); ctx.lineTo(layerX[2]-nodeR, outputY[0]); ctx.stroke();
+        }
+        // Animated signals
+        if (animPhase === 1) {
+          for (var i = 0; i < inputY.length; i++) for (var j = 0; j < hiddenY.length; j++) {
+            var x1=layerX[0]+nodeR,y1=inputY[i],x2=layerX[1]-nodeR,y2=hiddenY[j];
+            ctx.strokeStyle='#2b6cb0'; ctx.lineWidth=2; ctx.beginPath();
+            ctx.moveTo(x1,y1); ctx.lineTo(lerp(x1,x2,animProgress),lerp(y1,y2,animProgress)); ctx.stroke();
+            ctx.beginPath(); ctx.arc(lerp(x1,x2,animProgress),lerp(y1,y2,animProgress),3,0,Math.PI*2); ctx.fillStyle='#2b6cb0'; ctx.fill();
+          }
+        }
+        if (animPhase === 2) {
+          for (var j = 0; j < hiddenY.length; j++) {
+            var x1=layerX[1]+nodeR,y1=hiddenY[j],x2=layerX[2]-nodeR,y2=outputY[0];
+            ctx.strokeStyle='#2b6cb0'; ctx.lineWidth=2; ctx.beginPath();
+            ctx.moveTo(x1,y1); ctx.lineTo(lerp(x1,x2,animProgress),lerp(y1,y2,animProgress)); ctx.stroke();
+            ctx.beginPath(); ctx.arc(lerp(x1,x2,animProgress),lerp(y1,y2,animProgress),3,0,Math.PI*2); ctx.fillStyle='#2b6cb0'; ctx.fill();
+          }
+        }
+        // Input nodes
+        for (var i = 0; i < inputY.length; i++) {
+          var fill = animPhase >= 1 ? '#2b6cb0' : '#ebf4ff', tc = animPhase >= 1 ? '#fff' : '#4a5568';
+          ctx.beginPath(); ctx.arc(layerX[0], inputY[i], nodeR, 0, Math.PI*2); ctx.fillStyle=fill; ctx.fill(); ctx.strokeStyle='#4a5568'; ctx.lineWidth=1.5; ctx.stroke();
+          ctx.fillStyle=tc; ctx.font='12px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(inputLabels[i], layerX[0], inputY[i]);
+          ctx.fillStyle='#718096'; ctx.font='11px sans-serif'; ctx.textAlign='right'; ctx.fillText(st.features[i].toFixed(1), layerX[0]-nodeR-6, inputY[i]);
+        }
+        // Hidden nodes
+        for (var j = 0; j < hiddenY.length; j++) {
+          var fill = animPhase >= 2 ? '#2b6cb0' : '#fff';
+          ctx.beginPath(); ctx.arc(layerX[1], hiddenY[j], nodeR, 0, Math.PI*2); ctx.fillStyle=fill; ctx.fill(); ctx.strokeStyle='#4a5568'; ctx.lineWidth=1.5; ctx.stroke();
+          ctx.beginPath(); ctx.arc(layerX[1], hiddenY[j], 3, 0, Math.PI*2); ctx.fillStyle = animPhase >= 2 ? '#fff' : '#cbd5e0'; ctx.fill();
+        }
+        // Output node
+        var outFill = animPhase >= 3 ? '#48bb78' : '#f0fff4';
+        ctx.beginPath(); ctx.arc(layerX[2], outputY[0], nodeR+2, 0, Math.PI*2); ctx.fillStyle=outFill; ctx.fill(); ctx.strokeStyle='#4a5568'; ctx.lineWidth=1.5; ctx.stroke();
+        ctx.fillStyle = animPhase >= 3 ? '#fff' : '#4a5568'; ctx.font='bold 12px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('V(s)', layerX[2], outputY[0]);
+        // Result
+        if (showResult) {
+          var txt = 'V(s) = ' + st.V.toFixed(1);
+          ctx.font='bold 13px sans-serif'; var tw = ctx.measureText(txt).width;
+          var bx = layerX[2]-tw/2-10, by = outputY[0]+nodeR+14;
+          ctx.fillStyle='#f0fff4'; ctx.strokeStyle='#48bb78'; ctx.lineWidth=2;
+          ctx.beginPath(); ctx.roundRect(bx, by, tw+20, 28, 6); ctx.fill(); ctx.stroke();
+          ctx.fillStyle='#2d3748'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(txt, layerX[2], by+14);
+        }
+        // (state label removed — generic demo)
+      }
+
+      function animatePhase(phase, dur, cb) {
+        animPhase = phase; animProgress = 0; var start = null;
+        function step(ts) { if(!start)start=ts; animProgress=Math.min((ts-start)/dur,1); draw(); if(animProgress<1) animTimer=requestAnimationFrame(step); else if(cb) cb(); }
+        animTimer = requestAnimationFrame(step);
+      }
+
+      window.criticFwd = function() {
+        if(animTimer){cancelAnimationFrame(animTimer);animTimer=null;} animPhase=0;animProgress=0;showResult=false;draw();
+        setTimeout(function(){animatePhase(1,500,function(){setTimeout(function(){animatePhase(2,500,function(){animPhase=3;showResult=true;draw();});},250);});},100);
+      };
+      window.criticSetState = function(idx) { currentState=idx; if(animTimer){cancelAnimationFrame(animTimer);animTimer=null;} animPhase=0;animProgress=0;showResult=false;draw(); };
+
+      if (document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){draw();setTimeout(window.criticFwd,600);}); else {draw();setTimeout(window.criticFwd,600);}
+    })();
+    </script>
+
+    <!-- ==================== GAE 可视化 JS ==================== -->
+    <script>
+    (function(){
+      "use strict";
+      var DPR=window.devicePixelRatio||1, GAMMA=0.99;
+      var DELTAS=[2.1,-0.8,1.5,0.3,-1.2,2.8], N=DELTAS.length;
+      var W=560,H=300;
+      var TIMELINE_Y=105,STEP_SP=80,TL_X0=55,DELTA_BW=22,DELTA_SC=22,WT_TOP=170,WT_MAX_H=60,WT_BW=26,NR=12;
+      var animW=[],animAdv=0,tgtW=[],tgtAdv=0,af=null;
+
+      function lerp(a,b,t){return a+(b-a)*t;}
+      function lerpC(h1,h2,t){var r1=parseInt(h1.slice(1,3),16),g1=parseInt(h1.slice(3,5),16),b1=parseInt(h1.slice(5,7),16),r2=parseInt(h2.slice(1,3),16),g2=parseInt(h2.slice(3,5),16),b2=parseInt(h2.slice(5,7),16);return'rgb('+Math.round(lerp(r1,r2,t))+','+Math.round(lerp(g1,g2,t))+','+Math.round(lerp(b1,b2,t))+')';}
+      function compGAE(lam,st){var w=[],a=0;for(var l=0;l<N-st;l++){var wv=Math.pow(GAMMA*lam,l);w.push(wv);a+=wv*DELTAS[st+l];}return{w:w,a:a};}
+      function sx(i){return TL_X0+i*STEP_SP;}
+
+      function draw(){
+        var cvs=document.getElementById('gae-canvas');if(!cvs)return;
+        cvs.width=W*DPR;cvs.height=H*DPR;cvs.style.width=W+'px';cvs.style.height=H+'px';
+        var ctx=cvs.getContext('2d');ctx.setTransform(DPR,0,0,DPR,0,0);
+        var lamS=document.getElementById('gae-lambda'),stS=document.getElementById('gae-step');if(!lamS||!stS)return;
+        var lam=parseInt(lamS.value)/100,stepT=parseInt(stS.value);
+        var lv=document.getElementById('gae-lambda-val'),sv=document.getElementById('gae-step-val');
+        if(lv)lv.textContent=lam.toFixed(2);if(sv)sv.textContent=stepT;
+        var res=compGAE(lam,stepT);tgtW=res.w;tgtAdv=res.a;
+        if(animW.length!==tgtW.length){animW=tgtW.slice();animAdv=tgtAdv;}
+        var SP=0.18,need=false;
+        for(var i=0;i<tgtW.length;i++){if(animW[i]===undefined)animW[i]=0;animW[i]=lerp(animW[i],tgtW[i],SP);if(Math.abs(animW[i]-tgtW[i])>0.001)need=true;}
+        animW.length=tgtW.length;animAdv=lerp(animAdv,tgtAdv,SP);if(Math.abs(animAdv-tgtAdv)>0.005)need=true;
+        ctx.clearRect(0,0,W,H);
+        // Title
+        ctx.font='13px sans-serif';ctx.fillStyle='#4a5568';ctx.textAlign='left';ctx.textBaseline='top';
+        ctx.fillText('Â\u1D57\u1D33\u1D2C\u1D31 = \u03A3 (\u03B3\u03BB)\u02E1 \u00B7 \u03B4\u209C\u208A\u2097   (\u03B3 = '+GAMMA.toFixed(2)+')',15,6);
+        // Timeline
+        ctx.strokeStyle='#cbd5e0';ctx.lineWidth=2;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(sx(0),TIMELINE_Y);ctx.lineTo(sx(N-1),TIMELINE_Y);ctx.stroke();
+        for(var i=0;i<N;i++){var x=sx(i),d=DELTAS[i],bH=Math.abs(d)*DELTA_SC,bY=d>=0?TIMELINE_Y-bH:TIMELINE_Y;
+          ctx.fillStyle=d>=0?'#2b6cb0':'#c53030';ctx.globalAlpha=i>=stepT?0.85:0.25;
+          ctx.beginPath();ctx.roundRect(x-DELTA_BW/2,bY,DELTA_BW,bH,3);ctx.fill();ctx.globalAlpha=1;
+          ctx.font='11px sans-serif';ctx.fillStyle=i>=stepT?(d>=0?'#2b6cb0':'#c53030'):'#a0aec0';ctx.textAlign='center';ctx.textBaseline=d>=0?'bottom':'top';
+          ctx.fillText((d>=0?'+':'')+d.toFixed(1),x,d>=0?bY-3:bY+bH+3);
+          if(i===stepT){ctx.fillStyle='#fefcbf';ctx.strokeStyle='#d69e2e';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,TIMELINE_Y,NR+4,0,Math.PI*2);ctx.fill();ctx.stroke();}
+          ctx.fillStyle=i>=stepT?'#fff':'#f7fafc';ctx.strokeStyle=i>=stepT?'#2b6cb0':'#cbd5e0';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,TIMELINE_Y,NR,0,Math.PI*2);ctx.fill();ctx.stroke();
+          ctx.font='bold 10px sans-serif';ctx.fillStyle=i>=stepT?'#2b6cb0':'#a0aec0';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(i.toString(),x,TIMELINE_Y);
+          ctx.font='11px sans-serif';ctx.fillStyle='#718096';ctx.textBaseline='top';ctx.fillText('t='+i,x,TIMELINE_Y+NR+5);
+        }
+        // Weight bars
+        ctx.font='11px sans-serif';ctx.fillStyle='#4a5568';ctx.textAlign='left';ctx.textBaseline='bottom';ctx.fillText('权重 (\u03B3\u03BB)\u02E1 :',10,WT_TOP-6);
+        for(var l=0;l<animW.length;l++){var i=stepT+l;if(i>=N)break;var x=sx(i),w=animW[l],bH=Math.max(w*WT_MAX_H,2);
+          ctx.fillStyle=lerpC('#2b6cb0','#cbd5e0',1-w);
+          ctx.beginPath();ctx.roundRect(x-WT_BW/2,WT_TOP,WT_BW,bH,3);ctx.fill();
+          ctx.font='10px sans-serif';ctx.fillStyle='#718096';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(tgtW[l].toFixed(2),x,WT_TOP+bH+3);
+          ctx.font='italic 10px sans-serif';ctx.fillStyle='#4a5568';ctx.textBaseline='bottom';ctx.fillText('l='+l,x,WT_TOP-2);
+        }
+        // Result box
+        var rbX=280,rbY=255,rbW=250,rbH=30;
+        ctx.fillStyle='#f0fff4';ctx.strokeStyle='#48bb78';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(rbX,rbY,rbW,rbH,6);ctx.fill();ctx.stroke();
+        ctx.font='bold 14px sans-serif';ctx.fillStyle='#48bb78';ctx.textAlign='center';ctx.textBaseline='middle';
+        var sign=animAdv>=0?'+':'';ctx.fillText('Â\u209C\u1D33\u1D2C\u1D31 = '+sign+animAdv.toFixed(3),rbX+rbW/2,rbY+rbH/2);
+        ctx.font='12px sans-serif';ctx.fillStyle='#4a5568';ctx.textAlign='right';ctx.fillText('GAE (t='+stepT+') :',rbX-8,rbY+rbH/2);
+        if(need)af=requestAnimationFrame(draw);else af=null;
+      }
+      window.drawGAE=function(){if(af)cancelAnimationFrame(af);draw();};
+      document.addEventListener('DOMContentLoaded',function(){
+        var ls=document.getElementById('gae-lambda'),ss=document.getElementById('gae-step');
+        if(ls)ls.addEventListener('input',window.drawGAE);
+        if(ss)ss.addEventListener('input',function(){animW=[];window.drawGAE();});
+        window.drawGAE();
+      });
+    })();
+    </script>
+
+    <!-- ==================== 重要性采样演示 JS ==================== -->
+    <script>
+    (function(){
+      'use strict';
+      var W=560,H=300,NUM=18,P_MU=2,P_SD=1,Q_SD=1.2;
+      var rngS=12345;function seed(s){rngS=s;}function rnd(){rngS=(rngS*1664525+1013904223)&0xffffffff;return(rngS>>>0)/4294967296;}
+      function rndN(m,s){var u1=rnd(),u2=rnd();while(u1===0)u1=rnd();return m+s*Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2);}
+      function gPdf(x,m,s){var z=(x-m)/s;return Math.exp(-0.5*z*z)/(s*Math.sqrt(2*Math.PI));}
+      var samples=[],sSeed=42;
+      function genSamples(qm){seed(sSeed);samples=[];for(var i=0;i<NUM;i++)samples.push(rndN(qm,Q_SD));}
+
+      window.isResample=function(){sSeed=Math.floor(Math.random()*1e6);var qm=parseInt(document.getElementById('is-q-mean').value)/10;genSamples(qm);window.drawIS();};
+
+      window.drawIS=function(){
+        var qm=parseInt(document.getElementById('is-q-mean').value)/10;
+        var ql=document.getElementById('is-q-mean-val');if(ql)ql.textContent=qm.toFixed(1);
+        if(samples.length===0)genSamples(qm);
+        var wts=[],maxW=0;
+        for(var i=0;i<samples.length;i++){var px=gPdf(samples[i],P_MU,P_SD),qx=gPdf(samples[i],qm,Q_SD),w=qx<1e-10?1000:px/qx;wts.push(w);if(w>maxW)maxW=w;}
+        var sW=0,sWx=0;for(var i=0;i<samples.length;i++){sW+=wts[i];sWx+=wts[i]*samples[i];}
+        var isEst=sWx/sW;
+        var sWx2=0;for(var i=0;i<samples.length;i++)sWx2+=wts[i]*(samples[i]-isEst)*(samples[i]-isEst);
+        var isVar=sWx2/sW;
+        var sW2=0;for(var i=0;i<samples.length;i++)sW2+=wts[i]*wts[i];var ess=(sW*sW)/sW2;
+
+        var cvs=document.getElementById('is-demo-canvas'),dpr=window.devicePixelRatio||1;
+        cvs.width=W*dpr;cvs.height=H*dpr;cvs.style.width=W+'px';cvs.style.height=H+'px';
+        var ctx=cvs.getContext('2d');ctx.scale(dpr,dpr);ctx.clearRect(0,0,W,H);
+        var mL=50,mR=20,mT=12,mMid=160,mB=20,pL=mL,pR=W-mR,pW=pR-pL;
+        var xMin=-3,xMax=7;function xC(x){return pL+(x-xMin)/(xMax-xMin)*pW;}
+        var uH=mMid-mT-10,pMax=0.45;function yU(v){return mMid-10-(v/pMax)*(uH-15);}
+
+        // Axes
+        ctx.strokeStyle='#cbd5e0';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pL,mMid-10);ctx.lineTo(pR,mMid-10);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(pL,mT+5);ctx.lineTo(pL,mMid-10);ctx.stroke();
+        ctx.fillStyle='#718096';ctx.font='11px sans-serif';ctx.textAlign='center';
+        for(var t=-2;t<=6;t+=2){var tx=xC(t);ctx.beginPath();ctx.moveTo(tx,mMid-10);ctx.lineTo(tx,mMid-6);ctx.stroke();ctx.fillText(t.toString(),tx,mMid+3);}
+
+        // p(x) curve + fill
+        ctx.fillStyle='rgba(43,108,176,0.08)';ctx.beginPath();
+        for(var px=0;px<=pW;px++){var xv=xMin+(px/pW)*(xMax-xMin),pv=gPdf(xv,P_MU,P_SD),yv=yU(pv);if(px===0){ctx.moveTo(pL,mMid-10);ctx.lineTo(pL,yv);}else ctx.lineTo(pL+px,yv);}
+        ctx.lineTo(pR,mMid-10);ctx.closePath();ctx.fill();
+        ctx.strokeStyle='#2b6cb0';ctx.lineWidth=2;ctx.beginPath();
+        for(var px=0;px<=pW;px++){var xv=xMin+(px/pW)*(xMax-xMin),pv=gPdf(xv,P_MU,P_SD),yv=yU(pv);if(px===0)ctx.moveTo(pL+px,yv);else ctx.lineTo(pL+px,yv);}ctx.stroke();
+
+        // q(x) curve + fill
+        ctx.fillStyle='rgba(72,187,120,0.08)';ctx.beginPath();
+        for(var px=0;px<=pW;px++){var xv=xMin+(px/pW)*(xMax-xMin),qv=gPdf(xv,qm,Q_SD),yv=yU(qv);if(px===0){ctx.moveTo(pL,mMid-10);ctx.lineTo(pL,yv);}else ctx.lineTo(pL+px,yv);}
+        ctx.lineTo(pR,mMid-10);ctx.closePath();ctx.fill();
+        ctx.strokeStyle='#48bb78';ctx.lineWidth=2;ctx.beginPath();
+        for(var px=0;px<=pW;px++){var xv=xMin+(px/pW)*(xMax-xMin),qv=gPdf(xv,qm,Q_SD),yv=yU(qv);if(px===0)ctx.moveTo(pL+px,yv);else ctx.lineTo(pL+px,yv);}ctx.stroke();
+
+        // Legend
+        var lgX=pR-155,lgY=mT+10;
+        ctx.strokeStyle='#2b6cb0';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(lgX,lgY);ctx.lineTo(lgX+20,lgY);ctx.stroke();
+        ctx.fillStyle='#2b6cb0';ctx.font='12px sans-serif';ctx.textAlign='left';ctx.fillText('p(x) \u03bc=2',lgX+25,lgY+4);
+        ctx.strokeStyle='#48bb78';ctx.beginPath();ctx.moveTo(lgX,lgY+16);ctx.lineTo(lgX+20,lgY+16);ctx.stroke();
+        ctx.fillStyle='#48bb78';ctx.fillText('q(x) \u03bc='+qm.toFixed(1),lgX+25,lgY+20);
+
+        // True mean line
+        var tmX=xC(P_MU);ctx.strokeStyle='#805ad5';ctx.lineWidth=1.5;ctx.setLineDash([5,3]);ctx.beginPath();ctx.moveTo(tmX,mT+5);ctx.lineTo(tmX,mMid-10);ctx.stroke();ctx.setLineDash([]);
+        ctx.fillStyle='#805ad5';ctx.font='11px sans-serif';ctx.textAlign='left';ctx.fillText('\u771f\u5b9e\u5747\u503c = 2.0',tmX+4,mT+14);
+        // IS estimate line
+        var eX=xC(isEst);ctx.strokeStyle='#c53030';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(eX,mT+5);ctx.lineTo(eX,mMid-10);ctx.stroke();ctx.setLineDash([]);
+        ctx.fillStyle='#c53030';ctx.fillText('IS\u4f30\u8ba1 = '+isEst.toFixed(2),eX+4,mT+27);
+
+        // Sample dots: green by default (from q), yellow/red for extreme weights
+        for(var i=0;i<samples.length;i++){var sx=xC(samples[i]),wN=Math.min(wts[i]/Math.max(maxW,1e-6),1);
+          ctx.fillStyle=wN>0.5?'#c53030':wN>0.15?'#d69e2e':'#48bb78';
+          ctx.beginPath();ctx.arc(sx,mMid-10,4,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(0,0,0,0.2)';ctx.lineWidth=0.5;ctx.stroke();}
+
+        // Weight bars
+        var bT=mMid+18,bB=H-mB-30,bH=bB-bT;
+        ctx.fillStyle='#4a5568';ctx.font='12px sans-serif';ctx.textAlign='left';ctx.fillText('重要性权重 p(x)/q(x)',pL,bT-4);
+        ctx.strokeStyle='#cbd5e0';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pL,bB);ctx.lineTo(pR,bB);ctx.stroke();
+        var dMaxW=Math.min(maxW,20);if(dMaxW<1)dMaxW=1;
+        ctx.fillStyle='#718096';ctx.font='10px sans-serif';ctx.textAlign='right';ctx.fillText('0',pL-4,bB+3);ctx.fillText(dMaxW.toFixed(1),pL-4,bT+3);
+        var barW=Math.min(12,(pW/samples.length)*0.6);
+        for(var i=0;i<samples.length;i++){var sx=xC(samples[i]),wC=Math.min(wts[i],dMaxW),h=(wC/dMaxW)*bH,wN=Math.min(wts[i]/Math.max(maxW,1e-6),1);
+          ctx.fillStyle=wN>0.5?'#c53030':wN>0.2?'#d69e2e':'#cbd5e0';ctx.fillRect(sx-barW/2,bB-h,barW,h);}
+
+        // Stats
+        var stY=H-10;ctx.font='12px sans-serif';ctx.textAlign='left';
+        ctx.fillStyle='#805ad5';ctx.fillText('\u771f\u5b9e\u5747\u503c:',pL,stY);ctx.font='bold 12px sans-serif';ctx.fillText('2.000',pL+58,stY);
+        ctx.fillStyle='#c53030';ctx.font='12px sans-serif';ctx.fillText('IS\u4f30\u8ba1:',pL+110,stY);ctx.font='bold 12px sans-serif';ctx.fillText(isEst.toFixed(3),pL+162,stY);
+        ctx.fillStyle='#4a5568';ctx.font='12px sans-serif';ctx.fillText('\u6709\u6548\u6837\u672c\u91cf:',pL+220,stY);ctx.fillStyle=ess<5?'#c53030':'#2b6cb0';ctx.font='bold 12px sans-serif';ctx.fillText(ess.toFixed(1)+'/'+samples.length,pL+290,stY);
+        // Variance bar
+        ctx.fillStyle='#4a5568';ctx.font='12px sans-serif';ctx.fillText('\u65b9\u5dee:',pL+345,stY);
+        var vbX=pL+378,vbW=90,vbH=10;ctx.fillStyle='#e2e8f0';ctx.fillRect(vbX,stY-9,vbW,vbH);
+        var vN=Math.min(Math.log(1+isVar)/Math.log(11),1);
+        ctx.fillStyle='rgb('+Math.floor(72+125*vN)+','+Math.floor(187-150*vN)+','+Math.floor(120*(1-vN))+')';
+        ctx.fillRect(vbX,stY-9,vbW*vN,vbH);ctx.strokeStyle='#a0aec0';ctx.lineWidth=0.5;ctx.strokeRect(vbX,stY-9,vbW,vbH);
+      };
+
+      document.addEventListener('DOMContentLoaded',function(){var qm=parseInt(document.getElementById('is-q-mean').value)/10;genSamples(qm);window.drawIS();});
+    })();
+    </script>
+</body>
+</html>

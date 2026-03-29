@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5.2.2 连续动作空间与重参数化技巧 - 运筹智能</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .note { background: var(--highlight-color); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .formula-block { background: var(--code-bg); padding: 1.2rem 1.5rem; margin: 1.5rem 0; border-radius: 6px; overflow-x: auto; text-align: center; }
+        .optional-reading { background: #f0fff4; border: 1px solid #9ae6b4; border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; }
+        .optional-reading summary { font-weight: 700; color: #276749; cursor: pointer; font-size: 1rem; }
+        .optional-reading summary:hover { color: var(--accent-color); }
+        .fig-caption { text-align:center; font-size:0.9rem; color:#718096; margin-top:0.5rem; margin-bottom:1.5rem; }
+        .result-box { background: var(--highlight-color); border: 2px solid var(--accent-color); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; text-align: center; }
+        .trans-table { width: auto; border-collapse: collapse; margin: 1rem auto; font-size: 0.95rem; }
+        .trans-table th, .trans-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: center; }
+        .trans-table th { background: var(--primary-color); color: white; }
+        .trans-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .rl-ctrl { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; margin-bottom:0.8rem; font-size:0.88rem; }
+        .rl-ctrl button { padding:0.3rem 0.7rem; border:1px solid #2b6cb0; background:white; color:#2b6cb0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.84rem; transition:all 0.15s; }
+        .rl-ctrl button:hover { background:#2b6cb0; color:white; }
+        .rl-ctrl label { font-size:0.85rem; color:#4a5568; }
+        .rl-ctrl input[type="range"] { width:120px; vertical-align:middle; }
+    </style>
+    <script defer src="../../js/code-copy.js"></script>
+</head>
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="book-title"><a href="../../index.html" style="text-decoration:none;color:inherit;">运筹智能</a></div>
+            <nav>
+                <ul>
+                <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
+                <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
+                <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.4.html">3.1.4 TD(λ)与资格迹</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.3.html">3.2.3 Double Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.1.1.html">5.1.1 DQN基本算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.1.2.html">5.1.2 DQN的关键改进</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.1.3.html">5.1.3 例子：库存管理</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.1.html">5.2.1 从Actor-Critic到PPO</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.2.html" class="active">5.2.2 连续动作空间与重参数化技巧</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.3.html">5.2.3 例子：机票动态定价</a></li>
+                <li><a href="../ch05/5.3.html">5.3 DDPG与TD3</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.3.1.html">5.3.1 DDPG与TD3算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.3.2.html">5.3.2 例子：广告实时竞价</a></li>
+                <li><a href="../ch05/5.4.html">5.4 Soft Actor-Critic</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.4.1.html">5.4.1 SAC算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.4.2.html">5.4.2 例子：投资组合配置</a></li>
+                <li><a href="../ch05/5.5.html">5.5 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.6.html">5.6 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>5.2.2 连续动作空间与重参数化技巧</h1>
+
+            <!-- ==================== 连续动作空间的策略参数化 ==================== -->
+            <h2>连续动作空间的策略参数化</h2>
+
+            <p>上一节推导的PPO算法对离散和连续动作空间都适用。对于离散动作，第3.3.1节已经介绍了softmax参数化。但管理科学中的许多决策变量是连续的：补货数量、定价水平、出价金额、资源分配比例等。对于连续动作 $a \in \mathbb{R}^d$，常见做法是让策略网络输出高斯分布的参数：</p>
+
+            $$\pi_\theta(a \mid s) = \mathcal{N}\bigl(a \;\big|\; \mu_\theta(s),\, \sigma_\theta(s)^2\bigr) \tag{5.2-11}$$
+
+            <p>其中 $\mu_\theta(s)$ 是神经网络输出的均值向量，$\sigma_\theta(s)$ 是标准差（可以也由网络输出，或设为可学习的全局参数）。执行时从这个分布采样得到动作值。</p>
+
+            <h3>PPO 如何使用高斯策略</h3>
+
+            <p>PPO 使用高斯策略时，整个流程可以分为两个严格分开的阶段：</p>
+
+            <p><strong>阶段一：数据采集。</strong>用当前策略 $\pi_{\theta_{\text{old}}}$ 与环境交互，收集一批轨迹。在每个时间步 $t$，Actor 网络接收状态 $S_t$，输出 $\mu_{\theta_{\text{old}}}(S_t)$ 和 $\sigma_{\theta_{\text{old}}}(S_t)$，从中采样得到动作 $A_t \sim \mathcal{N}(\mu_{\theta_{\text{old}}}, \sigma_{\theta_{\text{old}}}^2)$，执行 $A_t$ 后观测到奖励 $R_t$ 和下一状态 $S_{t+1}$。将 $(S_t, A_t, R_t, S_{t+1}, \log\pi_{\theta_{\text{old}}}(A_t|S_t))$ 存入这批数据。采样到此结束。</p>
+
+            <p><strong>阶段二：梯度更新。</strong>此时数据中的 $A_t$ 是阶段一中已经采好的、固定不变的数值（比如某个时间步采到的 $A_t = 3.7$）。更新时，把 $S_t$ 喂进<strong>当前</strong>网络（参数已经是 $\theta$，不再是 $\theta_{\text{old}}$），得到新的 $\mu_\theta(S_t)$ 和 $\sigma_\theta(S_t)$，然后在这个<strong>已知固定的点</strong> $A_t = 3.7$ 上计算高斯密度：</p>
+
+            $$\log \pi_\theta(A_t \mid S_t) = -\frac{(A_t - \mu_\theta)^2}{2\sigma_\theta^2} - \log \sigma_\theta - \tfrac{1}{2}\log 2\pi$$
+
+            <p>这里 $A_t$ 是常数，$\mu_\theta$ 和 $\sigma_\theta$ 是网络输出，所以整个表达式是 $\theta$ 的确定性可微函数。接着计算概率比率 $r_t(\theta) = \exp(\log\pi_\theta(A_t|S_t) - \log\pi_{\theta_{\text{old}}}(A_t|S_t))$，代入 PPO-Clip 目标函数，标准反向传播即可。整个梯度计算过程不涉及从 $\pi_\theta$ 采样——$A_t$ 是阶段一采好的旧数据，不是重新采的。</p>
+
+
+            <p>但并非所有算法都能这样做。有些算法（如<a href="5.4.html">5.4节</a>的 SAC）在更新策略时，需要从<strong>当前</strong>策略重新采样一个动作 $a \sim \pi_\theta(\cdot|s)$，送入一个可微的 $Q$ 网络来评估。此时，梯度需要从 $Q(s, a)$ 经过 $a$ 回传到策略参数 $\theta$。问题在于：$a$ 是从 $\pi_\theta$ <strong>随机采出来的</strong>，采样操作本身不可微，$\frac{\partial a}{\partial \theta}$ 没有定义，反向传播在这一步被阻断。</p>
+
+            <p><strong>重参数化技巧</strong>（reparameterization trick）提供了一种优雅的解决方案。它的核心思想是：将采样改写为"固定噪声 + 确定性变换"的形式。例如，从 $\mathcal{N}(\mu_\theta, \sigma_\theta^2)$ 采样 $a$，等价于先采样一个与 $\theta$ 无关的标准正态噪声 $\varepsilon \sim \mathcal{N}(0,1)$，再计算 $a = \mu_\theta + \sigma_\theta \cdot \varepsilon$。这样，$a$ 就变成了 $\theta$ 的确定性可微函数（给定 $\varepsilon$），梯度可以沿 $Q(s,a) \to a \to \theta$ 一路反向传播。本节介绍这一技巧本身；具体哪些算法需要它、为什么需要，留到<a href="5.3.html">5.3</a>和<a href="5.4.html">5.4</a>节结合算法展开。</p>
+
+            <!-- ==================== 连续动作：高斯重参数化 ==================== -->
+            <h2>连续动作：高斯重参数化</h2>
+
+            <p>核心思想非常简洁：与其直接从参数化的分布中采样，不如先从一个<strong>与参数无关</strong>的标准分布中采样噪声，再通过一个<strong>可微的确定性变换</strong>将噪声映射为动作。</p>
+
+            <p>具体地，对于高斯策略 $\pi_\theta(\cdot \mid s) = \mathcal{N}(\mu_\theta(s),\, \sigma_\theta(s)^2)$，原始采样方式为：</p>
+
+            $$a \sim \mathcal{N}\big(\mu_\theta(s),\, \sigma_\theta(s)^2\big)$$
+
+            <p>重参数化后的等价方式为：</p>
+
+            <div class="formula-block">
+            $$\varepsilon \sim \mathcal{N}(0, 1), \qquad a = \mu_\theta(s) + \sigma_\theta(s) \cdot \varepsilon \tag{5.2-12}$$
+            </div>
+
+            <p>这两种方式产生的 $a$ 服从完全相同的分布。但在第二种形式中，随机性完全来自 $\varepsilon$，而 $\varepsilon$ 的分布与参数 $\theta$ 无关。动作 $a$ 是 $\theta$ 的确定性可微函数（给定 $\varepsilon$），因此：</p>
+
+            $$\frac{\partial a}{\partial \theta} = \frac{\partial \mu_\theta}{\partial \theta} + \varepsilon \cdot \frac{\partial \sigma_\theta}{\partial \theta}$$
+
+            <p>这意味着我们可以通过标准的反向传播来计算 $\nabla_\theta Q(s, a)$：先采样 $\varepsilon$，计算 $a = \mu_\theta + \sigma_\theta \cdot \varepsilon$，再对 $Q(s, a)$ 关于 $\theta$ 做反向传播，梯度沿着 $Q \to a \to \theta$ 的路径流动。</p>
+
+            <div class="note">
+                <strong>与对数导数技巧的对比</strong>：对数导数技巧（REINFORCE式梯度）对所有可采样的分布都适用，但方差较大。重参数化技巧要求采样过程可以写成"噪声 + 确定性变换"的形式，适用范围更窄，但梯度估计的方差通常低得多，因为梯度直接通过 $Q$ 网络的结构传播（利用了 $\nabla_a Q$），而非仅依赖对数概率的标量信号。
+            </div>
+
+            <p>高斯重参数化在深度强化学习中的应用广泛。<a href="5.4.html">5.4节</a>将介绍的SAC算法正是利用这一技巧，通过 $\nabla_\theta Q(s, a)$ 直接优化策略，其中 $a$ 由式(5.2-12)的重参数化采样得到。</p>
+
+            <!-- ==================== 交互演示：高斯重参数化 ==================== -->
+            <h3>交互演示：高斯重参数化</h3>
+
+            <p>下面的演示展示原始采样与重参数化采样的等价性。拖动滑块改变分布参数 $\mu$ 和 $\sigma$，点击按钮采样，观察两种方式的样本分布一致。左侧为原始方式（直接从 $\mathcal{N}(\mu, \sigma^2)$ 采样），右侧先从 $\mathcal{N}(0,1)$ 采样 $\varepsilon$，再通过变换 $a = \mu + \sigma \cdot \varepsilon$ 得到动作。</p>
+
+            <div style="border:2px solid var(--border-color); border-radius:8px; padding:1.2rem; margin:1.5rem 0; background:#fafafa;">
+                <div style="font-weight:700; color:var(--accent-color); margin-bottom:0.6rem; font-size:1.05rem;">交互演示：高斯重参数化</div>
+                <div class="rl-ctrl">
+                    <label>$\mu$: <input type="range" id="reparam-mu" min="-30" max="30" value="10" oninput="updateReparamLabels()"> <span id="reparam-mu-val">1.0</span></label>
+                    <label>$\sigma$: <input type="range" id="reparam-sigma" min="5" max="30" value="10" oninput="updateReparamLabels()"> <span id="reparam-sigma-val">1.0</span></label>
+                    <button onclick="reparamSample()">采样 50 个点</button>
+                    <button onclick="reparamReset()">重置</button>
+                </div>
+                <div style="display:flex; justify-content:center; margin:0.8rem 0;">
+                    <canvas id="reparam-canvas" width="620" height="300" style="border:1px solid var(--border-color); border-radius:4px; background:white; max-width:100%;"></canvas>
+                </div>
+            </div>
+            <div class="fig-caption">图 5.2-6 &nbsp; 高斯重参数化的等价性演示。左：直接从 $\mathcal{N}(\mu, \sigma^2)$ 采样的样本直方图。右：先采样 $\varepsilon \sim \mathcal{N}(0,1)$，再计算 $a = \mu + \sigma \cdot \varepsilon$ 的样本直方图。两者的分布完全相同。</div>
+
+            <!-- ==================== 离散动作：Gumbel-Softmax ==================== -->
+            <details class="optional-reading">
+            <summary>选读：离散动作的重参数化——从Logit模型到Gumbel-Softmax</summary>
+
+            <p>上面介绍的高斯重参数化解决了连续动作空间的可微采样问题。离散动作能否做类似的事？管理科学中熟悉离散选择模型的读者会发现，答案藏在一个经典模型里。</p>
+
+            <p>需要说明的是，本书介绍的四种算法（DQN、PPO、DDPG/TD3、SAC）都不需要离散重参数化：DQN 直接枚举所有动作取 $\arg\max$，PPO 用对数导数技巧，DDPG/TD3 和 SAC 处理的是连续动作。Gumbel-Softmax 的主要应用场景在于：多智能体通信（agent 之间需要发送离散消息但想端到端训练）、神经架构搜索（DARTS 等方法将离散的架构选择松弛为连续优化）、以及含离散隐变量的生成模型。本节介绍它，是因为它与高斯重参数化在思想上一脉相承，且 Logit 模型与 softmax 的等价关系对管理科学读者有独立的认识价值。</p>
+
+            <h3>Softmax就是Logit模型</h3>
+
+            <p>在计量经济学中，<strong>多项Logit模型</strong>（multinomial Logit model）是分析离散选择行为的标准工具。给定 $K$ 个选项，每个选项 $i$ 的效用为：</p>
+
+            $$U_i = V_i + \varepsilon_i$$
+
+            <p>其中 $V_i$ 是可观测的系统效用（由特征和参数决定），$\varepsilon_i$ 是不可观测的随机效用。当 $\varepsilon_1, \ldots, \varepsilon_K$ 独立同分布于标准Gumbel分布时，决策者选择效用最大选项的概率为：</p>
+
+            $$P(i) = \frac{\exp(V_i)}{\sum_{j=1}^{K} \exp(V_j)}$$
+
+            <p>这正是 <strong>softmax</strong> 函数。也就是说，强化学习中的softmax策略 $\pi_\theta(a \mid s) = \exp(h_\theta(s,a)) / \sum_{a'} \exp(h_\theta(s,a'))$ 与Logit模型在数学上完全等价：网络输出的logit值 $h_\theta(s,a)$ 对应系统效用 $V_i$，Gumbel噪声 $\varepsilon_i$ 对应使选择具有随机性的不可观测因素。</p>
+
+            <h3>Gumbel-Max技巧</h3>
+
+            <p>这个等价关系立刻给出了从离散分布中采样的另一种方式。要从类别概率 $\pi_1, \ldots, \pi_K$ 中采样一个类别，可以：</p>
+            <ol>
+                <li>对每个类别 $i$，独立采样 $g_i \sim \text{Gumbel}(0,1)$。</li>
+                <li>返回 $\arg\max_i \big(h_i + g_i\big)$，其中 $h_i = \log \pi_i$。</li>
+            </ol>
+
+            <p>这就是 <strong>Gumbel-Max技巧</strong>。其中 Gumbel(0,1) 分布可以通过 $g = -\log(-\log u)$，$u \sim \text{Uniform}(0,1)$ 生成。这个过程与高斯重参数化的思路一致：随机性来自与参数无关的 $g_i$，而 $h_i$ 是参数 $\theta$ 的可微函数。</p>
+
+            <p>但问题在于：$\arg\max$ 操作是不可微的。梯度无法通过一个离散的选择操作传播回来。</p>
+
+            <h3>Gumbel-Softmax：可微的松弛</h3>
+
+            <p>Jang et al. (2017) 和 Maddison et al. (2017) 同时提出了解决方案：用<strong>softmax</strong>（连续可微）来替代 $\arg\max$（离散不可微），引入温度参数 $\tau$ 控制近似的程度：</p>
+
+            <div class="formula-block">
+            $$y_i = \frac{\exp\bigl((h_i + g_i)/\tau\bigr)}{\sum_{j=1}^{K} \exp\bigl((h_j + g_j)/\tau\bigr)}, \qquad g_i \sim \text{Gumbel}(0,1) \tag{5.2-13}$$
+            </div>
+
+            <p>输出 $y = (y_1, \ldots, y_K)$ 是一个概率向量（各分量非负且求和为 $1$），其性质由温度 $\tau$ 控制：</p>
+
+            <ul>
+                <li>当 $\tau \to 0$ 时，$y$ 趋近于一个one-hot向量，即退化为 $\arg\max$ 的硬选择。</li>
+                <li>当 $\tau \to \infty$ 时，$y$ 趋近于均匀分布 $(1/K, \ldots, 1/K)$，选择信息消失。</li>
+                <li>在中间的 $\tau$ 值处，$y$ 是一个"软"选择——最大logit对应的分量最大，但其他分量也有非零值。</li>
+            </ul>
+
+            <p>关键在于：对于任意 $\tau > 0$，式(5.2-13)关于 $h_i$（从而关于 $\theta$）是可微的。梯度可以通过softmax操作传播回网络参数。实际使用中，$\tau$ 通常在训练过程中逐渐退火（annealing），从较大的值（软选择，梯度流动顺畅）逐渐降低到接近零（硬选择，输出接近离散）。</p>
+
+            <div class="note">
+                <strong>Straight-Through估计器</strong>：另一种处理离散采样的方法是straight-through估计器（Bengio et al., 2013）。前向传播时使用硬选择（$\arg\max$ 或真正的离散采样），反向传播时假装这个操作是恒等函数，直接把梯度传过去。这种方法在实践中有时有效，但缺乏理论保证。Gumbel-Softmax也可以结合straight-through使用：前向传播时将 $y$ 离散化为one-hot，反向传播时对连续的 $y$ 求梯度。
+            </div>
+
+            <!-- ==================== 交互演示：Gumbel-Softmax ==================== -->
+            <h3>交互演示：Gumbel-Softmax与温度</h3>
+
+            <p>下面的演示展示Gumbel-Softmax的行为。设定三个动作的logit值 $h_1, h_2, h_3$，拖动温度滑块 $\tau$，点击采样按钮，观察输出向量 $y$ 随温度的变化。温度越低，$y$ 越接近one-hot；温度越高，$y$ 越接近均匀。</p>
+
+            <div style="border:2px solid var(--border-color); border-radius:8px; padding:1.2rem; margin:1.5rem 0; background:#fafafa;">
+                <div style="font-weight:700; color:var(--accent-color); margin-bottom:0.6rem; font-size:1.05rem;">交互演示：Gumbel-Softmax</div>
+                <div class="rl-ctrl">
+                    <label>$\tau$: <input type="range" id="gs-tau" min="1" max="100" value="50" oninput="drawGumbelDemo()"> <span id="gs-tau-val">1.00</span></label>
+                    <button onclick="gumbelSample()">采样一次</button>
+                    <button onclick="gumbelBatch()">采样 200 次</button>
+                    <button onclick="gumbelReset()">重置</button>
+                </div>
+                <div class="rl-ctrl">
+                    <label>$h_1$: <input type="range" id="gs-h1" min="-20" max="20" value="10" oninput="drawGumbelDemo()"> <span id="gs-h1-val">2.0</span></label>
+                    <label>$h_2$: <input type="range" id="gs-h2" min="-20" max="20" value="5" oninput="drawGumbelDemo()"> <span id="gs-h2-val">1.0</span></label>
+                    <label>$h_3$: <input type="range" id="gs-h3" min="-20" max="20" value="-5" oninput="drawGumbelDemo()"> <span id="gs-h3-val">-1.0</span></label>
+                </div>
+                <div style="display:flex; justify-content:center; margin:0.8rem 0;">
+                    <canvas id="gumbel-canvas" width="620" height="320" style="border:1px solid var(--border-color); border-radius:4px; background:white; max-width:100%;"></canvas>
+                </div>
+            </div>
+            <div class="fig-caption">图 5.2-7 &nbsp; Gumbel-Softmax演示。左侧显示softmax概率（真实类别概率）和最近一次Gumbel-Softmax输出 $y$ 的对比。右侧显示多次采样后 $y_1$ 值的直方图：$\tau$ 小时集中在 $0$ 和 $1$ 附近（接近离散），$\tau$ 大时分散在中间（连续松弛）。</div>
+
+            </details>
+
+            <!-- ==================== 什么算法需要哪种方案？ ==================== -->
+            <h2>什么算法需要哪种方案？</h2>
+
+            <p>并非所有算法都需要重参数化。关键取决于梯度是否需要穿过采样出的动作 $a$：</p>
+            <ul>
+                <li><strong>PPO</strong>（5.2.1节）：采样分布是固定的 $\pi_{\text{old}}$，$A_t$ 是已知数据。$r_t(\theta) = \pi_\theta(A_t|S_t)/\pi_{\text{old}}(A_t|S_t)$ 在固定点上求密度值，是 $\theta$ 的确定性可微函数，不涉及从 $\pi_\theta$ 采样。<strong>不需要重参数化。</strong></li>
+                <li><strong>DDPG / TD3</strong>（<a href="5.3.html">5.3节</a>）：确定性策略 $a = \mu_\theta(s)$，梯度计算中没有采样（探索噪声只在数据采集时加，不参与梯度计算）。<strong>不需要重参数化。</strong></li>
+                <li><strong>SAC</strong>（<a href="5.4.html">5.4节</a>）：策略是随机的，且需要在梯度更新时从当前策略重新采样动作，通过 $Q(s, a)$ 的梯度来优化策略。梯度必须穿过 $a$ 回传到 $\theta$。<strong>需要重参数化。</strong>具体原因将在<a href="5.4.html">5.4节</a>详细讨论。</li>
+            </ul>
+
+            <!-- ==================== 小结 ==================== -->
+            <h2>小结</h2>
+
+            <p>本节介绍了连续动作空间的高斯策略参数化以及 PPO 如何使用高斯策略。随后引入重参数化技巧：将采样改写为"固定噪声 + 确定性变换"，使梯度可以穿过采样操作反向传播。选读部分还介绍了这一思想在离散动作空间的推广——Gumbel-Softmax 松弛。</p>
+
+            <div class="result-box">
+                <strong>核心要点：</strong>PPO 的梯度计算不涉及从当前策略采样，不需要重参数化。DDPG 使用确定性策略，同样不需要。SAC 需要从当前策略重新采样动作并让梯度穿过，因此需要重参数化——具体原因留到 <a href="5.4.html">5.4节</a> 展开。
+            </div>
+
+            <div class="chapter-nav">
+                <a href="../ch05/5.2.1.html">&larr; 5.2.1 从Actor-Critic到PPO</a>
+                <a href="../ch05/5.2.3.html">5.2.3 例子：机票动态定价 &rarr;</a>
+            </div>
+        </main>
+    </div>
+
+    <!-- ==================== 高斯重参数化演示 JS ==================== -->
+    <script>
+    (function(){
+        'use strict';
+        var samplesOriginal = [];
+        var samplesReparam = [];
+        var dpr = window.devicePixelRatio || 1;
+        var W = 620, H = 300;
+
+        function getMu() { return parseInt(document.getElementById('reparam-mu').value) / 10; }
+        function getSigma() { return parseInt(document.getElementById('reparam-sigma').value) / 10; }
+
+        // Box-Muller transform for normal sampling
+        function randn() {
+            var u1 = Math.random(), u2 = Math.random();
+            return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+        }
+
+        window.updateReparamLabels = function() {
+            document.getElementById('reparam-mu-val').textContent = getMu().toFixed(1);
+            document.getElementById('reparam-sigma-val').textContent = getSigma().toFixed(1);
+            drawReparam();
+        };
+
+        window.reparamSample = function() {
+            var mu = getMu(), sigma = getSigma();
+            for (var i = 0; i < 50; i++) {
+                // Original: sample directly from N(mu, sigma^2)
+                var aOrig = mu + sigma * randn();
+                samplesOriginal.push(aOrig);
+                // Reparameterized: sample eps ~ N(0,1), then a = mu + sigma * eps
+                var eps = randn();
+                var aReparam = mu + sigma * eps;
+                samplesReparam.push(aReparam);
+            }
+            drawReparam();
+        };
+
+        window.reparamReset = function() {
+            samplesOriginal = [];
+            samplesReparam = [];
+            drawReparam();
+        };
+
+        function drawReparam() {
+            var cvs = document.getElementById('reparam-canvas');
+            if (!cvs) return;
+            cvs.width = W * dpr; cvs.height = H * dpr;
+            cvs.style.width = W + 'px'; cvs.style.height = H + 'px';
+            var ctx = cvs.getContext('2d');
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, W, H);
+
+            var mu = getMu(), sigma = getSigma();
+            var halfW = W / 2 - 10;
+
+            // Draw both panels
+            drawHistPanel(ctx, 15, 20, halfW - 10, H - 50, samplesOriginal, mu, sigma, 'a ~ N(\u03BC, \u03C3\u00B2)', '#2b6cb0');
+            drawHistPanel(ctx, halfW + 20, 20, halfW - 10, H - 50, samplesReparam, mu, sigma, 'a = \u03BC + \u03C3\u00B7\u03B5', '#c53030');
+
+            // Divider
+            ctx.strokeStyle = '#cbd5e0'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
+            ctx.beginPath(); ctx.moveTo(W / 2, 10); ctx.lineTo(W / 2, H - 10); ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function drawHistPanel(ctx, ox, oy, pw, ph, samples, mu, sigma, title, color) {
+            var padL = 30, padR = 10, padT = 25, padB = 35;
+            var plotW = pw - padL - padR, plotH = ph - padT - padB;
+            var baseX = ox + padL, baseY = oy + padT;
+
+            // Title
+            ctx.fillStyle = '#1a365d'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText(title, ox + pw / 2, oy + 10);
+
+            // Axes
+            ctx.strokeStyle = '#4a5568'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(baseX, baseY); ctx.lineTo(baseX, baseY + plotH); ctx.lineTo(baseX + plotW, baseY + plotH); ctx.stroke();
+
+            // Range: mu +/- 4*sigma
+            var xMin = mu - 4 * Math.max(sigma, 0.5);
+            var xMax = mu + 4 * Math.max(sigma, 0.5);
+
+            // X axis ticks
+            ctx.fillStyle = '#718096'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+            for (var i = 0; i <= 4; i++) {
+                var v = xMin + (xMax - xMin) * i / 4;
+                var x = baseX + plotW * i / 4;
+                ctx.fillText(v.toFixed(1), x, baseY + plotH + 14);
+            }
+            ctx.fillText('a', baseX + plotW / 2, baseY + plotH + 28);
+
+            // Histogram
+            if (samples.length > 0) {
+                var nBins = 20;
+                var bins = new Array(nBins).fill(0);
+                var binW = (xMax - xMin) / nBins;
+                for (var s = 0; s < samples.length; s++) {
+                    var idx = Math.floor((samples[s] - xMin) / binW);
+                    if (idx >= 0 && idx < nBins) bins[idx]++;
+                }
+                var maxCount = Math.max.apply(null, bins);
+                if (maxCount === 0) maxCount = 1;
+
+                ctx.fillStyle = color;
+                ctx.globalAlpha = 0.4;
+                for (var b = 0; b < nBins; b++) {
+                    var bx = baseX + (b / nBins) * plotW;
+                    var bw = plotW / nBins;
+                    var bh = (bins[b] / maxCount) * plotH * 0.85;
+                    ctx.fillRect(bx, baseY + plotH - bh, bw - 1, bh);
+                }
+                ctx.globalAlpha = 1.0;
+            }
+
+            // PDF curve
+            ctx.strokeStyle = color; ctx.lineWidth = 2;
+            ctx.beginPath();
+            var sig = Math.max(sigma, 0.01);
+            for (var px = 0; px <= plotW; px += 2) {
+                var xv = xMin + (px / plotW) * (xMax - xMin);
+                var pdf = Math.exp(-0.5 * Math.pow((xv - mu) / sig, 2)) / (sig * Math.sqrt(2 * Math.PI));
+                var maxPdf = 1.0 / (sig * Math.sqrt(2 * Math.PI));
+                var yv = baseY + plotH * (1 - pdf / maxPdf * 0.85);
+                if (px === 0) ctx.moveTo(baseX + px, yv); else ctx.lineTo(baseX + px, yv);
+            }
+            ctx.stroke();
+
+            // Sample count
+            ctx.fillStyle = '#718096'; ctx.font = '10px sans-serif'; ctx.textAlign = 'right';
+            ctx.fillText('n=' + samples.length, baseX + plotW, baseY - 5);
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() { updateReparamLabels(); });
+        } else { updateReparamLabels(); }
+    })();
+    </script>
+
+    <!-- ==================== Gumbel-Softmax 演示 JS ==================== -->
+    <script>
+    (function(){
+        'use strict';
+        var dpr = window.devicePixelRatio || 1;
+        var W = 620, H = 320;
+        var K = 3; // number of actions
+        var lastY = [0, 0, 0]; // last Gumbel-Softmax sample
+        var y1History = []; // history of y_1 values for histogram
+
+        function getTau() { return parseInt(document.getElementById('gs-tau').value) / 50; }
+        function getH() {
+            return [
+                parseInt(document.getElementById('gs-h1').value) / 5,
+                parseInt(document.getElementById('gs-h2').value) / 5,
+                parseInt(document.getElementById('gs-h3').value) / 5
+            ];
+        }
+
+        function sampleGumbel() {
+            var u = Math.random();
+            u = Math.max(1e-10, Math.min(1 - 1e-10, u));
+            return -Math.log(-Math.log(u));
+        }
+
+        function softmax(arr) {
+            var max = Math.max.apply(null, arr);
+            var exps = arr.map(function(v) { return Math.exp(v - max); });
+            var sum = exps.reduce(function(a, b) { return a + b; }, 0);
+            return exps.map(function(v) { return v / sum; });
+        }
+
+        function gumbelSoftmax(h, tau) {
+            var perturbed = h.map(function(hi) { return (hi + sampleGumbel()) / tau; });
+            return softmax(perturbed);
+        }
+
+        window.drawGumbelDemo = function() {
+            var tau = getTau();
+            var h = getH();
+            document.getElementById('gs-tau-val').textContent = tau.toFixed(2);
+            document.getElementById('gs-h1-val').textContent = h[0].toFixed(1);
+            document.getElementById('gs-h2-val').textContent = h[1].toFixed(1);
+            document.getElementById('gs-h3-val').textContent = h[2].toFixed(1);
+            drawCanvas();
+        };
+
+        window.gumbelSample = function() {
+            var tau = getTau();
+            var h = getH();
+            lastY = gumbelSoftmax(h, tau);
+            y1History.push(lastY[0]);
+            drawCanvas();
+        };
+
+        window.gumbelBatch = function() {
+            var tau = getTau();
+            var h = getH();
+            for (var i = 0; i < 200; i++) {
+                var y = gumbelSoftmax(h, tau);
+                y1History.push(y[0]);
+                lastY = y;
+            }
+            drawCanvas();
+        };
+
+        window.gumbelReset = function() {
+            lastY = [0, 0, 0];
+            y1History = [];
+            drawCanvas();
+        };
+
+        function drawCanvas() {
+            var cvs = document.getElementById('gumbel-canvas');
+            if (!cvs) return;
+            cvs.width = W * dpr; cvs.height = H * dpr;
+            cvs.style.width = W + 'px'; cvs.style.height = H + 'px';
+            var ctx = cvs.getContext('2d');
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, W, H);
+
+            var h = getH();
+            var tau = getTau();
+            var probs = softmax(h);
+            var halfW = W / 2 - 10;
+
+            // Left panel: softmax probs vs last Gumbel-Softmax sample
+            drawBarComparison(ctx, 15, 15, halfW - 5, H - 40, probs, lastY);
+
+            // Right panel: histogram of y_1
+            drawY1Histogram(ctx, halfW + 20, 15, halfW - 10, H - 40, tau);
+
+            // Divider
+            ctx.strokeStyle = '#cbd5e0'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
+            ctx.beginPath(); ctx.moveTo(W / 2, 10); ctx.lineTo(W / 2, H - 10); ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function drawBarComparison(ctx, ox, oy, pw, ph, probs, yVals) {
+            var padL = 35, padR = 10, padT = 25, padB = 40;
+            var plotW = pw - padL - padR, plotH = ph - padT - padB;
+            var baseX = ox + padL, baseY = oy + padT;
+
+            ctx.fillStyle = '#1a365d'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('Softmax\u6982\u7387 vs Gumbel-Softmax\u8F93\u51FA', ox + pw / 2, oy + 10);
+
+            // Axes
+            ctx.strokeStyle = '#4a5568'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(baseX, baseY); ctx.lineTo(baseX, baseY + plotH); ctx.lineTo(baseX + plotW, baseY + plotH); ctx.stroke();
+
+            // Y axis
+            ctx.fillStyle = '#718096'; ctx.font = '10px sans-serif'; ctx.textAlign = 'right';
+            for (var v = 0; v <= 1.01; v += 0.25) {
+                var y = baseY + plotH * (1 - v);
+                ctx.fillText(v.toFixed(2), baseX - 3, y + 3);
+                if (v > 0) {
+                    ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 0.5;
+                    ctx.beginPath(); ctx.moveTo(baseX, y); ctx.lineTo(baseX + plotW, y); ctx.stroke();
+                }
+            }
+
+            var barGroupW = plotW / K;
+            var barW = barGroupW * 0.3;
+            var gap = barGroupW * 0.1;
+            var labels = ['a\u2081', 'a\u2082', 'a\u2083'];
+            var colors = ['#2b6cb0', '#d69e2e', '#805ad5'];
+
+            for (var i = 0; i < K; i++) {
+                var cx = baseX + barGroupW * i + barGroupW * 0.15;
+
+                // Softmax prob bar
+                var hp = probs[i] * plotH;
+                ctx.fillStyle = colors[i]; ctx.globalAlpha = 0.5;
+                ctx.fillRect(cx, baseY + plotH - hp, barW, hp);
+                ctx.globalAlpha = 1.0;
+
+                // Gumbel-Softmax bar
+                var hasY = (yVals[0] !== 0 || yVals[1] !== 0 || yVals[2] !== 0);
+                if (hasY) {
+                    var hy = yVals[i] * plotH;
+                    ctx.fillStyle = colors[i];
+                    ctx.fillRect(cx + barW + gap, baseY + plotH - hy, barW, hy);
+                    // border for distinction
+                    ctx.strokeStyle = colors[i]; ctx.lineWidth = 2;
+                    ctx.strokeRect(cx + barW + gap, baseY + plotH - hy, barW, hy);
+                }
+
+                // Label
+                ctx.fillStyle = '#4a5568'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+                ctx.fillText(labels[i], cx + barW + gap / 2, baseY + plotH + 14);
+                ctx.fillStyle = '#718096'; ctx.font = '9px sans-serif';
+                ctx.fillText('P=' + probs[i].toFixed(2), cx + barW + gap / 2, baseY + plotH + 26);
+            }
+
+            // Legend
+            var lgX = baseX + 5, lgY = baseY + 5;
+            ctx.fillStyle = '#2b6cb0'; ctx.globalAlpha = 0.5;
+            ctx.fillRect(lgX, lgY, 12, 8); ctx.globalAlpha = 1.0;
+            ctx.fillStyle = '#4a5568'; ctx.font = '10px sans-serif'; ctx.textAlign = 'left';
+            ctx.fillText('Softmax\u6982\u7387', lgX + 16, lgY + 8);
+
+            ctx.fillStyle = '#2b6cb0';
+            ctx.strokeStyle = '#2b6cb0'; ctx.lineWidth = 2;
+            ctx.strokeRect(lgX, lgY + 14, 12, 8);
+            ctx.fillStyle = '#4a5568';
+            ctx.fillText('Gumbel-Softmax y', lgX + 16, lgY + 22);
+        }
+
+        function drawY1Histogram(ctx, ox, oy, pw, ph, tau) {
+            var padL = 35, padR = 10, padT = 25, padB = 40;
+            var plotW = pw - padL - padR, plotH = ph - padT - padB;
+            var baseX = ox + padL, baseY = oy + padT;
+
+            ctx.fillStyle = '#1a365d'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('y\u2081 \u7684\u5206\u5E03\u76F4\u65B9\u56FE (\u03C4=' + tau.toFixed(2) + ')', ox + pw / 2, oy + 10);
+
+            // Axes
+            ctx.strokeStyle = '#4a5568'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(baseX, baseY); ctx.lineTo(baseX, baseY + plotH); ctx.lineTo(baseX + plotW, baseY + plotH); ctx.stroke();
+
+            // X axis [0, 1]
+            ctx.fillStyle = '#718096'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+            for (var v = 0; v <= 1.01; v += 0.25) {
+                var x = baseX + v * plotW;
+                ctx.fillText(v.toFixed(2), x, baseY + plotH + 14);
+            }
+            ctx.fillText('y\u2081', baseX + plotW / 2, baseY + plotH + 28);
+
+            if (y1History.length === 0) {
+                ctx.fillStyle = '#a0aec0'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
+                ctx.fillText('\u70B9\u51FB"\u91C7\u6837"\u6309\u94AE\u5F00\u59CB', baseX + plotW / 2, baseY + plotH / 2);
+                return;
+            }
+
+            // Build histogram
+            var nBins = 25;
+            var bins = new Array(nBins).fill(0);
+            for (var s = 0; s < y1History.length; s++) {
+                var idx = Math.floor(y1History[s] * nBins);
+                if (idx >= nBins) idx = nBins - 1;
+                if (idx < 0) idx = 0;
+                bins[idx]++;
+            }
+            var maxCount = Math.max.apply(null, bins);
+            if (maxCount === 0) maxCount = 1;
+
+            // Draw bars
+            ctx.fillStyle = '#2b6cb0'; ctx.globalAlpha = 0.5;
+            for (var b = 0; b < nBins; b++) {
+                var bx = baseX + (b / nBins) * plotW;
+                var bw = plotW / nBins;
+                var bh = (bins[b] / maxCount) * plotH * 0.9;
+                ctx.fillRect(bx, baseY + plotH - bh, bw - 1, bh);
+            }
+            ctx.globalAlpha = 1.0;
+
+            // Sample count
+            ctx.fillStyle = '#718096'; ctx.font = '10px sans-serif'; ctx.textAlign = 'right';
+            ctx.fillText('n=' + y1History.length, baseX + plotW, baseY - 5);
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() { drawGumbelDemo(); });
+        } else { drawGumbelDemo(); }
+    })();
+    </script>
+</body>
+</html>

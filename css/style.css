@@ -141,6 +141,16 @@ p {
     text-align: justify;
 }
 
+.main-content ul, .main-content ol {
+    margin-left: 1.2rem;
+    padding-left: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+.main-content li {
+    margin-bottom: 0.3rem;
+}
+
 /* === 公式 === */
 .formula-block {
     background: var(--code-bg);

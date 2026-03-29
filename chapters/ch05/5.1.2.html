@@ -100,10 +100,17 @@
                 <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
                 <li class="sidebar-subsection"><a href="../ch05/5.1.1.html">5.1.1 DQN基本算法</a></li>
                 <li class="sidebar-subsection"><a href="../ch05/5.1.2.html" class="active">5.1.2 DQN的关键改进</a></li>
-                <li class="sidebar-subsection"><a href="../ch05/5.1.3.html">5.1.3 例子：库存管理</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.1.3.html">5.1.3 例子：报童问题</a></li>
                 <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.1.html">5.2.1 从Actor-Critic到PPO</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.2.html">5.2.2 连续动作空间与重参数化技巧</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.3.html">5.2.3 例子：机票动态定价</a></li>
                 <li><a href="../ch05/5.3.html">5.3 DDPG与TD3</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.3.1.html">5.3.1 DDPG与TD3算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.3.2.html">5.3.2 例子：广告实时竞价</a></li>
                 <li><a href="../ch05/5.4.html">5.4 Soft Actor-Critic</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.4.1.html">5.4.1 SAC算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.4.2.html">5.4.2 例子：投资组合配置</a></li>
                 <li><a href="../ch05/5.5.html">5.5 基于模型的深度强化学习</a></li>
                 <li><a href="../ch05/5.6.html">5.6 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
                 <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
@@ -140,11 +147,11 @@
 
             <p>DQN虽然效果显著，但存在一个系统性的问题：<strong>Q值过高估计</strong>（overestimation）。</p>
 
-            <p>问题出在TD目标中的 $\max$ 运算。考虑公式(5.1-5)中的TD目标：</p>
+            <p>问题出在TD目标中的 $\max$ 运算。考虑5.1.1节公式(5.1-6)中的TD目标：</p>
 
             $$y = R + \gamma \max_{a'} Q(S', a'; \theta^-)$$
 
-            <p>$\max$ 运算符同时承担了两个角色：<strong>选择</strong>哪个动作最好，以及<strong>估计</strong>该动作的Q值。当Q值的估计存在噪声时（训练初期必然如此），$\max$ 倾向于选出那个被<strong>高估</strong>的动作。这就像从一组有误差的成绩中选最高分，选出来的往往比真实最高分偏高。这种偏差会在训练过程中不断积累，导致所有Q值被系统性地高估。</p>
+            <p>$\max$ 运算符同时承担了两个角色：<strong>选择</strong>哪个动作最好，以及<strong>估计</strong>该动作的Q值。当Q值的估计存在噪声时（训练初期必然如此），$\max$ 倾向于选出那个被<strong>高估</strong>的动作。这就像从一组有误差的成绩中选最高分，选出来的往往比真实最高分偏高。这种偏差会在训练过程中不断积累，导致所有Q值被系统性地高估。这个问题在表格方法中就已经存在，3.2.3节的 Double Q-learning 正是为了解决它而提出的。</p>
 
             <details class="derivation">
                 <summary>推导：为什么 max 会导致过高估计</summary>
@@ -153,31 +160,73 @@
                 <p>最后一个不等式严格成立（只要 $\epsilon_i$ 不恒为零），因为两个均值为零的随机变量的最大值的期望严格大于零。动作越多，过高估计越严重。</p>
             </details>
 
-            <p><strong>Double DQN</strong>（van Hasselt et al., 2016）的解决方案很巧妙：将动作选择和Q值估计分开，用两个不同的网络分别完成。具体地，用<strong>在线网络</strong> $\theta$ 来选择动作，用<strong>目标网络</strong> $\theta^-$ 来估计该动作的Q值：</p>
+            <p>回看公式(5.1-6)中标准DQN的TD目标，$\max_{a'} Q(S', a'; \theta^-)$ 可以拆解为两步：先用 $\theta^-$ 选出下一状态 $S'$ 的最优动作 $a^* = \arg\max_{a'} Q(S', a'; \theta^-)$，再用同一个 $\theta^-$ 估计该动作的Q值 $Q(S', a^*; \theta^-)$。动作选择和Q值估计全部由目标网络 $\theta^-$ 完成。<strong>Double DQN</strong>（van Hasselt et al., 2016）的改动很简单：把动作选择交给在线网络 $\theta$，只保留Q值估计由 $\theta^-$ 完成：</p>
 
             <div class="concept-card">
                 <div class="concept-name">Double DQN 的 TD 目标</div>
                 $$y^{\text{DDQN}} = R + \gamma\, Q\!\left(S',\; \underbrace{\arg\max_{a'} Q(S', a'; \theta)}_{\text{在线网络选动作}}\;;\; \underbrace{\theta^-}_{\text{目标网络估值}}\right) \tag{5.1-8}$$
             </div>
 
-            <p>对比DQN的TD目标 $y = R + \gamma \max_{a'} Q(S', a'; \theta^-)$，Double DQN的改动很小（只需将动作选择从 $\theta^-$ 改为 $\theta$），但能显著减少过高估计。直觉上，即使在线网络由于噪声选择了一个被高估的动作，目标网络对该动作的估值通常不会同样偏高（因为两个网络的噪声不同），从而纠正了偏差。</p>
+            <p>对比DQN的TD目标 $y = R + \gamma \max_{a'} Q(S', a'; \theta^-)$，Double DQN的改动很小（只需将动作选择从 $\theta^-$ 改为 $\theta$），但能显著减少过高估计。为什么这样做有效？关键在于<strong>选择和估值使用了不同的参数</strong>。在线网络 $\theta$ 和目标网络 $\theta^-$ 虽然结构相同，但参数不一样：$\theta$ 每步都在更新，$\theta^-$ 则每隔 $C$ 步才从 $\theta$ 复制一次（5.1.1节）。因此，这两个网络的估计误差来源不同，方向也不同。即使在线网络因为噪声高估了某个动作而选中了它，目标网络对同一个动作的噪声未必朝相同方向偏，从而可能给出一个更接近真实值的估计。用前面成绩的类比：不再让同一个老师既选"谁最优秀"又给出成绩，而是让一个老师指名，另一个老师打分，两次评估的随机误差彼此独立，取最大值的上偏就被消除了。</p>
 
-            <p>在实现层面，Double DQN只需修改DQN算法第2(b)(v)步中计算TD目标的方式，其余完全相同。这种微小的修改带来了稳定的性能提升，因此在实践中，Double DQN已经基本取代了原始DQN。</p>
+            <p>需要强调的是，Double DQN 和标准 DQN 维护的网络结构<strong>完全相同</strong>：都是一个在线网络 $\theta$ 加一个目标网络 $\theta^-$，$\theta^-$ 每隔 $C$ 步从 $\theta$ 复制。两者的唯一区别在于计算TD目标的公式不同（5.1.1节算法第3(b)(v)步）。标准DQN用 $\theta^-$ 同时选动作和估值，Double DQN 把选动作的角色交给 $\theta$。代码上只需改一行，但效果显著，因此在实践中，Double DQN 已经基本取代了原始 DQN。</p>
 
             <!-- ==================== Dueling DQN ==================== -->
             <h2>Dueling DQN：分离状态价值与动作优势</h2>
 
-            <p>标准DQN的网络直接输出每个动作的 $Q(s,a)$。但在很多状态下，不同动作的Q值差异其实很小——真正重要的是"这个状态本身好不好"（状态价值 $V(s)$），而非"这个动作比平均水平好多少"（优势 $A(s,a)$）。</p>
+            <p>回顾3.3.3节介绍的<strong>优势函数</strong>（advantage function）：$A^\pi(s, a) = Q^\pi(s, a) - V^\pi(s)$。它衡量的是在状态 $s$ 下选择动作 $a$ 比按策略平均水平好多少。$A^\pi(s,a) > 0$ 表示 $a$ 优于平均，$A^\pi(s,a) < 0$ 表示不如平均。所有动作的优势之和（按策略概率加权）为零。</p>
 
-            <p>Dueling DQN（Wang et al., 2016）将网络的输出层拆分为两个分支：</p>
+            <p>这个分解揭示了一个重要的结构：$Q(s,a)$ 可以拆成两部分，一部分只和状态有关（$V(s)$，"这个状态有多好"），另一部分和具体动作有关（$A(s,a)$，"这个动作相对于平均水平如何"）。在很多状态下，不同动作的优势差异其实很小。例如网约车司机在市中心早高峰，不管接单还是空驶，Q值都不低，因为这个状态本身就很好。此时 $V(s)$ 占Q值的主要部分，而 $A(s,a)$ 只是小幅调整。如果让网络直接输出 $Q(s,a)$，它需要为每个动作分别学到一个很大的数值；但如果分开学 $V(s)$ 和 $A(s,a)$，$V(s)$ 这个公共部分只需学一次，效率更高。</p>
+
+            <p><strong>Dueling DQN</strong>（Wang et al., 2016）正是将这个数学分解直接嵌入网络架构：将输出层拆分为两个分支，分别估计 $V$ 和 $A$，再合并得到 $Q$。</p>
 
             <div class="concept-card">
                 <div class="concept-name">Dueling 架构</div>
                 $$Q(s, a;\, \theta) = V(s;\, \theta_V) + \left[A(s, a;\, \theta_A) - \frac{1}{|\mathcal{A}|}\sum_{a'} A(s, a';\, \theta_A)\right] \tag{5.1-9}$$
-                <p style="margin-top:0.5rem;">$V$ 分支输出一个标量（状态价值），$A$ 分支输出 $|\mathcal{A}|$ 个值（每个动作的优势）。减去均值是为了可辨识性：保证 $V$ 分支确实学到状态价值，而非被 $A$ 分支吸收。</p>
+                <p style="margin-top:0.5rem;">$V$ 分支输出一个标量（状态价值），$A$ 分支输出 $|\mathcal{A}|$ 个值（每个动作的优势）。为什么要减去均值？考虑一个具体的例子：假设某状态的真实Q值为 $Q(s, a_1) = 10$，$Q(s, a_2) = 8$。如果直接用 $Q = V + A$（不减均值），那么 $V=9, A_1=1, A_2=-1$ 和 $V=7, A_1=3, A_2=1$ 都能给出相同的Q值，网络无法确定 $V$ 该学多少。这就是<strong>可辨识性</strong>（identifiability）问题：同一个 $Q$ 对应无穷多组 $(V, A)$ 分解。减去 $A$ 的均值后，$A$ 分支被强制为零均值，$V$ 唯一确定为Q值的平均：上例中 $V = 9$，$A = \{+1, -1\}$。</p>
             </div>
 
-            <p>两个分支共享前面的特征提取层，只在最后一两层分叉。这个架构的好处是：在很多状态下（特别是所有动作的Q值都差不多时），网络可以先把 $V(s)$ 学准，不必通过每个动作单独学习。这在动作空间较大时尤其有效。</p>
+            <p>两个分支共享前面的特征提取层，只在最后一两层分叉（见图 5.1-5）。在动作空间较大时，这种架构优势更明显：假设有100个动作，标准DQN需要从每个动作的经验中分别学到接近的Q值，而Dueling架构只需把占主导的 $V(s)$ 学准，$A$ 分支只需学习微小的差异。</p>
+
+            <!-- Dueling 架构示意图 -->
+            <div style="text-align:center; margin: 1.5rem 0 0.5rem 0;">
+                <svg width="480" height="230" viewBox="0 0 480 230" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;">
+                    <!-- 共享特征层 -->
+                    <rect x="20" y="70" width="120" height="90" rx="8" fill="#ebf4ff" stroke="#2b6cb0" stroke-width="2"/>
+                    <foreignObject x="20" y="95" width="120" height="40"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#1e40af;font-weight:600;line-height:1.4;">共享特征层<br/><span style="font-size:11px;font-weight:400;color:#718096;">输入 $s$</span></div></foreignObject>
+
+                    <!-- V 分支 -->
+                    <rect x="195" y="20" width="100" height="55" rx="8" fill="#f0fff4" stroke="#38a169" stroke-width="2"/>
+                    <foreignObject x="195" y="30" width="100" height="40"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#276749;font-weight:600;line-height:1.4;">$V$ 分支<br/><span style="font-size:11px;font-weight:400;">输出 1 个标量</span></div></foreignObject>
+
+                    <!-- A 分支 -->
+                    <rect x="195" y="155" width="100" height="55" rx="8" fill="#fffff0" stroke="#d69e2e" stroke-width="2"/>
+                    <foreignObject x="195" y="165" width="100" height="40"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#975a16;font-weight:600;line-height:1.4;">$A$ 分支<br/><span style="font-size:11px;font-weight:400;">输出 $|\mathcal{A}|$ 个值</span></div></foreignObject>
+
+                    <!-- 合并节点 -->
+                    <circle cx="360" cy="115" r="22" fill="#fed7d7" stroke="#c53030" stroke-width="2"/>
+                    <foreignObject x="338" y="105" width="44" height="22"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:12px;color:#c53030;font-weight:700;">合并</div></foreignObject>
+
+                    <!-- 输出 -->
+                    <rect x="410" y="85" width="60" height="60" rx="8" fill="#fffff0" stroke="#d69e2e" stroke-width="2.5"/>
+                    <foreignObject x="410" y="98" width="60" height="36"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:13px;color:#975a16;font-weight:700;line-height:1.4;">$Q$<br/><span style="font-size:10px;font-weight:400;">$|\mathcal{A}|$ 个</span></div></foreignObject>
+
+                    <!-- 连线：共享层 → V 分支 -->
+                    <line x1="140" y1="95" x2="195" y2="48" stroke="#38a169" stroke-width="2" stroke-linecap="round"/>
+                    <!-- 共享层 → A 分支 -->
+                    <line x1="140" y1="135" x2="195" y2="182" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
+                    <!-- V 分支 → 合并 -->
+                    <line x1="295" y1="48" x2="340" y2="105" stroke="#38a169" stroke-width="2" stroke-linecap="round"/>
+                    <!-- A 分支 → 合并 -->
+                    <line x1="295" y1="182" x2="340" y2="125" stroke="#d69e2e" stroke-width="2" stroke-linecap="round"/>
+                    <!-- 合并 → 输出 -->
+                    <line x1="382" y1="115" x2="410" y2="115" stroke="#c53030" stroke-width="2" stroke-linecap="round"/>
+
+                    <!-- 合并公式标注 -->
+                    <foreignObject x="310" y="200" width="170" height="28"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;font-size:11px;color:#718096;">$Q = V + (A - \overline{A})$</div></foreignObject>
+                </svg>
+            </div>
+            <div class="fig-caption">图 5.1-5 &nbsp; Dueling 网络架构。前面的共享层提取状态特征，然后分叉为 $V$ 分支（输出1个状态价值）和 $A$ 分支（输出 $|\mathcal{A}|$ 个动作优势）。合并时将 $A$ 减去均值后加上 $V$，得到最终的Q值。</div>
 
             <p>Dueling DQN 只改变了网络结构，不改变训练流程——仍然使用经验回放、目标网络和（通常搭配）Double DQN 的 TD 目标。在实现上只需将网络最后一层从直接输出Q值改为分支输出再合并。</p>
 
@@ -194,18 +243,30 @@
                 <p style="margin-top:0.5rem;">其中 $p_i = |\delta_i| + \epsilon$（TD误差的绝对值加一个小常数 $\epsilon$ 防止优先级为零），$\alpha \in [0, 1]$ 控制优先化的程度：$\alpha = 0$ 退化为均匀采样，$\alpha = 1$ 完全按优先级采样。</p>
             </div>
 
-            <p>优先采样改变了样本的分布，可能引入偏差。为此需要用<strong>重要性采样权重</strong>来修正：</p>
+            <p>但优先采样改变了样本的分布：TD误差大的样本被更频繁地抽到，TD误差小的样本被抽到得更少。随机梯度下降的理论前提是每个样本被等概率地抽取，这样梯度的期望才是无偏的。一旦采样概率不均匀，梯度期望就会偏向高优先级的样本方向，引入系统性偏差。解决方法是给每个样本乘一个<strong>重要性采样权重</strong>：被采到概率越高的样本，权重越小，以此抵消过多的采样频次：</p>
 
             $$w_i = \left(\frac{1}{N \cdot P(i)}\right)^\beta \tag{5.1-11}$$
 
-            <p>其中 $\beta$ 从一个较小的值线性递增到 $1$（训练结束时完全修正偏差）。每个样本的梯度乘以 $w_i$ 后再更新网络。</p>
+            <p>$P(i)$ 越大（被采到越频繁），$w_i$ 越小，压低了该样本的梯度贡献，使整体梯度恢复无偏。参数 $\beta$ 控制修正的力度：$\beta$ 从一个较小的值（如0.4）线性递增到 $1$。训练初期偏差对学习影响不大（反正Q值还很粗糙），更重要的是让高信息量的样本加速学习；训练后期 $\beta \to 1$，完全消除偏差以保证收敛。</p>
 
-            <p>在实现上，优先经验回放通常用 sum-tree 数据结构高效地按优先级采样，时间复杂度为 $O(\log N)$。</p>
+            <p>在实现上，优先经验回放需要高效地按非均匀概率采样。朴素遍历的复杂度为 $O(N)$，对于百万级缓冲区太慢。实践中通常用 <strong>sum-tree</strong> 数据结构将采样和更新都降至 $O(\log N)$，感兴趣的读者可参阅下方补充阅读。</p>
+
+            <details class="optional-reading">
+                <summary>补充阅读：Sum-tree 数据结构</summary>
+                <p style="margin-top:0.5rem;">Sum-tree 是一种完全二叉树，将按优先级采样和更新的时间复杂度都降至 $O(\log N)$。它的原理如下：</p>
+                <ul style="margin: 0.3rem 0 0.3rem 1.5rem; line-height: 2;">
+                    <li>每个<strong>叶节点</strong>存储一个样本的优先级 $p_i$</li>
+                    <li>每个<strong>内部节点</strong>存储其所有子节点优先级之和</li>
+                    <li>因此<strong>根节点</strong>存储的就是所有样本优先级的总和 $\sum_k p_k$</li>
+                </ul>
+                <p><strong>采样过程</strong>：生成一个 $[0, \sum_k p_k)$ 之间的随机数 $u$，从根节点出发：如果 $u$ 小于左子节点的值，走左边；否则 $u$ 减去左子节点的值，走右边。一路走到叶节点即为被采中的样本。这个过程等价于在优先级区间上做均匀采样，时间复杂度 $O(\log N)$（等于树的高度）。</p>
+                <p><strong>更新过程</strong>：某个样本的优先级变化时，只需沿叶节点到根的路径更新沿途的累加和，同样是 $O(\log N)$。</p>
+            </details>
 
             <!-- ==================== 实践中的组合 ==================== -->
             <h3>实践中的组合</h3>
 
-            <p>上述三项改进（Double DQN、Dueling 架构、优先经验回放）相互独立，可以自由组合。实践中通常同时启用全部三项，这个组合有时被称为 "D3QN"。Rainbow（Hessel et al., 2018）则进一步整合了六项 DQN 改进，证明这些改进具有互补性。对于管理科学中的离散决策问题，至少启用 Double DQN 和 Dueling 架构是推荐做法，因为代码改动极小但收益显著。</p>
+            <p>上述三项改进（Double DQN、Dueling 架构、优先经验回放）相互独立，可以自由组合。实践中通常同时启用全部三项，这个组合被称为 <strong>D3QN</strong>，其中三个 D 分别代表 <strong>D</strong>ouble、<strong>D</strong>ueling 和 <strong>D</strong>QN。Rainbow（Hessel et al., 2018）则进一步整合了六项 DQN 改进，证明这些改进具有互补性。对于管理科学中的离散决策问题，至少启用 Double DQN 和 Dueling 架构是推荐做法，因为代码改动极小但收益显著。</p>
 
             <!-- ==================== 库存管理小例子 ==================== -->
 
@@ -225,11 +286,11 @@
 
             <p>这三项改进相互独立，可以自由组合。Rainbow（Hessel et al., 2018）整合了六项 DQN 改进，证明它们具有互补性。对于管理科学中的离散决策问题，推荐至少启用 Double DQN + Dueling 架构。</p>
 
-            <p>下一节用一个库存管理问题来演示这些改进的实际效果。通过交互式的 ablation study，可以直观地看到每项改进对训练过程的影响。</p>
+            <p>下一节用一个库存管理问题来演示这些改进的实际效果。通过交互式的<strong>消融实验</strong>（ablation study），可以直观地看到每项改进对训练过程的影响。消融实验的思路类似高中生物的控制变量法：保持其他条件不变，每次只关闭一项改进，观察性能下降了多少，从而量化该改进的独立贡献。</p>
 
             <div class="chapter-nav">
                 <a href="../ch05/5.1.1.html">&larr; 5.1.1 DQN基本算法</a>
-                <a href="../ch05/5.1.3.html">5.1.3 例子：库存管理 &rarr;</a>
+                <a href="../ch05/5.1.3.html">5.1.3 例子：报童问题 &rarr;</a>
             </div>
         </main>
     </div>

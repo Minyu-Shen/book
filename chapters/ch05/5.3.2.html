@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5.3.2 例子：广告实时竞价 - 运筹智能</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <style>
+        .concept-card { background: var(--sidebar-bg); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .concept-card .concept-name { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.5rem; }
+        .trans-table { width: auto; border-collapse: collapse; margin: 1rem auto; font-size: 0.95rem; }
+        .trans-table th, .trans-table td { border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; text-align: center; }
+        .trans-table th { background: var(--primary-color); color: white; }
+        .trans-table tr:nth-child(even) { background: var(--sidebar-bg); }
+        .result-box { background: var(--highlight-color); border: 2px solid var(--accent-color); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0; text-align: center; }
+        .algo-box { background: #f7fafc; border: 2px solid var(--accent-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0; }
+        .algo-box .algo-title { font-weight: 700; color: var(--accent-color); font-size: 1.05rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .algo-box ol { margin: 0.3rem 0 0.3rem 1.5rem; line-height: 2; }
+        .algo-box .algo-note { font-size: 0.9rem; color: #718096; margin-top: 0.5rem; }
+        .note { background: var(--highlight-color); border-left: 4px solid var(--accent-color); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+        .formula-block { background: var(--code-bg); padding: 1.2rem 1.5rem; margin: 1.5rem 0; border-radius: 6px; overflow-x: auto; text-align: center; }
+        .fig-caption { text-align: center; font-size: 0.92rem; color: #4a5568; margin: 0.8rem 0 1.5rem 0; }
+
+        /* Interactive demo styles */
+        .td3-demo { border:2px solid var(--border-color); border-radius:8px; padding:1.2rem; margin:1.5rem 0; background:#fafafa; }
+        .td3-demo .rl-ctrl { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; margin-bottom:0.8rem; font-size:0.88rem; }
+        .td3-demo .rl-ctrl button { padding:0.3rem 0.7rem; border:1px solid #2b6cb0; background:white; color:#2b6cb0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:0.84rem; transition:all 0.15s; }
+        .td3-demo .rl-ctrl button:hover { background:#2b6cb0; color:white; }
+        .td3-demo .rl-ctrl button.active-btn { background:#2b6cb0; color:white; }
+        .td3-demo .rl-info { background:#ebf4ff; border-radius:6px; padding:0.4rem 0.8rem; font-size:0.88rem; margin-bottom:0.8rem; }
+        .td3-demo .nn-canvas { border:1px solid #e2e8f0; border-radius:8px; background:white; display:block; margin:0 auto; }
+        .td3-demo .dp-label { font-weight:600; color:#2b6cb0; }
+        .td3-demo .dp-val { font-weight:700; color:#2d3748; }
+        .td3-demo .dp-pos { color:#276749; font-weight:600; }
+        .td3-demo .dp-neg { color:#c53030; font-weight:600; }
+        .td3-demo .dp-dim { color:#a0aec0; }
+        .td3-demo .dp-highlight { background:#fefcbf; padding:0.1rem 0.3rem; border-radius:3px; }
+        .demo-mid-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:0.8rem 0; }
+        @media (max-width: 768px) { .demo-mid-row { grid-template-columns:1fr !important; } }
+        .dqn-panel { background:white; border:1px solid var(--border-color); border-radius:6px; padding:0.8rem; }
+        .dqn-panel-title { font-weight:600; font-size:0.9rem; color:var(--primary-color); margin-bottom:0.5rem; }
+    </style>
+    <script defer src="../../js/code-copy.js"></script>
+</head>
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="book-title"><a href="../../index.html" style="text-decoration:none;color:inherit;">运筹智能</a></div>
+            <nav>
+                <ul>
+                <li class="sidebar-chapter">第一章 管理科学中的序贯决策问题</li>
+                <li><a href="../ch01/1.1.html">1.1 从运筹优化到强化学习：为什么管理科学需要RL</a></li>
+                <li><a href="../ch01/1.2.html">1.2 管理科学中的典型序贯决策场景</a></li>
+                <li class="sidebar-chapter">第二章 马尔可夫决策过程与动态规划</li>
+                <li><a href="../ch02/2.1.html">2.1 马尔可夫决策过程</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.1.html">2.1.1 基本概念与定义</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.2.html">2.1.2 值函数</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.1.3.html">2.1.3 贝尔曼期望方程</a></li>
+                <li><a href="../ch02/2.2.html">2.2 依赖模型的动态规划算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.1.html">2.2.1 策略迭代</a></li>
+                <li class="sidebar-subsection"><a href="../ch02/2.2.2.html">2.2.2 值迭代</a></li>
+                <li class="sidebar-chapter">第三章 强化学习算法</li>
+                <li><a href="../ch03/3.1.html">3.1 预测（学习）问题：蒙特卡洛与时序差分</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.1.html">3.1.1 蒙特卡洛方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.2.html">3.1.2 时序差分学习</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.3.html">3.1.3 蒙特卡洛与时序差分的比较</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.1.4.html">3.1.4 TD(λ)与资格迹</a></li>
+                <li><a href="../ch03/3.2.html">3.2 控制问题（一）：基于值函数的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.1.html">3.2.1 SARSA</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.2.html">3.2.2 Q-learning</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.2.3.html">3.2.3 Double Q-learning</a></li>
+                <li><a href="../ch03/3.3.html">3.3 控制问题（二）：基于策略的方法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.1.html">3.3.1 策略梯度定理</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.2.html">3.3.2 REINFORCE算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch03/3.3.3.html">3.3.3 Actor-Critic框架</a></li>
+                <li class="sidebar-chapter">第四章 深度学习基础</li>
+                <li><a href="../ch04/4.1.html">4.1 从线性回归到神经网络</a></li>
+                <li><a href="../ch04/4.2.html">4.2 卷积神经网络与循环神经网络</a></li>
+                <li><a href="../ch04/4.3.html">4.3 Attention机制与Transformer架构</a></li>
+                <li><a href="../ch04/4.4.html">4.4 图神经网络</a></li>
+                <li class="sidebar-chapter">第五章 深度强化学习算法</li>
+                <li><a href="../ch05/5.1.html">5.1 Deep Q-Network</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.1.1.html">5.1.1 DQN基本算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.1.2.html">5.1.2 DQN的关键改进</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.1.3.html">5.1.3 例子：库存管理</a></li>
+                <li><a href="../ch05/5.2.html">5.2 Policy Gradient与PPO</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.1.html">5.2.1 从Actor-Critic到PPO</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.2.html">5.2.2 连续动作空间与重参数化技巧</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.2.3.html">5.2.3 例子：机票动态定价</a></li>
+                <li><a href="../ch05/5.3.html">5.3 DDPG与TD3</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.3.1.html">5.3.1 DDPG与TD3算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.3.2.html" class="active">5.3.2 例子：广告实时竞价</a></li>
+                <li><a href="../ch05/5.4.html">5.4 Soft Actor-Critic</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.4.1.html">5.4.1 SAC算法</a></li>
+                <li class="sidebar-subsection"><a href="../ch05/5.4.2.html">5.4.2 例子：投资组合配置</a></li>
+                <li><a href="../ch05/5.5.html">5.5 基于模型的深度强化学习</a></li>
+                <li><a href="../ch05/5.6.html">5.6 训练实践：超参数调优、奖励函数设计与训练稳定性</a></li>
+                <li class="sidebar-chapter">第六章 管理科学问题的建模范式</li>
+                <li><a href="../ch06/6.1.html">6.1 如何将管理科学问题抽象为MDP</a></li>
+                <li><a href="../ch06/6.2.html">6.2 时域建模与回合定义</a></li>
+                <li><a href="../ch06/6.3.html">6.3 状态空间、动作空间与奖励函数的设计</a></li>
+                <li><a href="../ch06/6.4.html">6.4 决策时机与决策频率的建模</a></li>
+                <li><a href="../ch06/6.5.html">6.5 从问题特征到网络架构的选择</a></li>
+                <li class="sidebar-chapter">第七章 仿真器搭建</li>
+                <li><a href="../ch07/7.1.html">7.1 为什么管理科学研究离不开仿真器</a></li>
+                <li><a href="../ch07/7.2.html">7.2 面向对象编程与智能体建模</a></li>
+                <li><a href="../ch07/7.3.html">7.3 基于时间步的仿真逻辑</a></li>
+                <li><a href="../ch07/7.4.html">7.4 算法层-逻辑层-物理层的仿真架构</a></li>
+                <li class="sidebar-chapter">第八章 应用案例</li>
+                <li><a href="../ch08/8.1.html">8.1 机票动态定价</a></li>
+                <li class="sidebar-chapter">第九章 真实场景案例</li>
+                <li><a href="../ch09/9.1.html">9.1 网约车派单优化</a></li>
+                <li><a href="../ch09/9.2.html">9.2 公交串车控制</a></li>
+                <li><a href="../ch09/9.3.html">9.3 需求响应公交调度优化</a></li>
+                <li class="sidebar-chapter">第十章 进阶话题</li>
+                <li><a href="../ch10/10.1.html">10.1 多智能体强化学习</a></li>
+                <li><a href="../ch10/10.2.html">10.2 从仿真到实际部署的迁移</a></li>
+                <li><a href="../ch10/10.3.html">10.3 离线强化学习</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>5.3.2 例子：广告实时竞价</h1>
+
+            <p>上一节介绍了 DDPG 和 TD3 的算法原理。本节通过一个简化的广告实时竞价（Real-Time Bidding, RTB）问题，展示 TD3 的完整实现，并在交互演示中直观观察双 Critic、延迟更新和目标平滑的工作过程。</p>
+
+            <!-- ==================== 问题描述 ==================== -->
+            <h2>问题描述</h2>
+
+            <p>在程序化广告市场中，广告主需要在预算约束下，对每次广告展示机会决定出价金额，以最大化获得的点击总价值。每次竞价在毫秒级别完成，广告主提交出价后，平台通过拍卖决定赢家。这个场景的核心挑战在于：出价太高会快速耗尽预算，后期无法参与竞价；出价太低则赢不到好的广告位。智能体需要根据剩余预算、时间和当前广告位质量来动态调整出价策略。</p>
+
+            <p>出价金额是一个连续值，正好适合用 TD3 的确定性策略来处理。</p>
+
+            <!-- ==================== MDP建模 ==================== -->
+            <h2>MDP 建模</h2>
+
+            <p>我们将 RTB 问题建模为一个 episodic MDP。一个 episode 代表一天的竞价周期，共 $T = 100$ 个时间步，每步对应一次竞价机会。</p>
+
+            <div class="concept-card">
+                <div class="concept-name">广告实时竞价 MDP</div>
+                <p><strong>状态</strong> $s_t \in \mathbb{R}^4$：</p>
+                <ul style="margin:0.3rem 0 0.3rem 1.5rem; line-height:1.8;">
+                    <li>$s_t^{(1)}$：剩余预算比例 $\in [0, 1]$</li>
+                    <li>$s_t^{(2)}$：剩余时间比例 $\in [0, 1]$</li>
+                    <li>$s_t^{(3)}$：当前广告位的预估点击率 $\in [0, 1]$</li>
+                    <li>$s_t^{(4)}$：竞争强度（市场基础出价）$\in [0, 1]$</li>
+                </ul>
+                <p><strong>动作</strong> $a_t \in [0, 1]$：出价金额，表示为最大出价的比例。</p>
+                <p><strong>奖励</strong>：</p>
+                $$r_t = \begin{cases} v \cdot \text{click}_t - \text{cost}_t & \text{if } a_t \geq \text{threshold}_t \text{ and budget} > 0 \\ 0 & \text{otherwise} \end{cases} \tag{5.3-11}$$
+                <p>其中 $v$ 是每次点击的价值，$\text{click}_t \sim \text{Bernoulli}(\text{ctr}_t)$ 表示是否被点击，$\text{cost}_t$ 是赢得竞价的费用（第二价格拍卖：等于市场出价），$\text{threshold}_t$ 是竞争对手的最高出价。</p>
+            </div>
+
+            <p>奖励函数（式(5.3-11)）体现了广告竞价的经济逻辑：只有出价高于竞争对手（赢得竞价）且预算充足时才有收益；收益等于点击价值减去竞价费用。这鼓励智能体在高质量广告位（高点击率）上适度出价，在低质量广告位上节省预算。</p>
+
+            <!-- ==================== TD3 实现 ==================== -->
+            <h2>TD3 实现</h2>
+
+            <p>下面给出完整的 PyTorch 实现代码，包含环境模拟器和 TD3 算法。代码中标注了 TD3 三项核心改进的位置。</p>
+
+<pre><code class="language-python">import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import numpy as np
+from collections import deque
+import random
+
+# ========== 简易 RTB 环境 ==========
+class RTBEnv:
+    """简化的实时竞价环境"""
+    def __init__(self, T=100, budget=50.0, click_value=5.0):
+        self.T = T
+        self.init_budget = budget
+        self.click_value = click_value
+
+    def reset(self):
+        self.t = 0
+        self.budget = self.init_budget
+        self.done = False
+        return self._obs()
+
+    def _obs(self):
+        ctr = np.clip(np.random.beta(2, 5), 0.05, 0.95)  # 点击率
+        competition = np.clip(np.random.beta(3, 3), 0.1, 0.9)  # 竞争强度
+        return np.array([
+            self.budget / self.init_budget,    # 剩余预算比例
+            1.0 - self.t / self.T,             # 剩余时间比例
+            ctr,                               # 预估点击率
+            competition                        # 竞争强度
+        ], dtype=np.float32)
+
+    def step(self, action):
+        bid = float(np.clip(action, 0, 1))  # 出价 ∈ [0,1]
+        obs = self._obs()
+        ctr, competition = obs[2], obs[3]
+        # 市场出价 = 竞争强度 + 噪声
+        market_price = competition * 0.6 + np.random.uniform(0, 0.3)
+
+        reward = 0.0
+        if bid >= market_price and self.budget > 0:
+            cost = market_price  # 第二价格
+            self.budget -= cost
+            clicked = np.random.random() < ctr
+            reward = self.click_value * clicked - cost
+
+        self.t += 1
+        self.done = (self.t >= self.T) or (self.budget <= 0)
+        next_obs = self._obs() if not self.done else np.zeros(4, dtype=np.float32)
+        return next_obs, reward, self.done
+
+# ========== 网络定义 ==========
+class Actor(nn.Module):
+    def __init__(self, state_dim, action_dim, hidden=128):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(state_dim, hidden), nn.ReLU(),
+            nn.Linear(hidden, hidden), nn.ReLU(),
+            nn.Linear(hidden, action_dim), nn.Sigmoid()  # 输出 ∈ [0,1]
+        )
+    def forward(self, s):
+        return self.net(s)
+
+class Critic(nn.Module):
+    def __init__(self, state_dim, action_dim, hidden=128):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(state_dim + action_dim, hidden), nn.ReLU(),
+            nn.Linear(hidden, hidden), nn.ReLU(),
+            nn.Linear(hidden, 1)
+        )
+    def forward(self, s, a):
+        return self.net(torch.cat([s, a], dim=-1))
+
+# ========== TD3 算法 ==========
+class TD3:
+    def __init__(self, state_dim=4, action_dim=1, gamma=0.99, tau=0.005,
+                 policy_noise=0.2, noise_clip=0.5, policy_delay=2,
+                 lr=3e-4, buffer_size=100000, batch_size=128):
+        self.gamma = gamma
+        self.tau = tau
+        self.policy_noise = policy_noise
+        self.noise_clip = noise_clip
+        self.policy_delay = policy_delay
+        self.batch_size = batch_size
+
+        # 主网络
+        self.actor = Actor(state_dim, action_dim)
+        self.critic1 = Critic(state_dim, action_dim)
+        self.critic2 = Critic(state_dim, action_dim)
+        # 目标网络
+        self.actor_target = Actor(state_dim, action_dim)
+        self.critic1_target = Critic(state_dim, action_dim)
+        self.critic2_target = Critic(state_dim, action_dim)
+        # 初始化目标网络 = 主网络
+        self.actor_target.load_state_dict(self.actor.state_dict())
+        self.critic1_target.load_state_dict(self.critic1.state_dict())
+        self.critic2_target.load_state_dict(self.critic2.state_dict())
+        # 优化器
+        self.actor_opt = torch.optim.Adam(self.actor.parameters(), lr=lr)
+        self.critic1_opt = torch.optim.Adam(self.critic1.parameters(), lr=lr)
+        self.critic2_opt = torch.optim.Adam(self.critic2.parameters(), lr=lr)
+        # 经验回放
+        self.buffer = deque(maxlen=buffer_size)
+        self.total_updates = 0
+
+    def select_action(self, state, explore_noise=0.1):
+        s = torch.FloatTensor(state).unsqueeze(0)
+        with torch.no_grad():
+            a = self.actor(s).squeeze(0).numpy()
+        a += np.random.normal(0, explore_noise, size=a.shape)
+        return np.clip(a, 0, 1)
+
+    def store(self, s, a, r, s_next, done):
+        self.buffer.append((s, a, r, s_next, float(done)))
+
+    def update(self):
+        if len(self.buffer) < self.batch_size:
+            return
+        batch = random.sample(self.buffer, self.batch_size)
+        s, a, r, s2, d = zip(*batch)
+        s  = torch.FloatTensor(np.array(s))
+        a  = torch.FloatTensor(np.array(a))
+        r  = torch.FloatTensor(r).unsqueeze(1)
+        s2 = torch.FloatTensor(np.array(s2))
+        d  = torch.FloatTensor(d).unsqueeze(1)
+
+        with torch.no_grad():
+            # ---- 改进三：目标策略平滑 ----
+            noise = (torch.randn_like(a) * self.policy_noise
+                     ).clamp(-self.noise_clip, self.noise_clip)
+            a2 = (self.actor_target(s2) + noise).clamp(0, 1)
+            # ---- 改进一：Twin Critics 取最小值 ----
+            target_q = torch.min(
+                self.critic1_target(s2, a2),
+                self.critic2_target(s2, a2)
+            )
+            y = r + (1 - d) * self.gamma * target_q
+
+        # 更新两个 Critic
+        loss1 = F.mse_loss(self.critic1(s, a), y)
+        self.critic1_opt.zero_grad(); loss1.backward(); self.critic1_opt.step()
+        loss2 = F.mse_loss(self.critic2(s, a), y)
+        self.critic2_opt.zero_grad(); loss2.backward(); self.critic2_opt.step()
+
+        self.total_updates += 1
+        # ---- 改进二：延迟更新 Actor 和目标网络 ----
+        if self.total_updates % self.policy_delay == 0:
+            actor_loss = -self.critic1(s, self.actor(s)).mean()
+            self.actor_opt.zero_grad(); actor_loss.backward(); self.actor_opt.step()
+            # 软更新目标网络
+            for p, pt in zip(self.actor.parameters(), self.actor_target.parameters()):
+                pt.data.copy_(self.tau * p.data + (1 - self.tau) * pt.data)
+            for p, pt in zip(self.critic1.parameters(), self.critic1_target.parameters()):
+                pt.data.copy_(self.tau * p.data + (1 - self.tau) * pt.data)
+            for p, pt in zip(self.critic2.parameters(), self.critic2_target.parameters()):
+                pt.data.copy_(self.tau * p.data + (1 - self.tau) * pt.data)
+
+# ========== 训练 ==========
+env = RTBEnv()
+agent = TD3()
+episode_rewards = []
+
+for ep in range(300):
+    obs = env.reset()
+    total_reward = 0
+    while not env.done:
+        action = agent.select_action(obs, explore_noise=0.1)
+        next_obs, reward, done = env.step(action[0])
+        agent.store(obs, action, reward, next_obs, done)
+        agent.update()
+        obs = next_obs
+        total_reward += reward
+    episode_rewards.append(total_reward)
+    if (ep + 1) % 50 == 0:
+        avg = np.mean(episode_rewards[-50:])
+        print(f"Episode {ep+1}, 近50轮平均回报: {avg:.2f}")</code></pre>
+
+            <!-- ==================== 实现要点 ==================== -->
+            <h2>实现要点</h2>
+
+            <p>代码中标注了 TD3 的三项核心改进所在：<code>update</code> 方法中的 Twin Critics（两个 Critic 分别更新，TD 目标取 $\min$）、目标策略平滑（<code>noise</code> 和 <code>a2</code> 的计算）以及延迟更新（<code>policy_delay</code> 条件判断）。值得注意以下几个细节：</p>
+
+            <ul>
+                <li><strong>动作范围</strong>。Actor 的最后一层使用 $\text{Sigmoid}$ 激活函数，确保输出在 $[0, 1]$ 范围内。更一般的情况下（如动作范围为 $[a_{\text{low}}, a_{\text{high}}]$），可以用 $\text{Tanh}$ 激活后做线性变换。</li>
+                <li><strong>Actor 损失</strong>。<code>actor_loss = -self.critic1(s, self.actor(s)).mean()</code> 对应公式(5.3-8)的负值（因为 PyTorch 做梯度下降，取负号变成梯度上升）。注意只使用 $Q_{\phi_1}$，不使用 $Q_{\phi_2}$。</li>
+                <li><strong>探索噪声与目标噪声</strong>。探索噪声（<code>explore_noise=0.1</code>）用于数据采集时的探索，目标噪声（<code>policy_noise=0.2</code>）用于计算 TD 目标时的平滑。两者的作用不同。</li>
+            </ul>
+
+            <!-- ==================== 交互演示 ==================== -->
+            <h2>交互演示：TD3 实时竞价训练</h2>
+
+            <p>下面的交互演示在简化的广告实时竞价环境中逐步运行 TD3 算法。顶部的网络图实时展示 Actor（确定性策略）和双 Critic 的权重与输出；中间左侧展示确定性策略与探索噪声的关系，右侧展示双 Critic 如何抑制 $Q$ 值过估计；底部的数据面板显示当前步的具体数值。你可以逐步观察 TD3 的每一个环节，包括 Actor 的延迟更新机制。</p>
+
+            <div class="td3-demo" id="td3-demo">
+                <div style="font-weight:700;color:var(--accent-color);margin-bottom:0.6rem;font-size:1.05rem;">交互演示：TD3 算法逐步训练</div>
+
+                <!-- 控制栏 -->
+                <div class="rl-ctrl">
+                    <button id="td3-btn-step" onclick="TD3Demo.nextStep()">下一步</button>
+                    <button id="td3-btn-auto" onclick="TD3Demo.toggleAuto()">自动训练</button>
+                    <button id="td3-btn-converge" onclick="TD3Demo.fastConverge()">快进到收敛</button>
+                    <button id="td3-btn-reset" onclick="TD3Demo.reset()">重置</button>
+                </div>
+                <div class="rl-info" id="td3-info">训练步 <strong>0</strong> &nbsp;|&nbsp; 探索噪声 $\sigma$: <strong>0.20</strong> &nbsp;|&nbsp; 缓冲区: <strong>0</strong>/500</div>
+
+                <!-- 顶部：三网络图 -->
+                <div style="text-align:center; margin:0.8rem 0 0.4rem 0;">
+                    <canvas id="td3-nn-canvas" class="nn-canvas" width="580" height="300" style="width:580px;height:300px;max-width:100%;"></canvas>
+                </div>
+
+                <!-- 中间两栏 -->
+                <div class="demo-mid-row">
+                    <!-- 左栏：确定性策略 vs 探索 -->
+                    <div class="dqn-panel">
+                        <div class="dqn-panel-title">确定性策略 vs 随机探索</div>
+                        <canvas id="td3-policy-canvas" width="260" height="200" style="width:100%;height:200px;display:block;border:1px solid #e2e8f0;border-radius:6px;background:white;"></canvas>
+                        <div style="font-size:0.78rem;color:#718096;margin-top:0.3rem;text-align:center;">
+                            <span style="color:#2b6cb0;font-weight:600;">---</span> $\mu_\theta(s)$ 确定性策略 &nbsp;
+                            <span style="color:#c53030;font-weight:600;">*</span> 含噪声的实际动作
+                        </div>
+                    </div>
+                    <!-- 右栏：Twin Critics 过估计抑制 -->
+                    <div class="dqn-panel">
+                        <div class="dqn-panel-title">Twin Critics 抑制过估计</div>
+                        <canvas id="td3-critic-canvas" width="260" height="200" style="width:100%;height:200px;display:block;border:1px solid #e2e8f0;border-radius:6px;background:white;"></canvas>
+                        <div style="font-size:0.78rem;color:#718096;margin-top:0.3rem;text-align:center;">
+                            <span style="color:#2b6cb0;font-weight:600;">|</span> $Q_1$ &nbsp;
+                            <span style="color:#c53030;font-weight:600;">|</span> $Q_2$ &nbsp;
+                            <span style="color:#805ad5;font-weight:600;">--</span> $\min(Q_1, Q_2)$
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 底部：数据面板 -->
+                <div id="td3-data-panel" style="background:#f7fafc;border:1px solid #e2e8f0;border-radius:6px;padding:0.8rem;margin-top:0.8rem;font-size:0.85rem;font-family:'JetBrains Mono','Courier New',monospace;line-height:1.8;">
+                    <span class="dp-label">状态:</span> <span id="td3-state" class="dp-val">budget=1.00, ctr=0.00</span><br>
+                    <span class="dp-label">确定性动作:</span> $\mu_\theta(s)$ = <span id="td3-det-action" class="dp-val">0.00</span> &nbsp;
+                    <span class="dp-label">噪声:</span> $\epsilon$ = <span id="td3-noise" class="dp-val">0.00</span> &nbsp;
+                    <span class="dp-label">实际出价:</span> <span id="td3-actual-action" class="dp-val">0.00</span><br>
+                    <span class="dp-label">$Q_1$ =</span> <span id="td3-q1" class="dp-val">0.00</span> &nbsp;
+                    <span class="dp-label">$Q_2$ =</span> <span id="td3-q2" class="dp-val">0.00</span> &nbsp;
+                    <span class="dp-label">$\min$ =</span> <span id="td3-qmin" class="dp-val dp-highlight">0.00</span><br>
+                    <span class="dp-label">延迟更新:</span> <span id="td3-delay-status" class="dp-val">每2步一次 (当前第0步, 本步Actor<span class="dp-dim">未更新</span>)</span>
+                </div>
+
+                <!-- 训练曲线 -->
+                <div style="margin-top:0.8rem;">
+                    <canvas id="td3-reward-canvas" width="560" height="120" style="width:100%;height:120px;display:block;border:1px solid #e2e8f0;border-radius:6px;background:white;"></canvas>
+                    <div style="font-size:0.78rem;color:#718096;text-align:center;margin-top:0.3rem;">Episode 回报曲线</div>
+                </div>
+            </div>
+            <div class="fig-caption">图 5.3-4：TD3 算法在广告实时竞价任务上的交互演示。Actor 输出确定性出价，训练时添加高斯噪声探索。双 Critic 取较小值作为 TD 目标，Actor 每 2 步更新一次。</div>
+
+            <script>
+            // ========== TD3 Interactive Demo ==========
+            const TD3Demo = (function() {
+                'use strict';
+
+                // ---- Tiny Neural Network ----
+                function createNet(inputDim, hiddenDim, outputDim) {
+                    function randW(rows, cols) {
+                        const s = Math.sqrt(2.0 / (rows + cols));
+                        const w = [];
+                        for (let i = 0; i < rows; i++) {
+                            w[i] = [];
+                            for (let j = 0; j < cols; j++) w[i][j] = (Math.random() - 0.5) * 2 * s;
+                        }
+                        return w;
+                    }
+                    function randB(n) { const b = []; for (let i = 0; i < n; i++) b[i] = 0; return b; }
+                    return {
+                        w1: randW(inputDim, hiddenDim), b1: randB(hiddenDim),
+                        w2: randW(hiddenDim, outputDim), b2: randB(outputDim),
+                        _hid: new Array(hiddenDim).fill(0)
+                    };
+                }
+                function netForward(net, x, outAct) {
+                    const h = net._hid;
+                    for (let j = 0; j < net.b1.length; j++) {
+                        let v = net.b1[j];
+                        for (let i = 0; i < x.length; i++) v += x[i] * net.w1[i][j];
+                        h[j] = Math.max(0, v);
+                    }
+                    const out = [];
+                    for (let k = 0; k < net.b2.length; k++) {
+                        let v = net.b2[k];
+                        for (let j = 0; j < h.length; j++) v += h[j] * net.w2[j][k];
+                        if (outAct === 'sigmoid') v = 1 / (1 + Math.exp(-v));
+                        else if (outAct === 'tanh') v = Math.tanh(v);
+                        out[k] = v;
+                    }
+                    return out;
+                }
+                function copyNet(src) {
+                    const dst = { w1: [], b1: [...src.b1], w2: [], b2: [...src.b2], _hid: new Array(src._hid.length).fill(0) };
+                    for (let i = 0; i < src.w1.length; i++) dst.w1[i] = [...src.w1[i]];
+                    for (let j = 0; j < src.w2.length; j++) dst.w2[j] = [...src.w2[j]];
+                    return dst;
+                }
+                function softUpdateNet(main, target, tau) {
+                    for (let i = 0; i < main.w1.length; i++)
+                        for (let j = 0; j < main.w1[i].length; j++)
+                            target.w1[i][j] = tau * main.w1[i][j] + (1 - tau) * target.w1[i][j];
+                    for (let j = 0; j < main.b1.length; j++)
+                        target.b1[j] = tau * main.b1[j] + (1 - tau) * target.b1[j];
+                    for (let j = 0; j < main.w2.length; j++)
+                        for (let k = 0; k < main.w2[j].length; k++)
+                            target.w2[j][k] = tau * main.w2[j][k] + (1 - tau) * target.w2[j][k];
+                    for (let k = 0; k < main.b2.length; k++)
+                        target.b2[k] = tau * main.b2[k] + (1 - tau) * target.b2[k];
+                }
+
+                // ---- Numerical gradient + SGD update ----
+                function netGrad(net, x, outAct, targetVal, lr) {
+                    const eps = 1e-4;
+                    function loss() {
+                        const out = netForward(net, x, outAct);
+                        let l = 0;
+                        for (let k = 0; k < out.length; k++) l += (out[k] - targetVal[k]) ** 2;
+                        return l;
+                    }
+                    for (let i = 0; i < net.w1.length; i++) {
+                        for (let j = 0; j < net.w1[i].length; j++) {
+                            net.w1[i][j] += eps; const lp = loss();
+                            net.w1[i][j] -= 2 * eps; const lm = loss();
+                            net.w1[i][j] += eps;
+                            net.w1[i][j] -= lr * (lp - lm) / (2 * eps);
+                        }
+                    }
+                    for (let j = 0; j < net.b1.length; j++) {
+                        net.b1[j] += eps; const lp = loss();
+                        net.b1[j] -= 2 * eps; const lm = loss();
+                        net.b1[j] += eps;
+                        net.b1[j] -= lr * (lp - lm) / (2 * eps);
+                    }
+                    for (let j = 0; j < net.w2.length; j++) {
+                        for (let k = 0; k < net.w2[j].length; k++) {
+                            net.w2[j][k] += eps; const lp = loss();
+                            net.w2[j][k] -= 2 * eps; const lm = loss();
+                            net.w2[j][k] += eps;
+                            net.w2[j][k] -= lr * (lp - lm) / (2 * eps);
+                        }
+                    }
+                    for (let k = 0; k < net.b2.length; k++) {
+                        net.b2[k] += eps; const lp = loss();
+                        net.b2[k] -= 2 * eps; const lm = loss();
+                        net.b2[k] += eps;
+                        net.b2[k] -= lr * (lp - lm) / (2 * eps);
+                    }
+                }
+
+                function actorUpdate(actor, critic1, states, lr) {
+                    const eps = 1e-4;
+                    function negQ() {
+                        let total = 0;
+                        for (const s of states) {
+                            const a = netForward(actor, s, 'sigmoid');
+                            const q = netForward(critic1, s.concat(a), 'none');
+                            total -= q[0];
+                        }
+                        return total / states.length;
+                    }
+                    for (let i = 0; i < actor.w1.length; i++) {
+                        for (let j = 0; j < actor.w1[i].length; j++) {
+                            actor.w1[i][j] += eps; const lp = negQ();
+                            actor.w1[i][j] -= 2 * eps; const lm = negQ();
+                            actor.w1[i][j] += eps;
+                            actor.w1[i][j] -= lr * (lp - lm) / (2 * eps);
+                        }
+                    }
+                    for (let j = 0; j < actor.b1.length; j++) {
+                        actor.b1[j] += eps; const lp = negQ();
+                        actor.b1[j] -= 2 * eps; const lm = negQ();
+                        actor.b1[j] += eps;
+                        actor.b1[j] -= lr * (lp - lm) / (2 * eps);
+                    }
+                    for (let j = 0; j < actor.w2.length; j++) {
+                        for (let k = 0; k < actor.w2[j].length; k++) {
+                            actor.w2[j][k] += eps; const lp = negQ();
+                            actor.w2[j][k] -= 2 * eps; const lm = negQ();
+                            actor.w2[j][k] += eps;
+                            actor.w2[j][k] -= lr * (lp - lm) / (2 * eps);
+                        }
+                    }
+                    for (let k = 0; k < actor.b2.length; k++) {
+                        actor.b2[k] += eps; const lp = negQ();
+                        actor.b2[k] -= 2 * eps; const lm = negQ();
+                        actor.b2[k] += eps;
+                        actor.b2[k] -= lr * (lp - lm) / (2 * eps);
+                    }
+                }
+
+                // ---- RTB Environment ----
+                function createEnv() {
+                    return {
+                        T: 30, initBudget: 15.0, clickValue: 5.0,
+                        t: 0, budget: 15.0, done: false,
+                        reset() {
+                            this.t = 0; this.budget = this.initBudget; this.done = false;
+                            return this._obs();
+                        },
+                        _obs() {
+                            return [
+                                this.budget / this.initBudget,
+                                Math.random() * 0.7 + 0.05
+                            ];
+                        },
+                        step(action) {
+                            const bid = Math.max(0, Math.min(1, action));
+                            const ctr = Math.random() * 0.7 + 0.05;
+                            const competition = Math.random() * 0.5 + 0.1;
+                            const marketPrice = competition * 0.6 + Math.random() * 0.2;
+                            let reward = 0;
+                            if (bid >= marketPrice && this.budget > 0) {
+                                const cost = marketPrice;
+                                this.budget -= cost;
+                                const clicked = Math.random() < ctr;
+                                reward = this.clickValue * (clicked ? 1 : 0) - cost;
+                            }
+                            this.t++;
+                            this.done = this.t >= this.T || this.budget <= 0;
+                            const nextObs = this.done ? [0, 0] : this._obs();
+                            return { nextObs, reward, done: this.done };
+                        }
+                    };
+                }
+
+                // ---- State ----
+                let actor, critic1, critic2;
+                let actorTarget, critic1Target, critic2Target;
+                let env, buffer, totalSteps, episodeReward, episodeRewards;
+                let currentState, autoTimer, isAuto;
+                let policyHistory, explorationDots;
+                let q1History, q2History, qMinHistory;
+                let actorUpdatedThisStep;
+                const BUFFER_MAX = 500;
+                const BATCH_SIZE = 8;
+                const GAMMA = 0.95;
+                const TAU = 0.05;
+                const EXPLORE_NOISE = 0.2;
+                const POLICY_NOISE = 0.15;
+                const NOISE_CLIP = 0.3;
+                const POLICY_DELAY = 2;
+                const LR_CRITIC = 0.005;
+                const LR_ACTOR = 0.003;
+
+                function init() {
+                    actor = createNet(2, 6, 1);
+                    critic1 = createNet(3, 6, 1);
+                    critic2 = createNet(3, 6, 1);
+                    actorTarget = copyNet(actor);
+                    critic1Target = copyNet(critic1);
+                    critic2Target = copyNet(critic2);
+                    env = createEnv();
+                    buffer = [];
+                    totalSteps = 0;
+                    episodeReward = 0;
+                    episodeRewards = [];
+                    currentState = env.reset();
+                    isAuto = false;
+                    autoTimer = null;
+                    policyHistory = [];
+                    explorationDots = [];
+                    q1History = [];
+                    q2History = [];
+                    qMinHistory = [];
+                    actorUpdatedThisStep = false;
+                }
+
+                // ---- One training step ----
+                function trainStep() {
+                    if (env.done) {
+                        episodeRewards.push(episodeReward);
+                        episodeReward = 0;
+                        currentState = env.reset();
+                    }
+
+                    const detAction = netForward(actor, currentState, 'sigmoid')[0];
+                    const noise = gaussianRandom() * EXPLORE_NOISE;
+                    const actualAction = Math.max(0, Math.min(1, detAction + noise));
+
+                    const { nextObs, reward, done } = env.step(actualAction);
+                    episodeReward += reward;
+
+                    buffer.push({ s: [...currentState], a: actualAction, r: reward, s2: [...nextObs], d: done ? 1 : 0 });
+                    if (buffer.length > BUFFER_MAX) buffer.shift();
+
+                    explorationDots.push({ x: currentState[1], yDet: detAction, yAct: actualAction });
+                    if (explorationDots.length > 60) explorationDots.shift();
+
+                    totalSteps++;
+                    actorUpdatedThisStep = false;
+
+                    if (buffer.length >= BATCH_SIZE) {
+                        const batch = [];
+                        for (let i = 0; i < BATCH_SIZE; i++) {
+                            batch.push(buffer[Math.floor(Math.random() * buffer.length)]);
+                        }
+
+                        const targets1 = [];
+                        const targets2 = [];
+                        const batchStates = [];
+                        for (const tr of batch) {
+                            const aNext = netForward(actorTarget, tr.s2, 'sigmoid')[0];
+                            const tNoise = Math.max(-NOISE_CLIP, Math.min(NOISE_CLIP, gaussianRandom() * POLICY_NOISE));
+                            const aSmoothed = Math.max(0, Math.min(1, aNext + tNoise));
+                            const q1t = netForward(critic1Target, tr.s2.concat([aSmoothed]), 'none')[0];
+                            const q2t = netForward(critic2Target, tr.s2.concat([aSmoothed]), 'none')[0];
+                            const qTarget = Math.min(q1t, q2t);
+                            const y = tr.r + (1 - tr.d) * GAMMA * qTarget;
+                            targets1.push(y);
+                            targets2.push(y);
+                            batchStates.push(tr.s);
+                        }
+
+                        for (let i = 0; i < batch.length; i++) {
+                            const inp = batch[i].s.concat([batch[i].a]);
+                            netGrad(critic1, inp, 'none', [targets1[i]], LR_CRITIC);
+                            netGrad(critic2, inp, 'none', [targets2[i]], LR_CRITIC);
+                        }
+
+                        if (totalSteps % POLICY_DELAY === 0) {
+                            actorUpdate(actor, critic1, batchStates, LR_ACTOR);
+                            softUpdateNet(actor, actorTarget, TAU);
+                            softUpdateNet(critic1, critic1Target, TAU);
+                            softUpdateNet(critic2, critic2Target, TAU);
+                            actorUpdatedThisStep = true;
+                        }
+                    }
+
+                    const qIn = currentState.concat([actualAction]);
+                    const q1Val = netForward(critic1, qIn, 'none')[0];
+                    const q2Val = netForward(critic2, qIn, 'none')[0];
+                    q1History.push(q1Val);
+                    q2History.push(q2Val);
+                    qMinHistory.push(Math.min(q1Val, q2Val));
+                    if (q1History.length > 80) { q1History.shift(); q2History.shift(); qMinHistory.shift(); }
+
+                    policyHistory = [];
+                    for (let xi = 0; xi <= 1.0; xi += 0.05) {
+                        const s = [0.5, xi];
+                        const a = netForward(actor, s, 'sigmoid')[0];
+                        policyHistory.push({ x: xi, y: a });
+                    }
+
+                    updateInfo(detAction, noise, actualAction, q1Val, q2Val);
+                    currentState = nextObs;
+                    drawAll();
+                }
+
+                function gaussianRandom() {
+                    let u = 0, v = 0;
+                    while (u === 0) u = Math.random();
+                    while (v === 0) v = Math.random();
+                    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+                }
+
+                // ---- Drawing functions ----
+                function getCtx(id, w, h) {
+                    const c = document.getElementById(id);
+                    if (!c) return null;
+                    const dpr = window.devicePixelRatio || 1;
+                    if (c.width !== w * dpr || c.height !== h * dpr) {
+                        c.width = w * dpr; c.height = h * dpr;
+                    }
+                    const ctx = c.getContext('2d');
+                    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                    return ctx;
+                }
+
+                function drawAll() {
+                    drawNetworks();
+                    drawPolicyPlot();
+                    drawCriticPlot();
+                    drawRewardCurve();
+                }
+
+                function drawNetworks() {
+                    const W = 580, H = 300;
+                    const ctx = getCtx('td3-nn-canvas', W, H);
+                    if (!ctx) return;
+                    ctx.clearRect(0, 0, W, H);
+
+                    const actorX = 40, actorY = 60;
+                    const c1X = 330, c1Y = 15;
+                    const c2X = 330, c2Y = 160;
+
+                    drawMiniNet(ctx, actor, actorX, actorY, 2, 6, 1, 'Actor \u03bc\u03b8(s)', '#2b6cb0', '#ebf4ff', 'sigmoid');
+                    drawMiniNet(ctx, critic1, c1X, c1Y, 3, 6, 1, 'Critic Q\u2081', '#2b6cb0', '#ebf4ff', 'none');
+                    drawMiniNet(ctx, critic2, c2X, c2Y, 3, 6, 1, 'Critic Q\u2082', '#c53030', '#fed7d7', 'none');
+
+                    const actorOutX = actorX + 230;
+                    const actorOutY = actorY + 55;
+                    const c1InY = c1Y + 88;
+                    const c2InY = c2Y + 88;
+
+                    ctx.save();
+                    ctx.strokeStyle = '#805ad5';
+                    ctx.lineWidth = 1.8;
+                    ctx.setLineDash([5, 3]);
+                    ctx.lineCap = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(actorOutX, actorOutY);
+                    ctx.quadraticCurveTo(actorOutX + 40, c1InY, c1X + 8, c1InY);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(actorOutX, actorOutY);
+                    ctx.quadraticCurveTo(actorOutX + 40, c2InY, c2X + 8, c2InY);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.restore();
+
+                    ctx.fillStyle = '#805ad5';
+                    ctx.font = 'italic 12px Georgia, serif';
+                    ctx.fillText('a', actorOutX + 25, (actorOutY + c1InY) / 2 - 2);
+                    ctx.fillText('a', actorOutX + 25, (actorOutY + c2InY) / 2 + 2);
+
+                    const midY = (c1Y + 110 + c2Y) / 2 + 10;
+                    ctx.fillStyle = '#805ad5';
+                    ctx.font = 'bold 13px "Source Han Serif SC", Georgia, serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('min(Q\u2081, Q\u2082)', c1X + 120, midY);
+                    ctx.textAlign = 'left';
+
+                    const outC1Y = c1Y + 55;
+                    const outC2Y = c2Y + 55;
+                    const bracketX = c1X + 228;
+                    ctx.strokeStyle = '#805ad5';
+                    ctx.lineWidth = 2;
+                    ctx.lineCap = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(bracketX, outC1Y);
+                    ctx.lineTo(bracketX + 12, outC1Y);
+                    ctx.lineTo(bracketX + 12, outC2Y);
+                    ctx.lineTo(bracketX, outC2Y);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(bracketX + 12, midY - 8);
+                    ctx.lineTo(bracketX + 25, midY - 8);
+                    ctx.stroke();
+                }
+
+                function drawMiniNet(ctx, net, ox, oy, nIn, nHid, nOut, label, color, bgColor, outAct) {
+                    const W = 230, H = 110;
+                    ctx.fillStyle = bgColor;
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 1.5;
+                    roundRect(ctx, ox, oy, W, H, 6);
+                    ctx.fill(); ctx.stroke();
+
+                    ctx.fillStyle = color;
+                    ctx.font = 'bold 11px "Source Han Serif SC", Georgia, serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(label, ox + W / 2, oy - 4);
+                    ctx.textAlign = 'left';
+
+                    const layerX = [ox + 30, ox + W / 2, ox + W - 30];
+                    function nodeY(layerIdx, nodeIdx, count) {
+                        const spacing = Math.min(18, (H - 20) / (count + 1));
+                        const totalH = spacing * (count - 1);
+                        return oy + H / 2 - totalH / 2 + nodeIdx * spacing;
+                    }
+
+                    const maxW1 = getMaxAbs(net.w1);
+                    for (let i = 0; i < nIn; i++) {
+                        for (let j = 0; j < nHid; j++) {
+                            const w = net.w1[i][j];
+                            const alpha = Math.min(1, Math.abs(w) / (maxW1 + 0.01));
+                            ctx.strokeStyle = w >= 0 ? `rgba(43,108,176,${alpha * 0.7})` : `rgba(197,48,48,${alpha * 0.7})`;
+                            ctx.lineWidth = Math.max(0.3, alpha * 2.5);
+                            ctx.beginPath();
+                            ctx.moveTo(layerX[0], nodeY(0, i, nIn));
+                            ctx.lineTo(layerX[1], nodeY(1, j, nHid));
+                            ctx.stroke();
+                        }
+                    }
+                    const maxW2 = getMaxAbs(net.w2);
+                    for (let j = 0; j < nHid; j++) {
+                        for (let k = 0; k < nOut; k++) {
+                            const w = net.w2[j][k];
+                            const alpha = Math.min(1, Math.abs(w) / (maxW2 + 0.01));
+                            ctx.strokeStyle = w >= 0 ? `rgba(43,108,176,${alpha * 0.7})` : `rgba(197,48,48,${alpha * 0.7})`;
+                            ctx.lineWidth = Math.max(0.3, alpha * 2.5);
+                            ctx.beginPath();
+                            ctx.moveTo(layerX[1], nodeY(1, j, nHid));
+                            ctx.lineTo(layerX[2], nodeY(2, k, nOut));
+                            ctx.stroke();
+                        }
+                    }
+
+                    const sampleIn = currentState ? [...currentState] : [0.5, 0.3];
+                    if (nIn === 3) sampleIn.push(0.5);
+                    const out = netForward(net, sampleIn, outAct || 'none');
+                    const hid = net._hid;
+
+                    const inLabels = nIn === 2 ? ['b', 'ctr'] : ['b', 'ctr', 'a'];
+                    for (let i = 0; i < nIn; i++) {
+                        drawNode(ctx, layerX[0], nodeY(0, i, nIn), 7, '#fff', color);
+                        ctx.fillStyle = '#4a5568';
+                        ctx.font = '9px "Source Han Serif SC", Georgia, serif';
+                        ctx.textAlign = 'right';
+                        ctx.fillText(inLabels[i], layerX[0] - 10, nodeY(0, i, nIn) + 3);
+                        ctx.textAlign = 'left';
+                    }
+                    for (let j = 0; j < nHid; j++) {
+                        const act = Math.min(1, Math.max(0, hid[j]));
+                        const r = Math.round(235 - act * 192);
+                        const g = Math.round(244 - act * 136);
+                        const b2 = Math.round(255 - act * 79);
+                        drawNode(ctx, layerX[1], nodeY(1, j, nHid), 5, `rgb(${r},${g},${b2})`, color);
+                    }
+                    for (let k = 0; k < nOut; k++) {
+                        drawNode(ctx, layerX[2], nodeY(2, k, nOut), 8, '#fefcbf', color);
+                        ctx.fillStyle = '#2d3748';
+                        ctx.font = 'bold 10px "JetBrains Mono", monospace';
+                        ctx.textAlign = 'left';
+                        ctx.fillText(out[k].toFixed(2), layerX[2] + 12, nodeY(2, k, nOut) + 4);
+                    }
+                }
+
+                function drawNode(ctx, x, y, r, fill, stroke) {
+                    ctx.beginPath();
+                    ctx.arc(x, y, r, 0, Math.PI * 2);
+                    ctx.fillStyle = fill; ctx.fill();
+                    ctx.strokeStyle = stroke; ctx.lineWidth = 1.2; ctx.stroke();
+                }
+
+                function roundRect(ctx, x, y, w, h, r) {
+                    ctx.beginPath();
+                    ctx.moveTo(x + r, y);
+                    ctx.lineTo(x + w - r, y);
+                    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+                    ctx.lineTo(x + w, y + h - r);
+                    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+                    ctx.lineTo(x + r, y + h);
+                    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+                    ctx.lineTo(x, y + r);
+                    ctx.quadraticCurveTo(x, y, x + r, y);
+                    ctx.closePath();
+                }
+
+                function getMaxAbs(w2d) {
+                    let m = 0;
+                    for (const row of w2d) for (const v of row) m = Math.max(m, Math.abs(v));
+                    return m;
+                }
+
+                function drawPolicyPlot() {
+                    const W = 260, H = 200;
+                    const ctx = getCtx('td3-policy-canvas', W, H);
+                    if (!ctx) return;
+                    ctx.clearRect(0, 0, W, H);
+
+                    const pad = { l: 38, r: 12, t: 12, b: 28 };
+                    const pw = W - pad.l - pad.r;
+                    const ph = H - pad.t - pad.b;
+
+                    ctx.strokeStyle = '#cbd5e0'; ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, H - pad.b); ctx.lineTo(W - pad.r, H - pad.b);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#718096';
+                    ctx.font = '10px "Source Han Serif SC", Georgia, serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('ctr (点击率)', pad.l + pw / 2, H - 4);
+                    ctx.save();
+                    ctx.translate(10, pad.t + ph / 2);
+                    ctx.rotate(-Math.PI / 2);
+                    ctx.fillText('出价', 0, 0);
+                    ctx.restore();
+
+                    ctx.fillStyle = '#a0aec0'; ctx.font = '9px monospace'; ctx.textAlign = 'right';
+                    for (let v = 0; v <= 1; v += 0.25) {
+                        const y = pad.t + ph * (1 - v);
+                        ctx.fillText(v.toFixed(1), pad.l - 4, y + 3);
+                        ctx.strokeStyle = '#edf2f7'; ctx.beginPath();
+                        ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+                    }
+                    ctx.textAlign = 'center';
+                    for (let v = 0; v <= 1; v += 0.25) {
+                        const x = pad.l + pw * v;
+                        ctx.fillText(v.toFixed(1), x, H - pad.b + 14);
+                    }
+
+                    if (policyHistory.length > 1) {
+                        ctx.strokeStyle = '#2b6cb0'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+                        ctx.beginPath();
+                        for (let i = 0; i < policyHistory.length; i++) {
+                            const px = pad.l + policyHistory[i].x * pw;
+                            const py = pad.t + (1 - policyHistory[i].y) * ph;
+                            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                        }
+                        ctx.stroke();
+                    }
+
+                    ctx.fillStyle = '#c53030';
+                    for (const dot of explorationDots) {
+                        const px = pad.l + dot.x * pw;
+                        const py = pad.t + (1 - dot.yAct) * ph;
+                        ctx.beginPath(); ctx.arc(px, py, 2.5, 0, Math.PI * 2); ctx.fill();
+                    }
+                }
+
+                function drawCriticPlot() {
+                    const W = 260, H = 200;
+                    const ctx = getCtx('td3-critic-canvas', W, H);
+                    if (!ctx) return;
+                    ctx.clearRect(0, 0, W, H);
+
+                    const pad = { l: 38, r: 12, t: 12, b: 28 };
+                    const pw = W - pad.l - pad.r;
+                    const ph = H - pad.t - pad.b;
+
+                    ctx.strokeStyle = '#cbd5e0'; ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, H - pad.b); ctx.lineTo(W - pad.r, H - pad.b);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#718096';
+                    ctx.font = '10px "Source Han Serif SC", Georgia, serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('训练步', pad.l + pw / 2, H - 4);
+                    ctx.save();
+                    ctx.translate(10, pad.t + ph / 2);
+                    ctx.rotate(-Math.PI / 2);
+                    ctx.fillText('Q 值', 0, 0);
+                    ctx.restore();
+
+                    if (q1History.length < 2) return;
+
+                    const allVals = q1History.concat(q2History);
+                    let qMin = Math.min(...allVals);
+                    let qMax = Math.max(...allVals);
+                    const margin = Math.max(0.5, (qMax - qMin) * 0.15);
+                    qMin -= margin; qMax += margin;
+
+                    ctx.fillStyle = '#a0aec0'; ctx.font = '9px monospace'; ctx.textAlign = 'right';
+                    const step = (qMax - qMin) / 4;
+                    for (let i = 0; i <= 4; i++) {
+                        const v = qMin + i * step;
+                        const y = pad.t + ph * (1 - i / 4);
+                        ctx.fillText(v.toFixed(1), pad.l - 4, y + 3);
+                        ctx.strokeStyle = '#edf2f7'; ctx.beginPath();
+                        ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+                    }
+
+                    const n = q1History.length;
+                    function toX(i) { return pad.l + (i / (n - 1)) * pw; }
+                    function toY(v) { return pad.t + (1 - (v - qMin) / (qMax - qMin)) * ph; }
+
+                    ctx.strokeStyle = '#2b6cb0'; ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    for (let i = 0; i < n; i++) {
+                        const px = toX(i), py = toY(q1History[i]);
+                        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                    }
+                    ctx.stroke();
+
+                    ctx.strokeStyle = '#c53030'; ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    for (let i = 0; i < n; i++) {
+                        const px = toX(i), py = toY(q2History[i]);
+                        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                    }
+                    ctx.stroke();
+
+                    ctx.strokeStyle = '#805ad5'; ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 3]);
+                    ctx.beginPath();
+                    for (let i = 0; i < n; i++) {
+                        const px = toX(i), py = toY(qMinHistory[i]);
+                        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                    }
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+
+                function drawRewardCurve() {
+                    const W = 560, H = 120;
+                    const ctx = getCtx('td3-reward-canvas', W, H);
+                    if (!ctx) return;
+                    ctx.clearRect(0, 0, W, H);
+
+                    const pad = { l: 45, r: 12, t: 10, b: 22 };
+                    const pw = W - pad.l - pad.r;
+                    const ph = H - pad.t - pad.b;
+
+                    ctx.strokeStyle = '#cbd5e0'; ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, H - pad.b); ctx.lineTo(W - pad.r, H - pad.b);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#718096';
+                    ctx.font = '10px "Source Han Serif SC", Georgia, serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Episode', pad.l + pw / 2, H - 2);
+
+                    if (episodeRewards.length < 2) {
+                        ctx.fillStyle = '#a0aec0';
+                        ctx.fillText('等待训练...', pad.l + pw / 2, pad.t + ph / 2);
+                        return;
+                    }
+
+                    let rMin = Math.min(...episodeRewards);
+                    let rMax = Math.max(...episodeRewards);
+                    const mg = Math.max(1, (rMax - rMin) * 0.1);
+                    rMin -= mg; rMax += mg;
+
+                    ctx.fillStyle = '#a0aec0'; ctx.font = '9px monospace'; ctx.textAlign = 'right';
+                    for (let i = 0; i <= 3; i++) {
+                        const v = rMin + (rMax - rMin) * i / 3;
+                        const y = pad.t + ph * (1 - i / 3);
+                        ctx.fillText(v.toFixed(0), pad.l - 4, y + 3);
+                    }
+
+                    const n = episodeRewards.length;
+                    function toX(i) { return pad.l + (i / (n - 1)) * pw; }
+                    function toY(v) { return pad.t + (1 - (v - rMin) / (rMax - rMin)) * ph; }
+
+                    ctx.strokeStyle = 'rgba(43,108,176,0.3)'; ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    for (let i = 0; i < n; i++) {
+                        const px = toX(i), py = toY(episodeRewards[i]);
+                        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                    }
+                    ctx.stroke();
+
+                    if (n >= 5) {
+                        ctx.strokeStyle = '#2b6cb0'; ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        const wSize = Math.min(10, n);
+                        for (let i = wSize - 1; i < n; i++) {
+                            let sum = 0;
+                            for (let j = i - wSize + 1; j <= i; j++) sum += episodeRewards[j];
+                            const avg = sum / wSize;
+                            const px = toX(i), py = toY(avg);
+                            if (i === wSize - 1) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                        }
+                        ctx.stroke();
+                    }
+                }
+
+                // ---- UI updates ----
+                function updateInfo(detA, noise, actA, q1, q2) {
+                    const infoEl = document.getElementById('td3-info');
+                    if (infoEl) {
+                        infoEl.innerHTML = `训练步 <strong>${totalSteps}</strong> &nbsp;|&nbsp; 探索噪声 $\\sigma$: <strong>${EXPLORE_NOISE.toFixed(2)}</strong> &nbsp;|&nbsp; 缓冲区: <strong>${buffer.length}</strong>/${BUFFER_MAX}`;
+                    }
+                    const stateEl = document.getElementById('td3-state');
+                    if (stateEl) stateEl.textContent = `budget=${currentState[0].toFixed(2)}, ctr=${currentState[1].toFixed(2)}`;
+                    const detEl = document.getElementById('td3-det-action');
+                    if (detEl) detEl.textContent = detA.toFixed(3);
+                    const noiseEl = document.getElementById('td3-noise');
+                    if (noiseEl) noiseEl.textContent = (noise >= 0 ? '+' : '') + noise.toFixed(3);
+                    const actEl = document.getElementById('td3-actual-action');
+                    if (actEl) actEl.textContent = actA.toFixed(3);
+                    const q1El = document.getElementById('td3-q1');
+                    if (q1El) q1El.textContent = q1.toFixed(2);
+                    const q2El = document.getElementById('td3-q2');
+                    if (q2El) q2El.textContent = q2.toFixed(2);
+                    const qmEl = document.getElementById('td3-qmin');
+                    if (qmEl) qmEl.textContent = Math.min(q1, q2).toFixed(2);
+                    const delayEl = document.getElementById('td3-delay-status');
+                    if (delayEl) {
+                        const updated = actorUpdatedThisStep;
+                        delayEl.innerHTML = `每2步一次 (当前第${totalSteps}步, 本步Actor<span class="${updated ? 'dp-pos' : 'dp-dim'}">${updated ? '已更新' : '未更新'}</span>)`;
+                    }
+
+                    if (window.renderMathInElement) {
+                        const infoBar = document.getElementById('td3-info');
+                        if (infoBar) renderMathInElement(infoBar, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});
+                    }
+                }
+
+                // ---- Public API ----
+                function nextStep() { trainStep(); }
+
+                function toggleAuto() {
+                    isAuto = !isAuto;
+                    const btn = document.getElementById('td3-btn-auto');
+                    if (isAuto) {
+                        btn.textContent = '暂停';
+                        btn.classList.add('active-btn');
+                        autoTimer = setInterval(() => { trainStep(); }, 80);
+                    } else {
+                        btn.textContent = '自动训练';
+                        btn.classList.remove('active-btn');
+                        clearInterval(autoTimer);
+                        autoTimer = null;
+                    }
+                }
+
+                function fastConverge() {
+                    if (isAuto) toggleAuto();
+                    for (let i = 0; i < 500; i++) trainStep();
+                }
+
+                function resetDemo() {
+                    if (isAuto) toggleAuto();
+                    init();
+                    updateInfo(0, 0, 0, 0, 0);
+                    drawAll();
+                }
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', () => { init(); drawAll(); });
+                } else {
+                    init(); drawAll();
+                }
+
+                return {
+                    nextStep: nextStep,
+                    toggleAuto: toggleAuto,
+                    fastConverge: fastConverge,
+                    reset: resetDemo
+                };
+            })();
+            </script>
+
+            <!-- ==================== 实现注记 ==================== -->
+            <h2>实现注记</h2>
+
+            <p>在将上述代码应用于实际的 RTB 问题时，有几点需要注意：</p>
+
+            <ul>
+                <li><strong>状态设计</strong>。实际的 RTB 系统中状态会更加丰富，可能包括用户画像特征、广告创意特征、时段特征、历史竞价统计等。状态维度从 4 维扩展到数十维，但 TD3 的算法结构不需要改变。</li>
+                <li><strong>动作范围</strong>。这里出价被归一化到 $[0, 1]$，实际中需要根据业务场景将其映射回实际出价金额。如果动作范围不对称或存在约束（如出价不能低于底价），可以在 Actor 输出后做相应的变换。</li>
+                <li><strong>奖励稀疏性</strong>。RTB 中大部分展示不会产生点击，导致奖励信号稀疏。实践中常使用奖励塑形（reward shaping），例如将竞价胜出本身也赋予一个小的正奖励，帮助算法更快学习。</li>
+                <li><strong>预算约束</strong>。这里通过状态中的剩余预算比例和环境的自然终止来隐式处理预算约束。更复杂的做法可以引入 Lagrangian 方法或约束优化来显式处理预算限制。</li>
+            </ul>
+
+            <div class="result-box">
+                <strong>核心要点：</strong>广告实时竞价是一个典型的连续动作 off-policy 问题：出价是连续值，历史竞价数据可以重复利用。TD3 的确定性策略直接输出出价金额，双 Critic 防止策略学到"虚假高价值"的出价策略，延迟更新和目标平滑进一步保证训练稳定性。
+            </div>
+
+            <div class="chapter-nav">
+                <a href="../ch05/5.3.1.html">&larr; 5.3.1 DDPG与TD3算法</a>
+                <a href="../ch05/5.4.html">5.4 Soft Actor-Critic &rarr;</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

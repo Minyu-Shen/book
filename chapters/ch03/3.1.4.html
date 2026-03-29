@@ -212,7 +212,7 @@
                     <span id="lam-val" style="font-weight:700; color:#2b6cb0; min-width:3.5em; font-size:1rem;">0.70</span>
                 </div>
                 <canvas id="wt-canvas" width="520" height="220" style="max-width:100%;"></canvas>
-                <p class="fig-caption">图 3.1-5 &nbsp; $\lambda$-回报中各 $n$ 步回报的权重分布（显示 $n=1$ 至 $n=10$，灰色虚线柱为剩余权重）。拖动滑块观察：$\lambda$ 越小，权重越集中在短步回报；$\lambda$ 越大，权重分布越平坦。$\lambda = 1$ 时所有有限项的权重趋于零，全部权重归入完整回报（MC）。</p>
+                <p class="fig-caption">图 3.1-7 &nbsp; $\lambda$-回报中各 $n$ 步回报的权重分布（显示 $n=1$ 至 $n=10$，灰色虚线柱为剩余权重）。拖动滑块观察：$\lambda$ 越小，权重越集中在短步回报；$\lambda$ 越大，权重分布越平坦。$\lambda = 1$ 时所有有限项的权重趋于零，全部权重归入完整回报（MC）。</p>
             </div>
 
             <p>有了 $\lambda$-回报，值函数的更新规则就是：</p>
@@ -290,7 +290,7 @@
                 <div id="lc-legend" style="text-align:center; margin-top:0.5rem; font-size:0.88rem;"></div>
             </div>
 
-            <p class="fig-caption">图 3.1-6 &nbsp; 不同 $\lambda$ 下 TD($\lambda$) 对 $V(c)$ 的估计值随回合数的变化。紫色虚线为真实值 $V^\pi(c) = 52.3$。</p>
+            <p class="fig-caption">图 3.1-8 &nbsp; 不同 $\lambda$ 下 TD($\lambda$) 对 $V(c)$ 的估计值随回合数的变化。紫色虚线为真实值 $V^\pi(c) = 52.3$。</p>
 
             <p>可以观察到：$\lambda = 1$（MC，红色）的曲线波动最大，这正是高方差的体现——每次更新依赖整条轨迹的随机性。$\lambda = 0$（TD(0)，蓝色）波动较小但收敛较慢，因为每步只利用一步信息。$\lambda = 0.7$（黄色）兼顾了两者的优点，通常收敛最快。不过需要说明的是，网约车例子只有3个状态，问题非常小，不同 $\lambda$ 的差异不如在大规模问题上那么显著。点击"重新运行"多看几次随机种子下的结果，可以更全面地感受这种差异。</p>
 
